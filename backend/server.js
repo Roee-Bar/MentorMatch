@@ -194,7 +194,7 @@ if (require.main === module) {
 module.exports = app;
 
 // vite.config.js
-export default {
+module.exports = {
   server: {
     port: 4001, // New port
   },
