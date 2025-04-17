@@ -183,7 +183,7 @@ app.use((err, req, res, next) => {
 
 // Start the server only if this file is executed directly
 if (require.main === module) {
-  const PORT = process.env.PORT || 3001;
+  const PORT = 4000;
   app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV}`);
@@ -192,3 +192,10 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+// vite.config.js
+export default {
+  server: {
+    port: 4001, // New port
+  },
+};
