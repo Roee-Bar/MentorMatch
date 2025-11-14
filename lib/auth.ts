@@ -1,3 +1,6 @@
+// auth.ts
+// This file has all the functions for user authentication (signup, login, logout)
+
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
@@ -9,23 +12,15 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase';
 
 // Sign up a new user
-export const signUp = async (
-  email: string, 
-  password: string, 
-  userData: {
-    name: string;
-    role: 'student' | 'supervisor' | 'admin';
-    department?: string;
-  }
-) => {
+export const signUp = async (email: string, password: string, userData: any) => {
   try {
-    // Create authentication account
+    // Create account in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Create user document in Firestore with the userId field
+    // Save user info to Firestore database
     await setDoc(doc(db, 'users', user.uid), {
-      userId: user.uid, // This is important for security rules!
+      userId: user.uid,
       email: email,
       name: userData.name,
       role: userData.role,
@@ -33,10 +28,8 @@ export const signUp = async (
       createdAt: new Date(),
     });
 
-    console.log('✅ User created successfully:', user.uid);
     return { success: true, user };
   } catch (error: any) {
-    console.error('❌ Sign up error:', error.message);
     return { success: false, error: error.message };
   }
 };
@@ -45,42 +38,36 @@ export const signUp = async (
 export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log('✅ User signed in:', userCredential.user.uid);
     return { success: true, user: userCredential.user };
   } catch (error: any) {
-    console.error('❌ Sign in error:', error.message);
     return { success: false, error: error.message };
   }
 };
 
-// Sign out
+// Sign out current user
 export const signOut = async () => {
   try {
     await firebaseSignOut(auth);
-    console.log('✅ User signed out');
     return { success: true };
   } catch (error: any) {
-    console.error('❌ Sign out error:', error.message);
     return { success: false, error: error.message };
   }
 };
 
-// Get user profile data from Firestore
+// Get user profile from database
 export const getUserProfile = async (uid: string) => {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid));
     if (userDoc.exists()) {
       return { success: true, data: userDoc.data() };
-    } else {
-      return { success: false, error: 'User profile not found' };
     }
+    return { success: false, error: 'User not found' };
   } catch (error: any) {
-    console.error('❌ Get user profile error:', error.message);
     return { success: false, error: error.message };
   }
 };
 
-// Listen to authentication state changes
+// Listen for login/logout changes (runs a function whenever user logs in or out)
 export const onAuthChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
