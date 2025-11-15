@@ -34,6 +34,7 @@ After resolving these initial challenges, we successfully achieved our first mil
 
 ---
 
+<<<<<<< HEAD
 ## User Profile Page Development Phase
 
 ### Implementation Overview
@@ -106,6 +107,8 @@ Established a complete testing infrastructure with automated CI/CD integration, 
 
 ---
 
+=======
+>>>>>>> d34693ab5ac6fa7924df177d0326a659d6d7a2c7
 ## Next Steps
 _To be documented as development continues..._
 

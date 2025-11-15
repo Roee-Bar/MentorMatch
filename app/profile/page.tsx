@@ -1,4 +1,4 @@
-import UserProfile from '@/components/UserProfile';
+//import UserProfile from '@/components/UserProfile';
 import { User } from '@/types/user';
 import Link from 'next/link';
 
@@ -94,7 +94,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Personal Profile</h2>
@@ -102,7 +102,7 @@ export default function ProfilePage() {
         </div>
 
         <UserProfile user={currentUser} />
-      </main>
+      </main> */}
 
       {/* Footer */}
       <footer className="mt-16 bg-white border-t border-gray-200">
