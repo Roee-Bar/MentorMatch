@@ -181,7 +181,7 @@ function LoginPage({ setCurrentView }: { setCurrentView: (view: 'landing' | 'log
 
         <div className="mt-6 text-center text-gray-500 text-sm">
           <p>
-            Don't have an account?{' '}
+            Dont have an account?{' '}
             <button
               onClick={() => setCurrentView('signup')}
               className="bg-transparent border-none text-blue-600 cursor-pointer font-bold underline text-sm hover:text-blue-700"

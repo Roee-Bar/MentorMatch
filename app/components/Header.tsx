@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { onAuthChange, signOut, getUserProfile } from '@/lib/auth'
 import { User } from 'firebase/auth'
 
@@ -55,7 +56,7 @@ export default function Header() {
       <div className="max-w-[1200px] mx-auto flex items-center justify-between">
         {/* Logo Section */}
         <div className="flex items-center gap-4">
-          <span className="text-[32px]">🎓</span>
+          <span className="text-[32px]">INSERT IMAGE HERE</span>
           <div>
             <h1 className="m-0 text-2xl font-bold">MentorMatch</h1>
             <p className="m-0 text-xs opacity-90">Braude College of Engineering</p>
@@ -71,7 +72,7 @@ export default function Header() {
             >
               {/* Avatar or Initials */}
               {userProfile.photoURL ? (
-                <img
+                <Image
                   src={userProfile.photoURL}
                   alt={userProfile.name}
                   className="w-10 h-10 rounded-full object-cover border-2 border-white"

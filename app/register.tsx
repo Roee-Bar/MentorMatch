@@ -525,7 +525,7 @@ export default function StudentRegistration({ setCurrentView }: StudentRegistrat
             <div className="flex-shrink-0">
               {photoPreview ? (
                 <div className="relative">
-                  <img
+                  <Image
                     src={photoPreview}
                     alt="Profile preview"
                     className="w-32 h-32 rounded-full object-cover border-4 border-blue-600"
@@ -562,7 +562,7 @@ export default function StudentRegistration({ setCurrentView }: StudentRegistrat
               />
               
               <p className="text-xs text-gray-400 mt-2">
-                💡 Tip: If you don't upload a photo, we'll use your initials ({getInitials() || 'XX'})
+                💡 Tip: If you dont upload a photo, well use your initials ({getInitials() || 'XX'})
               </p>
             </div>
           </div>
