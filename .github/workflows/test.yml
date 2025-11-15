@@ -38,3 +38,72 @@ jobs:
         path: coverage/
         retention-days: 7
 
+  # Build check job - simulates Vercel build process
+  # This job replicates Vercel's exact build process:
+  # 1. Uses npm install (as specified in vercel.json installCommand)
+  # 2. Runs the buildCommand from vercel.json (next build)
+  # 3. Sets NODE_ENV=production (Vercel does this automatically)
+  # This ensures the build will succeed on Vercel before deployment
+  build-check:
+    name: Vercel Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies (matching Vercel)
+      run: npm install
+      # Note: Using 'npm install' instead of 'npm ci' to match Vercel's installCommand
+      # This matches vercel.json: "installCommand": "npm install"
+
+    - name: Verify Vercel configuration
+      run: |
+        echo "Verifying Vercel build configuration..."
+        echo "Build command from vercel.json: $(node -e "console.log(require('./vercel.json').buildCommand || 'next build')")"
+        echo "Install command from vercel.json: $(node -e "console.log(require('./vercel.json').installCommand || 'npm install')")"
+        echo "Framework: $(node -e "console.log(require('./vercel.json').framework || 'auto-detect')")"
+
+    - name: Run Vercel build simulation
+      run: |
+        echo "Running build check (simulating Vercel build process)..."
+        echo "Executing: npm run build (matches vercel.json buildCommand)"
+        npm run build
+      env:
+        # Environment variables that Vercel sets automatically
+        NODE_ENV: production
+        NEXT_TELEMETRY_DISABLED: 1
+        # Vercel automatically sets NODE_ENV=production during builds
+
+    - name: Build summary
+      if: success()
+      run: |
+        echo "Build check passed!"
+        echo "This build process matches Vercel's configuration:"
+        echo "  - Used: npm install (matches vercel.json installCommand)"
+        echo "  - Built: npm run build (matches vercel.json buildCommand)"
+        echo "  - Environment: NODE_ENV=production (Vercel default)"
+        echo ""
+        echo "The project should build successfully on Vercel."
+        echo "Build output is available in the .next directory"
+
+    - name: Build failure summary
+      if: failure()
+      run: |
+        echo "Build check failed!"
+        echo ""
+        echo "This build process matches Vercel's configuration:"
+        echo "  - Used: npm install (matches vercel.json installCommand)"
+        echo "  - Built: npm run build (matches vercel.json buildCommand)"
+        echo "  - Environment: NODE_ENV=production (Vercel default)"
+        echo ""
+        echo "Since this matches Vercel's build process, the deployment would likely fail on Vercel as well."
+        echo "Check the logs above for build error details."
+        exit 1
+
