@@ -1,4 +1,5 @@
 import { User } from '@/types/user';
+import Image from 'next/image';
 
 interface UserProfileProps {
   user: User;
@@ -42,9 +43,11 @@ export default function UserProfile({ user }: UserProfileProps) {
           {/* Profile Image */}
           <div className="flex justify-center -mt-16 mb-4">
             <div className="relative">
-              <img
+              <Image
                 src={user.profileImage}
                 alt={user.name}
+                width={128}
+                height={128}
                 className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
               />
               <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
