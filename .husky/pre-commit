@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Validate that package-lock.json is in sync with package.json
+echo "Validating package-lock.json sync..."
+npm ci --dry-run
+
+if [ $? -ne 0 ]; then
+  echo " Error: package-lock.json is out of sync with package.json"
+  echo " Please run: npm install"
+  exit 1
+fi
+
+echo " package-lock.json is in sync"
+
+# Run tests
+echo " Running tests..."
+npm test

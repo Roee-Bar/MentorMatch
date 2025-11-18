@@ -1,42 +1,44 @@
-//import UserProfile from '@/components/UserProfile';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { User } from '@/types/user';
+import { UserService } from '@/mock-data';
 import Link from 'next/link';
 
 export default function ProfilePage() {
-  // Mock user data - In a real application, this would come from authentication
-  // and would be dynamically loaded based on the logged-in user
-  const currentUser: User = {
-    id: '1',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@student.braude.ac.il',
-    role: 'student',
-    profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
-    studentId: 'STU-2024-001',
-    degree: 'B.Sc. in Software Engineering',
-  };
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Example of other user types that could be loaded:
-  // 
-  // Supervisor example:
-  // const currentUser: User = {
-  //   id: '2',
-  //   name: 'Dr. Michael Cohen',
-  //   email: 'michael.cohen@braude.ac.il',
-  //   role: 'supervisor',
-  //   profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
-  //   department: 'Software Engineering',
-  //   expertise: ['Machine Learning', 'Computer Vision', 'Deep Learning', 'AI Systems'],
-  // };
-  //
-  // Admin example:
-  // const currentUser: User = {
-  //   id: '3',
-  //   name: 'Prof. David Miller',
-  //   email: 'david.miller@braude.ac.il',
-  //   role: 'admin',
-  //   profileImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
-  //   department: 'Administration',
-  // };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await UserService.getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+        <div className="text-center">User not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

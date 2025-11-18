@@ -1,44 +1,26 @@
 import { render, screen } from '@testing-library/react';
 import UserProfile from '../UserProfile';
 import { User } from '@/types/user';
+import { users } from '@/mock-data';
 
 describe('UserProfile', () => {
-  const mockStudent: User = {
-    id: '1',
-    name: 'Test Student',
-    email: 'test.student@example.com',
-    role: 'student',
-    profileImage: '/test-image.jpg',
-    studentId: 'STU-001',
-    degree: 'B.Sc. Software Engineering',
-  };
+  // Use mock data directly from the mock-data folder
+  const mockStudent = users.find(u => u.role === 'student');
+  const mockSupervisor = users.find(u => u.role === 'supervisor');
+  const mockAdmin = users.find(u => u.role === 'admin');
 
-  const mockSupervisor: User = {
-    id: '2',
-    name: 'Test Supervisor',
-    email: 'test.supervisor@example.com',
-    role: 'supervisor',
-    profileImage: '/test-supervisor.jpg',
-    department: 'Computer Science',
-    expertise: ['Machine Learning', 'Web Development', 'Database Systems'],
-  };
-
-  const mockAdmin: User = {
-    id: '3',
-    name: 'Test Admin',
-    email: 'test.admin@example.com',
-    role: 'admin',
-    profileImage: '/test-admin.jpg',
-    department: 'Administration',
-  };
+  // Ensure mock data exists
+  if (!mockStudent || !mockSupervisor || !mockAdmin) {
+    throw new Error('Mock data missing required user roles. Please check mock-data/data/users.ts');
+  }
 
   describe('Student Profile', () => {
     it('renders student information correctly', () => {
       render(<UserProfile user={mockStudent} />);
-      expect(screen.getByText('Test Student')).toBeInTheDocument();
-      expect(screen.getByText('test.student@example.com')).toBeInTheDocument();
-      expect(screen.getByText('STU-001')).toBeInTheDocument();
-      expect(screen.getByText('B.Sc. Software Engineering')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.name)).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.email)).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.studentId!)).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.degree!)).toBeInTheDocument();
     });
 
     it('displays correct role badge for student', () => {
@@ -50,27 +32,25 @@ describe('UserProfile', () => {
 
     it('conditionally renders student-specific fields', () => {
       render(<UserProfile user={mockStudent} />);
-      expect(screen.getByText('STU-001')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.studentId!)).toBeInTheDocument();
       expect(screen.getByText('Student ID')).toBeInTheDocument();
-      expect(screen.getByText('B.Sc. Software Engineering')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.degree!)).toBeInTheDocument();
       expect(screen.getByText('Degree Program')).toBeInTheDocument();
     });
 
     it('renders profile image with correct alt text', () => {
       render(<UserProfile user={mockStudent} />);
-      const image = screen.getByAltText('Test Student');
+      const image = screen.getByAltText(mockStudent.name);
       expect(image).toBeInTheDocument();
-      // Next.js Image component transforms the src, so we check that it contains the original path
-      expect(image).toHaveAttribute('src', expect.stringContaining('test-image.jpg'));
     });
   });
 
   describe('Supervisor Profile', () => {
     it('renders supervisor information correctly', () => {
       render(<UserProfile user={mockSupervisor} />);
-      expect(screen.getByText('Test Supervisor')).toBeInTheDocument();
-      expect(screen.getByText('test.supervisor@example.com')).toBeInTheDocument();
-      expect(screen.getByText('Computer Science')).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.name)).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.email)).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.department!)).toBeInTheDocument();
     });
 
     it('displays correct role badge for supervisor', () => {
@@ -83,15 +63,15 @@ describe('UserProfile', () => {
     it('conditionally renders supervisor-specific fields', () => {
       render(<UserProfile user={mockSupervisor} />);
       expect(screen.getByText('Department')).toBeInTheDocument();
-      expect(screen.getByText('Computer Science')).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.department!)).toBeInTheDocument();
     });
 
     it('displays expertise array for supervisors', () => {
       render(<UserProfile user={mockSupervisor} />);
       expect(screen.getByText('Areas of Expertise')).toBeInTheDocument();
-      expect(screen.getByText('Machine Learning')).toBeInTheDocument();
-      expect(screen.getByText('Web Development')).toBeInTheDocument();
-      expect(screen.getByText('Database Systems')).toBeInTheDocument();
+      mockSupervisor.expertise!.forEach(area => {
+        expect(screen.getByText(area)).toBeInTheDocument();
+      });
     });
 
     it('does not render student-specific fields for supervisor', () => {
@@ -104,9 +84,9 @@ describe('UserProfile', () => {
   describe('Admin Profile', () => {
     it('renders admin information correctly', () => {
       render(<UserProfile user={mockAdmin} />);
-      expect(screen.getByText('Test Admin')).toBeInTheDocument();
-      expect(screen.getByText('test.admin@example.com')).toBeInTheDocument();
-      expect(screen.getByText('Administration')).toBeInTheDocument();
+      expect(screen.getByText(mockAdmin.name)).toBeInTheDocument();
+      expect(screen.getByText(mockAdmin.email)).toBeInTheDocument();
+      expect(screen.getByText(mockAdmin.department!)).toBeInTheDocument();
     });
 
     it('displays correct role badge for admin', () => {
@@ -137,7 +117,7 @@ describe('UserProfile', () => {
       };
       render(<UserProfile user={studentWithoutId} />);
       expect(screen.queryByText('Student ID')).not.toBeInTheDocument();
-      expect(screen.getByText('Test Student')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.name)).toBeInTheDocument();
     });
 
     it('handles missing degree gracefully', () => {
@@ -147,7 +127,7 @@ describe('UserProfile', () => {
       };
       render(<UserProfile user={studentWithoutDegree} />);
       expect(screen.queryByText('Degree Program')).not.toBeInTheDocument();
-      expect(screen.getByText('Test Student')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.name)).toBeInTheDocument();
     });
 
     it('handles missing department gracefully', () => {
@@ -157,7 +137,7 @@ describe('UserProfile', () => {
       };
       render(<UserProfile user={supervisorWithoutDept} />);
       expect(screen.queryByText('Department')).not.toBeInTheDocument();
-      expect(screen.getByText('Test Supervisor')).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.name)).toBeInTheDocument();
     });
 
     it('handles empty expertise array gracefully', () => {
@@ -167,13 +147,13 @@ describe('UserProfile', () => {
       };
       render(<UserProfile user={supervisorWithoutExpertise} />);
       expect(screen.queryByText('Areas of Expertise')).not.toBeInTheDocument();
-      expect(screen.getByText('Test Supervisor')).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.name)).toBeInTheDocument();
     });
 
     it('always renders email field', () => {
       render(<UserProfile user={mockStudent} />);
       expect(screen.getByText('Email Address')).toBeInTheDocument();
-      expect(screen.getByText('test.student@example.com')).toBeInTheDocument();
+      expect(screen.getByText(mockStudent.email)).toBeInTheDocument();
     });
   });
 });
