@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { signOut, onAuthChange, getUserProfile } from '@/lib/auth';
 import Header from '../Header';
+import { users } from '@/mock-data';
 
 // Mock Next.js navigation and Link
 jest.mock('next/navigation', () => ({
@@ -8,9 +9,11 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => {
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => {
     return <a href={href}>{children}</a>;
   };
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 // Mock Next.js Image
@@ -30,6 +33,14 @@ jest.mock('@/lib/auth', () => ({
 }));
 
 describe('Header', () => {
+  // Use mock data directly from the mock-data folder
+  const mockStudent = users.find(u => u.role === 'student');
+
+  // Ensure mock data exists
+  if (!mockStudent) {
+    throw new Error('Mock student data is missing. Please check mock-data/data/users.ts');
+  }
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -48,8 +59,8 @@ describe('Header', () => {
 
   it('should show user avatar when authenticated', async () => {
     const mockUser = {
-      uid: 'test-uid',
-      email: 'test@example.com',
+      uid: mockStudent.id,
+      email: mockStudent.email,
     };
 
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -61,24 +72,20 @@ describe('Header', () => {
 
     (getUserProfile as jest.Mock).mockResolvedValue({
       success: true,
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'student',
-      },
+      data: mockStudent,
     });
 
     render(<Header />);
 
     await waitFor(() => {
-      expect(screen.getByText(/test user/i)).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(mockStudent.name, 'i'))).toBeInTheDocument();
     });
   });
 
   it('should show dropdown menu when avatar is clicked', async () => {
     const mockUser = {
-      uid: 'test-uid',
-      email: 'test@example.com',
+      uid: mockStudent.id,
+      email: mockStudent.email,
     };
 
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -90,17 +97,13 @@ describe('Header', () => {
 
     (getUserProfile as jest.Mock).mockResolvedValue({
       success: true,
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'student',
-      },
+      data: mockStudent,
     });
 
     render(<Header />);
 
     await waitFor(() => {
-      const avatarButton = screen.getByText(/test user/i).closest('button');
+      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
       if (avatarButton) {
         fireEvent.click(avatarButton);
         expect(screen.getByText(/view profile/i)).toBeInTheDocument();
@@ -110,8 +113,8 @@ describe('Header', () => {
 
   it('should have "View Profile" link that navigates to "/profile"', async () => {
     const mockUser = {
-      uid: 'test-uid',
-      email: 'test@example.com',
+      uid: mockStudent.id,
+      email: mockStudent.email,
     };
 
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -123,17 +126,13 @@ describe('Header', () => {
 
     (getUserProfile as jest.Mock).mockResolvedValue({
       success: true,
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'student',
-      },
+      data: mockStudent,
     });
 
     render(<Header />);
 
     await waitFor(() => {
-      const avatarButton = screen.getByText(/test user/i).closest('button');
+      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
       if (avatarButton) {
         fireEvent.click(avatarButton);
         const profileLink = screen.getByText(/view profile/i).closest('a');
@@ -144,8 +143,8 @@ describe('Header', () => {
 
   it('should call signOut function when logout button is clicked', async () => {
     const mockUser = {
-      uid: 'test-uid',
-      email: 'test@example.com',
+      uid: mockStudent.id,
+      email: mockStudent.email,
     };
 
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -157,17 +156,13 @@ describe('Header', () => {
 
     (getUserProfile as jest.Mock).mockResolvedValue({
       success: true,
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'student',
-      },
+      data: mockStudent,
     });
 
     render(<Header />);
 
     await waitFor(() => {
-      const avatarButton = screen.getByText(/test user/i).closest('button');
+      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
       if (avatarButton) {
         fireEvent.click(avatarButton);
         const logoutButton = screen.getByText(/logout/i);
@@ -179,8 +174,8 @@ describe('Header', () => {
 
   it('should close dropdown when clicking outside', async () => {
     const mockUser = {
-      uid: 'test-uid',
-      email: 'test@example.com',
+      uid: mockStudent.id,
+      email: mockStudent.email,
     };
 
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -192,17 +187,13 @@ describe('Header', () => {
 
     (getUserProfile as jest.Mock).mockResolvedValue({
       success: true,
-      data: {
-        name: 'Test User',
-        email: 'test@example.com',
-        role: 'student',
-      },
+      data: mockStudent,
     });
 
     render(<Header />);
 
     await waitFor(() => {
-      const avatarButton = screen.getByText(/test user/i).closest('button');
+      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
       if (avatarButton) {
         fireEvent.click(avatarButton);
         expect(screen.getByText(/view profile/i)).toBeInTheDocument();

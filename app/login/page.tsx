@@ -20,13 +20,13 @@ export default function LoginPage() {
     try {
       const result = await signIn(email, password)
       if (result.success) {
-        setMessage('✅ Login successful!')
+        setMessage('Login successful!')
         router.push('/dashboard')
       } else {
-        setMessage(`❌ ${result.error}`)
+        setMessage(`${result.error}`)
       }
     } catch (error: any) {
-      setMessage(`❌ Error: ${error.message}`)
+      setMessage(`Error: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -89,7 +89,7 @@ export default function LoginPage() {
 
           {message && (
             <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${
-              message.includes('✅') 
+              message.includes('successful') 
                 ? 'bg-green-100 text-green-800' 
                 : 'bg-red-100 text-red-800'
             }`}>

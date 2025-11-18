@@ -57,13 +57,13 @@ export default function RegisterPage() {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        setMessage('❌ Please select an image file (JPG, PNG, WebP)')
+        setMessage('Please select an image file (JPG, PNG, WebP)')
         return
       }
 
       // Validate file size (2MB max)
       if (file.size > 2 * 1024 * 1024) {
-        setMessage('❌ Image size must be less than 2MB')
+        setMessage('Image size must be less than 2MB')
         return
       }
 
@@ -112,13 +112,13 @@ export default function RegisterPage() {
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setMessage('❌ Passwords do not match!')
+      setMessage('Passwords do not match!')
       setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
-      setMessage('❌ Password must be at least 6 characters!')
+      setMessage('Password must be at least 6 characters!')
       setLoading(false)
       return
     }
@@ -135,7 +135,7 @@ export default function RegisterPage() {
       // Step 2: Upload photo if provided
       let photoURL = ''
       if (photoFile) {
-        setMessage('📸 Uploading photo...')
+        setMessage('Uploading photo...')
         photoURL = await uploadPhoto(user.uid)
       }
 
@@ -178,7 +178,7 @@ export default function RegisterPage() {
         updatedAt: new Date()
       })
 
-      setMessage('✅ Registration successful! Redirecting to dashboard...')
+      setMessage('Registration successful! Redirecting to dashboard...')
       
       // Redirect to dashboard after successful registration
       // Auto-login happens via auth state change, but we'll redirect anyway
@@ -189,13 +189,13 @@ export default function RegisterPage() {
       console.error('Registration error:', error)
       
       if (error.code === 'auth/email-already-in-use') {
-        setMessage('❌ This email is already registered. Please login instead.')
+        setMessage('This email is already registered. Please login instead.')
       } else if (error.code === 'auth/invalid-email') {
-        setMessage('❌ Invalid email address format.')
+        setMessage('Invalid email address format.')
       } else if (error.code === 'auth/weak-password') {
-        setMessage('❌ Password is too weak. Please use a stronger password.')
+        setMessage('Password is too weak. Please use a stronger password.')
       } else {
-        setMessage(`❌ Error: ${error.message}`)
+        setMessage(`Error: ${error.message}`)
       }
     } finally {
       setLoading(false)
@@ -565,7 +565,7 @@ export default function RegisterPage() {
               />
               
               <p className="text-xs text-gray-400 mt-2">
-                💡 Tip: If you dont upload a photo, well use your initials ({getInitials() || 'XX'})
+                Tip: If you dont upload a photo, well use your initials ({getInitials() || 'XX'})
               </p>
             </div>
           </div>
@@ -583,9 +583,9 @@ export default function RegisterPage() {
         {/* Status Message */}
         {message && (
           <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${
-            message.includes('✅') 
+            message.includes('successful') 
               ? 'bg-green-100 text-green-800' 
-              : message.includes('📸')
+              : message.includes('Uploading')
               ? 'bg-blue-100 text-blue-800'
               : 'bg-red-100 text-red-800'
           }`}>

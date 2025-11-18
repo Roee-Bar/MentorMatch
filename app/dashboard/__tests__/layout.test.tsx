@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import DashboardLayout from '../layout';
+import { users } from '@/mock-data';
 
 // Mock Next.js navigation
 jest.mock('next/navigation', () => ({
@@ -10,29 +11,31 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/dashboard/student',
 }));
 
-// Mock auth
-jest.mock('@/lib/auth', () => ({
-  onAuthChange: jest.fn((callback) => {
-    // Simulate authenticated user after a short delay
-    setTimeout(() => {
-      callback({
-        uid: 'test-uid',
-        email: 'test@example.com',
-      });
-    }, 0);
-    return jest.fn(); // unsubscribe function
-  }),
-  getUserProfile: jest.fn().mockResolvedValue({
-    success: true,
-    data: {
-      name: 'Test Student',
-      email: 'test@example.com',
-      role: 'student',
-      department: 'Computer Science',
-      createdAt: { seconds: Date.now() / 1000 },
-    },
-  }),
-}));
+// Mock auth - using mock data inside the factory function
+jest.mock('@/lib/auth', () => {
+  const { users } = jest.requireActual('@/mock-data');
+  const mockStudent = users.find((u: any) => u.role === 'student');
+
+  return {
+    onAuthChange: jest.fn((callback) => {
+      // Simulate authenticated user after a short delay
+      setTimeout(() => {
+        callback({
+          uid: mockStudent.id,
+          email: mockStudent.email,
+        });
+      }, 0);
+      return jest.fn(); // unsubscribe function
+    }),
+    getUserProfile: jest.fn().mockResolvedValue({
+      success: true,
+      data: {
+        ...mockStudent,
+        createdAt: { seconds: Date.now() / 1000 },
+      },
+    }),
+  };
+});
 
 describe('DashboardLayout', () => {
   it('should render loading state initially', () => {

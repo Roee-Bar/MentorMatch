@@ -65,7 +65,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/❌ invalid credentials/i)).toBeInTheDocument();
+      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
     });
   });
 
@@ -86,7 +86,7 @@ describe('LoginPage', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/✅ login successful!/i)).toBeInTheDocument();
+      expect(screen.getByText(/login successful!/i)).toBeInTheDocument();
     });
   });
 
