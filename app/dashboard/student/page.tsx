@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import StatCard from '@/components/dashboard/StatCard';
-import ApplicationCard from '@/components/dashboard/ApplicationCard';
-import SupervisorCard from '@/components/dashboard/SupervisorCard';
+import StatCard from '@/app/components/dashboard/StatCard';
+import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
+import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
 import { Application, Supervisor } from '@/types/dashboard';
 import { ApplicationService, SupervisorService } from '@/mock-data';
 

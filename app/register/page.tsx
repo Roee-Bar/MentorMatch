@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { db, storage } from '@/lib/firebase'
 import { doc, setDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -8,11 +10,8 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import Image from 'next/image'
 
-interface StudentRegistrationProps {
-  setCurrentView: (view: 'landing' | 'login' | 'signup') => void
-}
-
-export default function StudentRegistration({ setCurrentView }: StudentRegistrationProps) {
+export default function RegisterPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [photoFile, setPhotoFile] = useState<File | null>(null)
@@ -181,7 +180,11 @@ export default function StudentRegistration({ setCurrentView }: StudentRegistrat
 
       setMessage('✅ Registration successful! Redirecting to dashboard...')
       
-      // Auto-login happens via auth state change
+      // Redirect to dashboard after successful registration
+      // Auto-login happens via auth state change, but we'll redirect anyway
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 1500)
     } catch (error: any) {
       console.error('Registration error:', error)
       
@@ -209,12 +212,12 @@ export default function StudentRegistration({ setCurrentView }: StudentRegistrat
   return (
     <div className="py-10 px-5 max-w-[800px] mx-auto font-sans">
       {/* Back Button */}
-      <button
-        onClick={() => setCurrentView('landing')}
+      <Link
+        href="/"
         className="bg-transparent border-none text-blue-600 cursor-pointer text-sm mb-8 flex items-center gap-1 p-1 hover:underline"
       >
         ← Back to Home
-      </button>
+      </Link>
 
       {/* Header */}
       <div className="mb-10">
@@ -595,14 +598,15 @@ export default function StudentRegistration({ setCurrentView }: StudentRegistrat
       <div className="mt-8 text-center text-gray-500">
         <p className="text-sm">
           Already have an account?{' '}
-          <button
-            onClick={() => setCurrentView('login')}
+          <Link
+            href="/login"
             className="bg-transparent border-none text-blue-600 cursor-pointer font-bold underline text-sm hover:text-blue-700"
           >
             Login here
-          </button>
+          </Link>
         </p>
       </div>
     </div>
   )
 }
+

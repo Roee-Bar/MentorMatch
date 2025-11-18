@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
-import { onAuthChange, signOut, getUserProfile } from '@/lib/auth'
+import { onAuthChange, getUserProfile } from '@/lib/auth'
 import { User } from 'firebase/auth'
+import HeaderDropdown from './HeaderDropdown'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -38,11 +40,6 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleLogout = async () => {
-    await signOut()
-    setShowDropdown(false)
-  }
-
   const getInitials = (name: string) => {
     const names = name.split(' ')
     if (names.length >= 2) {
@@ -55,13 +52,13 @@ export default function Header() {
     <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-[1000]">
       <div className="max-w-[1200px] mx-auto flex items-center justify-between">
         {/* Logo Section */}
-        <div className="flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
           <span className="text-[32px]">INSERT IMAGE HERE</span>
           <div>
             <h1 className="m-0 text-2xl font-bold">MentorMatch</h1>
             <p className="m-0 text-xs opacity-90">Braude College of Engineering</p>
           </div>
-        </div>
+        </Link>
 
         {/* User Avatar Section */}
         {user && userProfile && (
@@ -69,6 +66,9 @@ export default function Header() {
             <button
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-full py-2 px-4 transition-colors cursor-pointer border-none"
+              aria-label="User menu"
+              aria-expanded={showDropdown}
+              aria-haspopup="true"
             >
               {/* Avatar or Initials */}
               {userProfile.photoURL ? (
@@ -101,32 +101,10 @@ export default function Header() {
 
             {/* Dropdown Menu */}
             {showDropdown && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800">
-                <div className="px-4 py-2 border-b border-gray-200">
-                  <p className="text-sm font-semibold">{userProfile.name}</p>
-                  <p className="text-xs text-gray-500">{userProfile.email}</p>
-                </div>
-                
-                <button
-                  onClick={() => {/* TODO: Navigate to profile */}}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  View Profile
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 text-red-600 border-none bg-transparent cursor-pointer"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Logout
-                </button>
-              </div>
+              <HeaderDropdown 
+                userProfile={userProfile} 
+                onClose={() => setShowDropdown(false)} 
+              />
             )}
           </div>
         )}
