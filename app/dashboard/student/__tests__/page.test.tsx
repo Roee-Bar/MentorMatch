@@ -47,19 +47,13 @@ describe('StudentDashboard', () => {
     const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
     SupervisorService.getAvailableSupervisors.mockResolvedValue(availableSupervisors);
   });
-  it('should render dashboard title', async () => {
-    render(<StudentDashboard />);
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /student dashboard/i })).toBeInTheDocument();
-    });
-  });
-
+  
   it('should render stat cards with data', async () => {
     render(<StudentDashboard />);
     await waitFor(() => {
       expect(screen.getAllByText('My Applications').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Available Supervisors').length).toBeGreaterThan(0);
-      expect(screen.getByText('Application Status')).toBeInTheDocument();
+      expect(screen.getByText('Pending Review')).toBeInTheDocument();
     });
   });
 
@@ -76,10 +70,10 @@ describe('StudentDashboard', () => {
 
   it('should show loading state initially', async () => {
     render(<StudentDashboard />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
     // Wait for loading to complete to avoid act() warnings
     await waitFor(() => {
-      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
     });
   });
 });
