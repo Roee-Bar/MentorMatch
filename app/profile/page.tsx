@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { User } from '@/types/user';
+import { BaseUser } from '@/types/database';
 import { UserService } from '@/lib/services';
 import { onAuthChange } from '@/lib/auth';
 import Link from 'next/link';
 
 export default function ProfilePage() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<BaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

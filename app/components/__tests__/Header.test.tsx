@@ -201,8 +201,10 @@ describe('Header', () => {
         // Click outside
         fireEvent.mouseDown(document.body);
         
-        // Dropdown should close (we can't easily test this without more complex setup)
-        // But the functionality is there
+        // Wait for dropdown to close and verify
+        waitFor(() => {
+          expect(screen.queryByText(/view profile/i)).not.toBeInTheDocument();
+        });
       }
     });
   });

@@ -23,19 +23,6 @@ describe('ApplicationCard', () => {
     expect(screen.getByText(mockApplication.comments)).toBeInTheDocument();
   });
 
-  it('displays correct status badge for application', () => {
-    render(<ApplicationCard application={mockApplication} />);
-    // Check for the correct status based on the mock data
-    const statusMap: Record<string, string> = {
-      'pending': 'Pending',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'under_review': 'Under Review'
-    };
-    const expectedStatus = statusMap[mockApplication.status];
-    expect(screen.getByText(expectedStatus)).toBeInTheDocument();
-  });
-
   it('displays correct status badge for approved application', () => {
     const approvedApplication: Application = {
       ...mockApplication,

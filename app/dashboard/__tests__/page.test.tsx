@@ -14,9 +14,17 @@ describe('DashboardRouter', () => {
     expect(screen.getByText(/redirecting to dashboard/i)).toBeInTheDocument();
   });
 
-  it('should render component structure correctly', () => {
-    const { container } = render(<DashboardRouter />);
-    expect(container.querySelector('.min-h-screen')).toBeInTheDocument();
+  it('should redirect to student dashboard', () => {
+    const mockReplace = jest.fn();
+    
+    // Update the mock to return our new mockReplace
+    jest.spyOn(require('next/navigation'), 'useRouter').mockReturnValue({
+      replace: mockReplace,
+    });
+    
+    render(<DashboardRouter />);
+    
+    expect(mockReplace).toHaveBeenCalledWith('/dashboard/student');
   });
 });
 

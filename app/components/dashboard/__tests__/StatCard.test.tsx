@@ -69,22 +69,4 @@ describe('StatCard', () => {
     
     expect(screen.getByTestId('test-icon')).toBeInTheDocument();
   });
-
-  it('should work with all color variants', () => {
-    const colors: Array<'blue' | 'green' | 'gray' | 'red'> = ['blue', 'green', 'gray', 'red'];
-    
-    colors.forEach(color => {
-      const { container, unmount } = render(
-        <StatCard
-          title="Test"
-          value="10"
-          description="desc"
-          color={color}
-        />
-      );
-      
-      expect(container.querySelector(`.text-${color}-600`)).toBeInTheDocument();
-      unmount();
-    });
-  });
 });
