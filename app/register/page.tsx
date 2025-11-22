@@ -210,7 +210,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="py-10 px-5 max-w-[800px] mx-auto font-sans">
+    <div className="py-10 px-5 max-w-form mx-auto font-sans">
       {/* Back Button */}
       <Link
         href="/"
@@ -221,7 +221,7 @@ export default function RegisterPage() {
 
       {/* Header */}
       <div className="mb-10">
-        <h1 className="text-gray-800 mb-2.5 text-[32px] font-bold">
+        <h1 className="text-gray-800 mb-2.5 text-xl-custom font-bold">
           Student Registration
         </h1>
         <p className="text-gray-500 text-base m-0">
@@ -238,7 +238,7 @@ export default function RegisterPage() {
           </h2>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Email Address *
             </label>
             <input
@@ -248,14 +248,14 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               placeholder="student@braude.ac.il"
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors focus:border-blue-600"
+              className="input-base"
             />
             <small className="text-gray-500 text-xs">Use your Braude email address</small>
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Password *
               </label>
               <input
@@ -266,11 +266,11 @@ export default function RegisterPage() {
                 required
                 minLength={6}
                 placeholder="Minimum 6 characters"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors focus:border-blue-600"
+                className="input-base"
               />
             </div>
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Confirm Password *
               </label>
               <input
@@ -281,7 +281,7 @@ export default function RegisterPage() {
                 required
                 minLength={6}
                 placeholder="Re-enter password"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors focus:border-blue-600"
+                className="input-base"
               />
             </div>
           </div>
@@ -295,7 +295,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 First Name *
               </label>
               <input
@@ -305,11 +305,11 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
                 placeholder="John"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                className="input-base"
               />
             </div>
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Last Name *
               </label>
               <input
@@ -319,14 +319,14 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
                 placeholder="Doe"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                className="input-base"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Student ID *
               </label>
               <input
@@ -336,11 +336,11 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
                 placeholder="e.g., 312345678"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                className="input-base"
               />
             </div>
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Phone Number *
               </label>
               <input
@@ -350,14 +350,14 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 required
                 placeholder="050-1234567"
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                className="input-base"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Department *
               </label>
               <select
@@ -365,7 +365,7 @@ export default function RegisterPage() {
                 value={formData.department}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none bg-white"
+                className="input-base"
               >
                 <option value="">Select Department</option>
                 <option value="Computer Science">Computer Science</option>
@@ -377,7 +377,7 @@ export default function RegisterPage() {
               </select>
             </div>
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Academic Year *
               </label>
               <select
@@ -385,7 +385,7 @@ export default function RegisterPage() {
                 value={formData.academicYear}
                 onChange={handleChange}
                 required
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none bg-white"
+                className="input-base"
               >
                 <option value="">Select Year</option>
                 <option value="3rd Year">3rd Year</option>
@@ -403,7 +403,7 @@ export default function RegisterPage() {
           </h2>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Technical Skills *
             </label>
             <input
@@ -413,13 +413,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               placeholder="e.g., React, Python, Machine Learning, SQL"
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+              className="input-base"
             />
             <small className="text-gray-500 text-xs">Separate skills with commas</small>
           </div>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Research Interests *
             </label>
             <textarea
@@ -429,12 +429,12 @@ export default function RegisterPage() {
               required
               placeholder="Describe your research interests and what kind of projects you're interested in..."
               rows={3}
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none resize-y font-[inherit]"
+              className="textarea-base"
             />
           </div>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Previous Projects (Optional)
             </label>
             <textarea
@@ -443,12 +443,12 @@ export default function RegisterPage() {
               onChange={handleChange}
               placeholder="Describe any relevant projects you've worked on..."
               rows={2}
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none resize-y font-[inherit]"
+              className="textarea-base"
             />
           </div>
 
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Preferred Project Topics (Optional)
             </label>
             <input
@@ -457,7 +457,7 @@ export default function RegisterPage() {
               value={formData.preferredTopics}
               onChange={handleChange}
               placeholder="e.g., Web Development, AI, Mobile Apps, IoT"
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+              className="input-base"
             />
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function RegisterPage() {
             <div className="p-5 bg-white rounded-lg border border-gray-300">
               <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 text-sm">
+                  <label className="label-base">
                     Partner Name *
                   </label>
                   <input
@@ -495,11 +495,11 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     required={formData.hasPartner}
                     placeholder="Partner's full name"
-                    className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                    className="input-base"
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-semibold text-gray-700 text-sm">
+                  <label className="label-base">
                     Partner Email *
                   </label>
                   <input
@@ -509,7 +509,7 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     required={formData.hasPartner}
                     placeholder="partner@braude.ac.il"
-                    className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none"
+                    className="input-base"
                   />
                 </div>
               </div>
@@ -550,7 +550,7 @@ export default function RegisterPage() {
 
             {/* Upload Section */}
             <div className="flex-1">
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label className="label-base">
                 Upload Your Photo
               </label>
               <p className="text-xs text-gray-500 mb-3">
@@ -575,19 +575,19 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-4 bg-blue-600 text-white border-none rounded-lg font-bold text-base transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700"
+          className="btn-primary w-full py-4"
         >
           {loading ? 'Creating Account...' : 'Complete Registration'}
         </button>
 
         {/* Status Message */}
         {message && (
-          <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${
+          <div className={`mt-5 ${
             message.includes('successful') 
-              ? 'bg-green-100 text-green-800' 
+              ? 'badge-success' 
               : message.includes('Uploading')
-              ? 'bg-blue-100 text-blue-800'
-              : 'bg-red-100 text-red-800'
+              ? 'badge-info'
+              : 'badge-danger'
           }`}>
             {message}
           </div>

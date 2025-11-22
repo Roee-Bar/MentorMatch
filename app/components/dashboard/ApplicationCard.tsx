@@ -9,11 +9,11 @@ interface ApplicationCardProps {
 
 export default function ApplicationCard({ application }: ApplicationCardProps) {
   const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800',
-    approved: 'bg-green-100 text-green-800',
-    rejected: 'bg-red-100 text-red-800',
-    under_review: 'bg-blue-100 text-blue-800',
-    revision_requested: 'bg-orange-100 text-orange-800',
+    pending: 'badge-warning',
+    approved: 'badge-success',
+    rejected: 'badge-danger',
+    under_review: 'badge-info',
+    revision_requested: 'badge-orange',
   };
 
   const statusLabels = {
@@ -25,7 +25,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+    <div className="card-base">
       {/* Header with Title and Status */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -36,11 +36,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
             Supervisor: {application.supervisorName}
           </p>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            statusColors[application.status]
-          }`}
-        >
+        <span className={statusColors[application.status]}>
           {statusLabels[application.status]}
         </span>
       </div>
@@ -81,17 +77,17 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
       {/* Action Buttons based on status */}
       <div className="mt-4 pt-4 border-t flex gap-2">
         {application.status === 'pending' && (
-          <button className="flex-1 px-4 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+          <button className="btn-danger flex-1">
             Withdraw
           </button>
         )}
         {application.status === 'revision_requested' && (
-          <button className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <button className="btn-primary flex-1">
             Edit & Resubmit
           </button>
         )}
         {application.status === 'approved' && (
-          <button className="flex-1 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+          <button className="btn-success flex-1">
             View Project Details
           </button>
         )}
