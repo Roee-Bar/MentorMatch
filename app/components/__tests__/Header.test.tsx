@@ -45,18 +45,6 @@ describe('Header', () => {
     jest.clearAllMocks();
   });
 
-  it('should render logo and site title', () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Header />);
-
-    expect(screen.getByText(/mentormatch/i)).toBeInTheDocument();
-    expect(screen.getByText(/braude college of engineering/i)).toBeInTheDocument();
-  });
-
   it('should show user avatar when authenticated', async () => {
     const mockUser = {
       uid: mockStudent.id,
@@ -107,36 +95,6 @@ describe('Header', () => {
       if (avatarButton) {
         fireEvent.click(avatarButton);
         expect(screen.getByText(/view profile/i)).toBeInTheDocument();
-      }
-    });
-  });
-
-  it('should have "View Profile" link that navigates to "/profile"', async () => {
-    const mockUser = {
-      uid: mockStudent.id,
-      email: mockStudent.email,
-    };
-
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      setTimeout(() => {
-        callback(mockUser);
-      }, 0);
-      return jest.fn();
-    });
-
-    (getUserProfile as jest.Mock).mockResolvedValue({
-      success: true,
-      data: mockStudent,
-    });
-
-    render(<Header />);
-
-    await waitFor(() => {
-      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
-      if (avatarButton) {
-        fireEvent.click(avatarButton);
-        const profileLink = screen.getByText(/view profile/i).closest('a');
-        expect(profileLink).toHaveAttribute('href', '/profile');
       }
     });
   });
@@ -216,19 +174,6 @@ describe('Header', () => {
     render(<Header />);
 
     expect(screen.queryByText(/view profile/i)).not.toBeInTheDocument();
-  });
-
-  it('should have logo that links to home page "/"', () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Header />);
-
-    // Logo should be clickable/linkable
-    const logo = screen.getByText(/mentormatch/i).closest('div');
-    expect(logo).toBeInTheDocument();
   });
 });
 

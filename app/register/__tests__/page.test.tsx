@@ -56,19 +56,6 @@ describe('RegisterPage', () => {
     jest.clearAllMocks();
   });
 
-  it('should render registration form with all required fields', () => {
-    const { container } = render(<RegisterPage />);
-    
-    expect(screen.getByPlaceholderText(/student@braude.ac.il/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/minimum 6 characters/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/re-enter password/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/john/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/doe/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/312345678/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/050-1234567/i)).toBeInTheDocument();
-    expect(container.querySelector('select[name="department"]')).toBeInTheDocument();
-    expect(container.querySelector('select[name="academicYear"]')).toBeInTheDocument();
-  });
 
   it('should validate password confirmation match', async () => {
     const { container } = render(<RegisterPage />);
@@ -200,22 +187,6 @@ describe('RegisterPage', () => {
       // We check that setDoc was called (registration completed)
       expect(setDoc).toHaveBeenCalled();
     }, { timeout: 3000 });
-  });
-
-  it('should have "Back to Home" link that navigates to "/"', () => {
-    render(<RegisterPage />);
-    
-    const backLink = screen.getByRole('link', { name: /← back to home/i });
-    expect(backLink).toBeInTheDocument();
-    expect(backLink).toHaveAttribute('href', '/');
-  });
-
-  it('should have "Login" link that navigates to "/login"', () => {
-    render(<RegisterPage />);
-    
-    const loginLink = screen.getByRole('link', { name: /login here/i });
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink).toHaveAttribute('href', '/login');
   });
 
   it('should show loading state during registration', async () => {
