@@ -75,40 +75,6 @@ npm start
 npm run lint
 ```
 
-## Testing
-
-```bash
-# Run all tests (unit + integration)
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage report
-npm run test:coverage
-
-# Run only integration tests
-npm test -- --testPathPatterns="integration.test"
-```
-
-The project includes both unit/component tests and integration tests to ensure code quality and reliable interactions between components.
-
-### Test Coverage
-
-#### Coverage Report
-
-After running `npm run test:coverage`, you can view the detailed HTML coverage report by opening:
-
-```
-coverage/lcov-report/index.html
-```
-
-The report provides:
-- Line-by-line coverage visualization
-- Branch coverage analysis
-- Function coverage metrics
-- Uncovered code highlighting
-
 ## Project Structure
 
 ```

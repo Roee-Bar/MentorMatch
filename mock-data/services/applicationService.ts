@@ -3,15 +3,7 @@ import { applications } from '../data/applications';
 
 /**
  * Service for managing application data
- * @deprecated Use RepositoryFactory.getApplicationRepository() from @/lib/repositories instead
- * This service is kept for backward compatibility with existing tests only
- * 
- * New code should use:
- * ```typescript
- * import { RepositoryFactory } from '@/lib/repositories';
- * const repo = RepositoryFactory.getApplicationRepository();
- * const data = await repo.getAllApplications();
- * ```
+ * TODO: Replace with real database calls (Firebase/API)
  */
 export class ApplicationService {
   /**
