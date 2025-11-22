@@ -1,24 +1,17 @@
 import { Supervisor } from '@/types/dashboard';
-import { supervisors } from '../data/supervisors';
+import { supervisors } from '@/mock-data/data/supervisors';
+import { ISupervisorRepository } from '../interfaces/ISupervisorRepository';
 
 /**
- * Service for managing supervisor data
- * @deprecated Use RepositoryFactory.getSupervisorRepository() from @/lib/repositories instead
- * This service is kept for backward compatibility with existing tests only
- * 
- * New code should use:
- * ```typescript
- * import { RepositoryFactory } from '@/lib/repositories';
- * const repo = RepositoryFactory.getSupervisorRepository();
- * const supervisors = await repo.getAllSupervisors();
- * ```
+ * Mock implementation of ISupervisorRepository
+ * Uses static mock data from @/mock-data/data/supervisors
  */
-export class SupervisorService {
+export class MockSupervisorRepository implements ISupervisorRepository {
   /**
    * Get all supervisors
    * @returns Promise with all supervisors
    */
-  static async getAllSupervisors(): Promise<Supervisor[]> {
+  async getAllSupervisors(): Promise<Supervisor[]> {
     return Promise.resolve([...supervisors]);
   }
 
@@ -26,7 +19,7 @@ export class SupervisorService {
    * Get available supervisors
    * @returns Promise with available supervisors
    */
-  static async getAvailableSupervisors(): Promise<Supervisor[]> {
+  async getAvailableSupervisors(): Promise<Supervisor[]> {
     const available = supervisors.filter(
       sup => sup.availabilityStatus === 'available'
     );
@@ -38,7 +31,7 @@ export class SupervisorService {
    * @param id - The supervisor ID
    * @returns Promise with the supervisor or null
    */
-  static async getSupervisorById(id: string): Promise<Supervisor | null> {
+  async getSupervisorById(id: string): Promise<Supervisor | null> {
     const supervisor = supervisors.find(sup => sup.id === id);
     return Promise.resolve(supervisor || null);
   }
@@ -48,7 +41,7 @@ export class SupervisorService {
    * @param department - The department name
    * @returns Promise with filtered supervisors
    */
-  static async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
+  async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
     const filtered = supervisors.filter(
       sup => sup.department === department
     );
@@ -59,11 +52,10 @@ export class SupervisorService {
    * Get count of available supervisors
    * @returns Promise with count
    */
-  static async getAvailableSupervisorsCount(): Promise<number> {
+  async getAvailableSupervisorsCount(): Promise<number> {
     const available = supervisors.filter(
       sup => sup.availabilityStatus === 'available'
     );
     return Promise.resolve(available.length);
   }
 }
-

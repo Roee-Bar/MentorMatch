@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { User } from '@/types/user';
-import { UserService } from '@/mock-data';
+import { RepositoryFactory } from '@/lib/repositories';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -12,7 +12,8 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await UserService.getCurrentUser();
+        const userRepo = RepositoryFactory.getUserRepository();
+        const user = await userRepo.getCurrentUser();
         setCurrentUser(user);
       } catch (error) {
         console.error('Error fetching user:', error);
