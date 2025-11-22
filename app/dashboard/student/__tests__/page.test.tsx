@@ -1,32 +1,51 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
-import { ApplicationService, SupervisorService, applications, supervisors } from '@/mock-data';
+import { applications, supervisors } from '@/mock-data';
+
+// Mock the auth module
+jest.mock('@/lib/auth', () => ({
+  onAuthChange: jest.fn((callback) => {
+    callback({ uid: 'test-user-id' });
+    return jest.fn(); // unsubscribe function
+  }),
+  getUserProfile: jest.fn().mockResolvedValue({
+    success: true,
+    data: { role: 'student', name: 'Test Student' }
+  }),
+}));
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  })),
+}));
 
 // Mock the services
-jest.mock('@/mock-data', () => {
-  const actualMockData = jest.requireActual('@/mock-data');
-  return {
-    ...actualMockData,
-    ApplicationService: {
-      getAllApplications: jest.fn(),
-    },
-    SupervisorService: {
-      getAvailableSupervisors: jest.fn(),
-    },
-  };
-});
+jest.mock('@/lib/services', () => ({
+  ApplicationService: {
+    getAllApplications: jest.fn(),
+  },
+  SupervisorService: {
+    getAvailableSupervisors: jest.fn(),
+  },
+  StudentService: {},
+}));
 
 describe('StudentDashboard', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
     
+    const { ApplicationService, SupervisorService } = require('@/lib/services');
+    
     // Set up default mock implementations using actual mock data
-    (ApplicationService.getAllApplications as jest.Mock).mockResolvedValue(applications);
+    ApplicationService.getAllApplications.mockResolvedValue(applications);
     
     // Filter only available supervisors like the actual service does
     const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
-    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(availableSupervisors);
+    SupervisorService.getAvailableSupervisors.mockResolvedValue(availableSupervisors);
   });
   it('should render dashboard title', async () => {
     render(<StudentDashboard />);
