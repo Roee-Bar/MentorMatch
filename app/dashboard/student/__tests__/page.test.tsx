@@ -2,15 +2,27 @@ import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
 
+// Mock the Firebase services
+jest.mock('@/lib/services', () => ({
+  ApplicationService: {
+    getStudentApplications: jest.fn(),
+  },
+  SupervisorService: {
+    getAvailableSupervisors: jest.fn(),
+  },
+  StudentService: {},
+}));
+
 // Mock the auth module
 jest.mock('@/lib/auth', () => ({
   onAuthChange: jest.fn((callback) => {
+    // Simulate authenticated user
     callback({ uid: 'test-user-id' });
-    return jest.fn(); // unsubscribe function
+    return jest.fn(); // Return unsubscribe function
   }),
   getUserProfile: jest.fn().mockResolvedValue({
     success: true,
-    data: { role: 'student', name: 'Test Student' }
+    data: { role: 'student', name: 'Test Student' },
   }),
 }));
 
@@ -22,30 +34,44 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-// Mock the services
-jest.mock('@/lib/services', () => ({
-  ApplicationService: {
-    getAllApplications: jest.fn(),
-  },
-  SupervisorService: {
-    getAvailableSupervisors: jest.fn(),
-  },
-  StudentService: {},
-}));
+import { ApplicationService, SupervisorService } from '@/lib/services';
 
 describe('StudentDashboard', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
     
-    const { ApplicationService, SupervisorService } = require('@/lib/services');
+    // Convert mock applications to ApplicationCardData format
+    const applicationCards = applications.map(app => ({
+      id: app.id,
+      projectTitle: app.projectTitle,
+      projectDescription: app.projectDescription,
+      supervisorName: app.supervisorName,
+      dateApplied: app.dateApplied,
+      status: app.status,
+      responseTime: app.responseTime,
+      comments: app.comments,
+    }));
     
     // Set up default mock implementations using actual mock data
-    ApplicationService.getAllApplications.mockResolvedValue(applications);
+    (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue(applicationCards);
     
-    // Filter only available supervisors like the actual service does
-    const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
-    SupervisorService.getAvailableSupervisors.mockResolvedValue(availableSupervisors);
+    // Convert supervisors to SupervisorCardData format
+    const supervisorCards = supervisors
+      .filter(sup => sup.availabilityStatus === 'available')
+      .map(sup => ({
+        id: sup.id,
+        name: sup.name,
+        department: sup.department,
+        bio: sup.bio,
+        expertiseAreas: sup.expertiseAreas,
+        researchInterests: sup.researchInterests,
+        availabilityStatus: sup.availabilityStatus,
+        currentCapacity: sup.currentCapacity,
+        contact: sup.contact,
+      }));
+    
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(supervisorCards);
   });
   
   it('should render stat cards with data', async () => {
@@ -67,4 +93,3 @@ describe('StudentDashboard', () => {
     });
   });
 });
-

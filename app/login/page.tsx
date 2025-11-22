@@ -42,7 +42,7 @@ export default function LoginPage() {
       </Link>
 
       <div className="bg-white p-10 rounded-xl border border-gray-200 shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
-        <h1 className="text-gray-800 mb-2.5 text-[28px] font-bold">
+        <h1 className="text-gray-800 mb-2.5 text-2xl-custom font-bold">
           Welcome Back
         </h1>
         <p className="text-gray-500 mb-8 text-sm">
@@ -51,7 +51,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin}>
           <div className="mb-5">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Email Address
             </label>
             <input
@@ -60,12 +60,12 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@braude.ac.il"
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none focus:border-blue-600"
+              className="input-base"
             />
           </div>
 
           <div className="mb-6">
-            <label className="block mb-2 font-semibold text-gray-700 text-sm">
+            <label className="label-base">
               Password
             </label>
             <input
@@ -75,14 +75,14 @@ export default function LoginPage() {
               required
               minLength={6}
               placeholder="Enter your password"
-              className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none focus:border-blue-600"
+              className="input-base"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-blue-600 text-white border-none rounded-lg font-bold text-base transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-blue-700"
+            className="btn-primary w-full py-3.5"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
@@ -90,8 +90,8 @@ export default function LoginPage() {
           {message && (
             <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${
               message.includes('successful') 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-red-100 text-red-800'
+                ? 'badge-success' 
+                : 'badge-danger'
             }`}>
               {message}
             </div>

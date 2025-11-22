@@ -12,17 +12,15 @@ describe('ApplicationCard', () => {
     throw new Error('Mock application data is missing. Please check mock-data/data/applications.ts');
   }
 
-  it('displays correct status badge for application', () => {
+  it('renders application details correctly', () => {
     render(<ApplicationCard application={mockApplication} />);
-    // Check for the correct status based on the mock data
-    const statusMap: Record<string, string> = {
-      'pending': 'Pending',
-      'approved': 'Approved',
-      'rejected': 'Rejected',
-      'under_review': 'Under Review'
-    };
-    const expectedStatus = statusMap[mockApplication.status];
-    expect(screen.getByText(expectedStatus)).toBeInTheDocument();
+
+    expect(screen.getByText(mockApplication.projectTitle)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(mockApplication.supervisorName))).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.projectDescription)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.dateApplied)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.responseTime)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.comments)).toBeInTheDocument();
   });
 
   it('displays correct status badge for approved application', () => {

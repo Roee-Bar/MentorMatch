@@ -143,7 +143,7 @@ export default function StudentDashboard() {
             <h2 className="text-2xl font-bold text-gray-800">My Applications</h2>
             <button
               onClick={() => router.push('/supervisors')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              className="btn-primary"
             >
               + New Application
             </button>
@@ -154,7 +154,7 @@ export default function StudentDashboard() {
               <p className="text-gray-500 mb-4">You haven&apos;t submitted any applications yet.</p>
               <button
                 onClick={() => router.push('/supervisors')}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="btn-primary px-6 py-2"
               >
                 Browse Supervisors
               </button>

@@ -50,10 +50,10 @@ export default function Header() {
 
   return (
     <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-[1000]">
-      <div className="max-w-[1200px] mx-auto flex items-center justify-between">
+      <div className="max-w-container mx-auto flex items-center justify-between">
         {/* Logo Section */}
         <Link href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-          <span className="text-[32px]">INSERT IMAGE HERE</span>
+          <span className="text-xl-custom">INSERT IMAGE HERE</span>
           <div>
             <h1 className="m-0 text-2xl font-bold">MentorMatch</h1>
             <p className="m-0 text-xs opacity-90">Braude College of Engineering</p>
