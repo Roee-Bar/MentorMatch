@@ -3,6 +3,9 @@ export type AvailabilityStatus = 'available' | 'limited' | 'unavailable';
 
 export interface Application {
   id: string;
+  studentId: string;           // Link to student
+  studentName: string;          // Student display name
+  supervisorId: string;         // Link to supervisor
   supervisorName: string;
   projectTitle: string;
   status: ApplicationStatus;

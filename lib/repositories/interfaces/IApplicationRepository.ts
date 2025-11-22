@@ -36,4 +36,11 @@ export interface IApplicationRepository {
    * @returns Promise with count of approved applications
    */
   getApprovedApplicationsCount(): Promise<number>;
+
+  /**
+   * Get applications by supervisor ID
+   * @param supervisorId - The supervisor's ID
+   * @returns Promise with filtered applications
+   */
+  getApplicationsBySupervisorId(supervisorId: string): Promise<Application[]>;
 }

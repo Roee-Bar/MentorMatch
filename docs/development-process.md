@@ -165,10 +165,6 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
   - Understanding App Router patterns and file-based routing structure
   - Ensuring automatic code splitting and setting up nested layouts
   - Managing client-side navigation without full page reloads
-- **Implementation**:
-  - Adopted Next.js 14 App Router with file-based routing
-  - Created route structure: `app/page.tsx` (root), `app/login/page.tsx`, `app/register/page.tsx`, `app/profile/page.tsx`, `app/dashboard/page.tsx` (router), `app/dashboard/student/page.tsx`
-  - Leveraged automatic code splitting and nested layout hierarchy
 - **Resolution**: Successfully established a scalable routing architecture with better performance through automatic code splitting and improved developer experience
 
 #### 2. Layout Hierarchy and Shared Components
@@ -176,20 +172,12 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
 - **Issues faced**:
   - Need for consistent header/footer across public pages and authentication-protected layout for dashboard
   - Ensuring proper loading states and managing different layout requirements
-- **Implementation**:
-  - Created root layout (`app/layout.tsx`) with shared Header and Footer components, global metadata, and consistent page structure
-  - Implemented dashboard layout (`app/dashboard/layout.tsx`) that handles authentication verification, user profile fetching, loading states, and redirects unauthenticated users
-  - Used React's layout composition pattern for automatic layout nesting
 - **Benefits**: Consistent UI without prop drilling, centralized authentication logic, and clear separation between public and protected routes
 
 #### 3. Authentication-Based Routing
 - **Challenge**: Implementing secure, role-aware routing that protects sensitive routes and redirects users appropriately
 - **Issues faced**:
   - Preventing unauthorized access, handling authentication state changes, and managing loading states to avoid content flash
-- **Implementation**:
-  - Home page monitors authentication state and redirects authenticated users to `/dashboard` with loading spinner
-  - Dashboard layout verifies authentication, fetches user profile, redirects unauthenticated users using `router.replace()`, and provides user context
-  - Login/Register pages use `router.push()` for navigation after successful authentication
 - **Benefits**: Secure route protection, smooth user experience with appropriate redirects, and role-based routing foundation
 
 #### 4. Client-Side Navigation and Routing Patterns
@@ -197,24 +185,34 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
 - **Issues faced**:
   - Choosing between `router.push()` and `router.replace()` for different scenarios
   - Using Next.js `Link` component vs. programmatic routing appropriately
-- **Implementation**:
-  - Used `useRouter` from `next/navigation` (App Router): `router.replace()` for authentication redirects, `router.push()` for user-initiated navigation
-  - Implemented `Link` component for declarative navigation in Header and auth pages with automatic prefetching
-  - Applied navigation patterns: authentication redirects use `replace()`, form submissions use `push()`, all navigation is client-side
 - **Benefits**: Fast, seamless navigation without page reloads, proper browser history management, and consistent navigation patterns
 
 #### 5. Role-Based Route Organization
 - **Challenge**: Structuring routes to support multiple user roles while maintaining scalability
 - **Issues faced**:
   - Need for role-specific dashboard routes without code duplication and easy addition of new roles
-- **Implementation**:
-  - Created role-based structure: `/dashboard` (router), `/dashboard/student` (implemented), with future routes planned for supervisor and admin
-  - Dashboard router redirects users to role-specific dashboards (currently defaults to student)
-  - Organized route files following Next.js conventions with co-located test files
 - **Benefits**: Scalable architecture for new roles, clear semantic URLs, independent development/testing, and automatic code splitting per role
 
 ### Milestone Achieved
 Successfully implemented a routing architecture following Next.js 14 App Router best practices. The application now features a scalable file-based routing system with nested layouts, authentication-protected routes, role-based organization, and efficient client-side navigation, providing a solid foundation for future development.
+
+## Repository Pattern Refactor Phase
+
+### Implementation Overview
+To prepare for future Firebase integration, we refactored the data access layer using the Repository Pattern, allowing seamless switching between mock data and Firebase without changing application code.
+
+#### Key Changes
+- **Challenge**: Mock data services were tightly coupled with components, making future Firebase migration difficult
+- **Benefits**: 
+  - Components are now completely decoupled from data sources
+  - Firebase migration only requires: (1) Implement Firebase repositories, (2) Set environment variable to true
+  - All 91 tests still pass, no functionality changed
+  - Type-safe abstraction with clear separation of concerns
+
+### Milestone Achieved
+Successfully refactored the data access layer using the Repository Pattern. Future Firebase migration now requires only implementing new repository classes and changing one environment variable - no component code changes needed.
+
+---
 
 ---
 

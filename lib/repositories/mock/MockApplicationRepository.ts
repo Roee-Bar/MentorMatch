@@ -22,8 +22,8 @@ export class MockApplicationRepository implements IApplicationRepository {
    * @returns Promise with filtered applications
    */
   async getApplicationsByStudentId(studentId: string): Promise<Application[]> {
-    // TODO: Implement filtering by studentId when studentId field is added to Application type
-    return Promise.resolve([...applications]);
+    const filtered = applications.filter(app => app.studentId === studentId);
+    return Promise.resolve([...filtered]);
   }
 
   /**
@@ -51,5 +51,15 @@ export class MockApplicationRepository implements IApplicationRepository {
   async getApprovedApplicationsCount(): Promise<number> {
     const approved = applications.filter(app => app.status === 'approved');
     return Promise.resolve(approved.length);
+  }
+
+  /**
+   * Get applications by supervisor ID
+   * @param supervisorId - The supervisor's ID
+   * @returns Promise with filtered applications
+   */
+  async getApplicationsBySupervisorId(supervisorId: string): Promise<Application[]> {
+    const filtered = applications.filter(app => app.supervisorId === supervisorId);
+    return Promise.resolve([...filtered]);
   }
 }
