@@ -237,6 +237,9 @@ describe('Registration Flow Integration Tests', () => {
 
   describe('Duplicate Email Handling', () => {
     it('should show error for existing email', async () => {
+      // Suppress expected console.error during this test
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
       // Mock duplicate email error
       (createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
         code: 'auth/email-already-in-use',
@@ -290,6 +293,9 @@ describe('Registration Flow Integration Tests', () => {
       await waitFor(() => {
         expect(screen.getByText(/this email is already registered/i)).toBeInTheDocument();
       }, { timeout: 3000 });
+      
+      // Restore console.error
+      consoleErrorSpy.mockRestore();
     });
   });
 
