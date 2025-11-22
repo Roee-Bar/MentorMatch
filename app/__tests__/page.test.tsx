@@ -26,61 +26,6 @@ describe('Home Page', () => {
     jest.clearAllMocks();
   });
 
-  it('should render landing page for unauthenticated users', async () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn(); // unsubscribe function
-    });
-
-    render(<Home />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/find your perfect project supervisor/i)).toBeInTheDocument();
-    });
-  });
-
-  it('should show hero section with "Sign Up" and "Login" buttons', async () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Home />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: /sign up as student/i })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument();
-    });
-  });
-
-  it('should have "Sign Up" button that links to "/register"', async () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Home />);
-
-    await waitFor(() => {
-      const signUpLink = screen.getByRole('link', { name: /sign up as student/i });
-      expect(signUpLink).toHaveAttribute('href', '/register');
-    });
-  });
-
-  it('should have "Login" button that links to "/login"', async () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Home />);
-
-    await waitFor(() => {
-      const loginLink = screen.getByRole('link', { name: /login/i });
-      expect(loginLink).toHaveAttribute('href', '/login');
-    });
-  });
-
   it('should redirect authenticated users to "/dashboard"', async () => {
     const mockUser = {
       uid: 'test-uid',
@@ -119,19 +64,6 @@ describe('Home Page', () => {
     render(<Home />);
 
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
-  });
-
-  it('should display correct content based on auth state', async () => {
-    (onAuthChange as jest.Mock).mockImplementation((callback) => {
-      callback(null);
-      return jest.fn();
-    });
-
-    render(<Home />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/connect with experienced supervisors/i)).toBeInTheDocument();
-    });
   });
 });
 

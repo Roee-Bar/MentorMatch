@@ -45,7 +45,7 @@ describe('DashboardLayout', () => {
       </DashboardLayout>
     );
     
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it('should render children after loading completes', async () => {

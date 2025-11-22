@@ -326,6 +326,68 @@ test('student can view profile page', async ({ page }) => {
 7. **Run tests frequently** - Run tests during development, not just before commits
 8. **Maintain test coverage** - Aim for 70-80% coverage, focusing on critical paths
 
+## Test Maintenance and Refactoring
+
+### What NOT to Test
+
+To maintain a lean and valuable test suite, avoid testing:
+
+1. **Static Text Content**
+   - Hardcoded strings (e.g., "MentorMatch", page titles, static labels)
+   - Marketing copy or descriptive text
+   - *Rationale*: These tests break when copy changes, providing no value
+
+2. **Static href Attributes**
+   - Link destinations that never change (e.g., `href="/login"`)
+   - Navigation links to static routes
+   - *Rationale*: These are configuration, not behavior
+
+3. **Static CSS Classes**
+   - Presence of utility classes without conditional logic
+   - Styling that doesn't depend on state
+   - *Rationale*: Style changes shouldn't break tests
+
+4. **Implementation Details**
+   - Internal component state variable names
+   - Function names or class names
+   - DOM structure details
+   - *Rationale*: Tests should survive refactoring
+
+### What TO Test
+
+Focus testing efforts on:
+
+1. **User Interactions**
+   - Button clicks, form submissions, dropdown interactions
+   - User input validation and feedback
+
+2. **Conditional Logic**
+   - Role-based UI rendering (student vs supervisor vs admin)
+   - Dynamic styling based on data (status badges, availability indicators)
+   - Optional field rendering based on props/state
+
+3. **State Management**
+   - Authentication state changes
+   - Loading states and async operations
+   - Error handling and recovery
+
+4. **Business Logic**
+   - Form validation rules
+   - Data transformation and formatting
+   - Calculations and algorithms
+
+5. **Integration Points**
+   - API calls and data fetching
+   - Navigation and routing logic
+   - Component composition and data flow
+
+
+**Key Learnings:**
+- Tests that assert static content provide false confidence
+- Focus on testing behavior, not configuration
+- Use regex patterns for dynamic content instead of exact string matches
+- Prefer testing outcomes over implementation details
+
 ## Resources
 
 - [Jest Documentation](https://jestjs.io/docs/getting-started)

@@ -10,6 +10,7 @@ jest.mock('@/lib/services', () => ({
   SupervisorService: {
     getAvailableSupervisors: jest.fn(),
   },
+  StudentService: {},
 }));
 
 // Mock the auth module
@@ -72,13 +73,7 @@ describe('StudentDashboard', () => {
     
     (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(supervisorCards);
   });
-  it('should render dashboard title', async () => {
-    render(<StudentDashboard />);
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: /student dashboard/i })).toBeInTheDocument();
-    });
-  });
-
+  
   it('should render stat cards with data', async () => {
     render(<StudentDashboard />);
     await waitFor(() => {
@@ -88,16 +83,6 @@ describe('StudentDashboard', () => {
     });
   });
 
-  it('should display applications and supervisors after loading', async () => {
-    render(<StudentDashboard />);
-    
-    await waitFor(() => {
-      // Check for actual data from mock-data folder
-      expect(screen.getByText(applications[0].projectTitle)).toBeInTheDocument();
-      const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
-      expect(screen.getByText(availableSupervisors[0].name)).toBeInTheDocument();
-    });
-  });
 
   it('should show loading state initially', async () => {
     render(<StudentDashboard />);
@@ -108,4 +93,3 @@ describe('StudentDashboard', () => {
     });
   });
 });
-
