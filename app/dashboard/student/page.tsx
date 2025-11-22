@@ -14,7 +14,7 @@ import {
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
-import { Application, Supervisor } from '@/types/dashboard';
+import { ApplicationCardData, SupervisorCardData } from '@/types/database';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function StudentDashboard() {
 
       try {
         const [appsData, supervisorsData] = await Promise.all([
-          ApplicationService.getAllApplications(),
+          ApplicationService.getStudentApplications(userId),
           SupervisorService.getAvailableSupervisors(),
         ]);
 
