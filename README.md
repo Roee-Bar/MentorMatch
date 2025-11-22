@@ -15,10 +15,11 @@ MentorMatch streamlines the process of matching students with project supervisor
 - View supervisor capacity and availability
 
 ### For Supervisors
-- Set and manage supervision capacity
-- Review and respond to student applications
-- Manage project workload efficiently
-- Communicate with students through the platform
+- View applications submitted to you
+- Track application statistics (total, pending, under review, approved)
+- Review student project proposals
+- Manage supervision workload efficiently
+- Dashboard with application cards and status tracking
 
 ### For Administrators
 - Monitor all projects and assignments

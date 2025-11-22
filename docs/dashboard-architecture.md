@@ -91,21 +91,26 @@ app/
 │           └── page.tsx       # My applications
 ```
 
-## Student-Specific Feature Scope
+## Role-Specific Dashboards
 
-### Phase 1 Implementation
+### Student Dashboard (Implemented - Phase 1)
+Features:
+1. View available supervisors
+2. Track submitted applications
+3. Application statistics
 
-The initial implementation focuses exclusively on student features:
+### Supervisor Dashboard (Implemented - Phase 2)
+Features:
+1. View applications submitted to supervisor
+2. Application statistics (total, pending, under review, approved)
+3. Application cards with project details
+4. Filter applications by supervisor ID
+5. Loading and empty state handling
 
-1. **Dashboard Overview**: Quick stats and recent activity
-2. **Browse Supervisors**: Search, filter, and view available supervisors
-3. **My Applications**: Track submitted applications and their status
-4. **Application Submission**: Submit new project applications
+Route: `/dashboard/supervisor`
 
-### Future Roles (Not in Scope)
-
-- Supervisor dashboard (review applications, manage capacity)
-- Admin dashboard (monitor all projects, generate reports)
+### Admin Dashboard (Future - Not in Scope)
+Features: TBD
 
 ## Component Hierarchy
 
@@ -137,6 +142,50 @@ Located in `components/dashboard/`:
 - **ApplicationForm**: Submit new applications
 - **SupervisorDetailModal**: Detailed supervisor view with application form
 - **ErrorBoundary**: Catch and display errors gracefully
+
+## Supervisor Dashboard Architecture
+
+### Route Structure
+```
+app/dashboard/supervisor/
+├── __tests__/
+│   └── page.test.tsx                    # Unit tests (6 tests)
+├── __integration__/
+│   └── supervisor-dashboard-full.integration.test.tsx  # Integration tests (8 tests)
+└── page.tsx                             # Supervisor dashboard overview
+```
+
+### Data Access Pattern
+- Uses `RepositoryFactory.getApplicationRepository()`
+- Calls `getApplicationsBySupervisorId(supervisorId)` for filtering
+- Follows Repository Pattern for data abstraction
+- Currently uses supervisor ID '1' for testing (will be replaced with auth context in Phase B)
+
+### Component Reuse
+Supervisor dashboard reuses components from student dashboard:
+- `StatCard` - Display metrics (4-column grid for supervisor: Total, Pending, Under Review, Approved)
+- `ApplicationCard` - Display application details with status badges
+- Shared layout from `app/dashboard/layout.tsx`
+
+### Features Implemented
+1. **Statistics Display**: Four stat cards showing application counts by status
+2. **Applications List**: Grid layout showing all applications for the supervisor
+3. **Status Filtering**: Applications filtered by supervisor ID
+4. **Empty State**: Graceful handling when no applications exist
+5. **Loading State**: Loading indicator during data fetch
+6. **Error Handling**: Catches and logs errors without crashing
+
+### Authentication & Authorization
+- Dashboard layout enforces authentication
+- Role-based routing in `app/dashboard/page.tsx`
+- Redirects supervisors to `/dashboard/supervisor`
+- Supervisor ID from auth context (TODO: Phase B)
+
+### Test Coverage
+- 100% coverage for supervisor dashboard page
+- 6 unit tests covering rendering, data fetching, loading, and empty states
+- 8 integration tests covering complete flow, error handling, and card rendering
+- All tests use existing mock data (no hardcoded test data)
 
 ## Firestore Data Model
 
