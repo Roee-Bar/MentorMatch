@@ -3,15 +3,7 @@ import { supervisors } from '../data/supervisors';
 
 /**
  * Service for managing supervisor data
- * @deprecated Use RepositoryFactory.getSupervisorRepository() from @/lib/repositories instead
- * This service is kept for backward compatibility with existing tests only
- * 
- * New code should use:
- * ```typescript
- * import { RepositoryFactory } from '@/lib/repositories';
- * const repo = RepositoryFactory.getSupervisorRepository();
- * const supervisors = await repo.getAllSupervisors();
- * ```
+ * TODO: Replace with real database calls (Firebase/API)
  */
 export class SupervisorService {
   /**

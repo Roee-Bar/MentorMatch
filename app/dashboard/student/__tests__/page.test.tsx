@@ -1,37 +1,32 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
-import { applications, supervisors } from '@/mock-data';
+import { ApplicationService, SupervisorService, applications, supervisors } from '@/mock-data';
 
-// Mock the RepositoryFactory
-jest.mock('@/lib/repositories/RepositoryFactory', () => ({
-  RepositoryFactory: {
-    getApplicationRepository: jest.fn(() => ({
+// Mock the services
+jest.mock('@/mock-data', () => {
+  const actualMockData = jest.requireActual('@/mock-data');
+  return {
+    ...actualMockData,
+    ApplicationService: {
       getAllApplications: jest.fn(),
-    })),
-    getSupervisorRepository: jest.fn(() => ({
+    },
+    SupervisorService: {
       getAvailableSupervisors: jest.fn(),
-    })),
-  },
-}));
+    },
+  };
+});
 
 describe('StudentDashboard', () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
     
-    const { RepositoryFactory } = require('@/lib/repositories/RepositoryFactory');
+    // Set up default mock implementations using actual mock data
+    (ApplicationService.getAllApplications as jest.Mock).mockResolvedValue(applications);
     
     // Filter only available supervisors like the actual service does
     const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
-    
-    // Set up default mock implementations using actual mock data
-    RepositoryFactory.getApplicationRepository.mockReturnValue({
-      getAllApplications: jest.fn().mockResolvedValue(applications),
-    });
-    
-    RepositoryFactory.getSupervisorRepository.mockReturnValue({
-      getAvailableSupervisors: jest.fn().mockResolvedValue(availableSupervisors),
-    });
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(availableSupervisors);
   });
   it('should render dashboard title', async () => {
     render(<StudentDashboard />);
