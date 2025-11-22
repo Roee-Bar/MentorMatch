@@ -5,7 +5,7 @@ import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
 import { Application, Supervisor } from '@/types/dashboard';
-import { ApplicationService, SupervisorService } from '@/mock-data';
+import { RepositoryFactory } from '@/lib/repositories';
 
 export default function StudentDashboard() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -15,9 +15,12 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const applicationRepo = RepositoryFactory.getApplicationRepository();
+        const supervisorRepo = RepositoryFactory.getSupervisorRepository();
+        
         const [appsData, supervisorsData] = await Promise.all([
-          ApplicationService.getAllApplications(),
-          SupervisorService.getAvailableSupervisors(),
+          applicationRepo.getAllApplications(),
+          supervisorRepo.getAvailableSupervisors(),
         ]);
         
         setApplications(appsData);

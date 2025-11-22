@@ -1,24 +1,17 @@
 import { Application } from '@/types/dashboard';
-import { applications } from '../data/applications';
+import { applications } from '@/mock-data/data/applications';
+import { IApplicationRepository } from '../interfaces/IApplicationRepository';
 
 /**
- * Service for managing application data
- * @deprecated Use RepositoryFactory.getApplicationRepository() from @/lib/repositories instead
- * This service is kept for backward compatibility with existing tests only
- * 
- * New code should use:
- * ```typescript
- * import { RepositoryFactory } from '@/lib/repositories';
- * const repo = RepositoryFactory.getApplicationRepository();
- * const data = await repo.getAllApplications();
- * ```
+ * Mock implementation of IApplicationRepository
+ * Uses static mock data from @/mock-data/data/applications
  */
-export class ApplicationService {
+export class MockApplicationRepository implements IApplicationRepository {
   /**
    * Get all applications
    * @returns Promise with all applications
    */
-  static async getAllApplications(): Promise<Application[]> {
+  async getAllApplications(): Promise<Application[]> {
     // Simulate async database call
     return Promise.resolve([...applications]);
   }
@@ -28,8 +21,8 @@ export class ApplicationService {
    * @param studentId - The student's ID
    * @returns Promise with filtered applications
    */
-  static async getApplicationsByStudentId(studentId: string): Promise<Application[]> {
-    // TODO: Replace with actual query
+  async getApplicationsByStudentId(studentId: string): Promise<Application[]> {
+    // TODO: Implement filtering by studentId when studentId field is added to Application type
     return Promise.resolve([...applications]);
   }
 
@@ -38,16 +31,16 @@ export class ApplicationService {
    * @param id - The application ID
    * @returns Promise with the application or null
    */
-  static async getApplicationById(id: string): Promise<Application | null> {
+  async getApplicationById(id: string): Promise<Application | null> {
     const application = applications.find(app => app.id === id);
     return Promise.resolve(application || null);
   }
 
   /**
-   * Get applications count by status
+   * Get applications count
    * @returns Promise with count
    */
-  static async getApplicationsCount(): Promise<number> {
+  async getApplicationsCount(): Promise<number> {
     return Promise.resolve(applications.length);
   }
 
@@ -55,9 +48,8 @@ export class ApplicationService {
    * Get approved applications count
    * @returns Promise with count of approved applications
    */
-  static async getApprovedApplicationsCount(): Promise<number> {
+  async getApprovedApplicationsCount(): Promise<number> {
     const approved = applications.filter(app => app.status === 'approved');
     return Promise.resolve(approved.length);
   }
 }
-

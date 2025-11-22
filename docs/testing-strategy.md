@@ -69,34 +69,44 @@ We follow the **Testing Pyramid** strategy, which emphasizes a balanced distribu
 
 ## Project Structure
 
-Recommended test file organization:
+Current test file organization:
 
 ```
 Final/
-├── __tests__/              # Unit tests for utilities and helpers
-│   ├── utils/
-│   └── lib/
+├── test-utils/             # Shared test utilities
+│   └── integration-helpers.ts
 ├── components/
-│   └── __tests__/          # Component tests
-│       └── UserProfile.test.tsx
+│   ├── __tests__/          # Component tests
+│   │   └── UserProfile.test.tsx
+│   └── __integration__/    # Component integration tests
+│       └── header-auth.integration.test.tsx
 ├── app/
-│   └── __tests__/          # Page and route tests
-│       ├── page.test.tsx
-│       └── profile/
-│           └── page.test.tsx
-├── e2e/                    # End-to-end tests
+│   ├── __tests__/          # Page and route tests
+│   │   ├── page.test.tsx
+│   │   └── layout.test.tsx
+│   ├── dashboard/
+│   │   ├── __tests__/
+│   │   │   └── page.test.tsx
+│   │   └── __integration__/
+│   │       └── dashboard-flow.integration.test.tsx
+│   └── login/
+│       ├── __tests__/
+│       │   └── page.test.tsx
+│       └── __integration__/
+│           └── auth-flow.integration.test.tsx
+├── e2e/                    # End-to-end tests (planned)
 │   ├── student-flow.spec.ts
 │   ├── supervisor-flow.spec.ts
 │   └── admin-flow.spec.ts
 ├── jest.config.js          # Jest configuration
-├── jest.setup.js           # Jest setup file
-└── playwright.config.ts    # Playwright configuration
+└── jest.setup.js           # Jest setup file
 ```
 
 ### File Naming Conventions
 
 - Unit tests: `*.test.ts` or `*.test.tsx`
 - Component tests: `ComponentName.test.tsx`
+- Integration tests: `*.integration.test.tsx`
 - E2E tests: `*.spec.ts` (Playwright convention)
 - Test utilities: `__tests__/` folders or `*.test.ts` files
 
@@ -139,15 +149,75 @@ Test React components in isolation:
 Test how components and modules work together:
 
 - Component composition (parent-child interactions)
-- API route handlers (if using Next.js API routes)
-- State management flows
-- Form submission to API
-- Navigation between pages
+- Form submission flows (validation → submission → response → navigation)
+- Authentication state management across components
+- Data fetching from services to component display
+- Multi-step user workflows
+
+**Integration tests implemented:**
+
+#### 1. Authentication Flow Integration (`app/login/__integration__/auth-flow.integration.test.tsx`)
+**8 tests covering:**
+- Complete login flow with successful authentication
+- Loading state during login process
+- Form validation for empty fields
+- Clearing errors when user starts typing
+- Error message display on failed login
+- Network/exception error handling
+- Navigation to dashboard after successful login
+- Working navigation links (back to home, sign up)
+
+#### 2. Header Authentication Integration (`app/components/__integration__/header-auth.integration.test.tsx`)
+**11 tests covering:**
+- Not showing user profile when unauthenticated
+- Displaying user profile when authenticated
+- Fetching user profile after auth state changes
+- Opening dropdown when avatar is clicked
+- Calling signOut when logout is clicked
+- Closing dropdown when clicking outside
+- Profile link navigation to `/profile`
+- Dashboard link in dropdown
+- Always displaying logo and site title
+
+#### 3. Dashboard Flow Integration (`app/dashboard/__integration__/dashboard-flow.integration.test.tsx`)
+**8 tests covering:**
+- Redirecting unauthenticated users to home
+- Allowing authenticated users to see dashboard
+- Fetching user profile and rendering student dashboard
+- Displaying loading state while fetching user data
+- Fetching and displaying applications from service
+- Fetching and displaying supervisors from service
+- Displaying correct stat counts from fetched data
+
+#### 4. Student Dashboard Full Integration (`app/dashboard/student/__integration__/student-dashboard-full.integration.test.tsx`)
+**9 tests covering:**
+- Loading all services and rendering all sections
+- Fetching data from both services using Promise.all
+- Displaying correct counts from fetched data
+- Handling empty applications gracefully
+- Handling empty supervisors gracefully
+- Rendering application cards for each application
+- Displaying application status for each card
+- Rendering supervisor cards for each supervisor
+- Displaying supervisor expertise areas
+
+#### 5. Registration Flow Integration (`app/register/__integration__/registration-flow.integration.test.tsx`)
+**6 tests covering:**
+- Complete successful registration with all required fields
+- Loading state during registration
+- Validating required fields
+- Validating password match
+- Validating email format
+- Showing error for existing email (duplicate email handling)
+- Navigation links to login and home pages
+
+**Total: 42 integration tests**
 
 **Example scenarios:**
-- User profile page loading and displaying data
-- Form submission flow with validation
-- Multi-step processes (application submission)
+- User authenticates → Dashboard loads → Services fetch data → Components display
+- Login form submission → Authentication → Success message → Navigation
+- Dashboard layout fetches user profile → Passes to child components
+- Registration form validation → Submission → Firebase authentication → Database creation → Success message
 
 ### E2E Tests
 
@@ -194,6 +264,38 @@ Jest should be configured to work with Next.js 14 App Router and TypeScript:
   }
 }
 ```
+
+### Coverage Reports
+
+After running tests with coverage, Jest generates comprehensive coverage reports in multiple formats:
+
+**HTML Report** (Recommended for detailed analysis):
+- Location: `coverage/lcov-report/index.html`
+- Open in browser for interactive, visual coverage exploration
+- Features color-coded coverage indicators (green: covered, red: not covered)
+- Includes line-by-line analysis with branch coverage details
+
+**Terminal Summary**:
+- Displays immediately after test execution
+- Shows coverage percentages for statements, branches, functions, and lines
+- Lists uncovered line numbers for quick reference
+
+**Coverage Files**:
+- `coverage/lcov.info` - Machine-readable format for CI/CD integration
+- `coverage/coverage-final.json` - Detailed JSON coverage data
+- `coverage/clover.xml` - XML format for reporting tools
+
+**Interpreting Coverage Metrics**:
+- **Statements**: Percentage of executable statements run during tests
+- **Branches**: Percentage of conditional branches tested (if/else, switch, ternary)
+- **Functions**: Percentage of functions/methods called during tests
+- **Lines**: Percentage of code lines executed (most commonly referenced metric)
+
+**Target Coverage Goals**:
+- Critical components: 90%+ coverage
+- General components: 70-80% coverage
+- Utility functions: 80%+ coverage
+- Overall project: 70%+ coverage
 
 ### Playwright Configuration
 
@@ -289,13 +391,14 @@ test('student can view profile page', async ({ page }) => {
 1. Add tests for all existing components
 2. Test page components (`app/page.tsx`, `app/profile/page.tsx`)
 3. Test conditional rendering and role-based logic
-4. Achieve 70%+ component test coverage
+4. Achieve 90%+ component test coverage
 
-### Phase 3: Unit Tests (Priority: Medium)
-1. Create utility functions if needed
-2. Write unit tests for business logic
-3. Test validation functions
-4. Test data transformation utilities
+### Phase 3: Integration Tests (Priority: High)
+1. Create test utilities for integration testing
+2. Test authentication flows (login, registration)
+3. Test dashboard data integration
+4. Test component interactions with authentication state
+5. Test form submission workflows
 
 ### Phase 4: E2E Setup (Priority: Medium)
 1. Install Playwright
