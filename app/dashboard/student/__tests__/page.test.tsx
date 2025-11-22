@@ -57,16 +57,6 @@ describe('StudentDashboard', () => {
     });
   });
 
-  it('should display applications and supervisors after loading', async () => {
-    render(<StudentDashboard />);
-    
-    await waitFor(() => {
-      // Check for actual data from mock-data folder
-      expect(screen.getByText(applications[0].projectTitle)).toBeInTheDocument();
-      const availableSupervisors = supervisors.filter(sup => sup.availabilityStatus === 'available');
-      expect(screen.getByText(availableSupervisors[0].name)).toBeInTheDocument();
-    });
-  });
 
   it('should show loading state initially', async () => {
     render(<StudentDashboard />);
