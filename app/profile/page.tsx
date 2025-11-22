@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { User } from '@/types/user';
-import { UserService } from '@/mock-data';
+import { UserService } from '@/lib/services';
+import { onAuthChange } from '@/lib/auth';
 import Link from 'next/link';
 
 export default function ProfilePage() {
@@ -10,18 +11,23 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const unsubscribe = onAuthChange(async (authUser) => {
+      if (!authUser) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const user = await UserService.getCurrentUser();
+        const user = await UserService.getUserById(authUser.uid);
         setCurrentUser(user);
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    fetchUser();
+    return () => unsubscribe();
   }, []);
 
   if (loading) {
