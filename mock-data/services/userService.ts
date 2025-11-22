@@ -3,7 +3,15 @@ import { users } from '../data/users';
 
 /**
  * Service for managing user data
- * TODO: Replace with real database calls (Firebase/API)
+ * @deprecated Use RepositoryFactory.getUserRepository() from @/lib/repositories instead
+ * This service is kept for backward compatibility with existing tests only
+ * 
+ * New code should use:
+ * ```typescript
+ * import { RepositoryFactory } from '@/lib/repositories';
+ * const repo = RepositoryFactory.getUserRepository();
+ * const user = await repo.getCurrentUser();
+ * ```
  */
 export class UserService {
   /**

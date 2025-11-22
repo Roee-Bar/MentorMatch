@@ -14,7 +14,8 @@ import {
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
-import type { ApplicationCardData, SupervisorCardData } from '@/types/database';
+import { Application, Supervisor } from '@/types/dashboard';
+import { RepositoryFactory } from '@/lib/repositories';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -59,9 +60,12 @@ export default function StudentDashboard() {
       if (!userId) return;
 
       try {
+        const applicationRepo = RepositoryFactory.getApplicationRepository();
+        const supervisorRepo = RepositoryFactory.getSupervisorRepository();
+        
         const [appsData, supervisorsData] = await Promise.all([
-          ApplicationService.getStudentApplications(userId),
-          SupervisorService.getAvailableSupervisors(),
+          applicationRepo.getAllApplications(),
+          supervisorRepo.getAvailableSupervisors(),
         ]);
 
         setApplications(appsData);

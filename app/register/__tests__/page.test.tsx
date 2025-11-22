@@ -110,6 +110,9 @@ describe('RegisterPage', () => {
   });
 
   it('should display error message on failed registration', async () => {
+    // Suppress expected console.error during this test
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
     (createUserWithEmailAndPassword as jest.Mock).mockRejectedValue({
       code: 'auth/email-already-in-use',
       message: 'Email already in use',
@@ -136,6 +139,9 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/email is already registered/i)).toBeInTheDocument();
     });
+    
+    // Restore console.error
+    consoleErrorSpy.mockRestore();
   });
 
   it('should display success message on successful registration', async () => {
