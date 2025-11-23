@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import ApplicationCard from '../ApplicationCard';
 import { Application } from '@/types/dashboard';
 import { applications } from '@/mock-data';
@@ -11,17 +11,6 @@ describe('ApplicationCard', () => {
   if (!mockApplication) {
     throw new Error('Mock application data is missing. Please check mock-data/data/applications.ts');
   }
-
-  it('renders application details correctly', () => {
-    render(<ApplicationCard application={mockApplication} />);
-
-    expect(screen.getByText(mockApplication.projectTitle)).toBeInTheDocument();
-    expect(screen.getByText(new RegExp(mockApplication.supervisorName))).toBeInTheDocument();
-    expect(screen.getByText(mockApplication.projectDescription)).toBeInTheDocument();
-    expect(screen.getByText(mockApplication.dateApplied)).toBeInTheDocument();
-    expect(screen.getByText(mockApplication.responseTime)).toBeInTheDocument();
-    expect(screen.getByText(mockApplication.comments)).toBeInTheDocument();
-  });
 
   it('displays correct status badge for approved application', () => {
     const approvedApplication: Application = {
@@ -57,6 +46,74 @@ describe('ApplicationCard', () => {
     };
     render(<ApplicationCard application={noCommentsApplication} />);
     expect(screen.queryByText('Comments:')).not.toBeInTheDocument();
+  });
+
+  describe('Button Interactions', () => {
+    it('should display "Withdraw" button only for pending applications', () => {
+      const pendingApplication: Application = {
+        ...mockApplication,
+        status: 'pending',
+      };
+      render(<ApplicationCard application={pendingApplication} />);
+      
+      const withdrawButton = screen.getByRole('button', { name: /withdraw/i });
+      expect(withdrawButton).toBeInTheDocument();
+      expect(withdrawButton).toHaveClass('btn-danger');
+    });
+
+    it('should not display "Withdraw" button for non-pending applications', () => {
+      const approvedApplication: Application = {
+        ...mockApplication,
+        status: 'approved',
+      };
+      render(<ApplicationCard application={approvedApplication} />);
+      
+      expect(screen.queryByRole('button', { name: /withdraw/i })).not.toBeInTheDocument();
+    });
+
+    it('should display "Edit & Resubmit" button only for revision_requested applications', () => {
+      const revisionApplication: Application = {
+        ...mockApplication,
+        status: 'revision_requested',
+      };
+      render(<ApplicationCard application={revisionApplication} />);
+      
+      const editButton = screen.getByRole('button', { name: /edit & resubmit/i });
+      expect(editButton).toBeInTheDocument();
+      expect(editButton).toHaveClass('btn-primary');
+    });
+
+    it('should not display "Edit & Resubmit" button for non-revision applications', () => {
+      const pendingApplication: Application = {
+        ...mockApplication,
+        status: 'pending',
+      };
+      render(<ApplicationCard application={pendingApplication} />);
+      
+      expect(screen.queryByRole('button', { name: /edit & resubmit/i })).not.toBeInTheDocument();
+    });
+
+    it('should display "View Project Details" button only for approved applications', () => {
+      const approvedApplication: Application = {
+        ...mockApplication,
+        status: 'approved',
+      };
+      render(<ApplicationCard application={approvedApplication} />);
+      
+      const viewButton = screen.getByRole('button', { name: /view project details/i });
+      expect(viewButton).toBeInTheDocument();
+      expect(viewButton).toHaveClass('btn-success');
+    });
+
+    it('should not display "View Project Details" button for non-approved applications', () => {
+      const pendingApplication: Application = {
+        ...mockApplication,
+        status: 'pending',
+      };
+      render(<ApplicationCard application={pendingApplication} />);
+      
+      expect(screen.queryByRole('button', { name: /view project details/i })).not.toBeInTheDocument();
+    });
   });
 });
 

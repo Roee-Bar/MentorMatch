@@ -20,11 +20,10 @@ jest.mock('@/lib/auth', () => ({
   signIn: jest.fn(),
 }));
 
-describe('LoginPage', () => {
+describe('LoginPage - Enhanced Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
 
   it('should show validation errors for empty fields', async () => {
     render(<LoginPage />);
@@ -121,6 +120,170 @@ describe('LoginPage', () => {
 
     expect(screen.getByRole('button', { name: /logging in.../i })).toBeInTheDocument();
     expect(submitButton).toBeDisabled();
+  });
+
+  // Enhanced Integration Tests
+  it('should handle auth/user-not-found error code', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'User not found',
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: 'notfound@test.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/user not found/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle auth/wrong-password error code', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Wrong password',
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/wrong password/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle auth/invalid-email error code', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Invalid email format',
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid email format/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle auth/too-many-requests error code', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Too many failed login attempts',
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/too many failed login attempts/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle network errors gracefully', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: false,
+      error: 'Network error occurred',
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/network error occurred/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should clear error message after correcting input', async () => {
+    (signIn as jest.Mock).mockResolvedValueOnce({
+      success: false,
+      error: 'Invalid credentials',
+    }).mockResolvedValueOnce({
+      success: true,
+      user: { uid: 'test-uid' },
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    // First attempt - incorrect credentials
+    fireEvent.change(emailInput, { target: { value: 'wrong@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'wrong123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
+    });
+
+    // Second attempt - correct credentials
+    fireEvent.change(emailInput, { target: { value: 'correct@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'correct123' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/login successful!/i)).toBeInTheDocument();
+    });
+  });
+
+  it('should call signIn with correct parameters', async () => {
+    (signIn as jest.Mock).mockResolvedValue({
+      success: true,
+      user: { uid: 'test-uid' },
+    });
+
+    render(<LoginPage />);
+    
+    const emailInput = screen.getByPlaceholderText(/you@braude.ac.il/i);
+    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const submitButton = screen.getByRole('button', { name: /login/i });
+
+    const testEmail = 'test@example.com';
+    const testPassword = 'password123';
+
+    fireEvent.change(emailInput, { target: { value: testEmail } });
+    fireEvent.change(passwordInput, { target: { value: testPassword } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(signIn).toHaveBeenCalledWith(testEmail, testPassword);
+    });
   });
 });
 

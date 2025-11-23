@@ -229,7 +229,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <form onSubmit={handleRegistration} className="bg-gray-50 p-10 rounded-xl border border-gray-200">
+      <form onSubmit={handleRegistration} noValidate className="bg-gray-50 p-10 rounded-xl border border-gray-200">
         
         {/* Account Information Section */}
         <div className="mb-10">

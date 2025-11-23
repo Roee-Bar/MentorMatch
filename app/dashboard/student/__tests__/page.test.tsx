@@ -1,6 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
+import { ApplicationService, SupervisorService } from '@/lib/services';
+import { onAuthChange, getUserProfile } from '@/lib/auth';
 
 // Mock the Firebase services
 jest.mock('@/lib/services', () => ({
@@ -13,12 +16,15 @@ jest.mock('@/lib/services', () => ({
   StudentService: {},
 }));
 
+// Mock navigation functions
+const mockPush = jest.fn();
+const mockReplace = jest.fn();
+
 // Mock the auth module
 jest.mock('@/lib/auth', () => ({
   onAuthChange: jest.fn((callback) => {
-    // Simulate authenticated user
     callback({ uid: 'test-user-id' });
-    return jest.fn(); // Return unsubscribe function
+    return jest.fn();
   }),
   getUserProfile: jest.fn().mockResolvedValue({
     success: true,
@@ -29,19 +35,18 @@ jest.mock('@/lib/auth', () => ({
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
+    push: mockPush,
+    replace: mockReplace,
   })),
 }));
 
-import { ApplicationService, SupervisorService } from '@/lib/services';
-
-describe('StudentDashboard', () => {
+describe('StudentDashboard - Enhanced Integration Tests', () => {
   beforeEach(() => {
-    // Reset mocks before each test
     jest.clearAllMocks();
+    mockPush.mockClear();
+    mockReplace.mockClear();
     
-    // Convert mock applications to ApplicationCardData format
+    // Set up default mock implementations
     const applicationCards = applications.map(app => ({
       id: app.id,
       projectTitle: app.projectTitle,
@@ -53,10 +58,8 @@ describe('StudentDashboard', () => {
       comments: app.comments,
     }));
     
-    // Set up default mock implementations using actual mock data
     (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue(applicationCards);
     
-    // Convert supervisors to SupervisorCardData format
     const supervisorCards = supervisors
       .filter(sup => sup.availabilityStatus === 'available')
       .map(sup => ({
@@ -74,22 +77,335 @@ describe('StudentDashboard', () => {
     (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(supervisorCards);
   });
   
-  it('should render stat cards with data', async () => {
+  it('should display correct stat card values based on data', async () => {
     render(<StudentDashboard />);
+    
     await waitFor(() => {
-      expect(screen.getAllByText('My Applications').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Available Supervisors').length).toBeGreaterThan(0);
-      expect(screen.getByText('Pending Review')).toBeInTheDocument();
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
     });
-  });
 
+    // Verify the calculated values are displayed correctly
+    // Total applications count (from mock data: applications.length)
+    const totalAppsCount = applications.length;
+    expect(screen.getByText(totalAppsCount.toString())).toBeInTheDocument();
+    
+    // Pending count (pending + under_review statuses)
+    const pendingCount = applications.filter(
+      app => app.status === 'pending' || app.status === 'under_review'
+    ).length;
+    expect(screen.getByText(pendingCount.toString())).toBeInTheDocument();
+    
+    // Approved count
+    const approvedCount = applications.filter(app => app.status === 'approved').length;
+    expect(screen.getByText(approvedCount.toString())).toBeInTheDocument();
+    
+    // Available supervisors count
+    const availableSupervisorsCount = supervisors.filter(
+      sup => sup.availabilityStatus === 'available'
+    ).length;
+    expect(screen.getByText(availableSupervisorsCount.toString())).toBeInTheDocument();
+  });
 
   it('should show loading state initially', async () => {
     render(<StudentDashboard />);
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
-    // Wait for loading to complete to avoid act() warnings
+    
     await waitFor(() => {
       expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should handle error state when services fail', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    (ApplicationService.getStudentApplications as jest.Mock).mockRejectedValue(
+      new Error('Failed to fetch applications')
+    );
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockRejectedValue(
+      new Error('Failed to fetch supervisors')
+    );
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+    });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should display empty state for applications', async () => {
+    (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue([]);
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(ApplicationService.getStudentApplications).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      const applicationCards = screen.getAllByText('My Applications');
+      expect(applicationCards.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should display empty state for supervisors', async () => {
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue([]);
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(SupervisorService.getAvailableSupervisors).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      const supervisorCards = screen.getAllByText('Available Supervisors');
+      expect(supervisorCards.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should transform data from services to UI correctly', async () => {
+    const mockApplications = [
+      {
+        id: 'app-1',
+        projectTitle: 'Test Project',
+        projectDescription: 'Test Description',
+        supervisorName: 'Dr. Test',
+        dateApplied: '2024-01-01',
+        status: 'pending' as const,
+        responseTime: '5-7 days',
+        comments: 'Test comments',
+      },
+    ];
+
+    const mockSupervisors = [
+      {
+        id: 'sup-1',
+        name: 'Dr. Supervisor',
+        department: 'Computer Science',
+        bio: 'Expert in AI',
+        expertiseAreas: ['AI', 'ML'],
+        researchInterests: ['Deep Learning'],
+        availabilityStatus: 'available' as const,
+        currentCapacity: '2/5 projects',
+        contact: 'sup@email.com',
+      },
+    ];
+
+    (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue(mockApplications);
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(mockSupervisors);
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(ApplicationService.getStudentApplications).toHaveBeenCalled();
+      expect(SupervisorService.getAvailableSupervisors).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+    });
+  });
+
+  it('should calculate stat card values with actual data', async () => {
+    const mockApplications = [
+      {
+        id: 'app-1',
+        projectTitle: 'Project 1',
+        projectDescription: 'Description 1',
+        supervisorName: 'Dr. Test 1',
+        dateApplied: '2024-01-01',
+        status: 'pending' as const,
+        responseTime: '5-7 days',
+      },
+      {
+        id: 'app-2',
+        projectTitle: 'Project 2',
+        projectDescription: 'Description 2',
+        supervisorName: 'Dr. Test 2',
+        dateApplied: '2024-01-02',
+        status: 'under_review' as const,
+        responseTime: '3-5 days',
+      },
+    ];
+
+    const mockSupervisors = [
+      {
+        id: 'sup-1',
+        name: 'Dr. Supervisor 1',
+        department: 'Computer Science',
+        bio: 'Expert',
+        expertiseAreas: ['AI'],
+        researchInterests: ['ML'],
+        availabilityStatus: 'available' as const,
+        currentCapacity: '2/5 projects',
+        contact: 'sup1@email.com',
+      },
+      {
+        id: 'sup-2',
+        name: 'Dr. Supervisor 2',
+        department: 'Software Engineering',
+        bio: 'Expert',
+        expertiseAreas: ['Web'],
+        researchInterests: ['Cloud'],
+        availabilityStatus: 'available' as const,
+        currentCapacity: '3/5 projects',
+        contact: 'sup2@email.com',
+      },
+    ];
+
+    (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue(mockApplications);
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(mockSupervisors);
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+    });
+
+    // Check if stat cards display correct counts
+    await waitFor(() => {
+      const applicationHeaders = screen.getAllByText('My Applications');
+      expect(applicationHeaders.length).toBeGreaterThan(0);
+      
+      const supervisorHeaders = screen.getAllByText('Available Supervisors');
+      expect(supervisorHeaders.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should call services with correct parameters', async () => {
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(ApplicationService.getStudentApplications).toHaveBeenCalled();
+      expect(SupervisorService.getAvailableSupervisors).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle partial service failures gracefully', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue([]);
+    (SupervisorService.getAvailableSupervisors as jest.Mock).mockRejectedValue(
+      new Error('Supervisor service failed')
+    );
+
+    render(<StudentDashboard />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+    });
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  describe('Navigation Interactions', () => {
+    it('should navigate to supervisors page when "New Application" button is clicked', async () => {
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      });
+
+      const newAppButton = screen.getByRole('button', { name: /new application/i });
+      fireEvent.click(newAppButton);
+
+      expect(mockPush).toHaveBeenCalledWith('/supervisors');
+    });
+
+    it('should navigate to supervisors page when "Browse Supervisors" button is clicked in empty state', async () => {
+      (ApplicationService.getStudentApplications as jest.Mock).mockResolvedValue([]);
+
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      });
+
+      const browseSupervisorsButton = screen.getByRole('button', { name: /browse supervisors/i });
+      fireEvent.click(browseSupervisorsButton);
+
+      expect(mockPush).toHaveBeenCalledWith('/supervisors');
+    });
+
+    it('should navigate to supervisors page when "View All" link is clicked', async () => {
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      });
+
+      const viewAllLink = screen.getByRole('button', { name: /view all →/i });
+      fireEvent.click(viewAllLink);
+
+      expect(mockPush).toHaveBeenCalledWith('/supervisors');
+    });
+  });
+
+  describe('Role-Based Dashboard Redirection', () => {
+    it('should redirect supervisor to supervisor dashboard', async () => {
+      const mockSupervisorUser = {
+        uid: 'supervisor-uid',
+        email: 'supervisor@test.com',
+      };
+
+      (onAuthChange as jest.Mock).mockImplementation((callback) => {
+        setTimeout(() => {
+          callback(mockSupervisorUser);
+        }, 0);
+        return jest.fn();
+      });
+
+      (getUserProfile as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { role: 'supervisor', name: 'Test Supervisor' },
+      });
+
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith('/dashboard/supervisor');
+      });
+    });
+
+    it('should redirect admin to admin dashboard', async () => {
+      const mockAdminUser = {
+        uid: 'admin-uid',
+        email: 'admin@test.com',
+      };
+
+      (onAuthChange as jest.Mock).mockImplementation((callback) => {
+        setTimeout(() => {
+          callback(mockAdminUser);
+        }, 0);
+        return jest.fn();
+      });
+
+      (getUserProfile as jest.Mock).mockResolvedValue({
+        success: true,
+        data: { role: 'admin', name: 'Test Admin' },
+      });
+
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith('/dashboard/admin');
+      });
+    });
+
+    it('should redirect unauthenticated users to login', async () => {
+      (onAuthChange as jest.Mock).mockImplementation((callback) => {
+        setTimeout(() => {
+          callback(null);
+        }, 0);
+        return jest.fn();
+      });
+
+      render(<StudentDashboard />);
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith('/login');
+      });
     });
   });
 });

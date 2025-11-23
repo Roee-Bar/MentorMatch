@@ -14,9 +14,6 @@ describe('UserProfile', () => {
     throw new Error('Mock data missing required user roles. Please check mock-data/data/users.ts');
   }
 
-  describe('Student Profile', () => {
-  });
-
   describe('Supervisor Profile', () => {
     it('does not render student-specific fields for supervisor', () => {
       render(<UserProfile user={mockSupervisor} />);

@@ -49,7 +49,7 @@ export default function LoginPage() {
           Login to your MentorMatch account
         </p>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin} noValidate>
           <div className="mb-5">
             <label className="label-base">
               Email Address

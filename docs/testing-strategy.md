@@ -195,6 +195,22 @@ Jest should be configured to work with Next.js 14 App Router and TypeScript:
 }
 ```
 
+### Firebase Service Mocking Strategy
+
+Since the application uses Firebase services for data operations, tests mock these services to avoid actual database calls:
+
+**Mocking Pattern:**
+- Mock Firebase services (`@/lib/services`) at the module level
+- Mock Firebase Auth (`@/lib/auth`) for authentication state
+- Use mock data fixtures (`@/mock-data`) for test data
+- Transform mock data to match service return types
+
+**Key Principles:**
+- Mock services, not Firebase SDK directly
+- Use real mock data structures for realistic tests
+- Transform mock data to match service return types
+- Reset mocks in `beforeEach` to ensure test isolation
+
 ### Playwright Configuration
 
 Playwright should be configured for Next.js development server:
@@ -216,65 +232,7 @@ Playwright should be configured for Next.js development server:
 }
 ```
 
-## Example Test Structure
 
-### Component Test Example
-
-Here's an example test for the `UserProfile` component:
-
-```typescript
-// components/__tests__/UserProfile.test.tsx
-import { render, screen } from '@testing-library/react';
-import UserProfile from '../UserProfile';
-import { User } from '@/types/user';
-
-describe('UserProfile', () => {
-  const mockStudent: User = {
-    id: '1',
-    name: 'Test Student',
-    email: 'test@example.com',
-    role: 'student',
-    profileImage: '/test-image.jpg',
-    studentId: 'STU-001',
-    degree: 'B.Sc. Software Engineering',
-  };
-
-  it('renders student information correctly', () => {
-    render(<UserProfile user={mockStudent} />);
-    expect(screen.getByText('Test Student')).toBeInTheDocument();
-    expect(screen.getByText('STU-001')).toBeInTheDocument();
-    expect(screen.getByText('Student')).toBeInTheDocument();
-  });
-
-  it('displays correct role badge for student', () => {
-    render(<UserProfile user={mockStudent} />);
-    const badge = screen.getByText('Student');
-    expect(badge).toHaveClass('bg-blue-100', 'text-blue-800');
-  });
-
-  it('conditionally renders student-specific fields', () => {
-    render(<UserProfile user={mockStudent} />);
-    expect(screen.getByText('STU-001')).toBeInTheDocument();
-    expect(screen.getByText('B.Sc. Software Engineering')).toBeInTheDocument();
-  });
-});
-```
-
-### E2E Test Example
-
-Example Playwright test for student flow:
-
-```typescript
-// e2e/student-flow.spec.ts
-import { test, expect } from '@playwright/test';
-
-test('student can view profile page', async ({ page }) => {
-  await page.goto('/');
-  await page.click('text=My Profile');
-  await expect(page).toHaveURL('/profile');
-  await expect(page.locator('h2')).toContainText('Personal Profile');
-});
-```
 
 ## Implementation Roadmap
 
@@ -314,6 +272,13 @@ test('student can view profile page', async ({ page }) => {
 2. Set up pre-commit hooks (optional)
 3. Configure Vercel/GitHub Actions for test execution
 4. Set up test coverage reporting
+
+### Phase 7: Firebase Migration & Test Updates (Completed)
+1. Migrated from mock data services to Firebase services
+2. Updated all tests to mock Firebase services instead of mock data services
+3. Resolved merge conflicts in test files
+4. Ensured all 11 test suites pass (41 tests total)
+5. Maintained test coverage while using real Firebase service interfaces
 
 ## Best Practices
 

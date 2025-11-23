@@ -31,6 +31,9 @@ MentorMatch streamlines the process of matching students with project supervisor
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
+- **Database**: Firebase Firestore
+- **Authentication**: Firebase Auth
+- **Testing**: Jest, React Testing Library
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -73,6 +76,15 @@ npm start
 
 # Run linting
 npm run lint
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
 ```
 
 ## Project Structure
