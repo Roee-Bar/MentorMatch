@@ -94,7 +94,9 @@ describe('StudentDashboard - Enhanced Integration Tests', () => {
     const pendingCount = applications.filter(
       app => app.status === 'pending' || app.status === 'under_review'
     ).length;
-    expect(screen.getByText(pendingCount.toString())).toBeInTheDocument();
+    // Find the "Pending Review" stat card and verify its value
+    const pendingReviewCard = screen.getByText('Pending Review').closest('.card-base');
+    expect(pendingReviewCard).toHaveTextContent(pendingCount.toString());
     
     // Approved count
     const approvedCount = applications.filter(app => app.status === 'approved').length;
@@ -104,7 +106,12 @@ describe('StudentDashboard - Enhanced Integration Tests', () => {
     const availableSupervisorsCount = supervisors.filter(
       sup => sup.availabilityStatus === 'available'
     ).length;
-    expect(screen.getByText(availableSupervisorsCount.toString())).toBeInTheDocument();
+    // Find the "Available Supervisors" stat card (h3 title) and verify its value
+    const availableSupervisorsTitles = screen.getAllByText('Available Supervisors');
+    const statCardTitle = availableSupervisorsTitles.find(el => el.tagName === 'H3');
+    expect(statCardTitle).toBeInTheDocument();
+    const availableSupervisorsCard = statCardTitle!.closest('.card-base');
+    expect(availableSupervisorsCard).toHaveTextContent(availableSupervisorsCount.toString());
   });
 
   // Tests loading indicator displays while dashboard data is being fetched

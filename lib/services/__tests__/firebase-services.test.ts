@@ -51,6 +51,10 @@ jest.mock('@/lib/firebase', () => ({
 describe('Firebase Services - Unit Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock doc to return a document reference object
+    (doc as jest.Mock).mockReturnValue({ id: 'mock-doc-ref' });
+    // Mock collection to return a collection reference object
+    (collection as jest.Mock).mockReturnValue({ id: 'mock-collection-ref' });
   });
 
   // ============================================
