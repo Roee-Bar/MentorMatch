@@ -14,10 +14,8 @@ describe('UserProfile', () => {
     throw new Error('Mock data missing required user roles. Please check mock-data/data/users.ts');
   }
 
-  describe('Student Profile', () => {
-  });
-
   describe('Supervisor Profile', () => {
+    // Tests conditional field rendering excludes student fields for supervisor role
     it('does not render student-specific fields for supervisor', () => {
       render(<UserProfile user={mockSupervisor} />);
       expect(screen.queryByText('Student ID')).not.toBeInTheDocument();
@@ -26,6 +24,7 @@ describe('UserProfile', () => {
   });
 
   describe('Admin Profile', () => {
+    // Tests conditional field rendering excludes student fields for admin role
     it('does not render student-specific fields for admin', () => {
       render(<UserProfile user={mockAdmin} />);
       expect(screen.queryByText('Student ID')).not.toBeInTheDocument();
@@ -34,6 +33,7 @@ describe('UserProfile', () => {
   });
 
   describe('Optional Fields Handling', () => {
+    // Tests optional studentId field is hidden when undefined
     it('handles missing studentId gracefully', () => {
       const studentWithoutId: User = {
         ...mockStudent,
@@ -44,6 +44,7 @@ describe('UserProfile', () => {
       expect(screen.getByText(mockStudent.name)).toBeInTheDocument();
     });
 
+    // Tests optional degree field is hidden when undefined
     it('handles missing degree gracefully', () => {
       const studentWithoutDegree: User = {
         ...mockStudent,
@@ -54,6 +55,7 @@ describe('UserProfile', () => {
       expect(screen.getByText(mockStudent.name)).toBeInTheDocument();
     });
 
+    // Tests optional department field is hidden when undefined
     it('handles missing department gracefully', () => {
       const supervisorWithoutDept: User = {
         ...mockSupervisor,
@@ -64,6 +66,7 @@ describe('UserProfile', () => {
       expect(screen.getByText(mockSupervisor.name)).toBeInTheDocument();
     });
 
+    // Tests optional expertise field is hidden when undefined
     it('handles empty expertise array gracefully', () => {
       const supervisorWithoutExpertise: User = {
         ...mockSupervisor,

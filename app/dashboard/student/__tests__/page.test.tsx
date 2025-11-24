@@ -1,6 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
+import { ApplicationService, SupervisorService } from '@/lib/services';
+
+// Mock navigation functions
+const mockPush = jest.fn();
+const mockReplace = jest.fn();
 
 // Mock the Firebase services
 jest.mock('@/lib/services', () => ({
@@ -29,17 +34,16 @@ jest.mock('@/lib/auth', () => ({
 // Mock next/navigation
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
-    push: jest.fn(),
-    replace: jest.fn(),
+    push: mockPush,
+    replace: mockReplace,
   })),
 }));
 
-import { ApplicationService, SupervisorService } from '@/lib/services';
-
 describe('StudentDashboard', () => {
   beforeEach(() => {
-    // Reset mocks before each test
     jest.clearAllMocks();
+    mockPush.mockClear();
+    mockReplace.mockClear();
     
     // Convert mock applications to ApplicationCardData format
     const applicationCards = applications.map(app => ({
@@ -74,20 +78,48 @@ describe('StudentDashboard', () => {
     (SupervisorService.getAvailableSupervisors as jest.Mock).mockResolvedValue(supervisorCards);
   });
   
-  it('should render stat cards with data', async () => {
+  // Verifies stat cards calculate and display correct values from mock data
+  it('should display correct stat card values based on data', async () => {
     render(<StudentDashboard />);
+    
     await waitFor(() => {
-      expect(screen.getAllByText('My Applications').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Available Supervisors').length).toBeGreaterThan(0);
-      expect(screen.getByText('Pending Review')).toBeInTheDocument();
+      expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
     });
+
+    // Verify the calculated values are displayed correctly
+    // Total applications count (from mock data: applications.length)
+    const totalAppsCount = applications.length;
+    expect(screen.getByText(totalAppsCount.toString())).toBeInTheDocument();
+    
+    // Pending count (pending + under_review statuses)
+    const pendingCount = applications.filter(
+      app => app.status === 'pending' || app.status === 'under_review'
+    ).length;
+    // Find the "Pending Review" stat card and verify its value
+    const pendingReviewCard = screen.getByText('Pending Review').closest('.card-base');
+    expect(pendingReviewCard).toHaveTextContent(pendingCount.toString());
+    
+    // Approved count
+    const approvedCount = applications.filter(app => app.status === 'approved').length;
+    expect(screen.getByText(approvedCount.toString())).toBeInTheDocument();
+    
+    // Available supervisors count
+    const availableSupervisorsCount = supervisors.filter(
+      sup => sup.availabilityStatus === 'available'
+    ).length;
+    // Find the "Available Supervisors" stat card (h3 title) and verify its value
+    const availableSupervisorsTitles = screen.getAllByText('Available Supervisors');
+    const statCardTitle = availableSupervisorsTitles.find(el => el.tagName === 'H3');
+    expect(statCardTitle).toBeInTheDocument();
+    const availableSupervisorsCard = statCardTitle!.closest('.card-base');
+    expect(availableSupervisorsCard).toHaveTextContent(availableSupervisorsCount.toString());
   });
 
-
+  // Tests loading indicator displays while dashboard data is being fetched
   it('should show loading state initially', async () => {
     render(<StudentDashboard />);
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
-    // Wait for loading to complete to avoid act() warnings
+    
     await waitFor(() => {
       expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
     });

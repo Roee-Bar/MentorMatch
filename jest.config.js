@@ -14,6 +14,8 @@ const customJestConfig = {
   },
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{ts,tsx}',
+    'app/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
     '!**/.next/**',
