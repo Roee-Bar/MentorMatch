@@ -9,13 +9,11 @@ jest.mock('next/navigation', () => ({
 }));
 
 describe('DashboardRouter', () => {
-  // Tests redirecting message displays during navigation
   it('should render redirecting message', () => {
     render(<DashboardRouter />);
     expect(screen.getByText(/redirecting to dashboard/i)).toBeInTheDocument();
   });
 
-  // Tests automatic redirect to student dashboard on mount
   it('should redirect to student dashboard', () => {
     const mockReplace = jest.fn();
     

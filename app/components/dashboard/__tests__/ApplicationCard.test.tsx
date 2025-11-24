@@ -12,7 +12,17 @@ describe('ApplicationCard', () => {
     throw new Error('Mock application data is missing. Please check mock-data/data/applications.ts');
   }
 
-  // Tests conditional badge rendering for approved status
+  it('renders application details correctly', () => {
+    render(<ApplicationCard application={mockApplication} />);
+
+    expect(screen.getByText(mockApplication.projectTitle)).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(mockApplication.supervisorName))).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.projectDescription)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.dateApplied)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.responseTime)).toBeInTheDocument();
+    expect(screen.getByText(mockApplication.comments)).toBeInTheDocument();
+  });
+
   it('displays correct status badge for approved application', () => {
     const approvedApplication: Application = {
       ...mockApplication,
