@@ -58,6 +58,7 @@ describe('Firebase Services - Unit Tests', () => {
   // ============================================
   describe('UserService', () => {
     describe('getUserById', () => {
+      // Verifies successful retrieval of user data by ID from Firestore
       it('should return user data when user exists', async () => {
         const mockUser = users[0];
         const mockDoc = {
@@ -73,6 +74,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(getDoc).toHaveBeenCalledTimes(1);
       });
 
+      // Tests that getUserById returns null when user document doesn't exist
       it('should return null when user does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -85,6 +87,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when Firestore query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -98,6 +101,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAllUsers', () => {
+      // Verifies retrieval of all user documents from Firestore collection
       it('should return all users', async () => {
         const mockQuerySnapshot = {
           docs: users.map(user => ({
@@ -113,6 +117,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(getDocs).toHaveBeenCalledTimes(1);
       });
 
+      // Tests that getAllUsers returns empty array when no documents exist
       it('should return empty array when no users exist', async () => {
         const mockQuerySnapshot = {
           docs: [],
@@ -125,6 +130,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual([]);
       });
 
+      // Tests error handling returns empty array when Firestore query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -162,6 +168,7 @@ describe('Firebase Services - Unit Tests', () => {
     };
 
     describe('getStudentById', () => {
+      // Verifies successful retrieval of student data by ID from Firestore
       it('should return student data when student exists', async () => {
         const mockDoc = {
           exists: () => true,
@@ -175,6 +182,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual(mockStudent);
       });
 
+      // Tests that getStudentById returns null when student document doesn't exist
       it('should return null when student does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -187,6 +195,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when student query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -200,6 +209,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAllStudents', () => {
+      // Verifies retrieval of all student documents from Firestore collection
       it('should return all students', async () => {
         const mockStudents = [mockStudent];
         const mockQuerySnapshot = {
@@ -215,6 +225,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual(mockStudents);
       });
 
+      // Tests error handling returns empty array when getAllStudents query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -227,6 +238,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getUnmatchedStudents', () => {
+      // Verifies query returns only students with unmatched status
       it('should return only unmatched students', async () => {
         const unmatchedStudent = { ...mockStudent, matchStatus: 'unmatched' as const };
         const mockQuerySnapshot = {
@@ -241,6 +253,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].matchStatus).toBe('unmatched');
       });
 
+      // Tests handling when no unmatched students exist
       it('should return empty array when no unmatched students', async () => {
         const mockQuerySnapshot = {
           docs: [],
@@ -253,6 +266,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual([]);
       });
 
+      // Tests error handling for getUnmatchedStudents query failure
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -265,6 +279,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('updateStudent', () => {
+      // Verifies successful student data update with updatedAt timestamp
       it('should update student successfully', async () => {
         (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
@@ -282,6 +297,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests error handling returns false when student update fails
       it('should return false on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (updateDoc as jest.Mock).mockRejectedValue(new Error('Update failed'));
@@ -322,6 +338,7 @@ describe('Firebase Services - Unit Tests', () => {
     };
 
     describe('getSupervisorById', () => {
+      // Verifies successful retrieval of supervisor data by ID
       it('should return supervisor data when supervisor exists', async () => {
         const mockDoc = {
           exists: () => true,
@@ -335,6 +352,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual(mockSupervisor);
       });
 
+      // Tests that getSupervisorById returns null when document doesn't exist
       it('should return null when supervisor does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -347,6 +365,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when supervisor query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -359,6 +378,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAllSupervisors', () => {
+      // Verifies retrieval of all supervisor documents from Firestore
       it('should return all supervisors', async () => {
         const mockSupervisors = [mockSupervisor];
         const mockQuerySnapshot = {
@@ -374,6 +394,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual(mockSupervisors);
       });
 
+      // Tests error handling returns empty array when getAllSupervisors query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -386,6 +407,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAvailableSupervisors', () => {
+      // Verifies filtering and transformation of available supervisors for display
       it('should return and transform available supervisors', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -414,6 +436,7 @@ describe('Firebase Services - Unit Tests', () => {
         });
       });
 
+      // Tests that getAvailableSupervisors excludes supervisors with unavailable status
       it('should filter out unavailable supervisors', async () => {
         const unavailableSupervisor = {
           ...mockSupervisor,
@@ -435,6 +458,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toHaveLength(0);
       });
 
+      // Tests error handling returns empty array when getAvailableSupervisors fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -447,6 +471,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('updateSupervisor', () => {
+      // Verifies successful supervisor data update with updatedAt timestamp
       it('should update supervisor successfully', async () => {
         (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
@@ -464,6 +489,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests error handling returns false when supervisor update fails
       it('should return false on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (updateDoc as jest.Mock).mockRejectedValue(new Error('Update failed'));
@@ -478,6 +504,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getSupervisorsByDepartment', () => {
+      // Verifies filtering supervisors by department query
       it('should return supervisors filtered by department', async () => {
         const mockQuerySnapshot = {
           docs: [{ data: () => mockSupervisor }],
@@ -491,6 +518,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].department).toBe('Computer Science');
       });
 
+      // Tests handling when no supervisors exist in specified department
       it('should return empty array when no supervisors in department', async () => {
         const mockQuerySnapshot = {
           docs: [],
@@ -503,6 +531,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual([]);
       });
 
+      // Tests error handling returns empty array when department query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -538,6 +567,7 @@ describe('Firebase Services - Unit Tests', () => {
     };
 
     describe('getApplicationById', () => {
+      // Verifies successful retrieval of application by ID with document ID mapping
       it('should return application when it exists', async () => {
         const mockDoc = {
           exists: () => true,
@@ -553,6 +583,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result?.id).toBe('APP-001');
       });
 
+      // Tests that getApplicationById returns null when document doesn't exist
       it('should return null when application does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -565,6 +596,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when application query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -577,6 +609,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getStudentApplications', () => {
+      // Verifies retrieval and transformation of student applications with date formatting
       it('should return and transform student applications', async () => {
         const mockData = {
           ...mockApplication,
@@ -607,6 +640,7 @@ describe('Firebase Services - Unit Tests', () => {
         });
       });
 
+      // Tests handling of null or missing date objects in application data
       it('should handle missing toDate method', async () => {
         const mockData = {
           ...mockApplication,
@@ -629,6 +663,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].dateApplied).toBe('N/A');
       });
 
+      // Tests error handling returns empty array when student applications query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -641,6 +676,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getSupervisorApplications', () => {
+      // Verifies retrieval of all applications for a specific supervisor
       it('should return applications for supervisor', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -659,6 +695,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].id).toBe('APP-001');
       });
 
+      // Tests error handling returns empty array when supervisor applications query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -671,6 +708,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getPendingApplications', () => {
+      // Verifies filtering applications by pending and under_review status
       it('should return only pending and under review applications', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -688,6 +726,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toHaveLength(1);
       });
 
+      // Tests error handling returns empty array when pending applications query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -700,6 +739,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('createApplication', () => {
+      // Verifies successful creation of new application with timestamps
       it('should create application successfully', async () => {
         const mockDocRef = { id: 'APP-NEW' };
         (addDoc as jest.Mock).mockResolvedValue(mockDocRef);
@@ -720,6 +760,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests error handling returns null when application creation fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (addDoc as jest.Mock).mockRejectedValue(new Error('Create failed'));
@@ -736,6 +777,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('updateApplicationStatus', () => {
+      // Verifies successful status update with feedback and timestamps
       it('should update status successfully', async () => {
         (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
@@ -757,6 +799,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests status update without optional feedback parameter
       it('should update status without feedback', async () => {
         (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
@@ -775,6 +818,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests that responseDate is added when status changes to approved or rejected
       it('should add responseDate for approved/rejected status', async () => {
         (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
@@ -788,6 +832,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests error handling returns false when status update fails
       it('should return false on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (updateDoc as jest.Mock).mockRejectedValue(new Error('Update failed'));
@@ -800,6 +845,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAllApplications', () => {
+      // Verifies retrieval of all application documents from Firestore
       it('should return all applications', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -818,6 +864,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].id).toBe('APP-001');
       });
 
+      // Tests error handling returns empty array when getAllApplications query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -850,6 +897,7 @@ describe('Firebase Services - Unit Tests', () => {
     };
 
     describe('getProjectById', () => {
+      // Verifies successful retrieval of project by ID with document ID mapping
       it('should return project when it exists', async () => {
         const mockDoc = {
           exists: () => true,
@@ -865,6 +913,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result?.id).toBe('PRJ-001');
       });
 
+      // Tests that getProjectById returns null when document doesn't exist
       it('should return null when project does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -877,6 +926,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when project query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -889,6 +939,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getAllProjects', () => {
+      // Verifies retrieval of all project documents from Firestore
       it('should return all projects', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -907,6 +958,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].id).toBe('PRJ-001');
       });
 
+      // Tests error handling returns empty array when getAllProjects query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -919,6 +971,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getSupervisorProjects', () => {
+      // Verifies filtering projects by supervisor ID
       it('should return projects for supervisor', async () => {
         const mockQuerySnapshot = {
           docs: [
@@ -937,6 +990,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].supervisorId).toBe('SUP-001');
       });
 
+      // Tests error handling returns empty array when supervisor projects query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -949,6 +1003,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('createProject', () => {
+      // Verifies successful creation of new project with timestamps
       it('should create project successfully', async () => {
         const mockDocRef = { id: 'PRJ-NEW' };
         (addDoc as jest.Mock).mockResolvedValue(mockDocRef);
@@ -969,6 +1024,7 @@ describe('Firebase Services - Unit Tests', () => {
         );
       });
 
+      // Tests error handling returns null when project creation fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (addDoc as jest.Mock).mockRejectedValue(new Error('Create failed'));
@@ -985,18 +1041,21 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('generateProjectCode', () => {
+      // Tests business logic for generating standardized project codes
       it('should generate correct project code format', () => {
         const code = ProjectService.generateProjectCode(2024, 1, 'Computer Science', 5);
 
         expect(code).toBe('2024-1-C-05');
       });
 
+      // Tests that project codes pad single digit sequence numbers correctly
       it('should pad single digit numbers', () => {
         const code = ProjectService.generateProjectCode(2024, 2, 'Software Engineering', 3);
 
         expect(code).toBe('2024-2-S-03');
       });
 
+      // Tests that project codes extract first letter from department name
       it('should use first letter of department', () => {
         const code = ProjectService.generateProjectCode(2024, 1, 'Mechanical Engineering', 10);
 
@@ -1023,6 +1082,7 @@ describe('Firebase Services - Unit Tests', () => {
     };
 
     describe('getAdminById', () => {
+      // Verifies successful retrieval of admin data by ID
       it('should return admin when it exists', async () => {
         const mockDoc = {
           exists: () => true,
@@ -1036,6 +1096,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toEqual(mockAdmin);
       });
 
+      // Tests that getAdminById returns null when document doesn't exist
       it('should return null when admin does not exist', async () => {
         const mockDoc = {
           exists: () => false,
@@ -1048,6 +1109,7 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result).toBeNull();
       });
 
+      // Tests error handling returns null when admin query fails
       it('should return null on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -1060,6 +1122,7 @@ describe('Firebase Services - Unit Tests', () => {
     });
 
     describe('getDashboardStats', () => {
+      // Verifies calculation of dashboard statistics from student and supervisor data
       it('should calculate dashboard stats correctly', async () => {
         const mockStudentsSnapshot = {
           docs: [
@@ -1089,6 +1152,7 @@ describe('Firebase Services - Unit Tests', () => {
         });
       });
 
+      // Tests error handling returns zero values when getDashboardStats fails
       it('should return zero stats on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
         (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
@@ -1104,6 +1168,7 @@ describe('Firebase Services - Unit Tests', () => {
         consoleErrorSpy.mockRestore();
       });
 
+      // Tests calculation returns zeros when collections are empty
       it('should handle empty collections', async () => {
         const mockEmptySnapshot = {
           docs: [],

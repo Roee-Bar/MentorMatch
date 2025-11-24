@@ -26,6 +26,7 @@ describe('Home Page', () => {
     jest.clearAllMocks();
   });
 
+  // Tests authenticated users are automatically redirected to dashboard
   it('should redirect authenticated users to "/dashboard"', async () => {
     const mockUser = {
       uid: 'test-uid',
@@ -55,6 +56,7 @@ describe('Home Page', () => {
     }, { timeout: 2000 });
   });
 
+  // Tests loading indicator displays while checking authentication state
   it('should show loading state while checking authentication', () => {
     (onAuthChange as jest.Mock).mockImplementation(() => {
       // Don't call callback immediately to simulate loading

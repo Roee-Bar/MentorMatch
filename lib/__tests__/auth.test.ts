@@ -46,6 +46,7 @@ describe('Auth Module - Unit Tests', () => {
       department: 'Computer Science',
     };
 
+    // Verifies successful user account creation with Firebase Auth and Firestore document creation
     it('should successfully create user account and Firestore document', async () => {
       const mockUser = { uid: 'test-uid' };
       const mockUserCredential = { user: mockUser };
@@ -71,6 +72,7 @@ describe('Auth Module - Unit Tests', () => {
       );
     });
 
+    // Tests error handling when email is already registered
     it('should handle auth/email-already-in-use error', async () => {
       const mockError = {
         code: 'auth/email-already-in-use',
@@ -85,6 +87,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Email already in use');
     });
 
+    // Tests error handling for weak password validation
     it('should handle auth/weak-password error', async () => {
       const mockError = {
         code: 'auth/weak-password',
@@ -99,6 +102,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Password is too weak');
     });
 
+    // Tests error handling for invalid email format during signup
     it('should handle auth/invalid-email error', async () => {
       const mockError = {
         code: 'auth/invalid-email',
@@ -113,6 +117,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Invalid email format');
     });
 
+    // Tests error handling for unknown/generic errors during signup
     it('should handle generic errors', async () => {
       const mockError = {
         message: 'Unknown error occurred',
@@ -126,6 +131,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Unknown error occurred');
     });
 
+    // Verifies Firestore user document contains correct data structure with all required fields
     it('should create user document with correct structure', async () => {
       const mockUser = { uid: 'test-uid-123' };
       const mockUserCredential = { user: mockUser };
@@ -148,6 +154,7 @@ describe('Auth Module - Unit Tests', () => {
       );
     });
 
+    // Tests that signup handles optional department field with default empty string
     it('should handle missing department in userData', async () => {
       const mockUser = { uid: 'test-uid' };
       const mockUserCredential = { user: mockUser };
@@ -178,6 +185,7 @@ describe('Auth Module - Unit Tests', () => {
     const mockEmail = 'test@braude.ac.il';
     const mockPassword = 'password123';
 
+    // Verifies successful authentication with valid email and password
     it('should successfully sign in with valid credentials', async () => {
       const mockUser = { uid: 'test-uid', email: mockEmail };
       const mockUserCredential = { user: mockUser };
@@ -191,6 +199,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(signInWithEmailAndPassword).toHaveBeenCalledWith({}, mockEmail, mockPassword);
     });
 
+    // Tests error handling when user account doesn't exist
     it('should handle auth/user-not-found error', async () => {
       const mockError = {
         code: 'auth/user-not-found',
@@ -205,6 +214,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('User not found');
     });
 
+    // Tests error handling for incorrect password
     it('should handle auth/wrong-password error', async () => {
       const mockError = {
         code: 'auth/wrong-password',
@@ -219,6 +229,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Wrong password');
     });
 
+    // Tests error handling for invalid email format during signin
     it('should handle auth/invalid-email error', async () => {
       const mockError = {
         code: 'auth/invalid-email',
@@ -233,6 +244,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Invalid email format');
     });
 
+    // Tests error handling for invalid credentials error
     it('should handle auth/invalid-credential error', async () => {
       const mockError = {
         code: 'auth/invalid-credential',
@@ -247,6 +259,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Invalid credentials');
     });
 
+    // Verifies signin returns correct response structure on success with user object
     it('should return correct structure on success', async () => {
       const mockUser = { uid: 'test-uid', email: mockEmail, displayName: 'Test User' };
       const mockUserCredential = { user: mockUser };
@@ -260,6 +273,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result).not.toHaveProperty('error');
     });
 
+    // Verifies signin returns correct error response structure on failure
     it('should return correct structure on failure', async () => {
       const mockError = {
         message: 'Authentication failed',
@@ -279,6 +293,7 @@ describe('Auth Module - Unit Tests', () => {
   // SIGN OUT TESTS
   // ============================================
   describe('signOut', () => {
+    // Verifies successful user logout with Firebase Auth
     it('should successfully sign out user', async () => {
       (firebaseSignOut as jest.Mock).mockResolvedValue(undefined);
 
@@ -288,6 +303,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(firebaseSignOut).toHaveBeenCalledWith({});
     });
 
+    // Tests error handling when signout operation fails
     it('should handle sign out error', async () => {
       const mockError = {
         message: 'Sign out failed',
@@ -301,6 +317,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Sign out failed');
     });
 
+    // Verifies signout returns success response structure without errors
     it('should return correct structure on success', async () => {
       (firebaseSignOut as jest.Mock).mockResolvedValue(undefined);
 
@@ -310,6 +327,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result).not.toHaveProperty('error');
     });
 
+    // Verifies signout returns correct error response structure on failure
     it('should return correct structure on failure', async () => {
       const mockError = {
         message: 'Network error',
@@ -338,6 +356,7 @@ describe('Auth Module - Unit Tests', () => {
       createdAt: new Date(),
     };
 
+    // Verifies successful retrieval of user profile data from Firestore
     it('should successfully fetch user profile', async () => {
       const mockDoc = {
         exists: () => true,
@@ -353,6 +372,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(getDoc).toHaveBeenCalledTimes(1);
     });
 
+    // Tests error handling when user document doesn't exist in Firestore
     it('should return error when user does not exist', async () => {
       const mockDoc = {
         exists: () => false,
@@ -366,6 +386,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('User not found');
     });
 
+    // Tests error handling for Firestore connection or query errors
     it('should handle Firestore errors', async () => {
       const mockError = {
         message: 'Firestore connection error',
@@ -379,6 +400,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result.error).toBe('Firestore connection error');
     });
 
+    // Verifies getUserProfile returns correct success response structure with data
     it('should return correct structure on success', async () => {
       const mockDoc = {
         exists: () => true,
@@ -394,6 +416,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result).not.toHaveProperty('error');
     });
 
+    // Verifies getUserProfile returns correct error response structure on failure
     it('should return correct structure on failure', async () => {
       const mockDoc = {
         exists: () => false,
@@ -408,6 +431,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(result).not.toHaveProperty('data');
     });
 
+    // Tests handling of null user data from Firestore document
     it('should handle missing user data gracefully', async () => {
       const mockDoc = {
         exists: () => true,
@@ -427,6 +451,7 @@ describe('Auth Module - Unit Tests', () => {
   // ON AUTH CHANGE TESTS
   // ============================================
   describe('onAuthChange', () => {
+    // Verifies auth state listener calls callback with user object when authenticated
     it('should call callback with authenticated user', () => {
       const mockUser = {
         uid: 'test-uid',
@@ -448,6 +473,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(unsubscribe).toBe(mockUnsubscribe);
     });
 
+    // Tests auth state listener calls callback with null when user is not authenticated
     it('should call callback with null for logged out user', () => {
       const mockCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
@@ -462,6 +488,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(mockCallback).toHaveBeenCalledWith(null);
     });
 
+    // Verifies auth listener returns unsubscribe function for cleanup
     it('should return unsubscribe function', () => {
       const mockCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
@@ -474,6 +501,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(unsubscribe).toBe(mockUnsubscribe);
     });
 
+    // Tests that callback receives complete user object with all properties
     it('should pass correct user object to callback', () => {
       const mockUser = {
         uid: 'specific-uid',
@@ -500,6 +528,7 @@ describe('Auth Module - Unit Tests', () => {
       );
     });
 
+    // Verifies unsubscribe function can be called to stop listening to auth changes
     it('should allow unsubscribe to be called', () => {
       const mockCallback = jest.fn();
       const mockUnsubscribe = jest.fn();
@@ -512,6 +541,7 @@ describe('Auth Module - Unit Tests', () => {
       expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
+    // Tests that auth listener handles multiple state transitions correctly
     it('should handle multiple auth state changes', () => {
       const mockCallback = jest.fn();
       let authCallback: any;
@@ -537,4 +567,3 @@ describe('Auth Module - Unit Tests', () => {
     });
   });
 });
-

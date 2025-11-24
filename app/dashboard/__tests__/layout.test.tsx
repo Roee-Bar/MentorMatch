@@ -26,6 +26,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     jest.clearAllMocks();
   });
 
+  // Tests loading indicator displays while authentication is being checked
   it('should render loading state initially', () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     
@@ -48,6 +49,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
+  // Tests children render after successful authentication and profile fetch
   it('should render children after loading completes', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     
@@ -72,6 +74,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests authentication state is checked before rendering children
   it('should show authentication check behavior', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     
@@ -98,6 +101,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests unauthenticated users are blocked from viewing dashboard
   it('should redirect unauthenticated user to home', async () => {
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback(null), 0);
@@ -118,6 +122,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     }, { timeout: 2000 });
   });
 
+  // Tests non-student roles are blocked from student dashboard
   it('should redirect non-student role to home', async () => {
     const mockSupervisor = users.find((u: any) => u.role === 'supervisor');
     
@@ -143,6 +148,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     }, { timeout: 2000 });
   });
 
+  // Tests error handling when user profile fetch fails
   it('should handle getUserProfile error', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     
@@ -168,6 +174,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     }, { timeout: 2000 });
   });
 
+  // Tests successful authentication flow with profile fetch integration
   it('should complete auth flow with profile fetch successfully', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     
@@ -196,6 +203,7 @@ describe('DashboardLayout - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests auth listener unsubscribe is called when component unmounts
   it('should cleanup auth listener on unmount', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
     const mockUnsubscribe = jest.fn();

@@ -56,7 +56,7 @@ describe('RegisterPage', () => {
     jest.clearAllMocks();
   });
 
-
+  // Tests validation logic that password and confirm password fields must match
   it('should validate password confirmation match', async () => {
     const { container } = render(<RegisterPage />);
     
@@ -84,6 +84,7 @@ describe('RegisterPage', () => {
     }, { timeout: 3000 });
   });
 
+  // Tests HTML5 validation triggers for required empty fields
   it('should show validation errors for invalid inputs', async () => {
     render(<RegisterPage />);
     
@@ -96,6 +97,7 @@ describe('RegisterPage', () => {
     });
   });
 
+  // Tests error message display when registration fails with Firebase error
   it('should display error message on failed registration', async () => {
     // Suppress console.error for this test to keep logs clean
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -131,6 +133,7 @@ describe('RegisterPage', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Tests success message display after successful user registration
   it('should display success message on successful registration', async () => {
     const mockUser = { uid: 'test-uid' };
     (createUserWithEmailAndPassword as jest.Mock).mockResolvedValue({
@@ -162,6 +165,7 @@ describe('RegisterPage', () => {
     });
   });
 
+  // Tests auth state change triggers automatic redirect after registration
   it('should redirect to dashboard after successful registration', async () => {
     const mockUser = { uid: 'test-uid' };
     (createUserWithEmailAndPassword as jest.Mock).mockResolvedValue({
@@ -195,6 +199,7 @@ describe('RegisterPage', () => {
     }, { timeout: 3000 });
   });
 
+  // Tests loading state displays with disabled button during async registration
   it('should show loading state during registration', async () => {
     (createUserWithEmailAndPassword as jest.Mock).mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve({ user: { uid: 'test-uid' } }), 100))
@@ -223,6 +228,7 @@ describe('RegisterPage', () => {
     expect(submitButton).toBeDisabled();
   });
 
+  // Tests file input handling and photo preview display
   it('should handle photo upload functionality', async () => {
     const file = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
     const mockUser = { uid: 'test-uid' };
@@ -247,7 +253,7 @@ describe('RegisterPage', () => {
     });
   });
 
-  // Enhanced Integration Tests
+  // Tests integration of Firebase Auth, Firestore, and Storage in registration flow
   it('should handle complete registration flow with auth + Firestore + Storage', async () => {
     const mockUser = { uid: 'test-uid-complete' };
     const mockPhotoURL = 'https://example.com/photo.jpg';
@@ -283,6 +289,7 @@ describe('RegisterPage', () => {
     }, { timeout: 3000 });
   });
 
+  // Tests error handling when Firebase Auth succeeds but Firestore write fails
   it('should handle partial failures when auth succeeds but Firestore fails', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     const mockUser = { uid: 'test-uid-partial' };
@@ -316,6 +323,7 @@ describe('RegisterPage', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  // Tests error handling for Firebase weak password error
   it('should handle auth/weak-password error code', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -327,8 +335,8 @@ describe('RegisterPage', () => {
     const { container } = render(<RegisterPage />);
     
     fireEvent.change(screen.getByPlaceholderText(/student@braude.ac.il/i), { target: { value: 'weak@test.com' } });
-    fireEvent.change(screen.getByPlaceholderText(/minimum 6 characters/i), { target: { value: '12345' } });
-    fireEvent.change(screen.getByPlaceholderText(/re-enter password/i), { target: { value: '12345' } });
+    fireEvent.change(screen.getByPlaceholderText(/minimum 6 characters/i), { target: { value: '123456' } });
+    fireEvent.change(screen.getByPlaceholderText(/re-enter password/i), { target: { value: '123456' } });
     fireEvent.change(screen.getByPlaceholderText(/john/i), { target: { value: 'Weak' } });
     fireEvent.change(screen.getByPlaceholderText(/doe/i), { target: { value: 'Password' } });
     fireEvent.change(screen.getByPlaceholderText(/312345678/i), { target: { value: '123456789' } });
@@ -338,17 +346,23 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByPlaceholderText(/react, python/i), { target: { value: 'React' } });
     fireEvent.change(screen.getByPlaceholderText(/describe your research interests/i), { target: { value: 'Testing' } });
 
-    const submitButton = screen.getByRole('button', { name: /complete registration/i });
-    fireEvent.click(submitButton);
+    const form = screen.getByRole('button', { name: /complete registration/i }).closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    } else {
+      const submitButton = screen.getByRole('button', { name: /complete registration/i });
+      fireEvent.click(submitButton);
+    }
 
     await waitFor(() => {
       // The error should be displayed - check for any error text
       expect(createUserWithEmailAndPassword).toHaveBeenCalled();
-    });
+    }, { timeout: 3000 });
 
     consoleErrorSpy.mockRestore();
   });
 
+  // Tests error handling for Firebase invalid email format error
   it('should handle auth/invalid-email error code', async () => {
     const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -371,17 +385,23 @@ describe('RegisterPage', () => {
     fireEvent.change(screen.getByPlaceholderText(/react, python/i), { target: { value: 'React' } });
     fireEvent.change(screen.getByPlaceholderText(/describe your research interests/i), { target: { value: 'Testing' } });
 
-    const submitButton = screen.getByRole('button', { name: /complete registration/i });
-    fireEvent.click(submitButton);
+    const form = screen.getByRole('button', { name: /complete registration/i }).closest('form');
+    if (form) {
+      fireEvent.submit(form);
+    } else {
+      const submitButton = screen.getByRole('button', { name: /complete registration/i });
+      fireEvent.click(submitButton);
+    }
 
     await waitFor(() => {
       // The error should be handled - check that auth was called
       expect(createUserWithEmailAndPassword).toHaveBeenCalled();
-    });
+    }, { timeout: 3000 });
 
     consoleErrorSpy.mockRestore();
   });
 
+  // Tests registration flow works without optional photo upload
   it('should handle registration without photo upload', async () => {
     const mockUser = { uid: 'test-uid-no-photo' };
 

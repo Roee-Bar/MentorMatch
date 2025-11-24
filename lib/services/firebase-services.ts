@@ -227,7 +227,7 @@ export const ApplicationService = {
     try {
       const appDoc = await getDoc(doc(db, 'applications', applicationId));
       if (appDoc.exists()) {
-        return { id: appDoc.id, ...appDoc.data() } as Application;
+        return { ...appDoc.data(), id: appDoc.id } as Application;
       }
       return null;
     } catch (error) {
@@ -370,7 +370,7 @@ export const ProjectService = {
     try {
       const projectDoc = await getDoc(doc(db, 'projects', projectId));
       if (projectDoc.exists()) {
-        return { id: projectDoc.id, ...projectDoc.data() } as Project;
+        return { ...projectDoc.data(), id: projectDoc.id } as Project;
       }
       return null;
     } catch (error) {

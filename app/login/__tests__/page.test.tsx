@@ -25,6 +25,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     jest.clearAllMocks();
   });
 
+  // Tests HTML5 validation triggers for required empty fields
   it('should show validation errors for empty fields', async () => {
     render(<LoginPage />);
     
@@ -40,6 +41,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error message display when login fails
   it('should display error message on failed login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -61,6 +63,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests success message display after successful authentication
   it('should display success message on successful login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,
@@ -82,6 +85,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests navigation to dashboard after successful authentication
   it('should redirect to dashboard after successful login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,
@@ -103,6 +107,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests loading state displays with disabled button during async login
   it('should show loading state during login submission', async () => {
     (signIn as jest.Mock).mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
@@ -122,7 +127,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  // Enhanced Integration Tests
+  // Tests error handling for user not found error
   it('should handle auth/user-not-found error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -144,6 +149,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error handling for wrong password error
   it('should handle auth/wrong-password error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -165,6 +171,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error handling for invalid email format error
   it('should handle auth/invalid-email error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -186,6 +193,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error handling for too many failed login attempts error
   it('should handle auth/too-many-requests error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -207,6 +215,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error handling for network connection errors
   it('should handle network errors gracefully', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
@@ -228,6 +237,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests error message clears when retrying with correct credentials
   it('should clear error message after correcting input', async () => {
     (signIn as jest.Mock).mockResolvedValueOnce({
       success: false,
@@ -262,6 +272,7 @@ describe('LoginPage - Enhanced Integration Tests', () => {
     });
   });
 
+  // Tests signIn service is called with correct email and password parameters
   it('should call signIn with correct parameters', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,

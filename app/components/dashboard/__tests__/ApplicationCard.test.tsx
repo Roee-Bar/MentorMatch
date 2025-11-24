@@ -12,6 +12,7 @@ describe('ApplicationCard', () => {
     throw new Error('Mock application data is missing. Please check mock-data/data/applications.ts');
   }
 
+  // Tests conditional badge rendering for approved status
   it('displays correct status badge for approved application', () => {
     const approvedApplication: Application = {
       ...mockApplication,
@@ -21,6 +22,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Approved')).toBeInTheDocument();
   });
 
+  // Tests conditional badge rendering for rejected status
   it('displays correct status badge for rejected application', () => {
     const rejectedApplication: Application = {
       ...mockApplication,
@@ -30,6 +32,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Rejected')).toBeInTheDocument();
   });
 
+  // Tests conditional badge rendering for under review status
   it('displays correct status badge for under review application', () => {
     const underReviewApplication: Application = {
       ...mockApplication,
@@ -39,6 +42,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText('Under Review')).toBeInTheDocument();
   });
 
+  // Tests conditional rendering hides comments section when empty
   it('renders without comments if none provided', () => {
     const noCommentsApplication: Application = {
       ...mockApplication,
@@ -49,6 +53,7 @@ describe('ApplicationCard', () => {
   });
 
   describe('Button Interactions', () => {
+    // Tests withdraw button displays only for pending status
     it('should display "Withdraw" button only for pending applications', () => {
       const pendingApplication: Application = {
         ...mockApplication,
@@ -61,6 +66,7 @@ describe('ApplicationCard', () => {
       expect(withdrawButton).toHaveClass('btn-danger');
     });
 
+    // Tests withdraw button hidden for non-pending statuses
     it('should not display "Withdraw" button for non-pending applications', () => {
       const approvedApplication: Application = {
         ...mockApplication,
@@ -71,6 +77,7 @@ describe('ApplicationCard', () => {
       expect(screen.queryByRole('button', { name: /withdraw/i })).not.toBeInTheDocument();
     });
 
+    // Tests edit button displays only for revision_requested status
     it('should display "Edit & Resubmit" button only for revision_requested applications', () => {
       const revisionApplication: Application = {
         ...mockApplication,
@@ -83,6 +90,7 @@ describe('ApplicationCard', () => {
       expect(editButton).toHaveClass('btn-primary');
     });
 
+    // Tests edit button hidden for non-revision statuses
     it('should not display "Edit & Resubmit" button for non-revision applications', () => {
       const pendingApplication: Application = {
         ...mockApplication,
@@ -93,6 +101,7 @@ describe('ApplicationCard', () => {
       expect(screen.queryByRole('button', { name: /edit & resubmit/i })).not.toBeInTheDocument();
     });
 
+    // Tests view project button displays only for approved status
     it('should display "View Project Details" button only for approved applications', () => {
       const approvedApplication: Application = {
         ...mockApplication,
@@ -105,6 +114,7 @@ describe('ApplicationCard', () => {
       expect(viewButton).toHaveClass('btn-success');
     });
 
+    // Tests view project button hidden for non-approved statuses
     it('should not display "View Project Details" button for non-approved applications', () => {
       const pendingApplication: Application = {
         ...mockApplication,
