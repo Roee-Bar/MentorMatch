@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
-import { ApplicationService, SupervisorService } from '@/lib/services';
+import { onAuthChange, getUserProfile } from '@/lib/auth';
 
 // Mock navigation functions
 const mockPush = jest.fn();
@@ -38,6 +39,8 @@ jest.mock('next/navigation', () => ({
     replace: mockReplace,
   })),
 }));
+
+import { ApplicationService, SupervisorService } from '@/lib/services';
 
 describe('StudentDashboard', () => {
   beforeEach(() => {
