@@ -47,6 +47,19 @@ body {
     @apply transition-colors duration-200;
   }
 
+  /* Filter Button Components */
+  .filter-btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  }
+
+  .filter-btn-active {
+    @apply bg-blue-600 text-white;
+  }
+
+  .filter-btn-inactive {
+    @apply bg-white text-gray-700 border border-gray-300 hover:bg-gray-50;
+  }
+
   /* Card Components */
   .card-base {
     @apply bg-white p-6 rounded-lg shadow border border-gray-200;

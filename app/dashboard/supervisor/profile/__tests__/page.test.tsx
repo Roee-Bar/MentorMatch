@@ -62,150 +62,145 @@ describe('SupervisorProfilePage', () => {
     jest.clearAllMocks();
     (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(mockSupervisor);
   });
-  
-  // Test: Shows loading state
-  it('should show loading state initially', () => {
-    render(<SupervisorProfilePage />);
-    expect(screen.getByText('Loading profile...')).toBeInTheDocument();
-  });
-  
-  // Test: Fetches supervisor profile on mount
-  it('should fetch supervisor profile on mount', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(SupervisorService.getSupervisorById).toHaveBeenCalledWith('supervisor-123');
+
+  describe('Loading States', () => {
+    it('should show loading state initially', () => {
+      render(<SupervisorProfilePage />);
+      expect(screen.getByText('Loading profile...')).toBeInTheDocument();
     });
   });
-  
-  // Test: Displays supervisor name and title
-  it('should display supervisor name and title', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
-  });
-  
-  // Test: Displays contact information
-  it('should display contact information', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText('supervisor@test.com')).toBeInTheDocument();
-    expect(screen.getByText('+1234567890')).toBeInTheDocument();
-  });
-  
-  // Test: Displays bio
-  it('should display supervisor bio', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText(/Experienced researcher in AI/i)).toBeInTheDocument();
-  });
-  
-  // Test: Displays research interests
-  it('should display all research interests', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    mockSupervisor.researchInterests.forEach(interest => {
-      expect(screen.getByText(interest)).toBeInTheDocument();
+
+  describe('Data Fetching', () => {
+    it('should fetch supervisor profile on mount', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(SupervisorService.getSupervisorById).toHaveBeenCalledWith('supervisor-123');
+      });
     });
   });
-  
-  // Test: Displays expertise areas
-  it('should display all expertise areas', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+
+  describe('Profile Display', () => {
+    it('should display supervisor name and title', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
     });
     
-    mockSupervisor.expertiseAreas.forEach(area => {
-      expect(screen.getByText(area)).toBeInTheDocument();
+    it('should display contact information', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('supervisor@test.com')).toBeInTheDocument();
+      expect(screen.getByText('+1234567890')).toBeInTheDocument();
+    });
+    
+    it('should display supervisor bio', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText(/Experienced researcher in AI/i)).toBeInTheDocument();
+    });
+    
+    it('should display all research interests', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      mockSupervisor.researchInterests.forEach(interest => {
+        expect(screen.getByText(interest)).toBeInTheDocument();
+      });
+    });
+    
+    it('should display all expertise areas', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      mockSupervisor.expertiseAreas.forEach(area => {
+        expect(screen.getByText(area)).toBeInTheDocument();
+      });
+    });
+    
+    it('should display office location and hours', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('Building A, Room 301')).toBeInTheDocument();
+      expect(screen.getByText(/Monday 2-4 PM/i)).toBeInTheDocument();
+    });
+    
+    it('should display capacity information using CapacityIndicator', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      // Check that capacity values are displayed
+      expect(screen.getByText('2 / 5')).toBeInTheDocument();
+    });
+    
+    it('should display availability status', async () => {
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText('Available')).toBeInTheDocument();
     });
   });
-  
-  // Test: Displays office information
-  it('should display office location and hours', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+
+  describe('Edge Cases', () => {
+    it('should handle missing optional fields gracefully', async () => {
+      const supervisorWithoutOptionals = {
+        ...mockSupervisor,
+        phone: undefined,
+        photoURL: undefined,
+        officeLocation: undefined,
+        officeHours: undefined,
+      };
+      
+      (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(supervisorWithoutOptionals);
+      
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      // Should still render without errors
+      expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
     });
     
-    expect(screen.getByText('Building A, Room 301')).toBeInTheDocument();
-    expect(screen.getByText(/Monday 2-4 PM/i)).toBeInTheDocument();
-  });
-  
-  // Test: Displays capacity information with CapacityIndicator
-  it('should display capacity information using CapacityIndicator', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+    it('should handle error when profile fetch fails', async () => {
+      (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(null);
+      
+      render(<SupervisorProfilePage />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
+      });
+      
+      expect(screen.getByText(/unable to load profile/i)).toBeInTheDocument();
     });
-    
-    // Check that capacity values are displayed
-    expect(screen.getByText('2 / 5')).toBeInTheDocument();
-  });
-  
-  // Test: Shows availability status
-  it('should display availability status', async () => {
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText('Available')).toBeInTheDocument();
-  });
-  
-  // Test: Handles missing optional fields gracefully
-  it('should handle missing optional fields gracefully', async () => {
-    const supervisorWithoutOptionals = {
-      ...mockSupervisor,
-      phone: undefined,
-      photoURL: undefined,
-      officeLocation: undefined,
-      officeHours: undefined,
-    };
-    
-    (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(supervisorWithoutOptionals);
-    
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    // Should still render without errors
-    expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
-  });
-  
-  // Test: Shows error state when profile fetch fails
-  it('should handle error when profile fetch fails', async () => {
-    (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(null);
-    
-    render(<SupervisorProfilePage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText('Loading profile...')).not.toBeInTheDocument();
-    });
-    
-    expect(screen.getByText(/unable to load profile/i)).toBeInTheDocument();
   });
 });
-

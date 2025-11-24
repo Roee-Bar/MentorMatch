@@ -18,6 +18,7 @@ export default function SupervisorApplicationsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [error, setError] = useState(false);
 
   // Check authentication
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function SupervisorApplicationsPage() {
         setApplications(data);
       } catch (error) {
         console.error('Error fetching applications:', error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -84,6 +86,22 @@ export default function SupervisorApplicationsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Unable to load applications. Please try again later.</p>
+          <button
+            onClick={() => router.push('/dashboard/supervisor')}
+            className="btn-primary"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
@@ -99,55 +117,35 @@ export default function SupervisorApplicationsPage() {
         <div className="mb-6 flex flex-wrap gap-3">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`filter-btn ${filterStatus === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
           >
             All ({statusCounts.all})
           </button>
           
           <button
             onClick={() => setFilterStatus('pending')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'pending'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`filter-btn ${filterStatus === 'pending' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
           >
             Pending ({statusCounts.pending})
           </button>
           
           <button
             onClick={() => setFilterStatus('under_review')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'under_review'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`filter-btn ${filterStatus === 'under_review' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
           >
             Under Review ({statusCounts.under_review})
           </button>
           
           <button
             onClick={() => setFilterStatus('approved')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'approved'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`filter-btn ${filterStatus === 'approved' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
           >
             Approved ({statusCounts.approved})
           </button>
           
           <button
             onClick={() => setFilterStatus('rejected')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              filterStatus === 'rejected'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-            }`}
+            className={`filter-btn ${filterStatus === 'rejected' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
           >
             Rejected ({statusCounts.rejected})
           </button>

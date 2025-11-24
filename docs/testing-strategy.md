@@ -13,7 +13,7 @@ We follow the **Testing Pyramid** strategy, which emphasizes a balanced distribu
 ### 1. Unit Tests
 - **Purpose**: Test individual functions, utilities, and logic in isolation
 - **Scope**: Pure functions, validators, formatters, business logic
-- **Characteristics**: Fast execution, high coverage, easy to maintain
+- **Characteristics**: Fast execution, easy to maintain
 
 ### 2. Component Tests
 - **Purpose**: Test React components in isolation
@@ -128,12 +128,6 @@ Test React components in isolation:
 - Props validation and default values
 - Accessibility features
 
-**Components to prioritize:**
-- `UserProfile` - Test role-based rendering, conditional fields
-- Navigation components - Test routing and active states
-- Form components - Test validation and submission
-- Card components - Test data display and interactions
-
 ### Integration Tests
 
 Test how components and modules work together:
@@ -143,11 +137,6 @@ Test how components and modules work together:
 - State management flows
 - Form submission to API
 - Navigation between pages
-
-**Example scenarios:**
-- User profile page loading and displaying data
-- Form submission flow with validation
-- Multi-step processes (application submission)
 
 ### E2E Tests
 
@@ -232,8 +221,6 @@ Playwright should be configured for Next.js development server:
 }
 ```
 
-
-
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Priority: High)
@@ -247,7 +234,6 @@ Playwright should be configured for Next.js development server:
 1. Add tests for all existing components
 2. Test page components (`app/page.tsx`, `app/profile/page.tsx`)
 3. Test conditional rendering and role-based logic
-4. Achieve 70%+ component test coverage
 
 ### Phase 3: Unit Tests (Priority: Medium)
 1. Create utility functions if needed
@@ -273,13 +259,6 @@ Playwright should be configured for Next.js development server:
 3. Configure Vercel/GitHub Actions for test execution
 4. Set up test coverage reporting
 
-### Phase 7: Firebase Migration & Test Updates (Completed)
-1. Migrated from mock data services to Firebase services
-2. Updated all tests to mock Firebase services instead of mock data services
-3. Resolved merge conflicts in test files
-4. Ensured all 11 test suites pass (41 tests total)
-5. Maintained test coverage while using real Firebase service interfaces
-
 ## Best Practices
 
 1. **Write tests that focus on user behavior** - Test what users see and do, not implementation details
@@ -289,7 +268,6 @@ Playwright should be configured for Next.js development server:
 5. **Test edge cases** - Don't just test the happy path
 6. **Keep E2E tests minimal** - Focus on critical user flows, not every possible scenario
 7. **Run tests frequently** - Run tests during development, not just before commits
-8. **Maintain test coverage** - Aim for 70-80% coverage, focusing on critical paths
 
 ## Test Maintenance and Refactoring
 

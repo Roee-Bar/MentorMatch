@@ -36,7 +36,7 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
   const statusText = status.charAt(0).toUpperCase() + status.slice(1);
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+    <div className="card-base">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Capacity Status</h3>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor()}`}>

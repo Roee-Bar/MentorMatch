@@ -13,16 +13,16 @@ import {
 } from '@/lib/services';
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
-import { Application, Supervisor } from '@/types/database';
+import { Application, Supervisor, BaseUser, Project } from '@/types/database';
 
 export default function SupervisorDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<BaseUser | null>(null);
   const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   // Check authentication
   useEffect(() => {
