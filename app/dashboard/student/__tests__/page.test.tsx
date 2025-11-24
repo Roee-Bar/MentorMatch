@@ -1,8 +1,6 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { useRouter } from 'next/navigation';
+import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
 
 // Mock navigation functions
 const mockPush = jest.fn();

@@ -5,37 +5,19 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { useSupervisorAuth } from '@/lib/hooks';
+import { ROUTES } from '@/lib/routes';
 import { SupervisorService } from '@/lib/services';
 import CapacityIndicator from '@/app/components/dashboard/CapacityIndicator';
 import { Supervisor } from '@/types/database';
 
 export default function SupervisorProfilePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { userId, isAuthLoading } = useSupervisorAuth();
+  
+  const [dataLoading, setDataLoading] = useState(true);
   const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
   const [error, setError] = useState(false);
-
-  // Check authentication
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-
-      const profile = await getUserProfile(user.uid);
-      if (!profile.success || profile.data?.role !== 'supervisor') {
-        router.replace('/');
-        return;
-      }
-
-      setUserId(user.uid);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
 
   // Fetch supervisor profile
   useEffect(() => {
@@ -49,11 +31,11 @@ export default function SupervisorProfilePage() {
         } else {
           setError(true);
         }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
         setError(true);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
@@ -62,7 +44,8 @@ export default function SupervisorProfilePage() {
     }
   }, [userId]);
 
-  if (loading) {
+  // Show loading while auth is checking or data is loading
+  if (isAuthLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -79,7 +62,7 @@ export default function SupervisorProfilePage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">Unable to load profile. Please try again later.</p>
           <button
-            onClick={() => router.push('/dashboard/supervisor')}
+            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
             className="btn-primary"
           >
             Back to Dashboard
@@ -231,14 +214,14 @@ export default function SupervisorProfilePage() {
               
               <div className="space-y-3">
                 <button
-                  onClick={() => router.push('/dashboard/supervisor')}
+                  onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
                   className="w-full btn-primary text-center"
                 >
                   Back to Dashboard
                 </button>
                 
                 <button
-                  onClick={() => router.push('/dashboard/supervisor/applications')}
+                  onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
                   className="w-full btn-secondary text-center"
                 >
                   View Applications
@@ -251,4 +234,3 @@ export default function SupervisorProfilePage() {
     </div>
   );
 }
-

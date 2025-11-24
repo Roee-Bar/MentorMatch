@@ -11,14 +11,22 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
   // Calculate percentage
   const percentage = max > 0 ? Math.round((current / max) * 100) : 0;
   
-  // Determine progress bar color based on capacity level
+  // Determine progress bar color based on status prop for consistency
+  // This ensures the bar and badge always show matching colors
   const getProgressBarColor = () => {
-    if (percentage < 50) return 'bg-green-600';
-    if (percentage < 80) return 'bg-yellow-600';
-    return 'bg-red-600';
+    switch (status) {
+      case 'available':
+        return 'bg-green-600';
+      case 'limited':
+        return 'bg-yellow-600';
+      case 'unavailable':
+        return 'bg-red-600';
+      default:
+        return 'bg-gray-600';
+    }
   };
   
-  // Determine status badge color
+  // Determine status badge color - matches progress bar color theme
   const getStatusBadgeColor = () => {
     switch (status) {
       case 'available':
@@ -70,4 +78,3 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
     </div>
   );
 }
-

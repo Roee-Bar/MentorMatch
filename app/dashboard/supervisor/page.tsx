@@ -5,7 +5,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { useSupervisorAuth } from '@/lib/hooks';
+import { ROUTES } from '@/lib/routes';
 import { 
   ApplicationService, 
   SupervisorService,
@@ -13,45 +14,17 @@ import {
 } from '@/lib/services';
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
-import { Application, Supervisor, BaseUser, Project } from '@/types/database';
+import { Application, Supervisor, Project } from '@/types/database';
 
 export default function SupervisorDashboard() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<BaseUser | null>(null);
+  const { userId, userProfile, isAuthLoading } = useSupervisorAuth();
+  
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-
-  // Check authentication
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-
-      // Get user profile to verify they're a supervisor
-      const profile = await getUserProfile(user.uid);
-      if (!profile.success || profile.data?.role !== 'supervisor') {
-        // Redirect non-supervisors to appropriate dashboard
-        if (profile.data?.role === 'student') {
-          router.replace('/dashboard/student');
-        } else if (profile.data?.role === 'admin') {
-          router.replace('/dashboard/admin');
-        } else {
-          router.replace('/');
-        }
-        return;
-      }
-
-      setUserId(user.uid);
-      setUserProfile(profile.data);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -68,10 +41,11 @@ export default function SupervisorDashboard() {
         setSupervisor(supervisorData);
         setApplications(applicationsData);
         setProjects(projectsData);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load some dashboard data. Please refresh the page.');
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
@@ -87,7 +61,8 @@ export default function SupervisorDashboard() {
   const approvedProjects = projects.filter((proj) => proj.status === 'approved').length;
   const currentCapacity = supervisor?.currentCapacity || 0;
 
-  if (loading) {
+  // Show loading while auth is checking or data is loading
+  if (isAuthLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -101,6 +76,13 @@ export default function SupervisorDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-7xl mx-auto">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Supervisor Dashboard</h1>
@@ -145,7 +127,7 @@ export default function SupervisorDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-800">Recent Applications</h2>
             <button
-              onClick={() => router.push('/dashboard/supervisor/applications')}
+              onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
               className="text-blue-600 text-sm font-medium hover:underline"
             >
               View All →
@@ -180,7 +162,7 @@ export default function SupervisorDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <button
-            onClick={() => router.push('/dashboard/supervisor/applications')}
+            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
             className="btn-primary p-6 text-left"
           >
             <h3 className="text-lg font-semibold mb-2">View All Applications</h3>
@@ -188,7 +170,7 @@ export default function SupervisorDashboard() {
           </button>
           
           <button
-            onClick={() => router.push('/dashboard/supervisor/profile')}
+            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_PROFILE)}
             className="btn-secondary p-6 text-left"
           >
             <h3 className="text-lg font-semibold mb-2">View Profile</h3>
@@ -214,4 +196,3 @@ export default function SupervisorDashboard() {
     </div>
   );
 }
-

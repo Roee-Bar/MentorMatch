@@ -5,40 +5,22 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { useSupervisorAuth } from '@/lib/hooks';
+import { ROUTES } from '@/lib/routes';
 import { ApplicationService } from '@/lib/services';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
-import { Application } from '@/types/database';
+import { Application, ApplicationStatus } from '@/types/database';
 
-type FilterStatus = 'all' | 'pending' | 'under_review' | 'approved' | 'rejected';
+type FilterStatus = 'all' | ApplicationStatus;
 
 export default function SupervisorApplicationsPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { userId, isAuthLoading } = useSupervisorAuth();
+  
+  const [dataLoading, setDataLoading] = useState(true);
   const [applications, setApplications] = useState<Application[]>([]);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [error, setError] = useState(false);
-
-  // Check authentication
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-
-      const profile = await getUserProfile(user.uid);
-      if (!profile.success || profile.data?.role !== 'supervisor') {
-        router.replace('/');
-        return;
-      }
-
-      setUserId(user.uid);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
 
   // Fetch applications
   useEffect(() => {
@@ -48,11 +30,11 @@ export default function SupervisorApplicationsPage() {
       try {
         const data = await ApplicationService.getSupervisorApplications(userId);
         setApplications(data);
-      } catch (error) {
-        console.error('Error fetching applications:', error);
+      } catch (err) {
+        console.error('Error fetching applications:', err);
         setError(true);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
@@ -75,7 +57,8 @@ export default function SupervisorApplicationsPage() {
     rejected: applications.filter(app => app.status === 'rejected').length,
   };
 
-  if (loading) {
+  // Show loading while auth is checking or data is loading
+  if (isAuthLoading || dataLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -92,7 +75,7 @@ export default function SupervisorApplicationsPage() {
         <div className="text-center">
           <p className="text-red-600 mb-4">Unable to load applications. Please try again later.</p>
           <button
-            onClick={() => router.push('/dashboard/supervisor')}
+            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
             className="btn-primary"
           >
             Back to Dashboard
@@ -183,4 +166,3 @@ export default function SupervisorApplicationsPage() {
     </div>
   );
 }
-

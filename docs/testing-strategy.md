@@ -100,6 +100,26 @@ Final/
 - E2E tests: `*.spec.ts` (Playwright convention)
 - Test utilities: `__tests__/` folders or `*.test.ts` files
 
+### Test Description Comments
+
+**Every test must have a 1-line description comment** directly above the `it()` or `test()` block explaining what the test verifies. This improves test readability and serves as documentation.
+
+**Format:**
+```typescript
+// Tests [what behavior/feature is being tested]
+it('should [expected behavior]', () => {
+  // test code
+});
+```
+
+```
+
+**Guidelines:**
+- Keep descriptions concise (one line)
+- Focus on the behavior being tested, not implementation details
+- Use active voice ("Tests..." or "Verifies...")
+- Include relevant context (e.g., "for authenticated users", "when data is empty")
+
 ## What to Test
 
 ### Unit Tests

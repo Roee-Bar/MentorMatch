@@ -127,6 +127,7 @@ describe('SupervisorDashboard', () => {
   });
 
   describe('Authentication', () => {
+    // Tests unauthenticated users are redirected to login page
     it('should redirect unauthenticated users to login', async () => {
       (onAuthChange as jest.Mock).mockImplementation((callback) => {
         setTimeout(() => {
@@ -142,6 +143,7 @@ describe('SupervisorDashboard', () => {
       }, { timeout: 3000 });
     });
     
+    // Tests non-supervisor roles are redirected to their appropriate dashboard
     it('should redirect non-supervisor users to appropriate dashboard', async () => {
       // Override the onAuthChange mock to still provide a user
       (onAuthChange as jest.Mock).mockImplementation((callback) => {
@@ -166,6 +168,7 @@ describe('SupervisorDashboard', () => {
   });
 
   describe('Loading States', () => {
+    // Tests loading indicator displays while dashboard data is being fetched
     it('should show loading state initially', () => {
       render(<SupervisorDashboard />);
       expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
@@ -173,6 +176,7 @@ describe('SupervisorDashboard', () => {
   });
 
   describe('Data Fetching', () => {
+    // Tests supervisor profile data is fetched from service on component mount
     it('should fetch supervisor data on mount', async () => {
       render(<SupervisorDashboard />);
       
@@ -181,6 +185,7 @@ describe('SupervisorDashboard', () => {
       }, { timeout: 3000 });
     });
     
+    // Tests applications data is fetched from service on component mount
     it('should fetch applications data on mount', async () => {
       render(<SupervisorDashboard />);
       
@@ -191,6 +196,7 @@ describe('SupervisorDashboard', () => {
   });
 
   describe('Dashboard Display', () => {
+    // Tests stat cards display correct calculated values from fetched data
     it('should display correct stat card values based on data', async () => {
       render(<SupervisorDashboard />);
       
@@ -218,6 +224,7 @@ describe('SupervisorDashboard', () => {
       expect(projectElements.length).toBeGreaterThan(0);
     });
     
+    // Tests empty state message displays when supervisor has no applications
     it('should show empty state when no applications exist', async () => {
       (ApplicationService.getSupervisorApplications as jest.Mock).mockResolvedValue([]);
       
@@ -230,6 +237,7 @@ describe('SupervisorDashboard', () => {
       expect(screen.getByText(/no applications/i)).toBeInTheDocument();
     });
     
+    // Tests application cards render correctly with application data
     it('should render application cards when applications exist', async () => {
       render(<SupervisorDashboard />);
       

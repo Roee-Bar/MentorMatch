@@ -62,6 +62,7 @@ describe('SupervisorApplicationsPage', () => {
   });
 
   describe('Loading States', () => {
+    // Tests loading indicator displays while applications data is being fetched
     it('should show loading state initially', () => {
       render(<SupervisorApplicationsPage />);
       expect(screen.getByText('Loading applications...')).toBeInTheDocument();
@@ -69,6 +70,7 @@ describe('SupervisorApplicationsPage', () => {
   });
 
   describe('Data Fetching', () => {
+    // Tests applications data is fetched from service on component mount
     it('should fetch applications data on mount', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -79,6 +81,7 @@ describe('SupervisorApplicationsPage', () => {
   });
 
   describe('Display', () => {
+    // Tests all application cards render when no status filter is active
     it('should display all applications when no filter is applied', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -92,6 +95,7 @@ describe('SupervisorApplicationsPage', () => {
       });
     });
     
+    // Tests empty state message displays when no applications are available
     it('should show empty state when no applications exist', async () => {
       (ApplicationService.getSupervisorApplications as jest.Mock).mockResolvedValue([]);
       
@@ -106,6 +110,7 @@ describe('SupervisorApplicationsPage', () => {
   });
 
   describe('Filtering', () => {
+    // Tests filter button shows only applications with pending status
     it('should filter applications to show only pending status', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -130,6 +135,7 @@ describe('SupervisorApplicationsPage', () => {
       });
     });
     
+    // Tests filter button shows only applications with under_review status
     it('should filter applications to show only under_review status', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -149,6 +155,7 @@ describe('SupervisorApplicationsPage', () => {
       });
     });
     
+    // Tests filter button shows only applications with approved status
     it('should filter applications to show only approved status', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -168,6 +175,7 @@ describe('SupervisorApplicationsPage', () => {
       });
     });
     
+    // Tests clicking All filter resets view to show all applications
     it('should show all applications when All filter is clicked', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -189,6 +197,7 @@ describe('SupervisorApplicationsPage', () => {
       });
     });
     
+    // Tests filter buttons display correct count of applications per status
     it('should display correct application count for each status', async () => {
       render(<SupervisorApplicationsPage />);
       
@@ -212,6 +221,7 @@ describe('SupervisorApplicationsPage', () => {
       expect(approvedButton).toHaveTextContent(`Approved (${approvedCount})`);
     });
     
+    // Tests active filter button has visual highlighting class applied
     it('should highlight the active filter button', async () => {
       render(<SupervisorApplicationsPage />);
       

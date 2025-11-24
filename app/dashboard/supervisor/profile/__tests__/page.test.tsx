@@ -64,6 +64,7 @@ describe('SupervisorProfilePage', () => {
   });
 
   describe('Loading States', () => {
+    // Tests loading indicator displays while profile data is being fetched
     it('should show loading state initially', () => {
       render(<SupervisorProfilePage />);
       expect(screen.getByText('Loading profile...')).toBeInTheDocument();
@@ -71,6 +72,7 @@ describe('SupervisorProfilePage', () => {
   });
 
   describe('Data Fetching', () => {
+    // Tests supervisor profile data is fetched from service on component mount
     it('should fetch supervisor profile on mount', async () => {
       render(<SupervisorProfilePage />);
       
@@ -81,6 +83,7 @@ describe('SupervisorProfilePage', () => {
   });
 
   describe('Profile Display', () => {
+    // Tests supervisor name and title display correctly in profile view
     it('should display supervisor name and title', async () => {
       render(<SupervisorProfilePage />);
       
@@ -91,6 +94,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
     });
     
+    // Tests email and phone contact details display in profile
     it('should display contact information', async () => {
       render(<SupervisorProfilePage />);
       
@@ -102,6 +106,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText('+1234567890')).toBeInTheDocument();
     });
     
+    // Tests supervisor biography text displays in profile section
     it('should display supervisor bio', async () => {
       render(<SupervisorProfilePage />);
       
@@ -112,6 +117,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText(/Experienced researcher in AI/i)).toBeInTheDocument();
     });
     
+    // Tests all research interest tags render from supervisor data
     it('should display all research interests', async () => {
       render(<SupervisorProfilePage />);
       
@@ -124,6 +130,7 @@ describe('SupervisorProfilePage', () => {
       });
     });
     
+    // Tests all expertise area tags render from supervisor data
     it('should display all expertise areas', async () => {
       render(<SupervisorProfilePage />);
       
@@ -136,6 +143,7 @@ describe('SupervisorProfilePage', () => {
       });
     });
     
+    // Tests office location and hours information displays correctly
     it('should display office location and hours', async () => {
       render(<SupervisorProfilePage />);
       
@@ -147,6 +155,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText(/Monday 2-4 PM/i)).toBeInTheDocument();
     });
     
+    // Tests capacity indicator component displays current/max capacity ratio
     it('should display capacity information using CapacityIndicator', async () => {
       render(<SupervisorProfilePage />);
       
@@ -158,6 +167,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText('2 / 5')).toBeInTheDocument();
     });
     
+    // Tests availability status badge displays with correct text
     it('should display availability status', async () => {
       render(<SupervisorProfilePage />);
       
@@ -170,6 +180,7 @@ describe('SupervisorProfilePage', () => {
   });
 
   describe('Edge Cases', () => {
+    // Tests profile renders without errors when optional fields are undefined
     it('should handle missing optional fields gracefully', async () => {
       const supervisorWithoutOptionals = {
         ...mockSupervisor,
@@ -191,6 +202,7 @@ describe('SupervisorProfilePage', () => {
       expect(screen.getByText('Dr. Test Supervisor')).toBeInTheDocument();
     });
     
+    // Tests error message displays when profile data cannot be loaded
     it('should handle error when profile fetch fails', async () => {
       (SupervisorService.getSupervisorById as jest.Mock).mockResolvedValue(null);
       
