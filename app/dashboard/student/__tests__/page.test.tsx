@@ -1,20 +1,7 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { useRouter } from 'next/navigation';
+import { render, screen, waitFor } from '@testing-library/react';
 import StudentDashboard from '../page';
 import { applications, supervisors } from '@/mock-data';
 import { ApplicationService, SupervisorService } from '@/lib/services';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
-
-// Mock the Firebase services
-jest.mock('@/lib/services', () => ({
-  ApplicationService: {
-    getStudentApplications: jest.fn(),
-  },
-  SupervisorService: {
-    getAvailableSupervisors: jest.fn(),
-  },
-  StudentService: {},
-}));
 
 // Mock navigation functions
 const mockPush = jest.fn();
@@ -52,25 +39,11 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-import { ApplicationService, SupervisorService } from '@/lib/services';
-
 describe('StudentDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPush.mockClear();
     mockReplace.mockClear();
-    
-    // Set up default mock implementations
-    const applicationCards = applications.map(app => ({
-      id: app.id,
-      projectTitle: app.projectTitle,
-      projectDescription: app.projectDescription,
-      supervisorName: app.supervisorName,
-      dateApplied: app.dateApplied,
-      status: app.status,
-      responseTime: app.responseTime,
-      comments: app.comments,
-    }));
     
     // Convert mock applications to ApplicationCardData format
     const applicationCards = applications.map(app => ({
