@@ -12,6 +12,7 @@ describe('ApplicationCard', () => {
     throw new Error('Mock application data is missing. Please check mock-data/data/applications.ts');
   }
 
+  // Tests all application fields render correctly from mock data
   it('renders application details correctly', () => {
     render(<ApplicationCard application={mockApplication} />);
 
@@ -23,6 +24,7 @@ describe('ApplicationCard', () => {
     expect(screen.getByText(mockApplication.comments)).toBeInTheDocument();
   });
 
+  // Tests conditional badge rendering for approved status
   it('displays correct status badge for approved application', () => {
     const approvedApplication: Application = {
       ...mockApplication,

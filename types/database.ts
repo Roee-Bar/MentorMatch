@@ -146,6 +146,11 @@ export interface ProjectTopic {
 }
 
 // ============================================
+// APPLICATION STATUS TYPE
+// ============================================
+export type ApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
+
+// ============================================
 // APPLICATION TYPE (stored in 'applications' collection)
 // ============================================
 export interface Application {
@@ -174,7 +179,7 @@ export interface Application {
   partnerEmail?: string;
   
   // Status
-  status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
+  status: ApplicationStatus;
   
   // Feedback
   supervisorFeedback?: string;
@@ -239,7 +244,7 @@ export interface ApplicationCardData {
   projectDescription: string;
   supervisorName: string;
   dateApplied: string;
-  status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
+  status: ApplicationStatus;
   responseTime: string;
   comments?: string;
 }

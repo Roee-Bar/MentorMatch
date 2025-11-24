@@ -12,6 +12,6 @@ fi
 
 echo " package-lock.json is in sync"
 
-# Run tests
+# Run tests (silent mode for cleaner output)
 echo " Running tests..."
-npm test
+npm test -- --silent
