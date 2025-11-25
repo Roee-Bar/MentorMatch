@@ -450,6 +450,101 @@ npm run test:coverage                # Full coverage report
 
 **Total:** 23 test files across all categories
 
+## CI/CD and Test Execution Workflow
+
+### Test Execution Strategy
+
+The project uses a two-tier testing approach:
+- **Local commits**: Unit tests only (via pre-commit hook)
+- **GitHub CI/CD**: Full test suite including E2E tests
+
+### Local Development (Pre-commit Hook)
+
+The `.husky/pre-commit` hook runs automatically on every commit:
+1. Validates `package-lock.json` is in sync with `package.json`
+2. Runs unit tests (`npm test`)
+3. E2E tests are NOT executed
+
+Execution time: 5-15 seconds
+
+### CI/CD Pipeline (GitHub Actions)
+
+The `.github/workflows/test.yml` workflow runs on push/pull requests with three jobs:
+
+**Job 1: Unit & Component Tests**
+- Runs linter
+- Executes unit tests with coverage
+- Uploads coverage reports
+
+**Job 2: E2E Tests (Playwright)**
+- Runs after unit tests pass
+- Tests student, supervisor, and admin flows
+- Uploads Playwright reports and test results
+- Requires Firebase secrets configuration
+
+**Job 3: Build Check**
+- Runs after all tests pass
+- Simulates Vercel build process
+- Validates production build
+
+Total pipeline time: 5-10 minutes
+
+### Why E2E Tests Only in CI/CD
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Speed** | E2E tests take 30-60 seconds each; local commits remain fast |
+| **Resources** | E2E tests require Next.js server, browser automation, and Firebase |
+| **Reliability** | CI environment is consistent and isolated |
+| **Developer Experience** | Fast commits encourage frequent, small changes |
+| **Coverage** | Unit tests catch most issues; E2E tests provide final validation |
+
+### Test Commands
+
+**Local development:**
+```bash
+npm test                    # Unit tests (runs on commit)
+npm run test:watch         # Watch mode
+npm run test:coverage      # With coverage report
+```
+
+**Manual E2E testing:**
+```bash
+npm run test:e2e           # All E2E tests
+npm run test:e2e:ui        # Interactive UI mode
+npm run test:e2e:student   # Specific flow
+npm run test:all           # Unit + E2E
+```
+
+**Bypass pre-commit hook:**
+```bash
+git commit --no-verify -m "message"
+```
+
+### Configuration
+
+- **`.husky/pre-commit`**: Runs unit tests on every commit
+- **`.github/workflows/test.yml`**: Complete CI/CD pipeline with three jobs
+- **`playwright.config.ts`**: Detects CI via `process.env.CI` (1 worker, 2 retries on CI; 4 workers, 1 retry locally)
+
+### Viewing Results
+
+GitHub Actions results are available in the **Actions** tab. Artifacts (coverage, Playwright reports, test results, build output) are retained for 7-30 days.
+
+### Multi-Browser Testing
+
+To test on multiple browsers, edit `.github/workflows/test.yml`:
+
+```yaml
+e2e:
+  strategy:
+    matrix:
+      browser: [chromium, firefox, webkit]
+  steps:
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps ${{ matrix.browser }}
+```
+
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Priority: High) - COMPLETED
@@ -480,13 +575,13 @@ npm run test:coverage                # Full coverage report
 1. [x] Write E2E tests for student workflows
 2. [x] Write E2E tests for supervisor workflows
 3. [x] Write E2E tests for admin workflows
-4. [ ] Set up CI/CD integration for automated testing (pending)
+4. [x] Set up CI/CD integration for automated testing
 
-### Phase 6: Integration & CI/CD (Priority: Medium) - PENDING
-1. [ ] Integrate tests into development workflow
-2. [ ] Set up pre-commit hooks (optional)
-3. [ ] Configure Vercel/GitHub Actions for test execution
-4. [ ] Set up test coverage reporting
+### Phase 6: Integration & CI/CD (Priority: Medium) - COMPLETED
+1. [x] Integrate tests into development workflow
+2. [x] Set up pre-commit hooks with Husky
+3. [x] Configure GitHub Actions for test execution
+4. [x] Set up test coverage reporting
 
 ## Best Practices
 

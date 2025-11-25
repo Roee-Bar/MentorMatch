@@ -33,7 +33,8 @@ MentorMatch streamlines the process of matching students with project supervisor
 - **Styling**: Tailwind CSS
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth
-- **Testing**: Jest, React Testing Library
+- **Testing**: Jest, React Testing Library, Playwright (E2E)
+- **CI/CD**: GitHub Actions
 - **Deployment**: Vercel
 
 ## Getting Started
@@ -64,6 +65,8 @@ npm run dev
 
 ## Development
 
+### Running the Application
+
 ```bash
 # Run development server
 npm run dev
@@ -76,8 +79,13 @@ npm start
 
 # Run linting
 npm run lint
+```
 
-# Run tests
+### Testing
+
+#### Unit & Component Tests (Run Locally)
+```bash
+# Run all unit tests
 npm test
 
 # Run tests in watch mode
@@ -85,7 +93,28 @@ npm run test:watch
 
 # Run tests with coverage
 npm run test:coverage
+
+# Run specific test types
+npm run test:unit         # Unit tests only
+npm run test:component    # Component tests only
+npm run test:integration  # Integration tests only
 ```
+
+#### E2E Tests (Run in CI/CD by default)
+```bash
+# Run all E2E tests (manual)
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+
+# Run specific E2E flows
+npm run test:e2e:student
+npm run test:e2e:supervisor
+npm run test:e2e:admin
+```
+
+**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Testing Strategy Documentation](./docs/testing-strategy.md#cicd-and-test-execution-workflow) for more details.
 
 ## Project Structure
 

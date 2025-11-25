@@ -9,10 +9,13 @@ test('seed E2E test accounts', async ({ page }) => {
   console.log('Navigating to seed page...');
   
   // Navigate to the seed page
-  await page.goto('http://localhost:3000/admin/seed');
+  await page.goto('http://localhost:3000/admin/seed', { waitUntil: 'load' });
   
   // Wait for page to load
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
+  
+  // Wait for the page content to be visible (using heading to avoid strict mode violation)
+  await expect(page.getByRole('heading', { name: /database seeder/i })).toBeVisible({ timeout: 10000 });
   
   console.log('Clicking seed database button...');
   
