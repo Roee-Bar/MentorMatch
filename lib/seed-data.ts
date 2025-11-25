@@ -124,9 +124,7 @@ export const supervisorUsers: { auth: { email: string; password: string }; user:
       ],
       notificationPreference: 'daily',
       isApproved: true,
-      canSuggestTopics: true,
-      canReviewApplications: true,
-      lastActive: new Date(),
+      isActive: true,
     },
   },
   {
