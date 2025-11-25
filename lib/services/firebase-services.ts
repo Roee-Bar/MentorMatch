@@ -50,6 +50,7 @@ export const UserService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'users'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
       })) as BaseUser[];
     } catch (error) {
@@ -82,6 +83,7 @@ export const StudentService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'students'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
       })) as Student[];
     } catch (error) {
@@ -99,6 +101,7 @@ export const StudentService = {
       );
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
       })) as Student[];
     } catch (error) {
@@ -145,6 +148,7 @@ export const SupervisorService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'supervisors'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
       })) as Supervisor[];
     } catch (error) {
@@ -209,6 +213,7 @@ export const SupervisorService = {
       );
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
       })) as Supervisor[];
     } catch (error) {

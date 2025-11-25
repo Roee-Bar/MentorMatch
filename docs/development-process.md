@@ -41,14 +41,6 @@ After establishing the basic Next.js infrastructure, we focused on creating a co
 
 #### 1. Generic User Profile Component
 - **Challenge**: Creating a flexible profile component that works for students, supervisors, and administrators
-- **Implementation**:
-  - Developed a reusable `UserProfile` component that adapts based on user role
-  - Implemented conditional rendering for role-specific fields:
-    - Students: Student ID, Degree Program
-    - Supervisors: Department, Areas of Expertise
-    - Administrators: Department
-  - Created TypeScript type definitions for user roles and data structures
-  - Designed responsive UI with Tailwind CSS featuring gradient headers and card-based layouts
 - **Resolution**: Successfully created a flexible, role-aware profile component that provides a consistent user experience across all user types
 
 ### Milestone Achieved
@@ -73,11 +65,6 @@ To ensure code quality and reliability, we implemented a comprehensive testing i
   - Initially attempted to run tests as part of the Vercel deployment process
   - Found that combining testing with deployment created complications and slower feedback cycles
 - **Decision**: Separated deployment and testing processes for better workflow efficiency
-- **Implementation**:
-  - Created GitHub Actions workflow for automated testing (separate from Vercel deployment)
-  - Configured workflow to run on all pushes and pull requests
-  - Set up test coverage reporting and artifact uploads
-  - Vercel now focuses solely on deployment, while GitHub Actions handles all testing
 - **Benefits**:
   - Faster feedback on test results without waiting for deployment
   - Ability to run tests even if deployment fails
@@ -89,12 +76,6 @@ To ensure code quality and reliability, we implemented a comprehensive testing i
   - Team members without enterprise plan cannot access Vercel project logs
   - Need for early detection of build failures before deployment
   - Ensuring build process works correctly before pushing to production
-- **Implementation**:
-  - Added separate `build-check` job to GitHub Actions workflow
-  - Simulates Vercel's build process by running `next build` in production mode
-  - All build logs are now visible in GitHub Actions for all team members
-  - Build check runs automatically on every push and pull request
-  - Provides clear success/failure feedback with detailed error messages
 - **Benefits**:
   - All team members can access build logs through GitHub (no Vercel access required)
   - Early detection of build issues before they reach Vercel
@@ -108,12 +89,6 @@ To ensure code quality and reliability, we implemented a comprehensive testing i
   - Ensuring package-lock.json stays in sync with package.json
   - Preventing commits that would break the test suite
   - Maintaining code quality standards at the point of commit
-- **Implementation**:
-  - Set up Husky for Git hooks management
-  - Created pre-commit hook that runs automatically before each commit
-  - Hook validates package-lock.json synchronization with package.json using `npm ci --dry-run`
-  - Hook runs the full test suite before allowing commits
-  - Commits are blocked if validation or tests fail
 - **Benefits**:
   - Prevents broken code from entering the repository
   - Ensures dependency consistency across all commits
@@ -137,10 +112,6 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
   - Understanding App Router patterns and file-based routing structure
   - Ensuring automatic code splitting and setting up nested layouts
   - Managing client-side navigation without full page reloads
-- **Implementation**:
-  - Adopted Next.js 14 App Router with file-based routing
-  - Created route structure: `app/page.tsx` (root), `app/login/page.tsx`, `app/register/page.tsx`, `app/profile/page.tsx`, `app/dashboard/page.tsx` (router), `app/dashboard/student/page.tsx`
-  - Leveraged automatic code splitting and nested layout hierarchy
 - **Resolution**: Successfully established a scalable routing architecture with better performance through automatic code splitting and improved developer experience
 
 #### 2. Layout Hierarchy and Shared Components
@@ -148,20 +119,12 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
 - **Issues faced**:
   - Need for consistent header/footer across public pages and authentication-protected layout for dashboard
   - Ensuring proper loading states and managing different layout requirements
-- **Implementation**:
-  - Created root layout (`app/layout.tsx`) with shared Header and Footer components, global metadata, and consistent page structure
-  - Implemented dashboard layout (`app/dashboard/layout.tsx`) that handles authentication verification, user profile fetching, loading states, and redirects unauthenticated users
-  - Used React's layout composition pattern for automatic layout nesting
 - **Benefits**: Consistent UI without prop drilling, centralized authentication logic, and clear separation between public and protected routes
 
 #### 3. Authentication-Based Routing
 - **Challenge**: Implementing secure, role-aware routing that protects sensitive routes and redirects users appropriately
 - **Issues faced**:
   - Preventing unauthorized access, handling authentication state changes, and managing loading states to avoid content flash
-- **Implementation**:
-  - Home page monitors authentication state and redirects authenticated users to `/dashboard` with loading spinner
-  - Dashboard layout verifies authentication, fetches user profile, redirects unauthenticated users using `router.replace()`, and provides user context
-  - Login/Register pages use `router.push()` for navigation after successful authentication
 - **Benefits**: Secure route protection, smooth user experience with appropriate redirects, and role-based routing foundation
 
 #### 4. Client-Side Navigation and Routing Patterns
@@ -169,10 +132,6 @@ To align with Next.js 14 best practices, we implemented a routing architecture u
 - **Issues faced**:
   - Choosing between `router.push()` and `router.replace()` for different scenarios
   - Using Next.js `Link` component vs. programmatic routing appropriately
-- **Implementation**:
-  - Used `useRouter` from `next/navigation` (App Router): `router.replace()` for authentication redirects, `router.push()` for user-initiated navigation
-  - Implemented `Link` component for declarative navigation in Header and auth pages with automatic prefetching
-  - Applied navigation patterns: authentication redirects use `replace()`, form submissions use `push()`, all navigation is client-side
 - **Benefits**: Fast, seamless navigation without page reloads, proper browser history management, and consistent navigation patterns
 
 #### 5. Role-Based Route Organization
@@ -240,6 +199,98 @@ Migrated the application from mock data services to Firebase services, ensuring 
 
 ### Milestone Achieved
 Successfully migrated from mock data services to Firebase services while maintaining 100% test pass rate. All tests now properly mock Firebase services, ensuring fast test execution without database dependencies. The application is now using production-ready Firebase services while maintaining comprehensive test coverage and build stability.
+
+---
+
+## Supervisor Dashboard and Profile Phase
+
+### Implementation Overview
+Following the completion of the student dashboard, we expanded the application to support supervisor users with a comprehensive dashboard and profile system. This implementation demonstrates our commitment to role-based architecture and reusable components.
+
+#### 1. Supervisor Dashboard Implementation
+- **Challenge**: Creating a supervisor-specific dashboard that displays relevant metrics and applications
+- **Issues faced**:
+  - Need for supervisor-specific data fetching and display
+  - Displaying capacity metrics for student supervision limits
+  - Managing multiple data sources (applications, projects, supervisor profile)
+  - Providing at-a-glance insights for supervisors to manage their workload
+- **Benefits**: 
+  - Supervisors can quickly assess their workload and pending tasks
+  - Clear visualization of capacity helps manage student supervision limits
+  - Consolidated view of all relevant supervisor activities in one place
+
+#### 2. Supervisor Profile Page
+- **Challenge**: Creating a read-only profile view for supervisors to view their information
+- **Issues faced**:
+  - Displaying supervisor-specific fields (research interests, expertise areas, capacity)
+  - Creating a visual capacity indicator component
+  - Ensuring consistent design with student dashboard
+- **Benefits**:
+  - Supervisors can view their complete profile information
+  - Visual capacity indicator provides immediate status understanding
+  - Reusable component architecture for consistent UI
+
+#### 3. Supervisor Applications Management
+- **Challenge**: Providing supervisors with a dedicated view to manage all their applications
+- **Issues faced**:
+  - Need for filtering applications by status
+  - Displaying application counts by status
+  - Managing empty states when no applications exist
+- **Benefits**:
+  - Easy navigation between different application states
+  - Quick overview of application distribution across statuses
+  - Consistent user experience with student dashboard
+
+#### 4. Custom Supervisor Authentication Hook
+- **Challenge**: Eliminating duplicated authentication logic across supervisor pages
+- **Issues faced**:
+  - Repeated authentication checks in multiple components
+  - Role verification needed for supervisor-only access
+  - Need for automatic redirects based on user role
+- **Benefits**:
+  - Eliminates code duplication across supervisor pages
+  - Ensures consistent authentication behavior
+  - Simplifies page components by extracting auth logic
+  - Provides foundation for similar hooks for other roles
+
+#### 5. Reusable Dashboard Components
+- **Challenge**: Creating flexible components that work across both student and supervisor dashboards
+- **Benefits**:
+  - Consistent UI/UX across different dashboard types
+  - Reduced code duplication through component reuse
+  - Easier maintenance with centralized component logic
+
+#### 6. SupervisorService Integration
+- **Challenge**: Extending Firebase services to support supervisor-specific operations
+- **Issues faced**:
+  - Need for supervisor-specific data queries
+  - Filtering supervisors by availability and capacity
+  - Managing supervisor profile updates
+- **Benefits**:
+  - Clean separation of data access logic
+  - Type-safe Firebase operations
+  - Reusable service methods across application
+
+#### 7. Comprehensive Test Coverage
+- **Challenge**: Ensuring supervisor features are thoroughly tested
+- **Issues faced**:
+  - Need to mock Firebase services at module level
+  - Testing authentication flows with role-based redirects
+  - Verifying correct rendering of supervisor-specific data
+  - Test coverage includes:
+    - Authentication verification and role-based redirects
+    - Data fetching and display
+    - Loading states and error handling
+    - UI interactions and navigation
+  - Mocked Firebase services to ensure fast, reliable test execution
+  - All tests passing with comprehensive coverage
+- **Benefits**:
+  - Confidence in supervisor feature functionality
+  - Early detection of regressions
+  - Documentation of expected behavior through tests
+
+### Milestone Achieved
+Successfully implemented a complete supervisor dashboard system with profile management, application viewing, and capacity tracking. The implementation follows established patterns from the student dashboard while introducing supervisor-specific features. All features are backed by comprehensive test coverage, ensuring reliability and maintainability. The custom authentication hook pattern demonstrates our evolving architecture toward more reusable, maintainable code. This milestone establishes a strong foundation for future role-based features and demonstrates our ability to scale the application architecture across different user types.
 
 ---
 

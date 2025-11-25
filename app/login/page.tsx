@@ -51,10 +51,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} noValidate>
           <div className="mb-5">
-            <label className="label-base">
+            <label htmlFor="email" className="label-base">
               Email Address
             </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -65,10 +66,11 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-6">
-            <label className="label-base">
+            <label htmlFor="password" className="label-base">
               Password
             </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

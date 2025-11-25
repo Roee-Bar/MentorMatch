@@ -3,7 +3,7 @@ import ApplicationCard from '../ApplicationCard';
 import { Application } from '@/types/dashboard';
 import { applications } from '@/mock-data';
 
-describe('ApplicationCard', () => {
+describe('[Component][Dashboard] ApplicationCard', () => {
   // Use mock data directly from the mock-data folder
   const mockApplication = applications[0];
 

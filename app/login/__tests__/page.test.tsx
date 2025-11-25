@@ -20,7 +20,7 @@ jest.mock('@/lib/auth', () => ({
   signIn: jest.fn(),
 }));
 
-describe('LoginPage - Enhanced Integration Tests', () => {
+describe('[Integration] Login Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

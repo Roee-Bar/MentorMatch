@@ -29,7 +29,7 @@ jest.mock('../firebase', () => ({
   storage: {},
 }));
 
-describe('Auth Module - Unit Tests', () => {
+describe('[Unit][Firebase] Auth Module', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Mock doc to return a document reference object

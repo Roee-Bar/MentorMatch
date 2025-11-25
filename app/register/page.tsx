@@ -132,11 +132,16 @@ export default function RegisterPage() {
       )
       const user = userCredential.user
 
-      // Step 2: Upload photo if provided
+      // Step 2: Upload photo if provided (non-critical - continue if it fails)
       let photoURL = ''
       if (photoFile) {
-        setMessage('Uploading photo...')
-        photoURL = await uploadPhoto(user.uid)
+        try {
+          setMessage('Uploading photo...')
+          photoURL = await uploadPhoto(user.uid)
+        } catch (photoError) {
+          console.error('Photo upload failed, continuing without photo:', photoError)
+          // Continue registration without photo - don't throw
+        }
       }
 
       // Step 3: Create user document in 'users' collection
@@ -222,7 +227,7 @@ export default function RegisterPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-gray-800 mb-2.5 text-xl-custom font-bold">
-          Student Registration
+          Create Account
         </h1>
         <p className="text-gray-500 text-base m-0">
           Create your MentorMatch account and complete your profile
@@ -238,10 +243,11 @@ export default function RegisterPage() {
           </h2>
 
           <div className="mb-5">
-            <label className="label-base">
+            <label htmlFor="email" className="label-base">
               Email Address *
             </label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
@@ -255,10 +261,11 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-5">
             <div>
-              <label className="label-base">
+              <label htmlFor="password" className="label-base">
                 Password *
               </label>
               <input
+                id="password"
                 type="password"
                 name="password"
                 value={formData.password}
@@ -270,10 +277,11 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="label-base">
+              <label htmlFor="confirmPassword" className="label-base">
                 Confirm Password *
               </label>
               <input
+                id="confirmPassword"
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
@@ -295,10 +303,11 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="label-base">
+              <label htmlFor="firstName" className="label-base">
                 First Name *
               </label>
               <input
+                id="firstName"
                 type="text"
                 name="firstName"
                 value={formData.firstName}
@@ -309,10 +318,11 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="label-base">
+              <label htmlFor="lastName" className="label-base">
                 Last Name *
               </label>
               <input
+                id="lastName"
                 type="text"
                 name="lastName"
                 value={formData.lastName}
@@ -538,7 +548,7 @@ export default function RegisterPage() {
                     onClick={removePhoto}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
                   >
-                    ✕
+                    X
                   </button>
                 </div>
               ) : (

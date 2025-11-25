@@ -40,7 +40,7 @@ jest.mock('next/navigation', () => ({
 
 import { ApplicationService, SupervisorService } from '@/lib/services';
 
-describe('StudentDashboard', () => {
+describe('[Integration][Dashboard] Student Dashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPush.mockClear();

@@ -12,6 +12,39 @@ export const TEST_PASSWORD = 'Test123!';
 // ADMIN DATA
 // ============================================
 export const adminUsers: { auth: { email: string; password: string }; user: Omit<BaseUser, 'createdAt'>; admin: Omit<Admin, 'createdAt' | 'updatedAt'> }[] = [
+  // E2E Test Admin Account
+  {
+    auth: {
+      email: 'admin@test.com',
+      password: 'password123',
+    },
+    user: {
+      email: 'admin@test.com',
+      name: 'Test Admin',
+      role: 'admin',
+      department: 'Software Engineering',
+      photoURL: '',
+    },
+    admin: {
+      firstName: 'Test',
+      lastName: 'Admin',
+      fullName: 'Test Admin',
+      email: 'admin@test.com',
+      phone: '04-9900000',
+      department: 'Software Engineering',
+      adminRole: 'project_coordinator',
+      permissions: [
+        'manage_users',
+        'manage_supervisors',
+        'manage_students',
+        'manage_projects',
+        'view_reports',
+        'export_data',
+        'import_data',
+      ],
+      isActive: true,
+    },
+  },
   {
     auth: {
       email: 'julia.sheidin@braude.ac.il',
@@ -50,6 +83,52 @@ export const adminUsers: { auth: { email: string; password: string }; user: Omit
 // SUPERVISOR DATA
 // ============================================
 export const supervisorUsers: { auth: { email: string; password: string }; user: Omit<BaseUser, 'createdAt'>; supervisor: Omit<Supervisor, 'createdAt' | 'updatedAt'> }[] = [
+  // E2E Test Supervisor Account
+  {
+    auth: {
+      email: 'supervisor@test.com',
+      password: 'password123',
+    },
+    user: {
+      email: 'supervisor@test.com',
+      name: 'Test Supervisor',
+      role: 'supervisor',
+      department: 'Computer Science',
+      photoURL: '',
+    },
+    supervisor: {
+      firstName: 'Test',
+      lastName: 'Supervisor',
+      fullName: 'Test Supervisor',
+      email: 'supervisor@test.com',
+      phone: '04-9900001',
+      department: 'Computer Science',
+      title: 'Dr.',
+      bio: 'Test supervisor account for E2E testing.',
+      researchInterests: ['Machine Learning', 'Web Development'],
+      expertiseAreas: ['Software Engineering', 'Testing'],
+      officeLocation: 'Test Building',
+      officeHours: 'By appointment',
+      maxCapacity: 5,
+      currentCapacity: 0,
+      availabilityStatus: 'available',
+      suggestedTopics: [
+        {
+          id: 'test-topic-1',
+          title: 'Test Project',
+          description: 'A test project for E2E testing.',
+          requiredSkills: ['JavaScript', 'Testing'],
+          difficulty: 'intermediate',
+          isAvailable: true,
+        },
+      ],
+      notificationPreference: 'daily',
+      isApproved: true,
+      canSuggestTopics: true,
+      canReviewApplications: true,
+      lastActive: new Date(),
+    },
+  },
   {
     auth: {
       email: 'naomi.unkelos@braude.ac.il',
@@ -202,6 +281,40 @@ export const supervisorUsers: { auth: { email: string; password: string }; user:
 // STUDENT DATA
 // ============================================
 export const studentUsers: { auth: { email: string; password: string }; user: Omit<BaseUser, 'createdAt'>; student: Omit<Student, 'createdAt' | 'updatedAt' | 'registrationDate'> }[] = [
+  // E2E Test Student Account
+  {
+    auth: {
+      email: 'student@test.com',
+      password: 'password123',
+    },
+    user: {
+      email: 'student@test.com',
+      name: 'Test Student',
+      role: 'student',
+      department: 'Computer Science',
+      photoURL: '',
+    },
+    student: {
+      firstName: 'Test',
+      lastName: 'Student',
+      fullName: 'Test Student',
+      email: 'student@test.com',
+      studentId: 'S001',
+      phone: '050-0000001',
+      department: 'Computer Science',
+      academicYear: '4th Year',
+      skills: 'JavaScript, React, Testing',
+      interests: 'Web Development, Software Testing',
+      previousProjects: 'Various web applications',
+      preferredTopics: 'Web Development, Full-Stack',
+      hasPartner: false,
+      partnerName: '',
+      partnerEmail: '',
+      profileComplete: true,
+      matchStatus: 'unmatched',
+      assignedSupervisorId: '',
+    },
+  },
   {
     auth: {
       email: 'eldar.gafarov@e.braude.ac.il',

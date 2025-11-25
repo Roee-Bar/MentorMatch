@@ -21,7 +21,7 @@ jest.mock('@/lib/auth', () => ({
   getUserProfile: jest.fn(),
 }));
 
-describe('Home Page', () => {
+describe('[Integration] Home Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

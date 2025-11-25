@@ -34,7 +34,7 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-describe('SupervisorDashboard', () => {
+describe('[Integration][Dashboard] Supervisor Dashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPush.mockClear();

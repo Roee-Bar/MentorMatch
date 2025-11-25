@@ -21,7 +21,7 @@ jest.mock('@/lib/auth', () => ({
   getUserProfile: jest.fn(),
 }));
 
-describe('DashboardLayout - Enhanced Integration Tests', () => {
+describe('[Integration][Dashboard] Dashboard Layout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

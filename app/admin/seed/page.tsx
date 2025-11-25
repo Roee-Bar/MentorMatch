@@ -46,20 +46,20 @@ export default function SeedPage() {
 
     setIsClearing(true);
     setResults([]);
-    addResult('info', '🗑️ Starting database cleanup...');
+    addResult('info', 'Starting database cleanup...');
 
     try {
       const collections = ['users', 'students', 'supervisors', 'admins', 'applications', 'projects'];
       
       for (const coll of collections) {
         const count = await clearCollection(coll);
-        addResult('success', `✅ Cleared ${count} documents from '${coll}' collection`);
+        addResult('success', `Cleared ${count} documents from '${coll}' collection`);
       }
 
-      addResult('success', '🎉 Database cleared successfully!');
-      addResult('info', '⚠️ Note: Firebase Auth accounts must be deleted manually from Firebase Console');
+      addResult('success', 'Database cleared successfully!');
+      addResult('info', 'Note: Firebase Auth accounts must be deleted manually from Firebase Console');
     } catch (error: any) {
-      addResult('error', `❌ Error: ${error.message}`);
+      addResult('error', `Error: ${error.message}`);
     } finally {
       setIsClearing(false);
     }
@@ -72,7 +72,7 @@ export default function SeedPage() {
 
     setIsSeeding(true);
     setResults([]);
-    addResult('info', '🌱 Starting database seeding...');
+    addResult('info', 'Starting database seeding...');
 
     const createdUserIds: { [email: string]: string } = {};
 
@@ -80,7 +80,7 @@ export default function SeedPage() {
       // ========================================
       // SEED ADMINS
       // ========================================
-      addResult('info', '👑 Creating admin accounts...');
+      addResult('info', 'Creating admin accounts...');
       
       for (const adminData of adminUsers) {
         try {
@@ -108,12 +108,12 @@ export default function SeedPage() {
             updatedAt: new Date(),
           });
 
-          addResult('success', `✅ Created admin: ${adminData.user.name}`);
+          addResult('success', `Created admin: ${adminData.user.name}`);
         } catch (error: any) {
           if (error.code === 'auth/email-already-in-use') {
-            addResult('info', `ℹ️ Admin already exists: ${adminData.auth.email}`);
+            addResult('info', `Admin already exists: ${adminData.auth.email}`);
           } else {
-            addResult('error', `❌ Error creating admin ${adminData.auth.email}: ${error.message}`);
+            addResult('error', `Error creating admin ${adminData.auth.email}: ${error.message}`);
           }
         }
       }
@@ -121,7 +121,7 @@ export default function SeedPage() {
       // ========================================
       // SEED SUPERVISORS
       // ========================================
-      addResult('info', '👨‍🏫 Creating supervisor accounts...');
+      addResult('info', 'Creating supervisor accounts...');
       
       for (const supervisorData of supervisorUsers) {
         try {
@@ -149,12 +149,12 @@ export default function SeedPage() {
             updatedAt: new Date(),
           });
 
-          addResult('success', `✅ Created supervisor: ${supervisorData.user.name}`);
+          addResult('success', `Created supervisor: ${supervisorData.user.name}`);
         } catch (error: any) {
           if (error.code === 'auth/email-already-in-use') {
-            addResult('info', `ℹ️ Supervisor already exists: ${supervisorData.auth.email}`);
+            addResult('info', `Supervisor already exists: ${supervisorData.auth.email}`);
           } else {
-            addResult('error', `❌ Error creating supervisor ${supervisorData.auth.email}: ${error.message}`);
+            addResult('error', `Error creating supervisor ${supervisorData.auth.email}: ${error.message}`);
           }
         }
       }
@@ -162,7 +162,7 @@ export default function SeedPage() {
       // ========================================
       // SEED STUDENTS
       // ========================================
-      addResult('info', '👨‍🎓 Creating student accounts...');
+      addResult('info', 'Creating student accounts...');
       
       for (const studentData of studentUsers) {
         try {
@@ -197,12 +197,12 @@ export default function SeedPage() {
             updatedAt: new Date(),
           });
 
-          addResult('success', `✅ Created student: ${studentData.user.name}`);
+          addResult('success', `Created student: ${studentData.user.name}`);
         } catch (error: any) {
           if (error.code === 'auth/email-already-in-use') {
-            addResult('info', `ℹ️ Student already exists: ${studentData.auth.email}`);
+            addResult('info', `Student already exists: ${studentData.auth.email}`);
           } else {
-            addResult('error', `❌ Error creating student ${studentData.auth.email}: ${error.message}`);
+            addResult('error', `Error creating student ${studentData.auth.email}: ${error.message}`);
           }
         }
       }
@@ -210,7 +210,7 @@ export default function SeedPage() {
       // ========================================
       // SEED SAMPLE APPLICATIONS
       // ========================================
-      addResult('info', '📝 Creating sample applications...');
+      addResult('info', 'Creating sample applications...');
       
       const sarahId = createdUserIds['sarah.cohen@e.braude.ac.il'];
       const israelId = createdUserIds['israel.israeli@braude.ac.il'];
@@ -235,7 +235,7 @@ export default function SeedPage() {
               dateApplied: new Date(),
               lastUpdated: new Date(),
             });
-            addResult('success', `✅ Created application: ${appData.projectTitle}`);
+            addResult('success', `Created application: ${appData.projectTitle}`);
           }
         }
       }
@@ -243,7 +243,7 @@ export default function SeedPage() {
       // ========================================
       // SEED A SAMPLE PROJECT (MentorMatch itself!)
       // ========================================
-      addResult('info', '📁 Creating sample project...');
+      addResult('info', 'Creating sample project...');
       
       const eldarId = createdUserIds['eldar.gafarov@e.braude.ac.il'];
       const roeeId = createdUserIds['roee.bar@e.braude.ac.il'];
@@ -265,14 +265,14 @@ export default function SeedPage() {
           createdAt: new Date(),
           updatedAt: new Date(),
         });
-        addResult('success', '✅ Created project: MentorMatch');
+        addResult('success', 'Created project: MentorMatch');
       }
 
-      addResult('success', '🎉 Database seeding completed successfully!');
-      addResult('info', `📧 All accounts use password: ${TEST_PASSWORD}`);
+      addResult('success', 'Database seeding completed successfully!');
+      addResult('info', `All accounts use password: ${TEST_PASSWORD}`);
 
     } catch (error: any) {
-      addResult('error', `❌ Fatal error: ${error.message}`);
+      addResult('error', `Fatal error: ${error.message}`);
     } finally {
       setIsSeeding(false);
     }
@@ -282,14 +282,14 @@ export default function SeedPage() {
     <div className="min-h-screen bg-gray-100 py-10 px-5">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">🌱 Database Seeder</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Database Seeder</h1>
           <p className="text-gray-600 mb-6">
             Use this page to populate your Firebase database with test data.
           </p>
 
           {/* Warning Banner */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <h3 className="font-bold text-yellow-800 mb-2">⚠️ Important Notes:</h3>
+            <h3 className="font-bold text-yellow-800 mb-2">Important Notes:</h3>
             <ul className="text-sm text-yellow-700 space-y-1">
               <li>• Run the seed only ONCE on a fresh database</li>
               <li>• All test accounts will use password: <code className="bg-yellow-100 px-1 rounded">{TEST_PASSWORD}</code></li>
@@ -300,7 +300,7 @@ export default function SeedPage() {
 
           {/* Test Accounts Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-bold text-blue-800 mb-2">📧 Test Account Emails:</h3>
+            <h3 className="font-bold text-blue-800 mb-2">Test Account Emails:</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="font-semibold text-blue-700">Admin:</p>
@@ -330,7 +330,7 @@ export default function SeedPage() {
               disabled={isSeeding || isClearing}
               className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isSeeding ? '🔄 Seeding...' : '🌱 Seed Database'}
+              {isSeeding ? 'Seeding...' : 'Seed Database'}
             </button>
             
             <button
@@ -338,14 +338,14 @@ export default function SeedPage() {
               disabled={isSeeding || isClearing}
               className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              {isClearing ? '🔄 Clearing...' : '🗑️ Clear Database'}
+              {isClearing ? 'Clearing...' : 'Clear Database'}
             </button>
           </div>
 
           {/* Results Log */}
           {results.length > 0 && (
             <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
-              <h3 className="text-white font-bold mb-3">📋 Results Log:</h3>
+              <h3 className="text-white font-bold mb-3">Results Log:</h3>
               <div className="space-y-1 font-mono text-sm">
                 {results.map((result, index) => (
                   <p

@@ -51,7 +51,7 @@ jest.mock('next/image', () => ({
   },
 }));
 
-describe('RegisterPage', () => {
+describe('[Integration] Register Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
