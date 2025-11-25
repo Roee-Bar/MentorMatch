@@ -52,7 +52,7 @@ export const UserService = {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as BaseUser[];
+      } as unknown as BaseUser));
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];

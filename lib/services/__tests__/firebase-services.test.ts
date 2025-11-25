@@ -109,6 +109,7 @@ describe('[Unit][Firebase] Firebase Services', () => {
       it('should return all users', async () => {
         const mockQuerySnapshot = {
           docs: users.map(user => ({
+            id: user.id,
             data: () => user,
           })),
         };
