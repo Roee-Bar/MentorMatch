@@ -573,10 +573,13 @@ describe('Firebase Services - Unit Tests', () => {
     describe('getApplicationById', () => {
       // Verifies successful retrieval of application by ID with document ID mapping
       it('should return application when it exists', async () => {
+        const mockData = { ...mockApplication };
+        delete (mockData as any).id; // Remove id from data as it comes from doc.id
+        
         const mockDoc = {
           exists: () => true,
           id: 'APP-001',
-          data: () => ({ ...mockApplication, id: undefined }),
+          data: () => mockData,
         };
 
         (getDoc as jest.Mock).mockResolvedValue(mockDoc);
@@ -585,6 +588,35 @@ describe('Firebase Services - Unit Tests', () => {
 
         expect(result).toBeTruthy();
         expect(result?.id).toBe('APP-001');
+      });
+
+      // Tests conversion of Firestore Timestamps to Date objects for single application
+      it('should convert Firestore Timestamps to Date objects', async () => {
+        const mockTimestamp = {
+          toDate: jest.fn(() => new Date('2024-01-15T10:30:00Z')),
+        };
+        
+        const mockData = {
+          ...mockApplication,
+          id: undefined,
+          dateApplied: mockTimestamp,
+          lastUpdated: mockTimestamp,
+        };
+
+        const mockDoc = {
+          exists: () => true,
+          id: 'APP-001',
+          data: () => mockData,
+        };
+
+        (getDoc as jest.Mock).mockResolvedValue(mockDoc);
+
+        const result = await ApplicationService.getApplicationById('APP-001');
+
+        expect(result).toBeTruthy();
+        expect(result!.dateApplied).toBeInstanceOf(Date);
+        expect(result!.lastUpdated).toBeInstanceOf(Date);
+        expect(mockTimestamp.toDate).toHaveBeenCalled();
       });
 
       // Tests that getApplicationById returns null when document doesn't exist
@@ -699,6 +731,65 @@ describe('Firebase Services - Unit Tests', () => {
         expect(result[0].id).toBe('APP-001');
       });
 
+      // Tests conversion of Firestore Timestamp to JavaScript Date objects
+      it('should convert Firestore Timestamps to Date objects', async () => {
+        const mockTimestamp = {
+          toDate: jest.fn(() => new Date('2024-01-15T10:30:00Z')),
+        };
+        
+        const mockData = {
+          ...mockApplication,
+          dateApplied: mockTimestamp,
+          lastUpdated: mockTimestamp,
+          responseDate: mockTimestamp,
+        };
+
+        const mockQuerySnapshot = {
+          docs: [
+            {
+              id: 'APP-001',
+              data: () => mockData,
+            },
+          ],
+        };
+
+        (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+
+        const result = await ApplicationService.getSupervisorApplications('SUP-001');
+
+        expect(result).toHaveLength(1);
+        expect(result[0].dateApplied).toBeInstanceOf(Date);
+        expect(result[0].lastUpdated).toBeInstanceOf(Date);
+        expect(result[0].responseDate).toBeInstanceOf(Date);
+        expect(mockTimestamp.toDate).toHaveBeenCalledTimes(3);
+      });
+
+      // Tests handling when date fields are already Date objects (not Timestamps)
+      it('should handle dates that are already Date objects', async () => {
+        const nativeDate = new Date('2024-01-15T10:30:00Z');
+        const mockData = {
+          ...mockApplication,
+          dateApplied: nativeDate,
+          lastUpdated: nativeDate,
+        };
+
+        const mockQuerySnapshot = {
+          docs: [
+            {
+              id: 'APP-001',
+              data: () => mockData,
+            },
+          ],
+        };
+
+        (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+
+        const result = await ApplicationService.getSupervisorApplications('SUP-001');
+
+        expect(result[0].dateApplied).toBe(nativeDate);
+        expect(result[0].lastUpdated).toBe(nativeDate);
+      });
+
       // Tests error handling returns empty array when supervisor applications query fails
       it('should return empty array on error', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -728,6 +819,36 @@ describe('Firebase Services - Unit Tests', () => {
         const result = await ApplicationService.getPendingApplications('SUP-001');
 
         expect(result).toHaveLength(1);
+      });
+
+      // Tests conversion of Firestore Timestamps in pending applications
+      it('should convert Firestore Timestamps to Date objects', async () => {
+        const mockTimestamp = {
+          toDate: jest.fn(() => new Date('2024-01-15T10:30:00Z')),
+        };
+        
+        const mockData = {
+          ...mockApplication,
+          status: 'pending' as const,
+          dateApplied: mockTimestamp,
+          lastUpdated: mockTimestamp,
+        };
+
+        const mockQuerySnapshot = {
+          docs: [
+            {
+              id: 'APP-001',
+              data: () => mockData,
+            },
+          ],
+        };
+
+        (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+
+        const result = await ApplicationService.getPendingApplications('SUP-001');
+
+        expect(result[0].dateApplied).toBeInstanceOf(Date);
+        expect(result[0].lastUpdated).toBeInstanceOf(Date);
       });
 
       // Tests error handling returns empty array when pending applications query fails
@@ -866,6 +987,42 @@ describe('Firebase Services - Unit Tests', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe('APP-001');
+      });
+
+      // Tests conversion of Firestore Timestamps in all applications query
+      it('should convert Firestore Timestamps to Date objects for all applications', async () => {
+        const mockTimestamp = {
+          toDate: jest.fn(() => new Date('2024-01-15T10:30:00Z')),
+        };
+        
+        const mockData = {
+          ...mockApplication,
+          dateApplied: mockTimestamp,
+          lastUpdated: mockTimestamp,
+        };
+
+        const mockQuerySnapshot = {
+          docs: [
+            {
+              id: 'APP-001',
+              data: () => mockData,
+            },
+            {
+              id: 'APP-002',
+              data: () => mockData,
+            },
+          ],
+        };
+
+        (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+
+        const result = await ApplicationService.getAllApplications();
+
+        expect(result).toHaveLength(2);
+        result.forEach(app => {
+          expect(app.dateApplied).toBeInstanceOf(Date);
+          expect(app.lastUpdated).toBeInstanceOf(Date);
+        });
       });
 
       // Tests error handling returns empty array when getAllApplications query fails

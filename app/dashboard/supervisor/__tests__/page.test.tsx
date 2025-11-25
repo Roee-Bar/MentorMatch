@@ -251,4 +251,126 @@ describe('SupervisorDashboard', () => {
       });
     });
   });
+
+  describe('Date Handling', () => {
+    // Tests that Firestore Timestamps are properly converted to Date objects and formatted
+    it('should handle Firestore Timestamp conversion without errors', async () => {
+      // Create mock Firestore Timestamp objects
+      const mockTimestamp = {
+        toDate: jest.fn(() => new Date('2024-01-15T10:30:00Z')),
+      };
+      
+      // Mock applications with Firestore Timestamp objects
+      const mockApplicationsWithTimestamps = [
+        {
+          id: 'app-1',
+          studentId: 'student-1',
+          studentName: 'John Doe',
+          studentEmail: 'john@test.com',
+          supervisorId: 'supervisor-123',
+          supervisorName: 'Dr. Test Supervisor',
+          projectTitle: 'AI Research Project',
+          projectDescription: 'Advanced AI research',
+          isOwnTopic: true,
+          studentSkills: 'Python, TensorFlow',
+          studentInterests: 'Machine Learning',
+          hasPartner: false,
+          status: 'pending' as const,
+          dateApplied: mockTimestamp as any, // Simulating Firestore Timestamp
+          lastUpdated: mockTimestamp as any,
+          responseTime: '5-7 business days',
+        },
+      ];
+      
+      (ApplicationService.getSupervisorApplications as jest.Mock).mockResolvedValue(mockApplicationsWithTimestamps);
+      
+      // This test verifies the component doesn't crash when encountering Timestamps
+      render(<SupervisorDashboard />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+      
+      // Verify the application renders without throwing "toLocaleDateString is not a function" error
+      expect(screen.getByText('AI Research Project')).toBeInTheDocument();
+      
+      // Verify that the toDate method was called (indicating Timestamp conversion happened)
+      expect(mockTimestamp.toDate).toHaveBeenCalled();
+    });
+
+    // Tests that native Date objects are handled correctly alongside Timestamps
+    it('should handle native Date objects without conversion errors', async () => {
+      const nativeDate = new Date('2024-02-20T14:00:00Z');
+      
+      const mockApplicationsWithDates = [
+        {
+          id: 'app-2',
+          studentId: 'student-2',
+          studentName: 'Jane Smith',
+          studentEmail: 'jane@test.com',
+          supervisorId: 'supervisor-123',
+          supervisorName: 'Dr. Test Supervisor',
+          projectTitle: 'Web Development Project',
+          projectDescription: 'Full-stack web app',
+          isOwnTopic: true,
+          studentSkills: 'React, Node.js',
+          studentInterests: 'Web Development',
+          hasPartner: false,
+          status: 'approved' as const,
+          dateApplied: nativeDate, // Native Date object
+          lastUpdated: nativeDate,
+          responseTime: '5-7 business days',
+        },
+      ];
+      
+      (ApplicationService.getSupervisorApplications as jest.Mock).mockResolvedValue(mockApplicationsWithDates);
+      
+      render(<SupervisorDashboard />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+      
+      // Verify the application renders correctly with native Date objects
+      expect(screen.getByText('Web Development Project')).toBeInTheDocument();
+    });
+
+    // Tests that date formatting displays correctly in the UI
+    it('should display formatted dates in application cards', async () => {
+      const testDate = new Date('2024-03-10T12:00:00Z');
+      const expectedDateString = testDate.toLocaleDateString();
+      
+      const mockApplication = {
+        id: 'app-3',
+        studentId: 'student-3',
+        studentName: 'Test Student',
+        studentEmail: 'test@test.com',
+        supervisorId: 'supervisor-123',
+        supervisorName: 'Dr. Test Supervisor',
+        projectTitle: 'Date Test Project',
+        projectDescription: 'Testing date display',
+        isOwnTopic: true,
+        studentSkills: 'Testing',
+        studentInterests: 'QA',
+        hasPartner: false,
+        status: 'pending' as const,
+        dateApplied: testDate,
+        lastUpdated: testDate,
+        responseTime: '5-7 business days',
+      };
+      
+      (ApplicationService.getSupervisorApplications as jest.Mock).mockResolvedValue([mockApplication]);
+      
+      render(<SupervisorDashboard />);
+      
+      await waitFor(() => {
+        expect(screen.queryByText('Loading dashboard...')).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+      
+      // Verify the date is formatted and displayed
+      expect(screen.getByText('Date Test Project')).toBeInTheDocument();
+      // The formatted date should appear somewhere in the document
+      expect(screen.getByText(expectedDateString)).toBeInTheDocument();
+    });
+  });
 });

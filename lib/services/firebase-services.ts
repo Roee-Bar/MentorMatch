@@ -227,7 +227,15 @@ export const ApplicationService = {
     try {
       const appDoc = await getDoc(doc(db, 'applications', applicationId));
       if (appDoc.exists()) {
-        return { ...appDoc.data(), id: appDoc.id } as Application;
+        const data = appDoc.data();
+        return {
+          id: appDoc.id,
+          ...data,
+          // Convert Firestore Timestamps to JavaScript Dates
+          dateApplied: data.dateApplied?.toDate ? data.dateApplied.toDate() : data.dateApplied,
+          lastUpdated: data.lastUpdated?.toDate ? data.lastUpdated.toDate() : data.lastUpdated,
+          responseDate: data.responseDate?.toDate ? data.responseDate.toDate() : data.responseDate,
+        } as Application;
       }
       return null;
     } catch (error) {
@@ -273,10 +281,17 @@ export const ApplicationService = {
       );
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Application[];
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamps to JavaScript Dates
+          dateApplied: data.dateApplied?.toDate ? data.dateApplied.toDate() : data.dateApplied,
+          lastUpdated: data.lastUpdated?.toDate ? data.lastUpdated.toDate() : data.lastUpdated,
+          responseDate: data.responseDate?.toDate ? data.responseDate.toDate() : data.responseDate,
+        } as Application;
+      });
     } catch (error) {
       console.error('Error fetching supervisor applications:', error);
       return [];
@@ -293,10 +308,17 @@ export const ApplicationService = {
       );
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Application[];
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamps to JavaScript Dates
+          dateApplied: data.dateApplied?.toDate ? data.dateApplied.toDate() : data.dateApplied,
+          lastUpdated: data.lastUpdated?.toDate ? data.lastUpdated.toDate() : data.lastUpdated,
+          responseDate: data.responseDate?.toDate ? data.responseDate.toDate() : data.responseDate,
+        } as Application;
+      });
     } catch (error) {
       console.error('Error fetching pending applications:', error);
       return [];
@@ -350,10 +372,17 @@ export const ApplicationService = {
   async getAllApplications(): Promise<Application[]> {
     try {
       const querySnapshot = await getDocs(collection(db, 'applications'));
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Application[];
+      return querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamps to JavaScript Dates
+          dateApplied: data.dateApplied?.toDate ? data.dateApplied.toDate() : data.dateApplied,
+          lastUpdated: data.lastUpdated?.toDate ? data.lastUpdated.toDate() : data.lastUpdated,
+          responseDate: data.responseDate?.toDate ? data.responseDate.toDate() : data.responseDate,
+        } as Application;
+      });
     } catch (error) {
       console.error('Error fetching all applications:', error);
       return [];

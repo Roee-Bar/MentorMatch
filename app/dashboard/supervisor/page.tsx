@@ -107,12 +107,20 @@ export default function SupervisorDashboard() {
             color="gray"
           />
 
-          <StatCard
-            title="Current Capacity"
-            value={currentCapacity}
-            description="Active supervisions"
-            color="green"
-          />
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <h3 className="text-lg font-semibold mb-2 text-gray-800">Capacity Status</h3>
+            <p className="text-sm text-gray-600">
+              {currentCapacity} / {supervisor?.maxCapacity || 0} students
+            </p>
+            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-600 transition-all"
+                style={{ 
+                  width: `${supervisor?.maxCapacity ? (currentCapacity / supervisor.maxCapacity) * 100 : 0}%` 
+                }}
+              />
+            </div>
+          </div>
 
           <StatCard
             title="Approved Projects"
@@ -140,58 +148,40 @@ export default function SupervisorDashboard() {
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {applications.slice(0, 6).map((application) => (
-                <ApplicationCard 
-                  key={application.id} 
-                  application={{
-                    id: application.id,
-                    projectTitle: application.projectTitle,
-                    projectDescription: application.projectDescription,
-                    supervisorName: application.supervisorName,
-                    dateApplied: application.dateApplied.toLocaleDateString(),
-                    status: application.status,
-                    responseTime: application.responseTime || '5-7 business days',
-                    comments: application.supervisorFeedback,
-                  }} 
-                />
-              ))}
+              {applications.slice(0, 6).map((application) => {
+                // Convert Firestore Timestamp to Date, then format as string
+                const dateAppliedStr = application.dateApplied instanceof Date
+                  ? application.dateApplied.toLocaleDateString()
+                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+                
+                return (
+                  <ApplicationCard 
+                    key={application.id} 
+                    application={{
+                      id: application.id,
+                      projectTitle: application.projectTitle,
+                      projectDescription: application.projectDescription,
+                      supervisorName: application.supervisorName,
+                      dateApplied: dateAppliedStr,
+                      status: application.status,
+                      responseTime: application.responseTime || '5-7 business days',
+                      comments: application.supervisorFeedback,
+                    }} 
+                  />
+                );
+              })}
             </div>
           )}
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <button
-            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
-            className="btn-primary p-6 text-left"
-          >
-            <h3 className="text-lg font-semibold mb-2">View All Applications</h3>
-            <p className="text-sm opacity-90">Review and manage student applications</p>
-          </button>
-          
-          <button
-            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_PROFILE)}
-            className="btn-secondary p-6 text-left"
-          >
-            <h3 className="text-lg font-semibold mb-2">View Profile</h3>
-            <p className="text-sm opacity-90">Check your profile and capacity</p>
-          </button>
-          
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">Capacity Status</h3>
-            <p className="text-sm text-gray-600">
-              {currentCapacity} / {supervisor?.maxCapacity || 0} students
-            </p>
-            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-600 transition-all"
-                style={{ 
-                  width: `${supervisor?.maxCapacity ? (currentCapacity / supervisor.maxCapacity) * 100 : 0}%` 
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
+          className="btn-primary p-6 text-left"
+        >
+          <h3 className="text-lg font-semibold mb-2">View All Applications</h3>
+          <p className="text-sm opacity-90">Review and manage student applications</p>
+        </button>
       </div>
     </div>
   );

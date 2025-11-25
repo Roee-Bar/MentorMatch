@@ -183,51 +183,6 @@ export default function SupervisorProfilePage() {
               max={supervisor.maxCapacity}
               status={supervisor.availabilityStatus}
             />
-
-            {/* Quick Stats */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Max Capacity</span>
-                  <span className="text-sm font-medium text-gray-800">{supervisor.maxCapacity} students</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Current Load</span>
-                  <span className="text-sm font-medium text-gray-800">{supervisor.currentCapacity} students</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Available Slots</span>
-                  <span className="text-sm font-medium text-gray-800">
-                    {supervisor.maxCapacity - supervisor.currentCapacity} students
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Actions</h3>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
-                  className="w-full btn-primary text-center"
-                >
-                  Back to Dashboard
-                </button>
-                
-                <button
-                  onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
-                  className="w-full btn-secondary text-center"
-                >
-                  View Applications
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

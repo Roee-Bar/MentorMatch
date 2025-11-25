@@ -5,6 +5,7 @@ interface HeaderDropdownProps {
   userProfile: {
     name: string
     email: string
+    role?: 'student' | 'supervisor' | 'admin'
   }
   onClose: () => void
 }
@@ -27,7 +28,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
       </div>
       
       <Link
-        href="/profile"
+        href={userProfile.role === 'supervisor' ? '/dashboard/supervisor/profile' : '/profile'}
         onClick={onClose}
         className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
         role="menuitem"
