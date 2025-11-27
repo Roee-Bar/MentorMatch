@@ -33,7 +33,7 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-describe('SupervisorApplicationsPage', () => {
+describe('[Integration][Dashboard] Supervisor Applications Page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     

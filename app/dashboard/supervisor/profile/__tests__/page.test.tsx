@@ -32,7 +32,7 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-describe('SupervisorProfilePage', () => {
+describe('[Integration][Dashboard] Supervisor Profile Page', () => {
   const mockSupervisor = {
     id: 'supervisor-123',
     firstName: 'Test',

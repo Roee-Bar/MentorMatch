@@ -32,7 +32,7 @@ jest.mock('@/lib/auth', () => ({
   getUserProfile: jest.fn(),
 }));
 
-describe('Header', () => {
+describe('[Component] Header', () => {
   // Use mock data directly from the mock-data folder
   const mockStudent = users.find(u => u.role === 'student');
 

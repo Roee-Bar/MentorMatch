@@ -48,7 +48,7 @@ jest.mock('@/lib/firebase', () => ({
   storage: {},
 }));
 
-describe('Firebase Services - Unit Tests', () => {
+describe('[Unit][Firebase] Firebase Services', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Mock doc to return a document reference object
@@ -109,6 +109,7 @@ describe('Firebase Services - Unit Tests', () => {
       it('should return all users', async () => {
         const mockQuerySnapshot = {
           docs: users.map(user => ({
+            id: user.id,
             data: () => user,
           })),
         };

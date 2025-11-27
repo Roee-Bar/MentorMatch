@@ -3,7 +3,7 @@ import UserProfile from '../UserProfile';
 import { User } from '@/types/user';
 import { users } from '@/mock-data';
 
-describe('UserProfile', () => {
+describe('[Component] UserProfile', () => {
   // Use mock data directly from the mock-data folder
   const mockStudent = users.find(u => u.role === 'student');
   const mockSupervisor = users.find(u => u.role === 'supervisor');

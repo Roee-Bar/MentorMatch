@@ -1,4 +1,4 @@
-export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'under_review';
+export type ApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
 export type AvailabilityStatus = 'available' | 'limited' | 'unavailable';
 
 export interface Application {

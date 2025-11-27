@@ -50,8 +50,9 @@ export const UserService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'users'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
-      })) as BaseUser[];
+      } as unknown as BaseUser));
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];
@@ -82,8 +83,9 @@ export const StudentService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'students'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
-      })) as Student[];
+      } as unknown as Student));
     } catch (error) {
       console.error('Error fetching students:', error);
       return [];
@@ -99,8 +101,9 @@ export const StudentService = {
       );
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
-      })) as Student[];
+      } as unknown as Student));
     } catch (error) {
       console.error('Error fetching unmatched students:', error);
       return [];
@@ -145,8 +148,9 @@ export const SupervisorService = {
     try {
       const querySnapshot = await getDocs(collection(db, 'supervisors'));
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
-      })) as Supervisor[];
+      } as unknown as Supervisor));
     } catch (error) {
       console.error('Error fetching supervisors:', error);
       return [];
@@ -209,8 +213,9 @@ export const SupervisorService = {
       );
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map((doc) => ({
+        id: doc.id,
         ...doc.data(),
-      })) as Supervisor[];
+      } as unknown as Supervisor));
     } catch (error) {
       console.error('Error fetching supervisors by department:', error);
       return [];

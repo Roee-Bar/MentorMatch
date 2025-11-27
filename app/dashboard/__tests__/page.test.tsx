@@ -16,7 +16,7 @@ jest.mock('@/lib/auth', () => ({
   getUserProfile: jest.fn(),
 }));
 
-describe('DashboardRouter', () => {
+describe('[Integration][Dashboard] Dashboard Router', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     

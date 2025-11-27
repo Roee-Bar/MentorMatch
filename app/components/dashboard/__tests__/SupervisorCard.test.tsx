@@ -3,7 +3,7 @@ import SupervisorCard from '../SupervisorCard';
 import { Supervisor } from '@/types/dashboard';
 import { supervisors } from '@/mock-data';
 
-describe('SupervisorCard', () => {
+describe('[Component][Dashboard] SupervisorCard', () => {
   // Use mock data directly from the mock-data folder
   const mockSupervisor = supervisors[0];
 

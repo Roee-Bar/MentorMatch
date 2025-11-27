@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import CapacityIndicator from '../CapacityIndicator';
 
-describe('CapacityIndicator', () => {
+describe('[Component][Dashboard] CapacityIndicator', () => {
   // Test: Renders with correct values
   it('should render with current and max capacity values', () => {
     render(<CapacityIndicator current={2} max={5} status="available" />);
