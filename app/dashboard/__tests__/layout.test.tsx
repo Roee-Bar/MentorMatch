@@ -29,6 +29,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests loading indicator displays while authentication is being checked
   it('should render loading state initially', () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockStudent.id, email: mockStudent.email }), 0);
@@ -52,6 +53,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests children render after successful authentication and profile fetch
   it('should render children after loading completes', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockStudent.id, email: mockStudent.email }), 0);
@@ -77,6 +79,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests authentication state is checked before rendering children
   it('should show authentication check behavior', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockStudent.id, email: mockStudent.email }), 0);
@@ -125,6 +128,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests non-student roles are blocked from student dashboard
   it('should redirect non-student role to home', async () => {
     const mockSupervisor = users.find((u: any) => u.role === 'supervisor');
+    if (!mockSupervisor) throw new Error('Mock supervisor not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockSupervisor.id, email: mockSupervisor.email }), 0);
@@ -151,6 +155,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests error handling when user profile fetch fails
   it('should handle getUserProfile error', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockStudent.id, email: mockStudent.email }), 0);
@@ -177,6 +182,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests successful authentication flow with profile fetch integration
   it('should complete auth flow with profile fetch successfully', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       setTimeout(() => callback({ uid: mockStudent.id, email: mockStudent.email }), 0);
@@ -206,6 +212,7 @@ describe('[Integration][Dashboard] Dashboard Layout', () => {
   // Tests auth listener unsubscribe is called when component unmounts
   it('should cleanup auth listener on unmount', async () => {
     const mockStudent = users.find((u: any) => u.role === 'student');
+    if (!mockStudent) throw new Error('Mock student not found');
     const mockUnsubscribe = jest.fn();
     
     (onAuthChange as jest.Mock).mockImplementation((callback) => {

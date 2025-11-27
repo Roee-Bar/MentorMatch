@@ -85,7 +85,7 @@ export const StudentService = {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Student[];
+      } as unknown as Student));
     } catch (error) {
       console.error('Error fetching students:', error);
       return [];
@@ -103,7 +103,7 @@ export const StudentService = {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Student[];
+      } as unknown as Student));
     } catch (error) {
       console.error('Error fetching unmatched students:', error);
       return [];
@@ -150,7 +150,7 @@ export const SupervisorService = {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Supervisor[];
+      } as unknown as Supervisor));
     } catch (error) {
       console.error('Error fetching supervisors:', error);
       return [];
@@ -215,7 +215,7 @@ export const SupervisorService = {
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Supervisor[];
+      } as unknown as Supervisor));
     } catch (error) {
       console.error('Error fetching supervisors by department:', error);
       return [];

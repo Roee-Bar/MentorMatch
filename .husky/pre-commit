@@ -1,17 +1,33 @@
 #!/bin/sh
 
-# Validate that package-lock.json is in sync with package.json
-echo "Validating package-lock.json sync..."
-npm ci --dry-run
+echo "Running pre-commit checks..."
+
+# 1. Validate package-lock.json
+echo "→ Validating package-lock.json..."
+npm ci --dry-run > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
-  echo " Error: package-lock.json is out of sync with package.json"
-  echo " Please run: npm install"
+  echo "✗ package-lock.json is out of sync with package.json"
+  echo "  Run: npm install"
   exit 1
 fi
 
-echo " package-lock.json is in sync"
+# 2. Run ESLint
+echo "→ Linting code..."
+npm run lint
 
-# Run tests (silent mode for cleaner output)
-echo " Running tests..."
-npm test -- --silent
+if [ $? -ne 0 ]; then
+  echo "✗ Linting failed. Please fix errors."
+  exit 1
+fi
+
+# 3. Run TypeScript type check
+echo "→ Type checking..."
+npm run typecheck
+
+if [ $? -ne 0 ]; then
+  echo "✗ TypeScript check failed. Please fix type errors."
+  exit 1
+fi
+
+echo "✓ Pre-commit checks passed!"
