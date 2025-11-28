@@ -2,6 +2,45 @@
 import '@testing-library/jest-dom'
 
 /**
+ * Mock Web APIs for Next.js Server Components
+ * 
+ * Next.js server components use Web APIs like Request and Response
+ * that aren't available in Node.js environment by default.
+ */
+if (typeof Request === 'undefined') {
+  global.Request = class Request {};
+}
+
+if (typeof Response === 'undefined') {
+  global.Response = class Response {
+    constructor(body, init) {
+      this.body = body;
+      this.status = init?.status || 200;
+      this.statusText = init?.statusText || '';
+      this.headers = new Map(Object.entries(init?.headers || {}));
+    }
+    
+    async json() {
+      return typeof this.body === 'string' ? JSON.parse(this.body) : this.body;
+    }
+    
+    static json(data, init) {
+      return new Response(JSON.stringify(data), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      });
+    }
+  };
+}
+
+if (typeof Headers === 'undefined') {
+  global.Headers = class Headers extends Map {};
+}
+
+/**
  * Console Warning Suppression
  * 
  * This configuration suppresses React's "not wrapped in act()" warnings that commonly
