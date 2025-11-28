@@ -79,6 +79,7 @@ Located in: `docs/guides/`
 
 | Document | Purpose | Read Time |
 |----------|---------|-----------|
+| [ci-cd.md](guides/ci-cd.md) | CI/CD pipeline and deployment | 35 min |
 | [type-system.md](guides/type-system.md) | TypeScript types and interfaces | 15 min |
 | [code-conventions.md](guides/code-conventions.md) | Coding standards and patterns | 20 min |
 | [testing-strategy.md](guides/testing-strategy.md) | Testing approach and tools | 25 min |
@@ -91,6 +92,14 @@ Located in: `docs/reference/`
 | Document | Purpose | Read Time |
 |----------|---------|-----------|
 | [firebase-usage.md](reference/firebase-usage.md) | Firebase integration patterns | 30 min |
+
+### Troubleshooting
+
+Located in: `docs/troubleshooting/`
+
+| Document | Purpose | Read Time |
+|----------|---------|-----------|
+| [build-failures.md](troubleshooting/build-failures.md) | CI/CD and build error solutions | 15 min |
 
 ### AI Context
 
@@ -130,6 +139,12 @@ Optimized files for AI-assisted development (concise, structured, < 500 lines ea
 **"How do I use Firebase?"**
 → [reference/firebase-usage.md](reference/firebase-usage.md)
 
+**"How does CI/CD work?"**
+→ [guides/ci-cd.md](guides/ci-cd.md)
+
+**"Why is my build failing?"**
+→ [troubleshooting/build-failures.md](troubleshooting/build-failures.md)
+
 **"What security measures are in place?"**
 → [guides/security.md](guides/security.md)
 
@@ -156,6 +171,11 @@ Optimized files for AI-assisted development (concise, structured, < 500 lines ea
 2. [guides/type-system.md](guides/type-system.md) - Define types
 3. [architecture/backend/implementation-guide.md](architecture/backend/implementation-guide.md) - Backend patterns
 4. [guides/testing-strategy.md](guides/testing-strategy.md) - Test the feature
+
+**Deploying changes:**
+1. [guides/ci-cd.md](guides/ci-cd.md) - CI/CD pipeline overview
+2. [troubleshooting/build-failures.md](troubleshooting/build-failures.md) - Fix build errors
+3. [getting-started/setup-guide.md](getting-started/setup-guide.md#deployment) - Environment setup
 
 ### By User Role
 
@@ -190,14 +210,15 @@ Optimized files for AI-assisted development (concise, structured, < 500 lines ea
 ## Documentation Statistics
 
 ### Content Overview
-- 15+ documentation files
-- Organized into 6 categories
+- 17+ documentation files
+- Organized into 7 categories
 - Clear hierarchy and navigation
 - AI-optimized summary files
 
 ### Coverage
 - Complete API documentation (20+ endpoints)
 - Comprehensive testing strategy
+- CI/CD pipeline documentation
 - Security best practices
 - Code conventions and standards
 - Type system documentation

@@ -9,9 +9,9 @@ This guide covers common build failures and their solutions, particularly for Gi
 ### Problem: Build fails with "Error initializing Firebase Admin SDK"
 
 **Symptoms:**
-- ✅ Local development works fine
-- ❌ GitHub Actions build check fails
-- ❌ Vercel deployment fails
+- Local development works fine
+- GitHub Actions build check fails
+- Vercel deployment fails
 - Error message: "Firebase Admin SDK: Missing environment variables"
 
 **Root Cause:**

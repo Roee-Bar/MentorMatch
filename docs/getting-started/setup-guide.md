@@ -76,7 +76,7 @@ You'll see something like:
 
 ```javascript
 const firebaseConfig = {
-  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  apiKey: "your-api-key-here",
   authDomain: "your-project.firebaseapp.com",
   projectId: "your-project-id",
   storageBucket: "your-project.appspot.com",
@@ -173,7 +173,7 @@ Create a file named `.env.local` in the project root directory:
 ```bash
 # Firebase Client Configuration (Public - Client-Side)
 # Get these from: Firebase Console → Project Settings → General → Your apps
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key-here
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
@@ -232,9 +232,9 @@ npm run dev
 You should see:
 
 ```
-✓ Ready in 2.5s
-○ Local:        http://localhost:3000
-✅ Firebase Admin SDK initialized successfully
+Ready in 2.5s
+Local:        http://localhost:3000
+Firebase Admin SDK initialized successfully
 ```
 
 If you see "Firebase Admin SDK initialization failed", check the [Troubleshooting](#troubleshooting) section.

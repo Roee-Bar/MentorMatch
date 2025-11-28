@@ -165,6 +165,7 @@ Comprehensive documentation is available in the `docs/` directory. Start with th
 - [Dashboard Architecture](./docs/architecture/frontend/dashboard-architecture.md) - Frontend structure
 
 **Guides:**
+- [CI/CD Guide](./docs/guides/ci-cd.md) - CI/CD pipeline and deployment
 - [Testing Strategy](./docs/guides/testing-strategy.md) - Testing guidelines and best practices
 - [Security](./docs/guides/security.md) - Security architecture and best practices
 - [Code Conventions](./docs/guides/code-conventions.md) - Coding standards
@@ -172,6 +173,9 @@ Comprehensive documentation is available in the `docs/` directory. Start with th
 
 **Reference:**
 - [Firebase Usage](./docs/reference/firebase-usage.md) - Firebase integration patterns
+
+**Troubleshooting:**
+- [Build Failures](./docs/troubleshooting/build-failures.md) - CI/CD and build error solutions
 
 **For AI-Assisted Development:**
 - [AI Context Files](./docs/ai-context/) - Optimized documentation for AI assistants

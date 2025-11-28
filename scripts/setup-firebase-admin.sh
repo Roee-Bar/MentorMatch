@@ -24,7 +24,7 @@ echo ""
 
 # Check if .env.local already exists
 if [ -f ".env.local" ]; then
-    echo "⚠️  .env.local already exists!"
+    echo "WARNING: .env.local already exists!"
     echo ""
     read -p "Do you want to view/update it? (y/n): " overwrite
     
@@ -75,9 +75,9 @@ NEXT_PUBLIC_API_URL=/api
 NODE_ENV=development
 EOF
     
-    echo "✅ Created .env.local file successfully!"
+    echo "CREATED: .env.local file successfully!"
     echo ""
-    echo "📝 Next steps:"
+    echo "NEXT STEPS:"
     echo "  1. Open .env.local in your editor"
     echo "  2. Replace placeholder values with your actual credentials"
     echo "  3. Save the file"
@@ -96,12 +96,12 @@ echo ""
 echo "The private key should be formatted as:"
 echo '  FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_KEY_HERE\n-----END PRIVATE KEY-----\n"'
 echo ""
-echo "🔐 Security reminders:"
+echo "SECURITY REMINDERS:"
 echo "  • .env.local is already in .gitignore - DO NOT commit it"
 echo "  • Never share these credentials publicly"
 echo "  • These provide FULL ACCESS to your Firebase project"
 echo ""
-echo "📖 For detailed instructions, see:"
+echo "For detailed instructions, see:"
 echo "  • FIREBASE-ADMIN-SETUP-INSTRUCTIONS.md"
 echo "  • docs/firebase-admin-setup.md"
 echo ""
