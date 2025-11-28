@@ -78,3 +78,13 @@ export function generateUniqueStudentId(): string {
   return `S${timestamp.toString().slice(-6)}`;
 }
 
+/**
+ * Test application form data for submission tests
+ */
+export const TEST_APPLICATION_FORM = {
+  projectTitle: 'AI-Powered Learning Platform',
+  projectDescription: 'Development of an intelligent tutoring system using machine learning algorithms to provide personalized learning experiences for students.',
+  skills: 'Python, TensorFlow, React',
+  interests: 'Machine Learning, Education Technology',
+};
+

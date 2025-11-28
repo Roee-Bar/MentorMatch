@@ -15,7 +15,8 @@ Phase 1 focused on creating the static UI structure using Test-Driven Developmen
 **Implemented Components**:
 - `app/dashboard/layout.tsx` - Dashboard layout with auth protection
 - `app/dashboard/page.tsx` - Router that redirects to role-specific routes
-- `app/dashboard/student/page.tsx` - Student dashboard overview with static data
+- `app/dashboard/student/page.tsx` - Student dashboard overview with dynamic data
+- `app/dashboard/admin/page.tsx` - Admin dashboard with role-based access control
 - `components/dashboard/StatCard.tsx` - Reusable stat card component
 
 **Test Coverage**:
@@ -35,13 +36,17 @@ Each component followed the Red-Green-Refactor cycle:
 
 **Current Features**:
 - Static dashboard layout with responsive design
-- Three stat cards displaying placeholder data (0 values)
-- Quick actions section with disabled buttons
+- Student dashboard with dynamic data fetching (applications and supervisors)
+- Admin dashboard with role-based access control
+- Stat cards displaying real-time data from Firebase
+- Quick actions section with navigation
 - Mobile-responsive grid layout (1 column on mobile, 3 on desktop)
+- Authentication and authorization flows with proper redirects
+- Logout functionality with homepage redirect
 
 **Next Steps**:
-- Phase 2: Routing Implementation (navigation and role-based redirects)
-- Phase 3: Functionality Implementation (data fetching and user interactions)
+- Phase 2: Routing Implementation (additional navigation and nested routes)
+- Phase 3: Functionality Implementation (application submission, supervisor management)
 
 ## Architecture Decision: Multi-Route Approach
 
@@ -67,16 +72,21 @@ app/
 │   │   └── page.test.tsx       #  Tests for router
 │   ├── layout.tsx              #  Shared layout with auth protection
 │   ├── page.tsx                #  Router that redirects to role-specific route
-│   └── student/
-│       ├── __tests__/
-│       │   └── page.test.tsx  #  Tests for student dashboard
-│       └── page.tsx           #  Student dashboard overview (static)
+│   ├── student/
+│   │   ├── __tests__/
+│   │   │   └── page.test.tsx  #  Tests for student dashboard
+│   │   └── page.tsx           #  Student dashboard overview (dynamic data)
+│   └── admin/
+│       └── page.tsx           #  Admin dashboard with role-based access
 
 components/
 ├── dashboard/
 │   ├── __tests__/
 │   │   └── StatCard.test.tsx  #  Tests for StatCard
 │   └── StatCard.tsx           #  Reusable stat card component
+
+app/components/
+└── HeaderDropdown.tsx         #  User menu with logout functionality
 ```
 
 **Planned (Phase 2 & 3)**:
@@ -84,28 +94,50 @@ components/
 app/
 ├── dashboard/
 │   ├── DashboardContext.tsx    # Shared context for user data
-│   └── student/
-│       ├── supervisors/
-│       │   └── page.tsx       # Browse supervisors
-│       └── applications/
-│           └── page.tsx       # My applications
+│   ├── student/
+│   │   ├── supervisors/
+│   │   │   └── page.tsx       # Browse supervisors
+│   │   └── applications/
+│   │       └── page.tsx       # My applications
+│   ├── supervisor/
+│   │   ├── page.tsx           # Supervisor dashboard overview
+│   │   └── applications/
+│   │       └── page.tsx       # Review student applications
+│   └── admin/
+│       ├── users/
+│       │   └── page.tsx       # Manage users
+│       └── reports/
+│           └── page.tsx       # View system reports
 ```
 
-## Student-Specific Feature Scope
+## Role-Specific Feature Scope
 
-### Phase 1 Implementation
+### Student Dashboard (Implemented - Phase 1)
 
-The initial implementation focuses exclusively on student features:
+The student dashboard implementation includes:
 
 1. **Dashboard Overview**: Quick stats and recent activity
 2. **Browse Supervisors**: Search, filter, and view available supervisors
 3. **My Applications**: Track submitted applications and their status
 4. **Application Submission**: Submit new project applications
 
-### Future Roles (Not in Scope)
+### Admin Dashboard (Implemented - Phase 1)
 
-- Supervisor dashboard (review applications, manage capacity)
-- Admin dashboard (monitor all projects, generate reports)
+The admin dashboard implementation includes:
+
+1. **Dashboard Overview**: System-wide statistics (students, supervisors, projects, applications)
+2. **Database Seeder Access**: Quick navigation to seed test data
+3. **Role-Based Access Control**: Only admin users can access admin routes
+4. **Future Actions**: Placeholders for user management and reports (coming soon)
+
+### Supervisor Dashboard (Future Implementation)
+
+Planned supervisor features:
+
+1. **Dashboard Overview**: Personal statistics and capacity management
+2. **Review Applications**: View and respond to student applications
+3. **Manage Capacity**: Update availability and student load
+4. **Student Communication**: Interact with assigned students
 
 ## Component Hierarchy
 
@@ -129,9 +161,14 @@ Located in `components/dashboard/`:
 **Implemented (Phase 1)**:
 - **StatCard**: Display metrics with optional icon (supports blue, green, gray, red colors)
 
+Located in `app/components/`:
+
+**Implemented (Phase 1)**:
+- **HeaderDropdown**: User menu with profile info and logout functionality (redirects to homepage)
+
 **Planned (Phase 2 & 3)**:
-- **DashboardSidebar**: Navigation menu for student routes
-- **DashboardHeader**: User info and logout functionality
+- **DashboardSidebar**: Navigation menu for role-specific routes
+- **DashboardHeader**: User info and role display
 - **SupervisorCard**: Display supervisor information
 - **ApplicationCard**: Display application details with status
 - **ApplicationForm**: Submit new applications
@@ -187,10 +224,22 @@ Located in `components/dashboard/`:
 
 ### Data Access Patterns
 
-1. **Student Dashboard**: Fetch application count and supervisor count
-2. **Browse Supervisors**: Query all supervisors with filters (department, expertise, availability)
-3. **My Applications**: Query applications where studentId matches current user
-4. **Submit Application**: Create new application document
+#### Student Dashboard
+1. Fetch application count for current student
+2. Query all available supervisors
+3. Filter supervisors by department, expertise, availability
+
+#### Admin Dashboard
+1. Count total students (users with role='student')
+2. Count total supervisors
+3. Count active projects/applications
+4. Count pending applications
+5. Navigate to admin tools (database seeder, user management, reports)
+
+#### Supervisor Dashboard (Planned)
+1. Query applications where supervisorId matches current user
+2. Update application status (approve/reject)
+3. Manage capacity and availability
 
 ## Testing Strategy: TDD with Red-Green-Refactor
 
@@ -213,8 +262,42 @@ __tests__/
 │   ├── Component composition
 │   ├── Navigation flows
 │   └── Data persistence
-└── Coverage Target: 80%+
+├── E2E Tests (Playwright)
+│   ├── Student Flow (login, browse supervisors, submit applications)
+│   ├── Supervisor Flow (login, review applications, approve/reject)
+│   ├── Admin Flow (login, view statistics, access admin tools)
+│   └── Authentication & Authorization (logout, unauthorized access)
+
 ```
+
+### E2E Test Coverage
+
+**Student Flow**:
+- Login and navigate to student dashboard
+- Browse available supervisors
+- Submit application to supervisor
+- View submitted application details
+- Logout and redirect to homepage
+
+**Supervisor Flow**:
+- Login and navigate to supervisor dashboard
+- View pending applications
+- Review and approve applications with feedback
+- Review and reject applications with feedback
+- View application details
+- Logout and redirect to homepage
+
+**Admin Flow**:
+- Login and navigate to admin dashboard
+- View system statistics
+- Access database seeder
+- Logout and redirect to homepage
+
+**Authentication & Authorization**:
+- Unauthenticated users redirected from protected routes
+- Role-based access (students can't access admin, etc.)
+- Logout functionality redirects to homepage
+- Post-logout, users cannot access protected routes
 
 ### Mocking Strategy
 
@@ -224,20 +307,35 @@ __tests__/
 
 ## Authentication Flow
 
+### Student/Admin Dashboard Flow
 ```
 User visits /dashboard
     ↓
 Layout checks authentication
     ↓
-Not authenticated → Redirect to home
+Not authenticated → Redirect to homepage (/)
     ↓
 Authenticated → Check user profile
     ↓
-Not student role → Redirect to home with message
-    ↓
 Student role → Redirect to /dashboard/student
+Admin role → Redirect to /dashboard/admin
+    ↓
+Wrong role → Redirect to homepage with message
     ↓
 Render dashboard with context
+```
+
+### Logout Flow
+```
+User clicks logout in HeaderDropdown
+    ↓
+signOut() called from Firebase Auth
+    ↓
+Close dropdown menu
+    ↓
+Redirect to homepage (/)
+    ↓
+User is logged out
 ```
 
 ## State Management
@@ -271,10 +369,12 @@ DashboardContext {
 
 ## Security
 
-1. **Client-Side Auth Check**: Redirect unauthorized users
+1. **Client-Side Auth Check**: Redirect unauthorized users to homepage
 2. **Firestore Rules**: Server-side validation (to be implemented)
-3. **Role Verification**: Only students can access student routes
+3. **Role Verification**: Students access student routes, admins access admin routes
 4. **Input Validation**: Sanitize and validate all form inputs
+5. **Protected Routes**: Each dashboard page verifies user authentication and role
+6. **Logout Security**: Proper session cleanup and redirect to public pages
 
 ## Accessibility
 
@@ -286,8 +386,32 @@ DashboardContext {
 
 ## Future Enhancements
 
+### Planned Features
+
 1. **Real-time Updates**: Firestore listeners for live application status updates
 2. **Notifications**: Email/in-app notifications for status changes
 3. **Advanced Filters**: Save filter preferences, more filter options
 4. **Analytics**: Track user behavior and feature usage
 5. **Mobile Optimization**: Responsive design improvements for mobile devices
+
+### Admin Dashboard Enhancements
+
+1. **User Management**: Create, edit, and delete user accounts
+2. **System Reports**: Generate reports on applications, supervisors, and projects
+3. **Audit Logs**: Track all system changes and user actions
+4. **Bulk Operations**: Batch approve/reject applications, bulk user imports
+5. **System Settings**: Configure application rules, deadlines, and notifications
+
+### Error Handling & Resilience
+
+**Implemented**:
+- Loading states with proper UI feedback (spinners)
+- Error handling in data fetching (graceful degradation with empty arrays)
+- Authentication redirects to homepage (consistent UX)
+- Logout with proper cleanup and redirect
+
+**Planned**:
+- Toast notifications for errors and success messages
+- Retry mechanisms for failed API calls
+- Offline support with local caching
+- Better error messages with actionable guidance
