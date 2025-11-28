@@ -6,6 +6,11 @@ import { users } from '@/mock-data';
 // Mock Next.js navigation and Link
 jest.mock('next/navigation', () => ({
   usePathname: () => '/',
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
 }));
 
 jest.mock('next/link', () => {
@@ -122,15 +127,26 @@ describe('[Component] Header', () => {
 
     render(<Header />);
 
+    // Wait for the user name to appear
     await waitFor(() => {
-      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
-      if (avatarButton) {
-        fireEvent.click(avatarButton);
-        const logoutButton = screen.getByText(/logout/i);
-        fireEvent.click(logoutButton);
-        expect(signOut).toHaveBeenCalled();
-      }
+      expect(screen.getByText(new RegExp(mockStudent.name, 'i'))).toBeInTheDocument();
     });
+
+    // Find and click the avatar button
+    const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
+    expect(avatarButton).toBeTruthy();
+    if (avatarButton) {
+      fireEvent.click(avatarButton);
+      
+      // Wait for logout button to appear
+      await waitFor(() => {
+        expect(screen.getByText(/logout/i)).toBeInTheDocument();
+      });
+      
+      const logoutButton = screen.getByText(/logout/i);
+      fireEvent.click(logoutButton);
+      expect(signOut).toHaveBeenCalled();
+    }
   });
 
   // Tests dropdown menu closes when clicking outside
@@ -154,21 +170,30 @@ describe('[Component] Header', () => {
 
     render(<Header />);
 
+    // Wait for the user name to appear
     await waitFor(() => {
-      const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
-      if (avatarButton) {
-        fireEvent.click(avatarButton);
-        expect(screen.getByText(/view profile/i)).toBeInTheDocument();
-        
-        // Click outside
-        fireEvent.mouseDown(document.body);
-        
-        // Wait for dropdown to close and verify
-        waitFor(() => {
-          expect(screen.queryByText(/view profile/i)).not.toBeInTheDocument();
-        });
-      }
+      expect(screen.getByText(new RegExp(mockStudent.name, 'i'))).toBeInTheDocument();
     });
+
+    // Find and click the avatar button
+    const avatarButton = screen.getByText(new RegExp(mockStudent.name, 'i')).closest('button');
+    expect(avatarButton).toBeTruthy();
+    if (avatarButton) {
+      fireEvent.click(avatarButton);
+      
+      // Wait for dropdown to appear
+      await waitFor(() => {
+        expect(screen.getByText(/view profile/i)).toBeInTheDocument();
+      });
+      
+      // Click outside
+      fireEvent.mouseDown(document.body);
+      
+      // Wait for dropdown to close and verify
+      await waitFor(() => {
+        expect(screen.queryByText(/view profile/i)).not.toBeInTheDocument();
+      });
+    }
   });
 
   // Tests user section hidden when not authenticated

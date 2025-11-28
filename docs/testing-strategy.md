@@ -2,6 +2,46 @@
 
 A comprehensive guide to testing approach and technology stack for the MentorMatch platform.
 
+## Quick Start: Running Tests
+
+### Run All Tests (Jest + Playwright)
+
+```bash
+# Run all unit/integration tests (Jest)
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+
+# Run all E2E tests (Playwright)
+npx playwright test
+
+# Or run them sequentially
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)" && npx playwright test
+```
+
+### Run Specific Test Categories
+
+```bash
+# Jest tests only (unit + component + integration)
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+
+# E2E tests only
+npx playwright test
+
+# Run specific test file
+npx jest app/components/__tests__/Header.test.tsx
+
+# Run tests in watch mode
+npx jest --watch --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+
+# Run with coverage
+npx jest --coverage --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+```
+
+### Test Execution Notes
+
+**Important:** When running Jest tests, always use the `--testMatch` flag to restrict tests to your project directory. Without it, Jest may pick up test files from external dependencies (like Cursor's internal extensions), causing errors.
+
+**Recommended aliases:** For convenience, you can add these scripts to your workflow or create shell aliases for the test commands above.
+
 ## Overview
 
 This document outlines the testing strategy for MentorMatch, a Next.js 14 application built with TypeScript. The strategy follows industry best practices to ensure code quality, reliability, and maintainability.
@@ -194,6 +234,9 @@ Jest should be configured to work with Next.js 14 App Router and TypeScript:
 - Configure coverage collection
 
 **Required npm scripts:**
+
+> **Note:** The scripts listed below are documented as recommended commands. Some may need to be added to `package.json` if they don't exist. The core testing functionality works via direct `npx` commands shown in the "Quick Start" section above.
+
 ```json
 {
   "scripts": {
@@ -315,7 +358,9 @@ describe('[Integration] Login Page', () => {
 
 ### Available Test Scripts
 
-The following npm scripts are available for selective test execution:
+> **Note:** Some scripts listed below may need to be added to `package.json`. For immediate testing, use the `npx` commands shown in the "Quick Start" section above.
+
+The following npm scripts can be configured for selective test execution:
 
 #### By Test Type
 ```bash
@@ -348,6 +393,7 @@ npm run test:dashboard
 ```bash
 # Run all E2E tests
 npm run test:e2e
+# Or use: npx playwright test
 
 # Run student workflow tests only
 npm run test:e2e:student
@@ -360,6 +406,7 @@ npm run test:e2e:admin
 
 # Run E2E tests with UI mode
 npm run test:e2e:ui
+# Or use: npx playwright test --ui
 ```
 
 #### Watch Mode
@@ -503,17 +550,29 @@ Total pipeline time: 5-10 minutes
 
 **Local development:**
 ```bash
-npm test                    # Unit tests (runs on commit)
-npm run test:watch         # Watch mode
-npm run test:coverage      # With coverage report
+# Unit tests (runs on commit)
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+
+# Watch mode
+npx jest --watch --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+
+# With coverage report
+npx jest --coverage --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
 ```
 
 **Manual E2E testing:**
 ```bash
-npm run test:e2e           # All E2E tests
-npm run test:e2e:ui        # Interactive UI mode
-npm run test:e2e:student   # Specific flow
-npm run test:all           # Unit + E2E
+# All E2E tests
+npx playwright test
+
+# Interactive UI mode
+npx playwright test --ui
+
+# Specific flow (if npm scripts configured)
+npm run test:e2e:student
+
+# Run all tests (Jest + Playwright)
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)" && npx playwright test
 ```
 
 **Bypass pre-commit hook:**
@@ -592,6 +651,56 @@ e2e:
 5. **Test edge cases** - Don't just test the happy path
 6. **Keep E2E tests minimal** - Focus on critical user flows, not every possible scenario
 7. **Run tests frequently** - Run tests during development, not just before commits
+
+## Common Testing Issues and Solutions
+
+### Issue: Jest picks up external test files
+
+**Problem:** When running `npx jest` without parameters, it may pick up test files from Cursor's internal extensions or other external dependencies, causing syntax errors.
+
+**Solution:** Always use the `--testMatch` flag to restrict tests to your project:
+```bash
+npx jest --testMatch="**/app/**/__tests__/**/*.[jt]s?(x)" --testMatch="**/lib/**/__tests__/**/*.[jt]s?(x)"
+```
+
+### Issue: Component tests fail with "useRouter is not a function"
+
+**Problem:** Next.js components use hooks from `next/navigation` (like `useRouter`, `usePathname`) which need to be mocked in tests.
+
+**Solution:** Mock `next/navigation` at the top of your test file:
+```typescript
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/',
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+}));
+```
+
+### Issue: Test assertions inside waitFor callbacks fail
+
+**Problem:** Using `waitFor` for both waiting and performing actions can cause timeouts.
+
+**Solution:** Separate waiting from actions:
+```typescript
+// ❌ Bad: Actions inside waitFor
+await waitFor(() => {
+  const button = screen.getByText(/click me/i);
+  fireEvent.click(button);
+  expect(someMock).toHaveBeenCalled();
+});
+
+// ✅ Good: Wait first, then perform actions
+await waitFor(() => {
+  expect(screen.getByText(/click me/i)).toBeInTheDocument();
+});
+
+const button = screen.getByText(/click me/i);
+fireEvent.click(button);
+expect(someMock).toHaveBeenCalled();
+```
 
 ## Test Maintenance and Refactoring
 

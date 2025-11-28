@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth'
 
 interface HeaderDropdownProps {
@@ -11,9 +14,13 @@ interface HeaderDropdownProps {
 }
 
 export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownProps) {
+  const router = useRouter()
+  
   const handleLogout = async () => {
     await signOut()
     onClose()
+    // Redirect to homepage after logout
+    router.push('/')
   }
 
   return (

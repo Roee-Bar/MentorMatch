@@ -28,7 +28,8 @@ export default function StudentDashboard() {
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
       if (!user) {
-        router.replace('/login');
+        // User not logged in - redirect to homepage
+        router.replace('/');
         return;
       }
 
@@ -58,6 +59,7 @@ export default function StudentDashboard() {
     const fetchData = async () => {
       if (!userId) return;
 
+      setLoading(true);
       try {
         const [appsData, supervisorsData] = await Promise.all([
           ApplicationService.getStudentApplications(userId),
@@ -68,6 +70,9 @@ export default function StudentDashboard() {
         setSupervisors(supervisorsData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Even on error, we should stop loading to show the page
+        setApplications([]);
+        setSupervisors([]);
       } finally {
         setLoading(false);
       }
