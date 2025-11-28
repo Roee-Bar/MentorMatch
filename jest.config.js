@@ -29,7 +29,7 @@ const customJestConfig = {
     '!**/__mocks__/**',
   ],
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(firebase-admin|jose|jwks-rsa)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   coverageProvider: 'v8',

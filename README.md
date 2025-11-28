@@ -32,7 +32,8 @@ MentorMatch streamlines the process of matching students with project supervisor
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth
+- **Authentication**: Firebase Auth (Client) + Firebase Admin SDK (Server)
+- **Backend**: Next.js API Routes with traditional REST architecture
 - **Testing**: Jest, React Testing Library, Playwright (E2E)
 - **CI/CD**: GitHub Actions
 - **Deployment**: Vercel
@@ -56,12 +57,20 @@ cd Final
 npm install
 ```
 
-3. Run the development server
+3. **Configure Firebase Admin SDK** (Required for backend API)
+
+   Create a `.env.local` file in the project root with your Firebase credentials.
+   
+   See [docs/getting-started/setup-guide.md](./docs/getting-started/setup-guide.md) for complete setup instructions.
+
+4. Run the development server
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+   You should see: `Firebase Admin SDK initialized successfully`
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Development
 
@@ -114,21 +123,76 @@ npm run test:e2e:supervisor
 npm run test:e2e:admin
 ```
 
-**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Testing Strategy Documentation](./docs/testing-strategy.md#cicd-and-test-execution-workflow) for more details.
+**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Testing Strategy Documentation](./docs/guides/testing-strategy.md#cicd-and-test-execution-workflow) for more details.
 
 ## Project Structure
 
 ```
-├── app/              # Next.js App Router pages
-├── components/       # Reusable React components
-├── public/           # Static assets
-├── archive/          # Old prototype files
-└── ...config files   # Configuration files
+├── app/
+│   ├── api/              # Next.js API routes (backend)
+│   ├── dashboard/        # Dashboard pages for different roles
+│   ├── components/       # Page-specific components
+│   └── ...               # Other pages (login, register, etc.)
+├── lib/
+│   ├── api/              # API client library
+│   ├── middleware/       # Auth, validation, error handling
+│   ├── services/         # Firebase service layer
+│   ├── hooks/            # Custom React hooks
+│   ├── firebase.ts       # Firebase client initialization
+│   └── firebase-admin.ts # Firebase Admin SDK initialization
+├── types/                # TypeScript type definitions
+├── docs/                 # Comprehensive documentation
+├── e2e/                  # End-to-end tests
+├── scripts/              # Utility scripts
+├── public/               # Static assets
+└── ...config files       # Configuration files
 ```
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory. Start with the [Documentation Index](./docs/INDEX.md) for guided navigation.
+
+### Quick Links
+
+**Getting Started:**
+- [Quick Start Guide](./docs/getting-started/quick-start.md) - Get up and running in 30 minutes
+- [Setup Guide](./docs/getting-started/setup-guide.md) - Complete setup instructions
+- [Development Process](./docs/getting-started/development-process.md) - Project history
+
+**Architecture:**
+- [Architecture Overview](./docs/architecture/overview.md) - System design
+- [API Reference](./docs/architecture/backend/api-reference.md) - Complete API documentation
+- [Dashboard Architecture](./docs/architecture/frontend/dashboard-architecture.md) - Frontend structure
+
+**Guides:**
+- [CI/CD Guide](./docs/guides/ci-cd.md) - CI/CD pipeline and deployment
+- [Testing Strategy](./docs/guides/testing-strategy.md) - Testing guidelines and best practices
+- [Security](./docs/guides/security.md) - Security architecture and best practices
+- [Code Conventions](./docs/guides/code-conventions.md) - Coding standards
+- [Type System](./docs/guides/type-system.md) - TypeScript types
+
+**Reference:**
+- [Firebase Usage](./docs/reference/firebase-usage.md) - Firebase integration patterns
+
+**Troubleshooting:**
+- [Build Failures](./docs/troubleshooting/build-failures.md) - CI/CD and build error solutions
+
+**For AI-Assisted Development:**
+- [AI Context Files](./docs/ai-context/) - Optimized documentation for AI assistants
 
 ## Deployment
 
 This project is configured for automatic deployment on Vercel. Every push to the main branch will trigger a new deployment.
+
+### Environment Variables for Production
+
+When deploying to Vercel or other hosting platforms:
+
+1. Add all environment variables from `.env.local` in your hosting platform's settings
+2. Ensure the Firebase Admin private key formatting is preserved
+3. Test in a preview deployment before going to production
+
+See [docs/getting-started/setup-guide.md](./docs/getting-started/setup-guide.md#deployment) for detailed deployment instructions.
 
 ## Team
 

@@ -685,14 +685,14 @@ jest.mock('next/navigation', () => ({
 
 **Solution:** Separate waiting from actions:
 ```typescript
-// ❌ Bad: Actions inside waitFor
+// BAD: Actions inside waitFor
 await waitFor(() => {
   const button = screen.getByText(/click me/i);
   fireEvent.click(button);
   expect(someMock).toHaveBeenCalled();
 });
 
-// ✅ Good: Wait first, then perform actions
+// GOOD: Wait first, then perform actions
 await waitFor(() => {
   expect(screen.getByText(/click me/i)).toBeInTheDocument();
 });
