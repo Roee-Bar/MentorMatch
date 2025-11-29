@@ -7,11 +7,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
-import { 
-  ApplicationService, 
-  SupervisorService,
-  ProjectService
-} from '@/lib/services';
+import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
@@ -33,15 +30,23 @@ export default function SupervisorDashboard() {
       if (!userId) return;
 
       try {
-        const [supervisorData, applicationsData, projectsData] = await Promise.all([
-          SupervisorService.getSupervisorById(userId),
-          ApplicationService.getSupervisorApplications(userId),
-          ProjectService.getSupervisorProjects(userId),
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        // Call API endpoints
+        const [supervisorResponse, applicationsResponse, projectsResponse] = await Promise.all([
+          apiClient.getSupervisorById(userId, token),
+          apiClient.getSupervisorApplications(userId, token),
+          apiClient.getSupervisorProjects(userId, token),
         ]);
 
-        setSupervisor(supervisorData);
-        setApplications(applicationsData);
-        setProjects(projectsData);
+        setSupervisor(supervisorResponse.data);
+        setApplications(applicationsResponse.data);
+        setProjects(projectsResponse.data);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load some dashboard data. Please refresh the page.');
@@ -53,7 +58,7 @@ export default function SupervisorDashboard() {
     if (userId) {
       fetchData();
     }
-  }, [userId]);
+  }, [userId, router]);
 
   // Calculate stats
   const pendingCount = applications.filter(

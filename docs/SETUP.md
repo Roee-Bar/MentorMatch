@@ -1,15 +1,15 @@
 # Setup Guide
 
-Complete instructions for setting up MentorMatch in under 30 minutes.
+Complete installation and configuration instructions for MentorMatch.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 18 or higher
 - npm or yarn
 - Git
-- Firebase account (free tier)
+- Firebase account (free tier works)
 
-## Quick Setup (5 Minutes)
+## Installation
 
 ### 1. Clone and Install
 
@@ -19,9 +19,52 @@ cd Final
 npm install
 ```
 
-### 2. Configure Firebase
+### 2. Firebase Configuration
 
-**Option A: Setup Script (Recommended)**
+#### Get Client Credentials
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Select your project
+3. Click gear icon → Project settings
+4. Scroll to "Your apps" → Select web app
+5. Copy configuration values
+
+#### Get Admin Credentials
+
+1. Project settings → Service accounts tab
+2. Click "Generate new private key"
+3. Download JSON file
+4. Extract: `project_id`, `client_email`, `private_key`
+
+#### Create `.env.local`
+
+Create `.env.local` in project root:
+
+```bash
+# Firebase Client (Public - Safe in browser)
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+
+# Firebase Admin (Server-Side ONLY - Keep Secret)
+FIREBASE_ADMIN_PROJECT_ID=your-project-id
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMII...\n-----END PRIVATE KEY-----\n"
+
+# API Configuration
+NEXT_PUBLIC_API_URL=/api
+NODE_ENV=development
+```
+
+**Critical**: Private key must:
+- Be wrapped in quotes
+- Use `\n` (literal text, not actual newlines)
+- Include BEGIN/END markers
+
+#### Setup Script (Alternative)
 
 ```bash
 # Windows
@@ -32,60 +75,7 @@ chmod +x scripts/setup-firebase-admin.sh
 ./scripts/setup-firebase-admin.sh
 ```
 
-**Option B: Manual Setup**
-
-Create `.env.local` in project root:
-
-```bash
-# Firebase Client (Public)
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
-
-# Firebase Admin (Server-Side ONLY)
-FIREBASE_ADMIN_PROJECT_ID=your-project-id
-FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
-FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-
-# API Configuration
-NEXT_PUBLIC_API_URL=/api
-NODE_ENV=development
-```
-
-### 3. Run Application
-
-```bash
-npm run dev
-```
-
-Look for: `Firebase Admin SDK initialized successfully`
-
-Open [http://localhost:3000](http://localhost:3000)
-
-## Firebase Configuration Details
-
-### Get Client Credentials
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project
-3. Click gear icon → Project settings
-4. Scroll to "Your apps" → Select web app
-5. Copy configuration values
-
-### Get Admin Credentials
-
-1. Project settings → Service accounts tab
-2. Click "Generate new private key"
-3. Download JSON file
-4. Extract these values:
-   - `project_id`
-   - `client_email`
-   - `private_key`
-
-### Enable Services
+### 3. Enable Firebase Services
 
 **Authentication:**
 1. Firebase Console → Authentication
@@ -100,22 +90,15 @@ Open [http://localhost:3000](http://localhost:3000)
 1. Firebase Console → Storage
 2. Get started in production mode
 
-### Private Key Formatting
-
-Critical: The private key must be formatted correctly:
+### 4. Run Application
 
 ```bash
-# Correct
-FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMII...\n-----END PRIVATE KEY-----\n"
-
-# Wrong - missing quotes
-FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...
-
-# Wrong - actual newlines instead of \n
-FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
-MII...
------END PRIVATE KEY-----"
+npm run dev
 ```
+
+Look for: `Firebase Admin SDK initialized successfully`
+
+Open [http://localhost:3000](http://localhost:3000)
 
 ## Verification
 
@@ -125,14 +108,14 @@ MII...
 # Run tests
 npm test
 
-# Run with coverage
-npm run test:coverage
-
 # Build for production
 npm run build
+
+# Test production build
+npm start
 ```
 
-All tests should pass. Build should complete without errors.
+All tests should pass, build should complete without errors.
 
 ### Test Registration
 
@@ -145,9 +128,9 @@ All tests should pass. Build should complete without errors.
 
 ### "Invalid PEM formatted message"
 
-**Cause:** Private key formatting incorrect
+**Cause**: Private key formatting incorrect
 
-**Fix:**
+**Fix**:
 - Verify key is wrapped in quotes
 - Keep `\n` as literal text (not actual newlines)
 - Ensure BEGIN/END markers present
@@ -155,17 +138,17 @@ All tests should pass. Build should complete without errors.
 
 ### "Missing environment variables"
 
-**Cause:** `.env.local` missing or incorrect
+**Cause**: `.env.local` missing or incorrect
 
-**Fix:**
+**Fix**:
 - Verify `.env.local` exists in project root
 - Check all variable names match exactly
-- Restart dev server
+- Restart dev server after changes
 - No spaces around `=` signs
 
 ### "Port 3000 already in use"
 
-**Fix:**
+**Fix**:
 
 ```bash
 # Windows
@@ -181,23 +164,24 @@ npm run dev -- -p 3001
 
 ### API Returns 401
 
-**Cause:** Authentication issue
+**Cause**: Authentication issue
 
-**Fix:**
+**Fix**:
 - Verify Firebase Admin credentials correct
 - Check user is authenticated (browser console)
 - Ensure ID token sent with requests
+- Try force token refresh: `await auth.currentUser?.getIdToken(true)`
 
 ### Tests Failing
 
-**Fix:**
+**Fix**:
 - Clear cache: `npm test -- --clearCache`
 - Reinstall: `rm -rf node_modules && npm install`
 - Run specific test: `npm test <test-file-name>`
 
 ## Deployment
 
-### Vercel Deployment
+### Vercel
 
 1. Connect repository to [Vercel](https://vercel.com)
 2. Add all environment variables from `.env.local`
@@ -210,7 +194,7 @@ npm run dev -- -p 3001
 2. Set environment variables in platform settings
 3. Run: `npm start` on port 3000
 
-## Security
+## Security Notes
 
 ### Critical Rules
 
@@ -219,12 +203,15 @@ npm run dev -- -p 3001
 3. **NEVER** import `firebase-admin` in client components
 4. Use different service accounts for dev/production
 
-### Safe to Expose
+### What's Safe to Expose
 
-- Client credentials (NEXT_PUBLIC_*): Safe in browser
-- Server credentials (FIREBASE_ADMIN_*): Keep secret
+- Client credentials (`NEXT_PUBLIC_*`): Safe in browser
+- Firebase API keys are intentionally public
+- Security enforced by Firestore rules and Auth config
 
-### Production Security Rules
+### Firebase Security Rules
+
+Production Firestore rules (to be implemented):
 
 ```javascript
 rules_version = '2';
@@ -238,26 +225,25 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth.uid == supervisorId;
     }
+    match /applications/{appId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth.uid == resource.data.studentId;
+    }
   }
 }
 ```
 
-See [Security Guide](../guides/security.md) for complete documentation.
-
 ## Next Steps
 
-1. Read [Architecture Overview](../architecture/overview.md)
-2. Review [API Reference](../architecture/backend/api-reference.md)
-3. Study [Code Conventions](../guides/code-conventions.md)
-4. Follow [Development Process](development-process.md) for project history
+1. Read [docs/ARCHITECTURE.md](ARCHITECTURE.md) for system design
+2. Review [docs/API-REFERENCE.md](API-REFERENCE.md) for API endpoints
+3. Study [docs/DEVELOPMENT.md](DEVELOPMENT.md) for coding conventions
 
 ## Resources
 
 - [Firebase Console](https://console.firebase.google.com/)
 - [Firebase Admin SDK Docs](https://firebase.google.com/docs/admin/setup)
-- [Next.js Docs](https://nextjs.org/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
 - [Vercel Deployment](https://vercel.com/docs)
 
----
-
-**Last Updated**: November 2025

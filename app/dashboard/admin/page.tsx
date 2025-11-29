@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [authorized, setAuthorized] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
@@ -35,7 +39,23 @@ export default function AdminDashboard() {
 
       // User is authenticated and is an admin
       setAuthorized(true);
-      setLoading(false);
+      
+      // Fetch admin stats
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const response = await apiClient.getAdminStats(token);
+        setStats(response.data);
+      } catch (err) {
+        console.error('Error fetching admin stats:', err);
+        setError('Failed to load statistics. Please refresh the page.');
+      } finally {
+        setLoading(false);
+      }
     });
 
     return () => unsubscribe();
@@ -52,6 +72,19 @@ export default function AdminDashboard() {
   return (
     <div className="page-container-simple">
       <div className="page-content py-8">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 text-balance">Admin Dashboard</h1>
@@ -66,7 +99,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Students</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">-</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                  {stats?.totalStudents ?? '-'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,7 +115,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Supervisors</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">-</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                  {stats?.totalSupervisors ?? '-'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +131,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Active Projects</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">-</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                  {stats?.totalProjects ?? '-'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +147,9 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Pending Applications</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">-</p>
+                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                  {stats?.pendingApplications ?? '-'}
+                </p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,195 +1,166 @@
 # MentorMatch
 
-A web-based platform for matching students with appropriate project supervisors at Braude College of Engineering.
+A web-based platform for matching students with project supervisors at Braude College of Engineering.
 
 ## Overview
 
-MentorMatch streamlines the process of matching students with project supervisors, transforming a fragmented manual process into a transparent, efficient system that benefits all stakeholders.
-
-## Features
-
-### For Students
-- Browse available supervisors by expertise and research areas
-- Submit project applications with detailed proposals
-- Track application status in real-time
-- View supervisor capacity and availability
-
-### For Supervisors
-- Set and manage supervision capacity
-- Review and respond to student applications
-- Manage project workload efficiently
-- Communicate with students through the platform
-
-### For Administrators
-- Monitor all projects and assignments
-- Assign unmatched students to appropriate supervisors
-- Generate reports and analytics
-- Ensure balanced supervision loads across faculty
+MentorMatch streamlines the process of connecting students with appropriate project supervisors, transforming a manual, fragmented process into a transparent and efficient system.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Firebase Firestore
-- **Authentication**: Firebase Auth (Client) + Firebase Admin SDK (Server)
-- **Backend**: Next.js API Routes with traditional REST architecture
-- **Testing**: Jest, React Testing Library, Playwright (E2E)
-- **CI/CD**: GitHub Actions
-- **Deployment**: Vercel
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Firebase (Authentication, Firestore, Storage)
+- Firebase Admin SDK
+- Jest + React Testing Library
+- Playwright (E2E testing)
+- GitHub Actions (CI/CD)
+- Vercel (Deployment)
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-- Node.js 18+ installed
-- npm or yarn package manager
+
+- Node.js 18+
+- npm or yarn
+- Firebase account
 
 ### Installation
 
-1. Clone the repository
 ```bash
+# Clone repository
 git clone <repository-url>
 cd Final
-```
 
-2. Install dependencies
-```bash
+# Install dependencies
 npm install
-```
 
-3. **Configure Firebase Admin SDK** (Required for backend API)
+# Configure environment variables
+# Create .env.local with Firebase credentials
+# See docs/SETUP.md for details
 
-   Create a `.env.local` file in the project root with your Firebase credentials.
-   
-   See [docs/getting-started/setup-guide.md](./docs/getting-started/setup-guide.md) for complete setup instructions.
-
-4. Run the development server
-```bash
+# Run development server
 npm run dev
 ```
 
-   You should see: `Firebase Admin SDK initialized successfully`
+Open [http://localhost:3000](http://localhost:3000)
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+## Architecture
+
+```
+Client (React Components)
+    ↓
+API Client Library
+    ↓
+Next.js API Routes (REST API)
+    ↓
+Firebase Admin SDK
+    ↓
+Cloud Firestore
+```
+
+### Key Features
+
+**Students**: Browse supervisors, submit applications, track status
+
+**Supervisors**: Manage capacity, review applications, track projects
+
+**Admins**: Monitor system, assign students, generate reports
 
 ## Development
 
-### Running the Application
-
 ```bash
-# Run development server
-npm run dev
+# Development
+npm run dev          # Start dev server
+npm run build        # Production build
+npm start            # Start production server
 
-# Build for production
-npm run build
+# Testing
+npm test             # Unit + integration tests
+npm run test:e2e     # End-to-end tests
+npm run test:coverage # Coverage report
 
-# Start production server
-npm start
-
-# Run linting
-npm run lint
+# Code Quality
+npm run lint         # Run ESLint
+npm run typecheck    # TypeScript errors
 ```
-
-### Testing
-
-#### Unit & Component Tests (Run Locally)
-```bash
-# Run all unit tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run specific test types
-npm run test:unit         # Unit tests only
-npm run test:component    # Component tests only
-npm run test:integration  # Integration tests only
-```
-
-#### E2E Tests (Run in CI/CD by default)
-```bash
-# Run all E2E tests (manual)
-npm run test:e2e
-
-# Run E2E tests with UI
-npm run test:e2e:ui
-
-# Run specific E2E flows
-npm run test:e2e:student
-npm run test:e2e:supervisor
-npm run test:e2e:admin
-```
-
-**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Development Workflow](./docs/guides/development-workflow.md) for more details.
 
 ## Project Structure
 
 ```
 ├── app/
-│   ├── api/              # Next.js API routes (backend)
-│   ├── dashboard/        # Dashboard pages for different roles
-│   ├── components/       # Page-specific components
-│   └── ...               # Other pages (login, register, etc.)
+│   ├── api/              # REST API routes
+│   ├── dashboard/        # Role-based dashboards
+│   └── components/       # React components
 ├── lib/
-│   ├── api/              # API client library
-│   ├── middleware/       # Auth, validation, error handling
-│   ├── services/         # Firebase service layer
-│   ├── hooks/            # Custom React hooks
-│   ├── firebase.ts       # Firebase client initialization
-│   └── firebase-admin.ts # Firebase Admin SDK initialization
-├── types/                # TypeScript type definitions
-├── docs/                 # Comprehensive documentation
-├── e2e/                  # End-to-end tests
-├── scripts/              # Utility scripts
-├── public/               # Static assets
-└── ...config files       # Configuration files
+│   ├── api/              # API client
+│   ├── middleware/       # Auth, validation, errors
+│   ├── services/         # Firebase services
+│   └── hooks/            # React hooks
+├── types/                # TypeScript types
+├── docs/                 # Documentation
+├── e2e/                  # E2E tests
+└── scripts/              # Utility scripts
 ```
 
 ## Documentation
 
-Comprehensive documentation is available in the `docs/` directory. Start with the [Documentation Index](./docs/INDEX.md) for guided navigation.
+Comprehensive docs available in `/docs`:
 
-### Quick Links
+- **[docs/SETUP.md](docs/SETUP.md)** - Complete setup guide
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design
+- **[docs/API-REFERENCE.md](docs/API-REFERENCE.md)** - API documentation
+- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development guidelines
+- **[docs/getting-started/development-process.md](docs/getting-started/development-process.md)** - Project timeline
 
-**Getting Started:**
-- [Setup Guide](./docs/getting-started/setup-guide.md) - Complete setup instructions
-- [Development Process](./docs/getting-started/development-process.md) - Project history
+## Testing
 
-**Architecture:**
-- [Architecture Overview](./docs/architecture/overview.md) - System design
-- [API Reference](./docs/architecture/backend/api-reference.md) - Complete API documentation
-- [Dashboard Architecture](./docs/architecture/frontend/dashboard-architecture.md) - Frontend structure
+```bash
+# Run all tests
+npm test
 
-**Guides:**
-- [Development Workflow](./docs/guides/development-workflow.md) - Testing, CI/CD, and development process
-- [Naming Conventions](./docs/guides/naming-conventions.md) - File and code naming standards
-- [Component Patterns](./docs/guides/component-patterns.md) - React component best practices
-- [API Patterns](./docs/guides/api-patterns.md) - Backend API conventions
-- [Security](./docs/guides/security.md) - Security architecture and best practices
-- [Type System](./docs/guides/type-system.md) - TypeScript types
+# Watch mode
+npm run test:watch
 
-**Reference:**
-- [Firebase Guide](./docs/reference/firebase.md) - Complete Firebase reference (Auth, Firestore, Admin SDK)
+# E2E tests
+npm run test:e2e
 
-**Troubleshooting:**
-- [Build Failures](./docs/troubleshooting/build-failures.md) - CI/CD and build error solutions
+# With UI
+npm run test:e2e:ui
+```
+
+**Test Coverage**: 329+ tests (100% passing)
+- 111 backend tests
+- 218+ frontend/component tests
+- E2E coverage for all user flows
 
 ## Deployment
 
-This project is configured for automatic deployment on Vercel. Every push to the main branch will trigger a new deployment.
+Automatic deployment via Vercel on push to main branch.
 
-### Environment Variables for Production
+### Environment Variables
 
-When deploying to Vercel or other hosting platforms:
+Add to Vercel project settings:
 
-1. Add all environment variables from `.env.local` in your hosting platform's settings
-2. Ensure the Firebase Admin private key formatting is preserved
-3. Test in a preview deployment before going to production
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+FIREBASE_ADMIN_PROJECT_ID=...
+FIREBASE_ADMIN_CLIENT_EMAIL=...
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
 
-See [docs/getting-started/setup-guide.md](./docs/getting-started/setup-guide.md#deployment) for detailed deployment instructions.
+See [docs/SETUP.md](docs/SETUP.md#deployment) for detailed instructions.
+
+## Security
+
+- Firebase Authentication for client-side auth
+- Firebase Admin SDK for server-side token verification
+- Role-based access control (RBAC)
+- Request validation with Zod schemas
+- Environment variable protection
 
 ## Team
 
@@ -198,7 +169,8 @@ See [docs/getting-started/setup-guide.md](./docs/getting-started/setup-guide.md#
 
 **Supervisor**: Dr. Julia Sheidin
 
+**Institution**: Braude College of Engineering
+
 ## License
 
-This project is part of a final year academic project at Braude College of Engineering.
-
+Academic project - Final Year Computer Science

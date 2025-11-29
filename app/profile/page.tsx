@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { BaseUser } from '@/types/database';
-import { UserService } from '@/lib/services';
+import { apiClient } from '@/lib/api/client';
 import { onAuthChange } from '@/lib/auth';
+import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import UserProfile from '@/app/components/UserProfile';
 
 export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<BaseUser | null>(null);
@@ -18,8 +20,16 @@ export default function ProfilePage() {
       }
 
       try {
-        const user = await UserService.getUserById(authUser.uid);
-        setCurrentUser(user);
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        // Call API endpoint
+        const response = await apiClient.getUserById(authUser.uid, token);
+        setCurrentUser(response.data);
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -45,6 +55,16 @@ export default function ProfilePage() {
       </div>
     );
   }
+
+  // Map BaseUser to User type expected by UserProfile component
+  const userForProfile = {
+    id: (currentUser as any).id || '',
+    name: currentUser.name,
+    email: currentUser.email,
+    role: currentUser.role,
+    profileImage: currentUser.photoURL || '/default-avatar.png',
+    department: currentUser.department,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -102,15 +122,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Main Content
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Personal Profile</h2>
           <p className="text-gray-600">View your personal information and account details</p>
         </div>
 
-        <UserProfile user={currentUser} />
-      </main> */}
+        <UserProfile user={userForProfile} />
+      </main>
 
       {/* Footer */}
       <footer className="mt-16 bg-white border-t border-gray-200">

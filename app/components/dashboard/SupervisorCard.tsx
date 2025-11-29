@@ -55,44 +55,48 @@ export default function SupervisorCard({
       </div>
 
       {/* Expertise Areas */}
-      <div className="mb-4">
-        <p className="text-xs text-gray-500 mb-2">Expertise:</p>
-        <div className="flex flex-wrap gap-2">
-          {supervisor.expertiseAreas.slice(0, 4).map((area, index) => (
-            <span
-              key={index}
-              className="tag-blue"
-            >
-              {area}
-            </span>
-          ))}
-          {supervisor.expertiseAreas.length > 4 && (
-            <span className="tag-gray">
-              +{supervisor.expertiseAreas.length - 4} more
-            </span>
-          )}
+      {supervisor.expertiseAreas && supervisor.expertiseAreas.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs text-gray-500 mb-2">Expertise:</p>
+          <div className="flex flex-wrap gap-2">
+            {supervisor.expertiseAreas.slice(0, 4).map((area, index) => (
+              <span
+                key={index}
+                className="tag-blue"
+              >
+                {area}
+              </span>
+            ))}
+            {supervisor.expertiseAreas.length > 4 && (
+              <span className="tag-gray">
+                +{supervisor.expertiseAreas.length - 4} more
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Research Interests */}
-      <div className="mb-4">
-        <p className="text-xs text-gray-500 mb-2">Research Interests:</p>
-        <div className="flex flex-wrap gap-2">
-          {supervisor.researchInterests.slice(0, 3).map((interest, index) => (
-            <span
-              key={index}
-              className="tag-purple"
-            >
-              {interest}
-            </span>
-          ))}
-          {supervisor.researchInterests.length > 3 && (
-            <span className="tag-gray">
-              +{supervisor.researchInterests.length - 3} more
-            </span>
-          )}
+      {supervisor.researchInterests && supervisor.researchInterests.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs text-gray-500 mb-2">Research Interests:</p>
+          <div className="flex flex-wrap gap-2">
+            {supervisor.researchInterests.slice(0, 3).map((interest, index) => (
+              <span
+                key={index}
+                className="tag-purple"
+              >
+                {interest}
+              </span>
+            ))}
+            {supervisor.researchInterests.length > 3 && (
+              <span className="tag-gray">
+                +{supervisor.researchInterests.length - 3} more
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Details */}
       <div className="space-y-2 border-t pt-4">

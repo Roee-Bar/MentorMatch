@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
-import { SupervisorService } from '@/lib/services';
+import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import CapacityIndicator from '@/app/components/dashboard/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Supervisor } from '@/types/database';
@@ -26,9 +27,17 @@ export default function SupervisorProfilePage() {
       if (!userId) return;
 
       try {
-        const data = await SupervisorService.getSupervisorById(userId);
-        if (data) {
-          setSupervisor(data);
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        // Call API endpoint
+        const response = await apiClient.getSupervisorById(userId, token);
+        if (response.data) {
+          setSupervisor(response.data);
         } else {
           setError(true);
         }
@@ -43,7 +52,7 @@ export default function SupervisorProfilePage() {
     if (userId) {
       fetchProfile();
     }
-  }, [userId]);
+  }, [userId, router]);
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {

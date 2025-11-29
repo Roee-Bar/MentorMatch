@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
-import { ApplicationService } from '@/lib/services';
+import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, ApplicationStatus } from '@/types/database';
@@ -29,8 +30,16 @@ export default function SupervisorApplicationsPage() {
       if (!userId) return;
 
       try {
-        const data = await ApplicationService.getSupervisorApplications(userId);
-        setApplications(data);
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        // Call API endpoint
+        const response = await apiClient.getSupervisorApplications(userId, token);
+        setApplications(response.data);
       } catch (err) {
         console.error('Error fetching applications:', err);
         setError(true);
@@ -42,7 +51,7 @@ export default function SupervisorApplicationsPage() {
     if (userId) {
       fetchApplications();
     }
-  }, [userId]);
+  }, [userId, router]);
 
   // Filter applications based on selected status
   const filteredApplications = filterStatus === 'all' 

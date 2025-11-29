@@ -6,11 +6,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
-import { 
-  ApplicationService, 
-  SupervisorService, 
-  StudentService 
-} from '@/lib/services';
+import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
 import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
@@ -24,6 +21,7 @@ export default function StudentDashboard() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [applications, setApplications] = useState<ApplicationCardData[]>([]);
   const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -61,16 +59,27 @@ export default function StudentDashboard() {
       if (!userId) return;
 
       setLoading(true);
+      setError(null);
+      
       try {
-        const [appsData, supervisorsData] = await Promise.all([
-          ApplicationService.getStudentApplications(userId),
-          SupervisorService.getAvailableSupervisors(),
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        // Call API endpoints
+        const [appsResponse, supervisorsResponse] = await Promise.all([
+          apiClient.getStudentApplications(userId, token),
+          apiClient.getSupervisors(token, { available: true }),
         ]);
 
-        setApplications(appsData);
-        setSupervisors(supervisorsData);
+        setApplications(appsResponse.data);
+        setSupervisors(supervisorsResponse.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
         // Even on error, we should stop loading to show the page
         setApplications([]);
         setSupervisors([]);
@@ -82,7 +91,7 @@ export default function StudentDashboard() {
     if (userId) {
       fetchData();
     }
-  }, [userId]);
+  }, [userId, router]);
 
   // Calculate stats
   const approvedCount = applications.filter((app) => app.status === 'approved').length;
@@ -97,6 +106,19 @@ export default function StudentDashboard() {
   return (
     <div className="page-container">
       <div className="page-content">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Student Dashboard</h1>

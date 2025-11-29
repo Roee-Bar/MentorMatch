@@ -130,6 +130,10 @@ export const apiClient = {
     return apiFetch(`/students/${id}`, { token });
   },
 
+  getStudentApplications: (id: string, token: string) => {
+    return apiFetch(`/students/${id}/applications`, { token });
+  },
+
   getUnmatchedStudents: (token: string) => {
     return apiFetch('/students/unmatched', { token });
   },
