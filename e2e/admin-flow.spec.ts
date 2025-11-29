@@ -235,8 +235,14 @@ test.describe('Authentication & Authorization', () => {
       
       // Try to access dashboard - should redirect
       await page.goto('/dashboard/student', { waitUntil: 'load' });
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
+      
+      // Wait for redirect to happen (either to / or /login)
+      await page.waitForURL((url) => {
+        return url.pathname === '/' || url.pathname.includes('/login');
+      }, { timeout: 10000 }).catch(() => {
+        // If waitForURL times out, continue with the test
+      });
+      await page.waitForLoadState('load');
       
       // Should be redirected away from dashboard (either to / or /login)
       const currentUrl = page.url();
@@ -300,8 +306,14 @@ test.describe('Authentication & Authorization', () => {
       
       // Try to access supervisor pages - should redirect
       await page.goto('/dashboard/supervisor', { waitUntil: 'load' });
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForTimeout(2000);
+      
+      // Wait for redirect to happen (either to / or /login)
+      await page.waitForURL((url) => {
+        return url.pathname === '/' || url.pathname.includes('/login');
+      }, { timeout: 10000 }).catch(() => {
+        // If waitForURL times out, continue with the test
+      });
+      await page.waitForLoadState('load');
       
       // Should be redirected away from dashboard
       const currentUrl = page.url();
@@ -318,10 +330,14 @@ test.describe('Authentication & Authorization', () => {
   test('should redirect unauthorized access to dashboard routes', async ({ page }) => {
     // Without logging in, try to access student dashboard
     await page.goto('/dashboard/student', { waitUntil: 'load' });
-    await page.waitForLoadState('domcontentloaded');
     
-    // Wait a bit for any redirects to happen
-    await page.waitForTimeout(3000);
+    // Wait for redirect to happen
+    await page.waitForURL((url) => {
+      return url.pathname === '/' || url.pathname.includes('/login') || !url.pathname.includes('/dashboard/student');
+    }, { timeout: 10000 }).catch(() => {
+      // If waitForURL times out, continue with the test
+    });
+    await page.waitForLoadState('load');
     
     // Should be redirected to homepage or login
     const url1 = page.url();
@@ -330,8 +346,14 @@ test.describe('Authentication & Authorization', () => {
     
     // Try supervisor dashboard
     await page.goto('/dashboard/supervisor', { waitUntil: 'load' });
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    
+    // Wait for redirect to happen
+    await page.waitForURL((url) => {
+      return url.pathname === '/' || url.pathname.includes('/login') || !url.pathname.includes('/dashboard/supervisor');
+    }, { timeout: 10000 }).catch(() => {
+      // If waitForURL times out, continue with the test
+    });
+    await page.waitForLoadState('load');
     
     const url2 = page.url();
     const isRedirected2 = url2.endsWith('/') || url2.includes('/login') || !url2.includes('/dashboard/supervisor');
@@ -339,8 +361,14 @@ test.describe('Authentication & Authorization', () => {
     
     // Try admin dashboard
     await page.goto('/dashboard/admin', { waitUntil: 'load' });
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000);
+    
+    // Wait for redirect to happen
+    await page.waitForURL((url) => {
+      return url.pathname === '/' || url.pathname.includes('/login') || !url.pathname.includes('/dashboard/admin');
+    }, { timeout: 10000 }).catch(() => {
+      // If waitForURL times out, continue with the test
+    });
+    await page.waitForLoadState('load');
     
     const url3 = page.url();
     const isRedirected3 = url3.endsWith('/') || url3.includes('/login') || !url3.includes('/dashboard/admin');

@@ -50,7 +50,7 @@ export default function Header() {
 
   return (
     <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-[1000]">
-      <div className="max-w-container mx-auto flex items-center justify-between">
+      <nav className="max-w-container mx-auto flex items-center justify-between" role="navigation" aria-label="Main navigation">
         {/* Logo Section */}
         <Link href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
           <span className="text-xl-custom">INSERT IMAGE HERE</span>
@@ -110,7 +110,7 @@ export default function Header() {
             )}
           </div>
         )}
-      </div>
+      </nav>
     </header>
   );
 }
