@@ -2,6 +2,33 @@
 import '@testing-library/jest-dom'
 
 /**
+ * Mock Firebase modules globally to prevent real Firebase connections during tests
+ * This must be done before any Firebase modules are imported
+ */
+jest.mock('firebase/firestore', () => ({
+  getDoc: jest.fn(),
+  getDocs: jest.fn(),
+  query: jest.fn(),
+  where: jest.fn(),
+  orderBy: jest.fn(),
+  addDoc: jest.fn(),
+  updateDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  collection: jest.fn(),
+  doc: jest.fn(),
+  Timestamp: {
+    now: jest.fn(() => ({ toDate: () => new Date() })),
+    fromDate: jest.fn((date) => ({ toDate: () => date })),
+  },
+}));
+
+jest.mock('@/lib/firebase', () => ({
+  db: {},
+  auth: {},
+  storage: {},
+}));
+
+/**
  * Mock Web APIs for Next.js Server Components
  * 
  * Next.js server components use Web APIs like Request and Response
@@ -38,6 +65,24 @@ if (typeof Response === 'undefined') {
 
 if (typeof Headers === 'undefined') {
   global.Headers = class Headers extends Map {};
+}
+
+/**
+ * Mock fetch API for Firebase and other services
+ * 
+ * Firebase client SDK expects fetch to be available in the environment.
+ * This mock provides basic fetch functionality for tests.
+ */
+if (typeof fetch === 'undefined') {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+      text: async () => '',
+      headers: new Map(),
+    })
+  );
 }
 
 /**

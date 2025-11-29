@@ -18,6 +18,17 @@ const customJestConfig = {
     '/.next/',
     '/e2e/',
   ],
+  // Exclude helper files that don't contain tests
+  testMatch: [
+    '**/__tests__/**/*.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)',
+  ],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/.next/',
+    '/e2e/',
+    'test-helpers',
+  ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',
     'lib/**/*.{ts,tsx}',

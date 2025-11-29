@@ -11,28 +11,6 @@ import {
   doc,
 } from 'firebase/firestore';
 
-// Mock Firebase Firestore
-jest.mock('firebase/firestore', () => ({
-  getDoc: jest.fn(),
-  getDocs: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  addDoc: jest.fn(),
-  updateDoc: jest.fn(),
-  deleteDoc: jest.fn(),
-  collection: jest.fn(),
-  doc: jest.fn(),
-  Timestamp: jest.fn(),
-}));
-
-// Mock Firebase db
-jest.mock('@/lib/firebase', () => ({
-  db: {},
-  auth: {},
-  storage: {},
-}));
-
 /**
  * Sets up common mocks for Firebase Firestore operations
  */
