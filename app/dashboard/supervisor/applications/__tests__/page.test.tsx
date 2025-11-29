@@ -102,8 +102,9 @@ describe('[Page] Supervisor Applications', () => {
 
     render(<SupervisorApplicationsPage />);
 
+    // Wait for applications to be rendered (not just the title)
     await waitFor(() => {
-      expect(screen.getByText(/applications/i)).toBeInTheDocument();
+      expect(screen.getByText(/AI Research/i)).toBeInTheDocument();
     });
 
     // Verify API client was called with token
@@ -113,7 +114,6 @@ describe('[Page] Supervisor Applications', () => {
     );
 
     // Verify applications are displayed
-    expect(screen.getByText(/AI Research/i)).toBeInTheDocument();
     expect(screen.getByText(/Web Development/i)).toBeInTheDocument();
     expect(screen.getByText(/Data Science/i)).toBeInTheDocument();
   });

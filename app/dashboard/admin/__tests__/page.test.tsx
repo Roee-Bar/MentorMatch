@@ -247,8 +247,9 @@ describe('[Page] Admin Dashboard', () => {
 
     render(<AdminDashboard />);
 
+    // Wait for the stats section to be visible (after loading completes)
     await waitFor(() => {
-      expect(screen.getByText(/admin dashboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/total students/i)).toBeInTheDocument();
     });
 
     // Check for placeholders

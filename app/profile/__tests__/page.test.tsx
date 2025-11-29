@@ -191,7 +191,8 @@ describe('[Page] Profile', () => {
     const homeLinks = screen.getAllByText(/home/i);
     expect(homeLinks.length).toBeGreaterThan(0);
     
-    expect(screen.getByText(/profile/i)).toBeInTheDocument();
+    // Check for profile heading specifically to avoid ambiguity
+    expect(screen.getByText(/personal profile/i)).toBeInTheDocument();
   });
 
   it('displays footer', async () => {

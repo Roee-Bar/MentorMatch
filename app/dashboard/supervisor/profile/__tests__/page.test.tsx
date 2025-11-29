@@ -81,8 +81,9 @@ describe('[Page] Supervisor Profile', () => {
 
     render(<SupervisorProfilePage />);
 
+    // Wait for actual profile data to be displayed (not just the heading)
     await waitFor(() => {
-      expect(screen.getByText(/profile/i)).toBeInTheDocument();
+      expect(screen.getByText(mockSupervisor.fullName)).toBeInTheDocument();
     });
 
     // Verify API client was called with token
@@ -92,7 +93,6 @@ describe('[Page] Supervisor Profile', () => {
     );
 
     // Verify profile data is displayed
-    expect(screen.getByText(mockSupervisor.fullName)).toBeInTheDocument();
     expect(screen.getByText(mockSupervisor.email)).toBeInTheDocument();
     expect(screen.getByText(mockSupervisor.phone)).toBeInTheDocument();
     expect(screen.getByText(mockSupervisor.department)).toBeInTheDocument();
@@ -124,10 +124,14 @@ describe('[Page] Supervisor Profile', () => {
 
     render(<SupervisorProfilePage />);
 
+    // Wait for capacity status to be displayed
     await waitFor(() => {
-      expect(screen.getByText(/2/i)).toBeInTheDocument();
-      expect(screen.getByText(/5/i)).toBeInTheDocument();
+      expect(screen.getByText(/capacity status/i)).toBeInTheDocument();
     });
+
+    // Verify the capacity display shows current and max capacity
+    expect(screen.getByText(/current supervisions/i)).toBeInTheDocument();
+    expect(screen.getByText(/40/)).toBeInTheDocument(); // percentage
   });
 
   it('handles API errors gracefully', async () => {
