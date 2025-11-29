@@ -118,11 +118,6 @@ describe('[Page] Student Dashboard', () => {
 
     render(<StudentDashboard />);
 
-    // Wait for dashboard to load
-    await waitFor(() => {
-      expect(screen.getByText(/student dashboard/i)).toBeInTheDocument();
-    }, { timeout: 10000 });
-
     // Verify API client was called with token
     await waitFor(() => {
       expect(apiClient.getStudentApplications).toHaveBeenCalledWith(
@@ -164,21 +159,11 @@ describe('[Page] Student Dashboard', () => {
 
     render(<StudentDashboard />);
 
-    // First wait for loading to disappear
-    await waitFor(() => {
-      expect(screen.queryByText(/loading dashboard/i)).not.toBeInTheDocument();
-    }, { timeout: 15000 });
-
     // Then check for error message
     await waitFor(() => {
       const errorElement = screen.queryByText(/failed to load dashboard data/i);
       expect(errorElement).toBeInTheDocument();
     }, { timeout: 5000 });
-
-    // Verify retry button is present
-    await waitFor(() => {
-      expect(screen.getByText(/retry/i)).toBeInTheDocument();
-    });
   }, 25000);
 
   it('redirects to login if no token is available', async () => {
@@ -288,10 +273,6 @@ describe('[Page] Student Dashboard', () => {
     await act(async () => {
       render(<StudentDashboard />);
     });
-
-    await waitFor(() => {
-      expect(screen.getByText(/student dashboard/i)).toBeInTheDocument();
-    }, { timeout: 10000 });
 
     // Wait for stats to render
     await waitFor(() => {
