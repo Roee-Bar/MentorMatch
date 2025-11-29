@@ -124,6 +124,88 @@ body {
   .tag-gray {
     @apply px-2 py-1 bg-gray-50 text-gray-500 text-xs rounded-md;
   }
+
+  /* ============================================
+     LAYOUT UTILITIES
+     ============================================ */
+  
+  /* Page Containers */
+  .page-container {
+    @apply min-h-screen bg-gray-50 p-8;
+  }
+
+  .page-container-simple {
+    @apply min-h-screen bg-gray-50;
+  }
+
+  .page-content {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .page-content-narrow {
+    @apply max-w-5xl mx-auto;
+  }
+
+  /* Loading States */
+  .loading-container {
+    @apply min-h-screen flex items-center justify-center;
+  }
+
+  .loading-content {
+    @apply text-center;
+  }
+
+  .spinner {
+    @apply w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4;
+  }
+
+  .spinner-sm {
+    @apply w-8 h-8 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto;
+  }
+
+  /* Section Headers */
+  .section-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-gray-800;
+  }
+
+  /* Grid Layouts */
+  .grid-stats {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;
+  }
+
+  .grid-cards {
+    @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6;
+  }
+
+  /* Empty States */
+  .empty-state {
+    @apply card-base p-8 text-center;
+  }
+
+  .empty-state-text {
+    @apply text-gray-500;
+  }
+
+  /* Error States */
+  .error-container {
+    @apply min-h-screen flex items-center justify-center;
+  }
+
+  .error-content {
+    @apply text-center;
+  }
+
+  .error-text {
+    @apply text-red-600 mb-4;
+  }
+
+  .error-banner {
+    @apply mb-6 p-4 bg-red-50 border border-red-200 rounded-lg;
+  }
 }
 
 @layer utilities {

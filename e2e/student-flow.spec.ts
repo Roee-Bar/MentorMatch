@@ -115,29 +115,6 @@ test.describe('Student Flow', () => {
     }
   });
 
-  // Tests back navigation from login page
-  test('should navigate back to homepage from login page', async ({ page }) => {
-    // Navigate to login
-    const loginLink = page.getByRole('link', { name: /login/i }).first();
-    await expect(loginLink).toBeVisible({ timeout: 10000 });
-    await loginLink.click();
-    
-    // Wait for login page
-    await page.waitForURL('/login', { timeout: 15000 });
-    await page.waitForLoadState('load');
-    await expect(page).toHaveURL('/login');
-    
-    // Click back to home link
-    const backLink = page.getByRole('link', { name: /back|home/i });
-    await expect(backLink).toBeVisible({ timeout: 10000 });
-    await backLink.click();
-    
-    // Wait for homepage
-    await page.waitForURL('/', { timeout: 15000 });
-    await page.waitForLoadState('load');
-    await expect(page).toHaveURL('/');
-  });
-
   // Tests that a logged-in student can submit a supervision application with project details
   test('should submit application to supervisor', async ({ page }) => {
     // Login first

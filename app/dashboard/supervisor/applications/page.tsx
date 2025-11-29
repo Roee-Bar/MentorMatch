@@ -9,6 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { ApplicationService } from '@/lib/services';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, ApplicationStatus } from '@/types/database';
 
 type FilterStatus = 'all' | ApplicationStatus;
@@ -59,21 +60,14 @@ export default function SupervisorApplicationsPage() {
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading applications...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading applications..." />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Unable to load applications. Please try again later.</p>
+      <div className="error-container">
+        <div className="error-content">
+          <p className="error-text">Unable to load applications. Please try again later.</p>
           <button
             onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
             className="btn-primary"
@@ -86,8 +80,8 @@ export default function SupervisorApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="page-container">
+      <div className="page-content">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Applications</h1>
@@ -136,15 +130,15 @@ export default function SupervisorApplicationsPage() {
 
         {/* Applications Grid */}
         {filteredApplications.length === 0 ? (
-          <div className="bg-white p-8 rounded-lg shadow border border-gray-200 text-center">
-            <p className="text-gray-500">
+          <div className="empty-state">
+            <p className="empty-state-text">
               {applications.length === 0 
                 ? 'No applications received yet.' 
                 : `No ${filterStatus} applications.`}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid-cards">
             {filteredApplications.map((application) => (
               <ApplicationCard 
                 key={application.id} 

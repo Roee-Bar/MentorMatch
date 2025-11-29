@@ -14,6 +14,7 @@ import {
 } from '@/lib/services';
 import StatCard from '@/app/components/dashboard/StatCard';
 import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, Supervisor, Project } from '@/types/database';
 
 export default function SupervisorDashboard() {
@@ -63,36 +64,29 @@ export default function SupervisorDashboard() {
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="page-container">
+      <div className="page-content">
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="error-banner">
             <p className="text-red-700">{error}</p>
           </div>
         )}
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Supervisor Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Supervisor Dashboard</h1>
           <p className="text-gray-600">
             Welcome back, {userProfile?.name || 'Supervisor'}! Here&apos;s your supervision overview.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid-stats">
           <StatCard
             title="Total Applications"
             value={applications.length}
@@ -107,7 +101,7 @@ export default function SupervisorDashboard() {
             color="gray"
           />
 
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+          <div className="card-base">
             <h3 className="text-lg font-semibold mb-2 text-gray-800">Capacity Status</h3>
             <p className="text-sm text-gray-600">
               {currentCapacity} / {supervisor?.maxCapacity || 0} students
@@ -132,8 +126,8 @@ export default function SupervisorDashboard() {
 
         {/* Recent Applications Section */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">Recent Applications</h2>
+          <div className="section-header">
+            <h2 className="section-title">Recent Applications</h2>
             <button
               onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
               className="text-blue-600 text-sm font-medium hover:underline"
@@ -143,11 +137,11 @@ export default function SupervisorDashboard() {
           </div>
 
           {applications.length === 0 ? (
-            <div className="bg-white p-8 rounded-lg shadow border border-gray-200 text-center">
-              <p className="text-gray-500">No applications received yet.</p>
+            <div className="empty-state">
+              <p className="empty-state-text">No applications received yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards">
               {applications.slice(0, 6).map((application) => {
                 // Convert Firestore Timestamp to Date, then format as string
                 const dateAppliedStr = application.dateApplied instanceof Date
