@@ -12,11 +12,23 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  // Only look for tests in specific directories
+  roots: ['<rootDir>/lib', '<rootDir>/app'],
   // Exclude E2E tests from Jest (they should run with Playwright)
   testPathIgnorePatterns: [
     '/node_modules/',
     '/.next/',
     '/e2e/',
+    'test-helpers',
+    '/AppData/',
+    '/.vscode/',
+    '/Users/',
+    'cursor',
+  ],
+  // Exclude helper files that don't contain tests
+  testMatch: [
+    '**/__tests__/**/*.[jt]s?(x)',
+    '**/?(*.)+(spec|test).[jt]s?(x)',
   ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',

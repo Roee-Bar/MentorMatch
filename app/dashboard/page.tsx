@@ -43,7 +43,7 @@ export default function DashboardRouter() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="loading-container">
       <p className="text-gray-500">Redirecting to dashboard...</p>
     </div>
   );

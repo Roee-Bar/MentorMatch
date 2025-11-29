@@ -50,8 +50,7 @@ describe('[Component] Header', () => {
     jest.clearAllMocks();
   });
 
-  // Tests authenticated user's name displays in header
-  it('should show user avatar when authenticated', async () => {
+  it('shows user avatar when authenticated', async () => {
     const mockUser = {
       uid: mockStudent.id,
       email: mockStudent.email,
@@ -76,8 +75,7 @@ describe('[Component] Header', () => {
     });
   });
 
-  // Tests dropdown menu displays when user avatar is clicked
-  it('should show dropdown menu when avatar is clicked', async () => {
+  it('shows dropdown menu when avatar is clicked', async () => {
     const mockUser = {
       uid: mockStudent.id,
       email: mockStudent.email,
@@ -106,8 +104,7 @@ describe('[Component] Header', () => {
     });
   });
 
-  // Tests signOut service is called when logout button is clicked
-  it('should call signOut function when logout button is clicked', async () => {
+  it('calls signOut function when logout button is clicked', async () => {
     const mockUser = {
       uid: mockStudent.id,
       email: mockStudent.email,
@@ -149,8 +146,7 @@ describe('[Component] Header', () => {
     }
   });
 
-  // Tests dropdown menu closes when clicking outside
-  it('should close dropdown when clicking outside', async () => {
+  it('closes dropdown when clicking outside', async () => {
     const mockUser = {
       uid: mockStudent.id,
       email: mockStudent.email,
@@ -196,8 +192,7 @@ describe('[Component] Header', () => {
     }
   });
 
-  // Tests user section hidden when not authenticated
-  it('should not show user section when not authenticated', () => {
+  it('does not show user section when not authenticated', () => {
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       callback(null);
       return jest.fn();

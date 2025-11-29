@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -41,14 +42,7 @@ export default function AdminDashboard() {
   }, [router]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading admin dashboard..." />;
   }
 
   if (!authorized) {
@@ -56,18 +50,18 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="page-container-simple">
+      <div className="page-content py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 text-balance">Admin Dashboard</h1>
           <p className="mt-2 text-gray-600">
             Manage users, projects, and system settings
           </p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid-stats">
           <div className="card-base">
             <div className="flex items-center justify-between">
               <div>

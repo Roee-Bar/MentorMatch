@@ -9,6 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { SupervisorService } from '@/lib/services';
 import CapacityIndicator from '@/app/components/dashboard/CapacityIndicator';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Supervisor } from '@/types/database';
 
 export default function SupervisorProfilePage() {
@@ -46,21 +47,14 @@ export default function SupervisorProfilePage() {
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading profile...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="Loading profile..." />;
   }
 
   if (error || !supervisor) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Unable to load profile. Please try again later.</p>
+      <div className="error-container">
+        <div className="error-content">
+          <p className="error-text">Unable to load profile. Please try again later.</p>
           <button
             onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
             className="btn-primary"
@@ -73,11 +67,11 @@ export default function SupervisorProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="page-container">
+      <div className="page-content-narrow">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Profile</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Profile</h1>
           <p className="text-gray-600">
             View your profile information and supervision capacity
           </p>
@@ -87,7 +81,7 @@ export default function SupervisorProfilePage() {
           {/* Main Profile Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <div className="card-base">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
               
               <div className="space-y-4">
@@ -116,13 +110,13 @@ export default function SupervisorProfilePage() {
             </div>
 
             {/* Bio */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <div className="card-base">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Bio</h2>
-              <p className="text-gray-700 leading-relaxed">{supervisor.bio}</p>
+              <p className="text-gray-700 leading-relaxed text-balance">{supervisor.bio}</p>
             </div>
 
             {/* Research Interests */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <div className="card-base">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Research Interests</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.researchInterests.map((interest, index) => (
@@ -137,7 +131,7 @@ export default function SupervisorProfilePage() {
             </div>
 
             {/* Expertise Areas */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+            <div className="card-base">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Expertise Areas</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.expertiseAreas.map((area, index) => (
@@ -153,7 +147,7 @@ export default function SupervisorProfilePage() {
 
             {/* Office Information */}
             {(supervisor.officeLocation || supervisor.officeHours) && (
-              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+              <div className="card-base">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Office Information</h2>
                 
                 <div className="space-y-4">
