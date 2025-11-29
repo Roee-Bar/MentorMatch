@@ -28,6 +28,10 @@
 # cursor
 .cursor/rules/language.mdc
 
+# VSCode / Cursor workspace settings (local only)
+.vscode/settings.json
+.vscode/tasks.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*

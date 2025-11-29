@@ -25,8 +25,7 @@ describe('[Integration] Login Page', () => {
     jest.clearAllMocks();
   });
 
-  // Tests HTML5 validation triggers for required empty fields
-  it('should show validation errors for empty fields', async () => {
+  it('shows validation errors for empty fields', async () => {
     render(<LoginPage />);
     
     const submitButton = screen.getByRole('button', { name: /login/i });
@@ -41,8 +40,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error message display when login fails
-  it('should display error message on failed login', async () => {
+  it('displays error message on failed login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Invalid credentials',
@@ -63,8 +61,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests success message display after successful authentication
-  it('should display success message on successful login', async () => {
+  it('displays success message on successful login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,
       user: { uid: 'test-uid' },
@@ -85,8 +82,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests navigation to dashboard after successful authentication
-  it('should redirect to dashboard after successful login', async () => {
+  it('redirects to dashboard after successful login', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,
       user: { uid: 'test-uid' },
@@ -107,8 +103,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests loading state displays with disabled button during async login
-  it('should show loading state during login submission', async () => {
+  it('shows loading state during login submission', async () => {
     (signIn as jest.Mock).mockImplementation(
       () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
     );
@@ -127,8 +122,7 @@ describe('[Integration] Login Page', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  // Tests error handling for user not found error
-  it('should handle auth/user-not-found error code', async () => {
+  it('handles auth/user-not-found error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'User not found',
@@ -149,8 +143,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error handling for wrong password error
-  it('should handle auth/wrong-password error code', async () => {
+  it('handles auth/wrong-password error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Wrong password',
@@ -171,8 +164,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error handling for invalid email format error
-  it('should handle auth/invalid-email error code', async () => {
+  it('handles auth/invalid-email error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Invalid email format',
@@ -193,8 +185,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error handling for too many failed login attempts error
-  it('should handle auth/too-many-requests error code', async () => {
+  it('handles auth/too-many-requests error code', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Too many failed login attempts',
@@ -215,8 +206,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error handling for network connection errors
-  it('should handle network errors gracefully', async () => {
+  it('handles network errors gracefully', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: false,
       error: 'Network error occurred',
@@ -237,8 +227,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests error message clears when retrying with correct credentials
-  it('should clear error message after correcting input', async () => {
+  it('clears error message after correcting input', async () => {
     (signIn as jest.Mock).mockResolvedValueOnce({
       success: false,
       error: 'Invalid credentials',
@@ -272,8 +261,7 @@ describe('[Integration] Login Page', () => {
     });
   });
 
-  // Tests signIn service is called with correct email and password parameters
-  it('should call signIn with correct parameters', async () => {
+  it('calls signIn with correct parameters', async () => {
     (signIn as jest.Mock).mockResolvedValue({
       success: true,
       user: { uid: 'test-uid' },

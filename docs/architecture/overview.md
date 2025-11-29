@@ -384,7 +384,7 @@ e2e/                 # End-to-end tests
 - [Security](../guides/security.md) - Security architecture
 
 ### Reference
-- [Firebase Usage](../reference/firebase-usage.md) - Firebase patterns
+- [Firebase Guide](../reference/firebase.md) - Complete Firebase reference (Auth, Firestore, Admin SDK)
 
 ## External Resources
 

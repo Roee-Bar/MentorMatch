@@ -123,7 +123,7 @@ npm run test:e2e:supervisor
 npm run test:e2e:admin
 ```
 
-**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Testing Strategy Documentation](./docs/guides/testing-strategy.md#cicd-and-test-execution-workflow) for more details.
+**Note**: E2E tests are automatically executed in the CI/CD pipeline on every push/PR. They are **not** run on local commits to keep the development workflow fast. See [Development Workflow](./docs/guides/development-workflow.md) for more details.
 
 ## Project Structure
 
@@ -155,7 +155,6 @@ Comprehensive documentation is available in the `docs/` directory. Start with th
 ### Quick Links
 
 **Getting Started:**
-- [Quick Start Guide](./docs/getting-started/quick-start.md) - Get up and running in 30 minutes
 - [Setup Guide](./docs/getting-started/setup-guide.md) - Complete setup instructions
 - [Development Process](./docs/getting-started/development-process.md) - Project history
 
@@ -165,20 +164,18 @@ Comprehensive documentation is available in the `docs/` directory. Start with th
 - [Dashboard Architecture](./docs/architecture/frontend/dashboard-architecture.md) - Frontend structure
 
 **Guides:**
-- [CI/CD Guide](./docs/guides/ci-cd.md) - CI/CD pipeline and deployment
-- [Testing Strategy](./docs/guides/testing-strategy.md) - Testing guidelines and best practices
+- [Development Workflow](./docs/guides/development-workflow.md) - Testing, CI/CD, and development process
+- [Naming Conventions](./docs/guides/naming-conventions.md) - File and code naming standards
+- [Component Patterns](./docs/guides/component-patterns.md) - React component best practices
+- [API Patterns](./docs/guides/api-patterns.md) - Backend API conventions
 - [Security](./docs/guides/security.md) - Security architecture and best practices
-- [Code Conventions](./docs/guides/code-conventions.md) - Coding standards
 - [Type System](./docs/guides/type-system.md) - TypeScript types
 
 **Reference:**
-- [Firebase Usage](./docs/reference/firebase-usage.md) - Firebase integration patterns
+- [Firebase Guide](./docs/reference/firebase.md) - Complete Firebase reference (Auth, Firestore, Admin SDK)
 
 **Troubleshooting:**
 - [Build Failures](./docs/troubleshooting/build-failures.md) - CI/CD and build error solutions
-
-**For AI-Assisted Development:**
-- [AI Context Files](./docs/ai-context/) - Optimized documentation for AI assistants
 
 ## Deployment
 

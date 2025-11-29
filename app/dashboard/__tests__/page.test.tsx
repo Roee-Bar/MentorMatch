@@ -26,8 +26,7 @@ describe('[Integration][Dashboard] Dashboard Router', () => {
     });
   });
 
-  // Tests authenticated student users are redirected to student dashboard
-  it('should redirect to student dashboard for student role', async () => {
+  it('redirects to student dashboard for student role', async () => {
     // Mock authenticated student user
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       callback({ uid: 'student123' });
@@ -47,8 +46,7 @@ describe('[Integration][Dashboard] Dashboard Router', () => {
     expect(mockReplace).toHaveBeenCalledWith('/dashboard/student');
   });
 
-  // Tests authenticated supervisor users are redirected to supervisor dashboard
-  it('should redirect to supervisor dashboard for supervisor role', async () => {
+  it('redirects to supervisor dashboard for supervisor role', async () => {
     // Mock authenticated supervisor user
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       callback({ uid: 'supervisor123' });
@@ -68,8 +66,7 @@ describe('[Integration][Dashboard] Dashboard Router', () => {
     expect(mockReplace).toHaveBeenCalledWith('/dashboard/supervisor');
   });
 
-  // Tests authenticated admin users are redirected to admin dashboard
-  it('should redirect to admin dashboard for admin role', async () => {
+  it('redirects to admin dashboard for admin role', async () => {
     // Mock authenticated admin user
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       callback({ uid: 'admin123' });
@@ -89,8 +86,7 @@ describe('[Integration][Dashboard] Dashboard Router', () => {
     expect(mockReplace).toHaveBeenCalledWith('/dashboard/admin');
   });
 
-  // Tests unauthenticated users are redirected to home page
-  it('should redirect to home for unauthenticated users', async () => {
+  it('redirects to home for unauthenticated users', async () => {
     // Mock unauthenticated user
     (onAuthChange as jest.Mock).mockImplementation((callback) => {
       callback(null);
