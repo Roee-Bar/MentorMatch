@@ -23,7 +23,8 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
         return;
       }
 
-      const profile = await getUserProfile(user.uid);
+      const token = await user.getIdToken();
+      const profile = await getUserProfile(user.uid, token);
       if (profile.success) {
         setUser(user);
         setUserProfile(profile.data);

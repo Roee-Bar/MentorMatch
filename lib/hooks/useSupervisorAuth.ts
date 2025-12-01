@@ -37,7 +37,8 @@ export function useSupervisorAuth(): UseSupervisorAuthReturn {
       }
 
       // Get user profile to verify they're a supervisor
-      const profile = await getUserProfile(user.uid);
+      const token = await user.getIdToken();
+      const profile = await getUserProfile(user.uid, token);
       
       if (!profile.success || profile.data?.role !== 'supervisor') {
         // Redirect non-supervisors to appropriate authenticated page

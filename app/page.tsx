@@ -13,7 +13,8 @@ export default function Home() {
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
       if (user) {
-        const profile = await getUserProfile(user.uid)
+        const token = await user.getIdToken()
+        const profile = await getUserProfile(user.uid, token)
         if (profile.success) {
           // Redirect authenticated users directly to their role-specific page
           const role = profile.data?.role

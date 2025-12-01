@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { AdminApplicationService, AdminStudentService, AdminSupervisorService } from '@/lib/services/admin-services';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const applications = await ApplicationService.getAllApplications();
+    const applications = await AdminApplicationService.getAllApplications();
 
     return NextResponse.json({
       success: true,
@@ -55,21 +55,38 @@ export async function POST(request: NextRequest) {
 
     // Validate request body
     const validation = await validateRequest(request, createApplicationSchema);
-    if (!validation.valid) {
+    if (!validation.valid || !validation.data) {
       return NextResponse.json(
-        { error: validation.error },
+        { error: validation.error || 'Invalid request data' },
         { status: 400 }
       );
     }
 
-    // Create application with student ID
+    // Fetch student and supervisor details
+    const student = await AdminStudentService.getStudentById(authResult.user?.uid!);
+    const supervisor = await AdminSupervisorService.getSupervisorById(validation.data.supervisorId);
+
+    if (!student || !supervisor) {
+      return NextResponse.json(
+        { error: 'Student or supervisor not found' },
+        { status: 404 }
+      );
+    }
+
+    // Create application with complete data
     const applicationData = {
       ...validation.data,
       studentId: authResult.user?.uid,
+      studentName: student.fullName,
+      studentEmail: student.email,
+      supervisorName: supervisor.fullName,
+      studentSkills: student.skills || '',
+      studentInterests: student.interests || '',
+      isOwnTopic: true,
       status: 'pending' as const,
     };
 
-    const applicationId = await ApplicationService.createApplication(applicationData as any);
+    const applicationId = await AdminApplicationService.createApplication(applicationData as any);
 
     if (!applicationId) {
       return NextResponse.json(

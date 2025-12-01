@@ -11,6 +11,7 @@ import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/authenticated/StatCard';
 import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
 import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
+import ApplicationModal from '@/app/components/authenticated/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { ApplicationCardData, SupervisorCardData } from '@/types/database';
@@ -23,6 +24,9 @@ export default function StudentAuthenticated() {
   const [applications, setApplications] = useState<ApplicationCardData[]>([]);
   const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -95,6 +99,40 @@ export default function StudentAuthenticated() {
     }
   }, [userId, router]);
 
+  // Handle apply button click
+  const handleApply = (supervisorId: string) => {
+    const supervisor = supervisors.find(s => s.id === supervisorId);
+    if (supervisor) {
+      setSelectedSupervisor(supervisor);
+      setShowApplicationModal(true);
+    }
+  };
+
+  // Handle application submission
+  const handleSubmitApplication = async (applicationData: any) => {
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Not authenticated');
+
+      await apiClient.createApplication({
+        supervisorId: selectedSupervisor?.id,
+        ...applicationData
+      }, token);
+
+      // Refresh applications list
+      const appsResponse = await apiClient.getStudentApplications(userId!, token);
+      setApplications(appsResponse.data);
+
+      // Close modal and show success
+      setShowApplicationModal(false);
+      setSuccessMessage('Application submitted successfully!');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error('Error creating application:', error);
+      throw error; // Let modal handle the error display
+    }
+  };
+
   // Calculate stats
   const approvedCount = applications.filter((app) => app.status === 'approved').length;
   const pendingCount = applications.filter(
@@ -113,6 +151,14 @@ export default function StudentAuthenticated() {
           <StatusMessage 
             message={error} 
             type="error"
+          />
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <StatusMessage 
+            message={successMessage} 
+            type="success"
           />
         )}
 
@@ -205,11 +251,26 @@ export default function StudentAuthenticated() {
           ) : (
             <div className="grid-cards">
               {supervisors.slice(0, 3).map((supervisor) => (
-                <SupervisorCard key={supervisor.id} supervisor={supervisor} />
+                <SupervisorCard 
+                  key={supervisor.id} 
+                  supervisor={supervisor}
+                  onApply={handleApply}
+                />
               ))}
             </div>
           )}
         </div>
+
+        {/* Application Modal */}
+        {showApplicationModal && selectedSupervisor && (
+          <ApplicationModal
+            isOpen={showApplicationModal}
+            onClose={() => setShowApplicationModal(false)}
+            supervisor={selectedSupervisor}
+            studentProfile={userProfile}
+            onSubmit={handleSubmitApplication}
+          />
+        )}
       </div>
     </div>
   );

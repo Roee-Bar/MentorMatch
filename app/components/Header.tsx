@@ -17,7 +17,8 @@ export default function Header() {
     const unsubscribe = onAuthChange(async (user) => {
       setUser(user)
       if (user) {
-        const profile = await getUserProfile(user.uid)
+        const token = await user.getIdToken()
+        const profile = await getUserProfile(user.uid, token)
         if (profile.success) {
           setUserProfile(profile.data)
         }

@@ -6,7 +6,7 @@
 
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
-import { getUserProfile } from '@/lib/auth';
+import { AdminUserService } from '@/lib/services/admin-services';
 
 export interface AuthResult {
   authenticated: boolean;
@@ -33,10 +33,10 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // Verify Firebase token using Admin SDK
     const decodedToken = await adminAuth.verifyIdToken(token);
     
-    // Get user profile from Firestore
-    const profile = await getUserProfile(decodedToken.uid);
+    // Get user profile from Firestore using Admin SDK (bypasses security rules)
+    const profile = await AdminUserService.getUserById(decodedToken.uid);
     
-    if (!profile.success || !profile.data) {
+    if (!profile) {
       return { authenticated: false, user: null };
     }
 
@@ -45,7 +45,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       user: {
         uid: decodedToken.uid,
         email: decodedToken.email,
-        role: profile.data.role,
+        role: profile.role,
       },
     };
   } catch (error) {

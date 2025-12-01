@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { AdminApplicationService } from '@/lib/services/admin-services';
 import { verifyAuth } from '@/lib/middleware/auth';
 
 export async function GET(
@@ -31,7 +31,7 @@ export async function GET(
       );
     }
 
-    const applications = await ApplicationService.getStudentApplications(params.id);
+    const applications = await AdminApplicationService.getStudentApplications(params.id);
 
     return NextResponse.json({
       success: true,
