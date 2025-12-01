@@ -42,17 +42,6 @@ export const createApplicationSchema = z.object({
 });
 
 /**
- * Schema for updating supervisor profile
- */
-export const updateSupervisorSchema = z.object({
-  bio: z.string().max(1000, 'Bio must be at most 1000 characters').optional(),
-  researchInterests: z.array(z.string()).optional(),
-  expertiseAreas: z.array(z.string()).optional(),
-  maxCapacity: z.number().min(0, 'Max capacity cannot be negative').max(20, 'Max capacity cannot exceed 20').optional(),
-  availabilityStatus: z.enum(['available', 'limited', 'unavailable']).optional(),
-});
-
-/**
  * Schema for updating application status
  */
 export const updateApplicationStatusSchema = z.object({

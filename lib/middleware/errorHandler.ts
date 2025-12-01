@@ -7,35 +7,10 @@
 import { NextResponse } from 'next/server';
 
 /**
- * Custom API Error class
- */
-export class ApiError extends Error {
-  constructor(
-    public statusCode: number,
-    public message: string,
-    public errors?: any[]
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-/**
  * Handle errors and return appropriate NextResponse
  */
 export function handleApiError(error: unknown): NextResponse {
   console.error('API Error:', error);
-
-  if (error instanceof ApiError) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-        errors: error.errors,
-      },
-      { status: error.statusCode }
-    );
-  }
 
   if (error instanceof Error) {
     return NextResponse.json(

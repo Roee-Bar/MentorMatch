@@ -17,16 +17,6 @@ export interface AuthResult {
   } | null;
 }
 
-export interface RoleAuthResult {
-  authorized: boolean;
-  user?: {
-    uid: string;
-    email: string | undefined;
-    role: string;
-  };
-  error?: string;
-}
-
 /**
  * Verify Firebase ID token and return user information
  */
@@ -64,21 +54,3 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
   }
 }
 
-/**
- * Create a middleware function that requires specific roles
- */
-export function requireRole(allowedRoles: string[]) {
-  return async (request: NextRequest): Promise<RoleAuthResult> => {
-    const authResult = await verifyAuth(request);
-    
-    if (!authResult.authenticated) {
-      return { authorized: false, error: 'Unauthorized' };
-    }
-    
-    if (!authResult.user || !allowedRoles.includes(authResult.user.role)) {
-      return { authorized: false, error: 'Forbidden' };
-    }
-    
-    return { authorized: true, user: authResult.user };
-  };
-}

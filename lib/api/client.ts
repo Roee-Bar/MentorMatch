@@ -185,10 +185,6 @@ export const apiClient = {
     return apiFetch('/admin/stats', { token });
   },
 
-  getAdminReports: (token: string) => {
-    return apiFetch('/admin/reports', { token });
-  },
-
   // ========================================
   // Users API
   // ========================================
