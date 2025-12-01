@@ -6,6 +6,7 @@ import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 
 export default function AdminAuthenticated() {
   const router = useRouter();
@@ -23,7 +24,8 @@ export default function AdminAuthenticated() {
       }
 
       // Get user profile to check role
-      const profile = await getUserProfile(user.uid);
+      const token = await user.getIdToken();
+      const profile = await getUserProfile(user.uid, token);
       
       if (!profile.success || !profile.data) {
         router.replace('/');
@@ -74,15 +76,10 @@ export default function AdminAuthenticated() {
       <div className="page-content py-8">
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Retry
-            </button>
-          </div>
+          <StatusMessage 
+            message={error} 
+            type="error"
+          />
         )}
 
         {/* Header */}

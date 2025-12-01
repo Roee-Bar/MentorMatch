@@ -12,6 +12,7 @@ import StatCard from '@/app/components/authenticated/StatCard';
 import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
 import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { ApplicationCardData, SupervisorCardData } from '@/types/database';
 
 export default function StudentAuthenticated() {
@@ -33,7 +34,8 @@ export default function StudentAuthenticated() {
       }
 
       // Get user profile to verify they're a student
-      const profile = await getUserProfile(user.uid);
+      const token = await user.getIdToken();
+      const profile = await getUserProfile(user.uid, token);
       if (!profile.success || profile.data?.role !== 'student') {
         // Redirect non-students to appropriate authenticated page
         if (profile.data?.role === 'supervisor') {
@@ -108,15 +110,10 @@ export default function StudentAuthenticated() {
       <div className="page-content">
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-            >
-              Retry
-            </button>
-          </div>
+          <StatusMessage 
+            message={error} 
+            type="error"
+          />
         )}
 
         {/* Header */}

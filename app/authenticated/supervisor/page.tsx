@@ -12,6 +12,7 @@ import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/authenticated/StatCard';
 import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { Application, Supervisor, Project } from '@/types/database';
 
 export default function SupervisorAuthenticated() {
@@ -77,9 +78,10 @@ export default function SupervisorAuthenticated() {
       <div className="page-content">
         {/* Error Banner */}
         {error && (
-          <div className="error-banner">
-            <p className="text-red-700">{error}</p>
-          </div>
+          <StatusMessage 
+            message={error} 
+            type="error"
+          />
         )}
 
         {/* Header */}
