@@ -3,11 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { db, storage } from '@/lib/firebase'
-import { doc, setDoc } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { apiClient } from '@/lib/api/client'
 import Image from 'next/image'
 
 export default function RegisterPage() {
@@ -88,21 +84,23 @@ export default function RegisterPage() {
     if (!photoFile) return ''
 
     try {
-      // Create a reference to the file location
-      const fileExtension = photoFile.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExtension}`
-      const storageRef = ref(storage, `profile-photos/${userId}/${fileName}`)
-
-      // Upload the file
-      await uploadBytes(storageRef, photoFile)
-
-      // Get the download URL
-      const downloadURL = await getDownloadURL(storageRef)
-      return downloadURL
+      // This function is no longer used - photo upload is handled by the backend
+      // Keeping for compatibility but it will not be called
+      return ''
     } catch (error) {
       console.error('Photo upload error:', error)
       throw error
     }
+  }
+
+  // Convert file to base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleRegistration = async (e: React.FormEvent) => {
@@ -124,84 +122,33 @@ export default function RegisterPage() {
     }
 
     try {
-      // Step 1: Create Firebase Authentication account
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        formData.email, 
-        formData.password
-      )
-      const user = userCredential.user
-
-      // Step 2: Upload photo if provided (non-critical - continue if it fails)
-      let photoURL = ''
+      // Convert photo to base64 if provided
+      let photoBase64 = ''
       if (photoFile) {
-        try {
-          setMessage('Uploading photo...')
-          photoURL = await uploadPhoto(user.uid)
-        } catch (photoError) {
-          console.error('Photo upload failed, continuing without photo:', photoError)
-          // Continue registration without photo - don't throw
-        }
+        setMessage('Preparing photo...')
+        photoBase64 = await fileToBase64(photoFile)
       }
 
-      // Step 3: Create user document in 'users' collection
-      await setDoc(doc(db, 'users', user.uid), {
-        userId: user.uid,
-        email: formData.email,
-        name: `${formData.firstName} ${formData.lastName}`,
-        role: 'student',
-        photoURL: photoURL,
-        createdAt: new Date()
+      setMessage('Creating your account...')
+
+      // Call backend registration API
+      const response = await apiClient.registerUser({
+        ...formData,
+        photoBase64,
       })
 
-      // Step 4: Create complete student profile in 'students' collection
-      await setDoc(doc(db, 'students', user.uid), {
-        userId: user.uid,
-        // Personal Information
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        fullName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        studentId: formData.studentId,
-        phone: formData.phone,
-        department: formData.department,
-        academicYear: formData.academicYear,
-        photoURL: photoURL,
-        // Academic Information
-        skills: formData.skills,
-        interests: formData.interests,
-        previousProjects: formData.previousProjects,
-        preferredTopics: formData.preferredTopics,
-        // Partner Information
-        hasPartner: formData.hasPartner,
-        partnerName: formData.partnerName || '',
-        partnerEmail: formData.partnerEmail || '',
-        // Status
-        profileComplete: true,
-        registrationDate: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
-
-      setMessage('Registration successful! Redirecting to dashboard...')
-      
-      // Redirect to home - auth state will redirect to appropriate authenticated page
-      setTimeout(() => {
-        router.push('/')
-      }, 1500)
+      if (response.success) {
+        setMessage('Registration successful! Redirecting to login...')
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
+      } else {
+        setMessage(response.error || 'Registration failed. Please try again.')
+        setLoading(false)
+      }
     } catch (error: any) {
       console.error('Registration error:', error)
-      
-      if (error.code === 'auth/email-already-in-use') {
-        setMessage('This email is already registered. Please login instead.')
-      } else if (error.code === 'auth/invalid-email') {
-        setMessage('Invalid email address format.')
-      } else if (error.code === 'auth/weak-password') {
-        setMessage('Password is too weak. Please use a stronger password.')
-      } else {
-        setMessage(`Error: ${error.message}`)
-      }
-    } finally {
+      setMessage(error.message || 'Registration failed. Please try again.')
       setLoading(false)
     }
   }

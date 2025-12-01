@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services';
+import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
 

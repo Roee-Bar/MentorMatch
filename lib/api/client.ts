@@ -52,6 +52,17 @@ export async function apiFetch(
  */
 export const apiClient = {
   // ========================================
+  // Auth API
+  // ========================================
+  
+  registerUser: (userData: any) => {
+    return apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  // ========================================
   // Supervisors API
   // ========================================
   

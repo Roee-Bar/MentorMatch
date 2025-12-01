@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserService } from '@/lib/services/firebase-services';
+import { UserService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {

@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { StudentService } from '@/lib/services/firebase-services';
+import { StudentService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 
 export async function GET(request: NextRequest) {

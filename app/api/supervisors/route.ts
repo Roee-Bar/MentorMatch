@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SupervisorService } from '@/lib/services/firebase-services';
+import { SupervisorService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { handleApiError } from '@/lib/middleware/errorHandler';
 

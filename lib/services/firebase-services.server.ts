@@ -1,5 +1,7 @@
-// lib/services/firebase-services.ts
-// Firebase services to replace mock data
+// lib/services/firebase-services.server.ts
+// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
+// DO NOT import this file in any client-side components or pages
+// Firebase services for backend data operations
 
 import {
   collection,
