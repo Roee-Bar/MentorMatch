@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { User } from '@/types/user';
+import { User } from '@/types/database';
 
 interface UserProfileProps {
   user: User;
@@ -35,7 +35,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
       <div className="flex items-center space-x-4 mb-6">
         <div className="relative w-20 h-20">
           <Image
-            src={user.profileImage || '/default-avatar.png'}
+            src={user.profileImage || user.photoURL || '/default-avatar.png'}
             alt={user.name}
             fill
             className="rounded-full object-cover"

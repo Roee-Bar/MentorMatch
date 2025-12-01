@@ -5,7 +5,7 @@
 // BASE USER TYPE (stored in 'users' collection)
 // ============================================
 export interface BaseUser {
-  
+  id: string; // Firestore document ID
   email: string;
   name: string;
   role: 'student' | 'supervisor' | 'admin';
@@ -13,6 +13,20 @@ export interface BaseUser {
   department?: string;
   createdAt: Date;
   updatedAt?: Date;
+}
+
+// ============================================
+// SESSION/AUTH USER TYPE (for application use)
+// ============================================
+export type UserRole = 'student' | 'supervisor' | 'admin';
+
+// Session/Auth user type - extends database BaseUser with session-specific fields
+export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
+  profileImage?: string; // Alias for photoURL for backward compatibility
+  // Optional role-specific preview fields for UI
+  studentId?: string;
+  degree?: string;
+  expertise?: string[];
 }
 
 // ============================================
