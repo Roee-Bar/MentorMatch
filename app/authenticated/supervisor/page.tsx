@@ -1,7 +1,7 @@
 'use client';
 
-// app/dashboard/supervisor/page.tsx
-// Supervisor Dashboard - Read-only view of applications and profile
+// app/authenticated/supervisor/page.tsx
+// Supervisor Authenticated - Read-only view of applications and profile
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,12 +9,12 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import StatCard from '@/app/components/dashboard/StatCard';
-import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
+import StatCard from '@/app/components/authenticated/StatCard';
+import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, Supervisor, Project } from '@/types/database';
 
-export default function SupervisorDashboard() {
+export default function SupervisorAuthenticated() {
   const router = useRouter();
   const { userId, userProfile, isAuthLoading } = useSupervisorAuth();
   
@@ -134,7 +134,7 @@ export default function SupervisorDashboard() {
           <div className="section-header">
             <h2 className="section-title">Recent Applications</h2>
             <button
-              onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
+              onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
               className="text-blue-600 text-sm font-medium hover:underline"
             >
               View All →
@@ -175,7 +175,7 @@ export default function SupervisorDashboard() {
 
         {/* Quick Actions */}
         <button
-          onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR_APPLICATIONS)}
+          onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
           className="btn-primary p-6 text-left"
         >
           <h3 className="text-lg font-semibold mb-2">View All Applications</h3>

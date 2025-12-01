@@ -1,4 +1,4 @@
-// app/components/dashboard/SupervisorCard.tsx
+// app/components/authenticated/SupervisorCard.tsx
 // Updated to work with Firebase data types
 
 import type { SupervisorCardData } from '@/types/database';

@@ -1,6 +1,6 @@
 'use client';
 
-// app/dashboard/supervisor/profile/page.tsx
+// app/authenticated/supervisor/profile/page.tsx
 // Supervisor Profile View - Read-only display of profile and capacity
 
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import CapacityIndicator from '@/app/components/dashboard/CapacityIndicator';
+import CapacityIndicator from '@/app/components/authenticated/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Supervisor } from '@/types/database';
 
@@ -65,7 +65,7 @@ export default function SupervisorProfilePage() {
         <div className="error-content">
           <p className="error-text">Unable to load profile. Please try again later.</p>
           <button
-            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
+            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)}
             className="btn-primary"
           >
             Back to Dashboard

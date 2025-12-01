@@ -1,4 +1,4 @@
-// app/components/dashboard/ApplicationCard.tsx
+// app/components/authenticated/ApplicationCard.tsx
 // Updated to work with Firebase data types
 
 import type { ApplicationCardData } from '@/types/database';

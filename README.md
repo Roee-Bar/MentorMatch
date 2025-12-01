@@ -82,7 +82,7 @@ npm run typecheck    # TypeScript errors
 ```
 ├── app/
 │   ├── api/              # REST API routes
-│   ├── dashboard/        # Role-based dashboards
+│   ├── authenticated/    # Role-based authenticated pages
 │   └── components/       # React components
 ├── lib/
 │   ├── api/              # API client

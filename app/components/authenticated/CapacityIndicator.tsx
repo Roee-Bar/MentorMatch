@@ -1,5 +1,5 @@
-// app/components/dashboard/CapacityIndicator.tsx
-// Visual capacity gauge component for supervisor dashboard
+// app/components/authenticated/CapacityIndicator.tsx
+// Visual capacity gauge component for supervisor authenticated page
 
 interface CapacityIndicatorProps {
   current: number;

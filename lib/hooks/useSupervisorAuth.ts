@@ -19,7 +19,7 @@ interface UseSupervisorAuthReturn {
  * Custom hook that handles supervisor authentication.
  * Automatically redirects:
  * - Unauthenticated users to login
- * - Non-supervisors to their appropriate dashboard
+ * - Non-supervisors to their appropriate authenticated page
  * 
  * @returns userId, userProfile, and loading state
  */
@@ -40,11 +40,11 @@ export function useSupervisorAuth(): UseSupervisorAuthReturn {
       const profile = await getUserProfile(user.uid);
       
       if (!profile.success || profile.data?.role !== 'supervisor') {
-        // Redirect non-supervisors to appropriate dashboard
+        // Redirect non-supervisors to appropriate authenticated page
         if (profile.data?.role === 'student') {
-          router.replace(ROUTES.DASHBOARD.STUDENT);
+          router.replace(ROUTES.AUTHENTICATED.STUDENT);
         } else if (profile.data?.role === 'admin') {
-          router.replace(ROUTES.DASHBOARD.ADMIN);
+          router.replace(ROUTES.AUTHENTICATED.ADMIN);
         } else {
           router.replace(ROUTES.HOME);
         }

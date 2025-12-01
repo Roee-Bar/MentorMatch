@@ -4,17 +4,16 @@
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  DASHBOARD: {
-    ROOT: '/dashboard',
-    STUDENT: '/dashboard/student',
-    SUPERVISOR: '/dashboard/supervisor',
-    SUPERVISOR_APPLICATIONS: '/dashboard/supervisor/applications',
-    SUPERVISOR_PROFILE: '/dashboard/supervisor/profile',
-    ADMIN: '/dashboard/admin',
+  AUTHENTICATED: {
+    STUDENT: '/authenticated/student',
+    SUPERVISOR: '/authenticated/supervisor',
+    SUPERVISOR_APPLICATIONS: '/authenticated/supervisor/applications',
+    SUPERVISOR_PROFILE: '/authenticated/supervisor/profile',
+    ADMIN: '/authenticated/admin',
   },
 } as const;
 
 // Type for route values
 export type AppRoute = typeof ROUTES[keyof typeof ROUTES] | 
-  typeof ROUTES.DASHBOARD[keyof typeof ROUTES.DASHBOARD];
+  typeof ROUTES.AUTHENTICATED[keyof typeof ROUTES.AUTHENTICATED];
 

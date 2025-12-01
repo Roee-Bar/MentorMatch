@@ -1,6 +1,6 @@
 'use client';
 
-// app/dashboard/supervisor/applications/page.tsx
+// app/authenticated/supervisor/applications/page.tsx
 // Supervisor Applications View - Read-only view with filtering
 
 import { useEffect, useState } from 'react';
@@ -9,7 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
+import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, ApplicationStatus } from '@/types/database';
 
@@ -78,7 +78,7 @@ export default function SupervisorApplicationsPage() {
         <div className="error-content">
           <p className="error-text">Unable to load applications. Please try again later.</p>
           <button
-            onClick={() => router.push(ROUTES.DASHBOARD.SUPERVISOR)}
+            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)}
             className="btn-primary"
           >
             Back to Dashboard

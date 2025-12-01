@@ -6,11 +6,11 @@ import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { User } from 'firebase/auth';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 
-interface DashboardLayoutProps {
+interface AuthenticatedLayoutProps {
   children: ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);

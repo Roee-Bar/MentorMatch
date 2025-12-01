@@ -15,8 +15,21 @@ export default function Home() {
       if (user) {
         const profile = await getUserProfile(user.uid)
         if (profile.success) {
-          // Redirect authenticated users to dashboard
-          router.replace('/dashboard')
+          // Redirect authenticated users directly to their role-specific page
+          const role = profile.data?.role
+          switch (role) {
+            case 'student':
+              router.replace('/authenticated/student')
+              break
+            case 'supervisor':
+              router.replace('/authenticated/supervisor')
+              break
+            case 'admin':
+              router.replace('/authenticated/admin')
+              break
+            default:
+              setLoading(false)
+          }
           return
         }
       }

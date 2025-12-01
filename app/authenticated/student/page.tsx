@@ -1,20 +1,20 @@
 'use client';
 
-// app/dashboard/student/page.tsx
-// Updated Student Dashboard - Uses real Firebase data
+// app/authenticated/student/page.tsx
+// Updated Student Authenticated - Uses real Firebase data
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import StatCard from '@/app/components/dashboard/StatCard';
-import ApplicationCard from '@/app/components/dashboard/ApplicationCard';
-import SupervisorCard from '@/app/components/dashboard/SupervisorCard';
+import StatCard from '@/app/components/authenticated/StatCard';
+import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
+import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { ApplicationCardData, SupervisorCardData } from '@/types/database';
 
-export default function StudentDashboard() {
+export default function StudentAuthenticated() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -35,11 +35,11 @@ export default function StudentDashboard() {
       // Get user profile to verify they're a student
       const profile = await getUserProfile(user.uid);
       if (!profile.success || profile.data?.role !== 'student') {
-        // Redirect non-students to appropriate dashboard
+        // Redirect non-students to appropriate authenticated page
         if (profile.data?.role === 'supervisor') {
-          router.replace('/dashboard/supervisor');
+          router.replace('/authenticated/supervisor');
         } else if (profile.data?.role === 'admin') {
-          router.replace('/dashboard/admin');
+          router.replace('/authenticated/admin');
         } else {
           router.replace('/');
         }

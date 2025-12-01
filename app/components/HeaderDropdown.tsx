@@ -35,7 +35,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
       </div>
       
       <Link
-        href={userProfile.role === 'supervisor' ? '/dashboard/supervisor/profile' : '/profile'}
+        href={userProfile.role === 'supervisor' ? '/authenticated/supervisor/profile' : '/profile'}
         onClick={onClose}
         className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
         role="menuitem"

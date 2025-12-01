@@ -185,10 +185,9 @@ export default function RegisterPage() {
 
       setMessage('Registration successful! Redirecting to dashboard...')
       
-      // Redirect to dashboard after successful registration
-      // Auto-login happens via auth state change, but we'll redirect anyway
+      // Redirect to home - auth state will redirect to appropriate authenticated page
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push('/')
       }, 1500)
     } catch (error: any) {
       console.error('Registration error:', error)

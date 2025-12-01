@@ -21,7 +21,7 @@ export default function LoginPage() {
       const result = await signIn(email, password)
       if (result.success) {
         setMessage('Login successful!')
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setMessage(`${result.error}`)
       }
