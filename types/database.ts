@@ -5,14 +5,26 @@
 // BASE USER TYPE (stored in 'users' collection)
 // ============================================
 export interface BaseUser {
-  
+  id: string; // Firestore document ID
   email: string;
   name: string;
   role: 'student' | 'supervisor' | 'admin';
-  photoURL?: string;
   department?: string;
   createdAt: Date;
   updatedAt?: Date;
+}
+
+// ============================================
+// SESSION/AUTH USER TYPE (for application use)
+// ============================================
+export type UserRole = 'student' | 'supervisor' | 'admin';
+
+// Session/Auth user type - extends database BaseUser with session-specific fields
+export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
+  // Optional role-specific preview fields for UI
+  studentId?: string;
+  degree?: string;
+  expertise?: string[];
 }
 
 // ============================================
@@ -28,8 +40,6 @@ export interface Student {
   studentId: string;
   phone: string;
   department: string;
-  academicYear: '3rd Year' | '4th Year' | 'Graduate';
-  photoURL?: string;
   
   // Academic Information
   skills: string; // Comma-separated skills
@@ -67,7 +77,6 @@ export interface Supervisor {
   phone?: string;
   department: string;
   title: string; // Dr., Prof., etc.
-  photoURL?: string;
   
   // Professional Information
   bio: string;
@@ -109,7 +118,6 @@ export interface Admin {
   email: string;
   phone?: string;
   department: string;
-  photoURL?: string;
   
   // Admin Role
   adminRole: 'project_coordinator' | 'department_secretary' | 'system_admin';

@@ -1,38 +1,15 @@
 // auth.ts
-// This file has all the functions for user authentication (signup, login, logout)
+// This file has all the functions for user authentication (login, logout)
+// Registration is now handled by the /api/auth/register endpoint
 
 import { 
-  createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from './firebase';
-
-// Sign up a new user
-export const signUp = async (email: string, password: string, userData: any) => {
-  try {
-    // Create account in Firebase Authentication
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    // Save user info to Firestore database
-    await setDoc(doc(db, 'users', user.uid), {
-      userId: user.uid,
-      email: email,
-      name: userData.name,
-      role: userData.role,
-      department: userData.department || '',
-      createdAt: new Date(),
-    });
-
-    return { success: true, user };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-};
+import { auth } from './firebase';
+import { apiFetch } from './api/client';
 
 // Sign in existing user
 export const signIn = async (email: string, password: string) => {
@@ -54,14 +31,11 @@ export const signOut = async () => {
   }
 };
 
-// Get user profile from database
-export const getUserProfile = async (uid: string) => {
+// Get user profile from API (no longer reads directly from Firestore)
+export const getUserProfile = async (uid: string, token: string) => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-      return { success: true, data: userDoc.data() };
-    }
-    return { success: false, error: 'User not found' };
+    const response = await apiFetch(`/users/${uid}`, { token });
+    return response;
   } catch (error: any) {
     return { success: false, error: error.message };
   }

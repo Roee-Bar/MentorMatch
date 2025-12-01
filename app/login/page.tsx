@@ -4,6 +4,9 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signIn } from '@/lib/auth'
+import FormInput from '@/app/components/form/FormInput'
+import BackButton from '@/app/components/layout/BackButton'
+import StatusMessage from '@/app/components/feedback/StatusMessage'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -21,7 +24,7 @@ export default function LoginPage() {
       const result = await signIn(email, password)
       if (result.success) {
         setMessage('Login successful!')
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setMessage(`${result.error}`)
       }
@@ -34,12 +37,7 @@ export default function LoginPage() {
 
   return (
     <div className="py-10 px-5 max-w-md mx-auto">
-      <Link
-        href="/"
-        className="bg-transparent border-none text-blue-600 cursor-pointer text-sm mb-8 flex items-center gap-1 p-1 hover:underline"
-      >
-        ← Back to Home
-      </Link>
+      <BackButton href="/" />
 
       <div className="bg-white p-10 rounded-xl border border-gray-200 shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
         <h1 className="text-gray-800 mb-2.5 text-2xl-custom font-bold">
@@ -50,36 +48,28 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleLogin} noValidate>
-          <div className="mb-5">
-            <label htmlFor="email" className="label-base">
-              Email Address
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@braude.ac.il"
-              className="input-base"
-            />
-          </div>
+          <FormInput
+            label="Email Address"
+            type="email"
+            name="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            placeholder="you@braude.ac.il"
+            className="mb-5"
+          />
 
-          <div className="mb-6">
-            <label htmlFor="password" className="label-base">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              placeholder="Enter your password"
-              className="input-base"
-            />
-          </div>
+          <FormInput
+            label="Password"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            placeholder="Enter your password"
+            className="mb-6"
+          />
 
           <button
             type="submit"
@@ -90,13 +80,10 @@ export default function LoginPage() {
           </button>
 
           {message && (
-            <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${
-              message.includes('successful') 
-                ? 'badge-success' 
-                : 'badge-danger'
-            }`}>
-              {message}
-            </div>
+            <StatusMessage
+              message={message}
+              type={message.includes('successful') ? 'success' : 'error'}
+            />
           )}
         </form>
 

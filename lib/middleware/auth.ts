@@ -6,7 +6,7 @@
 
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
-import { getUserProfile } from '@/lib/auth';
+import { AdminUserService } from '@/lib/services/admin-services';
 
 export interface AuthResult {
   authenticated: boolean;
@@ -15,16 +15,6 @@ export interface AuthResult {
     email: string | undefined;
     role: string;
   } | null;
-}
-
-export interface RoleAuthResult {
-  authorized: boolean;
-  user?: {
-    uid: string;
-    email: string | undefined;
-    role: string;
-  };
-  error?: string;
 }
 
 /**
@@ -43,10 +33,10 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // Verify Firebase token using Admin SDK
     const decodedToken = await adminAuth.verifyIdToken(token);
     
-    // Get user profile from Firestore
-    const profile = await getUserProfile(decodedToken.uid);
+    // Get user profile from Firestore using Admin SDK (bypasses security rules)
+    const profile = await AdminUserService.getUserById(decodedToken.uid);
     
-    if (!profile.success || !profile.data) {
+    if (!profile) {
       return { authenticated: false, user: null };
     }
 
@@ -55,7 +45,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       user: {
         uid: decodedToken.uid,
         email: decodedToken.email,
-        role: profile.data.role,
+        role: profile.role,
       },
     };
   } catch (error) {
@@ -64,21 +54,3 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
   }
 }
 
-/**
- * Create a middleware function that requires specific roles
- */
-export function requireRole(allowedRoles: string[]) {
-  return async (request: NextRequest): Promise<RoleAuthResult> => {
-    const authResult = await verifyAuth(request);
-    
-    if (!authResult.authenticated) {
-      return { authorized: false, error: 'Unauthorized' };
-    }
-    
-    if (!authResult.user || !allowedRoles.includes(authResult.user.role)) {
-      return { authorized: false, error: 'Forbidden' };
-    }
-    
-    return { authorized: true, user: authResult.user };
-  };
-}

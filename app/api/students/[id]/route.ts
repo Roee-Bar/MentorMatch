@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { StudentService } from '@/lib/services/firebase-services';
+import { AdminStudentService } from '@/lib/services/admin-services';
 import { verifyAuth } from '@/lib/middleware/auth';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const student = await StudentService.getStudentById(params.id);
+    const student = await AdminStudentService.getStudentById(params.id);
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const body = await request.json();
-    const success = await StudentService.updateStudent(params.id, body);
+    const success = await AdminStudentService.updateStudent(params.id, body);
 
     if (!success) {
       return NextResponse.json({ error: 'Failed to update student' }, { status: 500 });

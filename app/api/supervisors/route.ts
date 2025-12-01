@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { SupervisorService } from '@/lib/services/firebase-services';
+import { AdminSupervisorService } from '@/lib/services/admin-services';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { handleApiError } from '@/lib/middleware/errorHandler';
 
@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
     let supervisors;
     
     if (available) {
-      supervisors = await SupervisorService.getAvailableSupervisors();
+      supervisors = await AdminSupervisorService.getAvailableSupervisors();
     } else if (department) {
-      supervisors = await SupervisorService.getSupervisorsByDepartment(department);
+      supervisors = await AdminSupervisorService.getSupervisorsByDepartment(department);
     } else {
-      supervisors = await SupervisorService.getAllSupervisors();
+      supervisors = await AdminSupervisorService.getAllSupervisors();
     }
 
     return NextResponse.json({

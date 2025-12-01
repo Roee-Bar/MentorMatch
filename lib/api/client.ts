@@ -52,6 +52,17 @@ export async function apiFetch(
  */
 export const apiClient = {
   // ========================================
+  // Auth API
+  // ========================================
+  
+  registerUser: (userData: any) => {
+    return apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  },
+
+  // ========================================
   // Supervisors API
   // ========================================
   
@@ -130,6 +141,10 @@ export const apiClient = {
     return apiFetch(`/students/${id}`, { token });
   },
 
+  getStudentApplications: (id: string, token: string) => {
+    return apiFetch(`/students/${id}/applications`, { token });
+  },
+
   getUnmatchedStudents: (token: string) => {
     return apiFetch('/students/unmatched', { token });
   },
@@ -168,10 +183,6 @@ export const apiClient = {
   
   getAdminStats: (token: string) => {
     return apiFetch('/admin/stats', { token });
-  },
-
-  getAdminReports: (token: string) => {
-    return apiFetch('/admin/reports', { token });
   },
 
   // ========================================
