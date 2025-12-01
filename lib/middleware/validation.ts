@@ -75,7 +75,6 @@ export const registrationSchema = z.object({
   studentId: z.string().min(1, 'Student ID is required'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   department: z.string().min(1, 'Department is required'),
-  academicYear: z.enum(['3rd Year', '4th Year', 'Graduate']),
   
   // Academic information
   skills: z.string().optional(),
@@ -87,9 +86,6 @@ export const registrationSchema = z.object({
   hasPartner: z.boolean(),
   partnerName: z.string().optional(),
   partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
-  
-  // Photo data (base64 string)
-  photoBase64: z.string().optional(),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],

@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminAuth, adminDb, adminStorage } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { handleApiError } from '@/lib/middleware/errorHandler';
 
@@ -35,39 +35,6 @@ export async function POST(request: NextRequest) {
       emailVerified: false,
     });
 
-    let photoURL = '';
-
-    // Upload photo if provided (base64 to Firebase Storage)
-    if (data.photoBase64) {
-      try {
-        // Convert base64 to buffer
-        const base64Data = data.photoBase64.replace(/^data:image\/\w+;base64,/, '');
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        
-        // Determine file extension from base64 data
-        const matches = data.photoBase64.match(/^data:image\/(\w+);base64,/);
-        const fileExtension = matches ? matches[1] : 'jpg';
-        
-        // Upload to Firebase Storage
-        const bucket = adminStorage.bucket();
-        const fileName = `profile-photos/${userRecord.uid}.${fileExtension}`;
-        const file = bucket.file(fileName);
-        
-        await file.save(imageBuffer, {
-          metadata: {
-            contentType: `image/${fileExtension}`,
-          },
-          public: true,
-        });
-
-        // Get public URL
-        photoURL = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
-      } catch (photoError) {
-        console.error('Photo upload failed:', photoError);
-        // Continue without photo - don't fail registration
-      }
-    }
-
     // Create user document in 'users' collection
     await adminDb.collection('users').doc(userRecord.uid).set({
       userId: userRecord.uid,
@@ -75,7 +42,6 @@ export async function POST(request: NextRequest) {
       name: `${data.firstName} ${data.lastName}`,
       role: 'student',
       department: data.department,
-      photoURL: photoURL || '',
       createdAt: new Date(),
     });
 
@@ -89,8 +55,6 @@ export async function POST(request: NextRequest) {
       studentId: data.studentId,
       phone: data.phone,
       department: data.department,
-      academicYear: data.academicYear,
-      photoURL: photoURL || '',
       
       // Academic Information
       skills: data.skills || '',

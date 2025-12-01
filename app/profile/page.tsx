@@ -62,7 +62,6 @@ export default function ProfilePage() {
     name: currentUser.name,
     email: currentUser.email,
     role: currentUser.role,
-    profileImage: currentUser.photoURL || '/default-avatar.png',
     department: currentUser.department,
   };
 

@@ -9,7 +9,6 @@ export interface BaseUser {
   email: string;
   name: string;
   role: 'student' | 'supervisor' | 'admin';
-  photoURL?: string;
   department?: string;
   createdAt: Date;
   updatedAt?: Date;
@@ -22,7 +21,6 @@ export type UserRole = 'student' | 'supervisor' | 'admin';
 
 // Session/Auth user type - extends database BaseUser with session-specific fields
 export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
-  profileImage?: string; // Alias for photoURL for backward compatibility
   // Optional role-specific preview fields for UI
   studentId?: string;
   degree?: string;
@@ -42,8 +40,6 @@ export interface Student {
   studentId: string;
   phone: string;
   department: string;
-  academicYear: '3rd Year' | '4th Year' | 'Graduate';
-  photoURL?: string;
   
   // Academic Information
   skills: string; // Comma-separated skills
@@ -81,7 +77,6 @@ export interface Supervisor {
   phone?: string;
   department: string;
   title: string; // Dr., Prof., etc.
-  photoURL?: string;
   
   // Professional Information
   bio: string;
@@ -123,7 +118,6 @@ export interface Admin {
   email: string;
   phone?: string;
   department: string;
-  photoURL?: string;
   
   // Admin Role
   adminRole: 'project_coordinator' | 'department_secretary' | 'system_admin';

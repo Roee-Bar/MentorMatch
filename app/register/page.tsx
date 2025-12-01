@@ -4,14 +4,11 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api/client'
-import Image from 'next/image'
 
 export default function RegisterPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
-  const [photoPreview, setPhotoPreview] = useState<string>('')
 
   // All form data in one state
   const [formData, setFormData] = useState({
@@ -25,7 +22,6 @@ export default function RegisterPage() {
     studentId: '',
     phone: '',
     department: '',
-    academicYear: '',
     // Academic
     skills: '',
     interests: '',
@@ -44,62 +40,6 @@ export default function RegisterPage() {
     setFormData({
       ...formData,
       [name]: value
-    })
-  }
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setMessage('Please select an image file (JPG, PNG, WebP)')
-        return
-      }
-
-      // Validate file size (2MB max)
-      if (file.size > 2 * 1024 * 1024) {
-        setMessage('Image size must be less than 2MB')
-        return
-      }
-
-      setPhotoFile(file)
-      
-      // Create preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-      setMessage('')
-    }
-  }
-
-  const removePhoto = () => {
-    setPhotoFile(null)
-    setPhotoPreview('')
-  }
-
-  const uploadPhoto = async (userId: string): Promise<string> => {
-    if (!photoFile) return ''
-
-    try {
-      // This function is no longer used - photo upload is handled by the backend
-      // Keeping for compatibility but it will not be called
-      return ''
-    } catch (error) {
-      console.error('Photo upload error:', error)
-      throw error
-    }
-  }
-
-  // Convert file to base64
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(file)
     })
   }
 
@@ -122,20 +62,10 @@ export default function RegisterPage() {
     }
 
     try {
-      // Convert photo to base64 if provided
-      let photoBase64 = ''
-      if (photoFile) {
-        setMessage('Preparing photo...')
-        photoBase64 = await fileToBase64(photoFile)
-      }
-
       setMessage('Creating your account...')
 
       // Call backend registration API
-      const response = await apiClient.registerUser({
-        ...formData,
-        photoBase64,
-      })
+      const response = await apiClient.registerUser(formData)
 
       if (response.success) {
         setMessage('Registration successful! Redirecting to login...')
@@ -151,13 +81,6 @@ export default function RegisterPage() {
       setMessage(error.message || 'Registration failed. Please try again.')
       setLoading(false)
     }
-  }
-
-  const getInitials = () => {
-    if (formData.firstName && formData.lastName) {
-      return `${formData.firstName[0]}${formData.lastName[0]}`.toUpperCase()
-    }
-    return ''
   }
 
   return (
@@ -311,44 +234,25 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <label className="label-base">
-                Department *
-              </label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                required
-                className="input-base"
-              >
-                <option value="">Select Department</option>
-                <option value="Computer Science">Computer Science</option>
-                <option value="Software Engineering">Software Engineering</option>
-                <option value="Electrical Engineering">Electrical Engineering</option>
-                <option value="Mechanical Engineering">Mechanical Engineering</option>
-                <option value="Industrial Engineering">Industrial Engineering</option>
-                <option value="Biotechnology">Biotechnology</option>
-              </select>
-            </div>
-            <div>
-              <label className="label-base">
-                Academic Year *
-              </label>
-              <select
-                name="academicYear"
-                value={formData.academicYear}
-                onChange={handleChange}
-                required
-                className="input-base"
-              >
-                <option value="">Select Year</option>
-                <option value="3rd Year">3rd Year</option>
-                <option value="4th Year">4th Year</option>
-                <option value="Graduate">Graduate</option>
-              </select>
-            </div>
+          <div className="mb-5">
+            <label className="label-base">
+              Department *
+            </label>
+            <select
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              required
+              className="input-base"
+            >
+              <option value="">Select Department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Electrical Engineering">Electrical Engineering</option>
+              <option value="Mechanical Engineering">Mechanical Engineering</option>
+              <option value="Industrial Engineering">Industrial Engineering</option>
+              <option value="Biotechnology">Biotechnology</option>
+            </select>
           </div>
         </div>
 
@@ -473,60 +377,6 @@ export default function RegisterPage() {
           )}
         </div>
 
-        {/* Profile Photo Section */}
-        <div className="mb-8">
-          <h2 className="text-gray-800 mb-5 text-xl font-semibold border-b-2 border-blue-600 pb-2.5">
-            Profile Photo (Optional)
-          </h2>
-
-          <div className="flex items-start gap-6">
-            {/* Photo Preview */}
-            <div className="flex-shrink-0">
-              {photoPreview ? (
-                <div className="relative">
-                  <Image
-                    src={photoPreview}
-                    alt="Profile preview"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-blue-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={removePhoto}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white hover:bg-red-600 transition-colors cursor-pointer"
-                  >
-                    X
-                  </button>
-                </div>
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-blue-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-blue-200">
-                  {getInitials() || '?'}
-                </div>
-              )}
-            </div>
-
-            {/* Upload Section */}
-            <div className="flex-1">
-              <label className="label-base">
-                Upload Your Photo
-              </label>
-              <p className="text-xs text-gray-500 mb-3">
-                Choose a professional photo. Max size: 2MB. Formats: JPG, PNG, WebP
-              </p>
-              
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={handlePhotoChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-              />
-              
-              <p className="text-xs text-gray-400 mt-2">
-                Tip: If you dont upload a photo, well use your initials ({getInitials() || 'XX'})
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Submit Button */}
         <button
           type="submit"
@@ -541,8 +391,6 @@ export default function RegisterPage() {
           <div className={`mt-5 ${
             message.includes('successful') 
               ? 'badge-success' 
-              : message.includes('Uploading')
-              ? 'badge-info'
               : 'badge-danger'
           }`}>
             {message}
