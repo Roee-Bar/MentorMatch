@@ -13,9 +13,6 @@ MentorMatch streamlines the process of connecting students with appropriate proj
 - Tailwind CSS
 - Firebase (Authentication, Firestore, Storage)
 - Firebase Admin SDK
-- Jest + React Testing Library
-- Playwright (E2E testing)
-- GitHub Actions (CI/CD)
 - Vercel (Deployment)
 
 ## Quick Start
@@ -38,7 +35,6 @@ npm install
 
 # Configure environment variables
 # Create .env.local with Firebase credentials
-# See docs/SETUP.md for details
 
 # Run development server
 npm run dev
@@ -76,11 +72,6 @@ npm run dev          # Start dev server
 npm run build        # Production build
 npm start            # Start production server
 
-# Testing
-npm test             # Unit + integration tests
-npm run test:e2e     # End-to-end tests
-npm run test:coverage # Coverage report
-
 # Code Quality
 npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
@@ -99,41 +90,8 @@ npm run typecheck    # TypeScript errors
 │   ├── services/         # Firebase services
 │   └── hooks/            # React hooks
 ├── types/                # TypeScript types
-├── docs/                 # Documentation
-├── e2e/                  # E2E tests
 └── scripts/              # Utility scripts
 ```
-
-## Documentation
-
-Comprehensive docs available in `/docs`:
-
-- **[docs/SETUP.md](docs/SETUP.md)** - Complete setup guide
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design
-- **[docs/API-REFERENCE.md](docs/API-REFERENCE.md)** - API documentation
-- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development guidelines
-- **[docs/getting-started/development-process.md](docs/getting-started/development-process.md)** - Project timeline
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Watch mode
-npm run test:watch
-
-# E2E tests
-npm run test:e2e
-
-# With UI
-npm run test:e2e:ui
-```
-
-**Test Coverage**: 329+ tests (100% passing)
-- 111 backend tests
-- 218+ frontend/component tests
-- E2E coverage for all user flows
 
 ## Deployment
 
@@ -151,8 +109,6 @@ FIREBASE_ADMIN_PROJECT_ID=...
 FIREBASE_ADMIN_CLIENT_EMAIL=...
 FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
-
-See [docs/SETUP.md](docs/SETUP.md#deployment) for detailed instructions.
 
 ## Security
 
