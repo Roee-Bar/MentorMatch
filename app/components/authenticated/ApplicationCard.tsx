@@ -76,7 +76,7 @@ export default function ApplicationCard({ application, onWithdraw }: Application
       )}
 
       {/* Action Buttons based on status */}
-      <div className="mt-4 pt-4 border-t flex gap-2">
+      <div className="mt-4 pt-4 border-t flex-gap-2">
         {application.status === 'pending' && (
           <button 
             className="btn-danger flex-1"

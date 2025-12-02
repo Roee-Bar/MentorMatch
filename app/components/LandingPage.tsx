@@ -14,7 +14,7 @@ export default function LandingPage() {
             Connect with experienced supervisors, browse project topics, and streamline your capstone project matching process.
           </p>
 
-          <div className="flex gap-4 justify-center flex-wrap">
+          <div className="action-buttons-center flex-wrap">
             <Link
               href="/register"
               className="btn-primary px-9 py-4 shadow-button hover:shadow-button-hover hover:-translate-y-0.5"

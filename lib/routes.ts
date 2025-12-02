@@ -6,9 +6,12 @@ export const ROUTES = {
   LOGIN: '/login',
   AUTHENTICATED: {
     STUDENT: '/authenticated/student',
+    STUDENT_PROFILE: '/authenticated/student/profile',
+    STUDENT_PROFILE_EDIT: '/authenticated/student/profile/edit',
     SUPERVISOR: '/authenticated/supervisor',
     SUPERVISOR_APPLICATIONS: '/authenticated/supervisor/applications',
     SUPERVISOR_PROFILE: '/authenticated/supervisor/profile',
+    SUPERVISOR_PROFILE_EDIT: '/authenticated/supervisor/profile/edit',
     ADMIN: '/authenticated/admin',
   },
 } as const;

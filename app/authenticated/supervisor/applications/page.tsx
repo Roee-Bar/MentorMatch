@@ -93,7 +93,7 @@ export default function SupervisorApplicationsPage() {
       <div className="page-content">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Applications</h1>
+          <h1 className="page-title">Applications</h1>
           <p className="text-gray-600">
             Review and manage student project applications
           </p>

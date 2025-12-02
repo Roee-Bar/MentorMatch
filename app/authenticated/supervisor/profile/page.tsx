@@ -79,11 +79,19 @@ export default function SupervisorProfilePage() {
     <div className="page-container">
       <div className="page-content-narrow">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Profile</h1>
-          <p className="text-gray-600">
-            View your profile information and supervision capacity
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="page-title">Profile</h1>
+            <p className="text-gray-600">
+              View your profile information and supervision capacity
+            </p>
+          </div>
+          <button
+            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_PROFILE_EDIT)}
+            className="btn-primary"
+          >
+            Edit Profile
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

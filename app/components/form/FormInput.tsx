@@ -12,6 +12,8 @@ interface FormInputProps {
   helperText?: string;
   minLength?: number;
   maxLength?: number;
+  min?: number;
+  max?: number;
   pattern?: string;
   disabled?: boolean;
   className?: string;
@@ -29,6 +31,8 @@ const FormInput: React.FC<FormInputProps> = ({
   helperText,
   minLength,
   maxLength,
+  min,
+  max,
   pattern,
   disabled = false,
   className = '',
@@ -50,12 +54,14 @@ const FormInput: React.FC<FormInputProps> = ({
         placeholder={placeholder}
         minLength={minLength}
         maxLength={maxLength}
+        min={min}
+        max={max}
         pattern={pattern}
         disabled={disabled}
         className="input-base"
       />
       {helperText && (
-        <small className="text-gray-500 text-xs mt-1 block">{helperText}</small>
+        <small className="helper-text">{helperText}</small>
       )}
     </div>
   );

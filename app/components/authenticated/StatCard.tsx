@@ -22,7 +22,7 @@ export default function StatCard({
 
   return (
     <div className="card-base">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex-between mb-2">
         <h3 className="text-sm font-semibold text-gray-500">{title}</h3>
         {icon && <div className="text-gray-400">{icon}</div>}
       </div>

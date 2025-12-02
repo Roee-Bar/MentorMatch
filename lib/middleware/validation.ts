@@ -30,6 +30,28 @@ export async function validateRequest<T>(
 }
 
 /**
+ * Validate parsed body directly against a Zod schema
+ * Use this when body is already parsed to avoid redundant request recreation
+ */
+export function validateBody<T>(
+  body: any,
+  schema: z.ZodSchema<T>
+): { valid: boolean; data?: T; error?: string } {
+  try {
+    const validatedData = schema.parse(body);
+    return { valid: true, data: validatedData };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        valid: false,
+        error: error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', '),
+      };
+    }
+    return { valid: false, error: 'Invalid request data' };
+  }
+}
+
+/**
  * Schema for creating a new application
  */
 export const createApplicationSchema = z.object({
@@ -121,9 +143,16 @@ export const updateStudentSchema = z.object({
   interests: z.string().max(500, 'Interests must be at most 500 characters').optional(),
   previousProjects: z.string().max(1000, 'Previous projects must be at most 1000 characters').optional(),
   preferredTopics: z.string().max(500, 'Preferred topics must be at most 500 characters').optional(),
+  
+  // New partnership fields
+  partnerId: z.string().optional(),
+  partnershipStatus: z.enum(['none', 'pending_sent', 'pending_received', 'paired']).optional(),
+  
+  // Deprecated partnership fields
   hasPartner: z.boolean().optional(),
   partnerName: z.string().max(100, 'Partner name too long').optional(),
   partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
+  
   matchedSupervisorId: z.string().optional(),
   matchedProjectId: z.string().optional(),
 }).strict();
@@ -136,12 +165,26 @@ export const updateSupervisorSchema = z.object({
   email: z.string().email('Invalid email format').optional(),
   phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
   department: z.string().min(1, 'Department is required').optional(),
-  academicRank: z.string().max(100, 'Academic rank too long').optional(),
-  researchAreas: z.string().max(500, 'Research areas must be at most 500 characters').optional(),
-  maxCapacity: z.number().int().min(0, 'Max capacity must be non-negative').max(20, 'Max capacity too high').optional(),
-  currentCapacity: z.number().int().min(0, 'Current capacity must be non-negative').optional(),
+  bio: z.string().max(2000, 'Bio must be at most 2000 characters').optional(),
+  researchInterests: z.array(z.string()).optional(),
+  expertiseAreas: z.array(z.string()).optional(),
   officeLocation: z.string().max(100, 'Office location too long').optional(),
   officeHours: z.string().max(200, 'Office hours too long').optional(),
-  bio: z.string().max(2000, 'Bio must be at most 2000 characters').optional(),
-  isAvailable: z.boolean().optional(),
+  maxCapacity: z.number().int().min(0, 'Max capacity must be non-negative').max(20, 'Max capacity too high').optional(),
+  currentCapacity: z.number().int().min(0, 'Current capacity must be non-negative').optional(),
+  availabilityStatus: z.enum(['available', 'limited', 'unavailable']).optional(),
+}).strict();
+
+/**
+ * Schema for creating partnership request
+ */
+export const partnershipRequestSchema = z.object({
+  targetStudentId: z.string().min(1, 'Target student ID is required'),
+}).strict();
+
+/**
+ * Schema for responding to partnership request
+ */
+export const partnershipResponseSchema = z.object({
+  action: z.enum(['accept', 'reject']),
 }).strict();

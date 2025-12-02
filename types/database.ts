@@ -47,7 +47,11 @@ export interface Student {
   previousProjects?: string;
   preferredTopics?: string;
   
-  // Partner Information
+  // Partner Information - NEW PARTNERSHIP SYSTEM
+  partnerId?: string;  // Firebase UID of matched partner
+  partnershipStatus: 'none' | 'pending_sent' | 'pending_received' | 'paired';
+  
+  // DEPRECATED - Keep for migration reference only
   hasPartner: boolean;
   partnerName?: string;
   partnerEmail?: string;
@@ -262,4 +266,40 @@ export interface DashboardStats {
   matchedStudents: number;
   pendingMatches: number;
   activeSupervisors: number;
+}
+
+// ============================================
+// STUDENT PARTNERSHIP TYPES
+// ============================================
+
+// Partnership Request Type (stored in 'partnership_requests' collection)
+export interface StudentPartnershipRequest {
+  id: string;
+  requesterId: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterStudentId: string;
+  requesterDepartment: string;
+  targetStudentId: string;
+  targetStudentName: string;
+  targetStudentEmail: string;
+  targetDepartment: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
+// Student Card Data for UI
+export interface StudentCardData {
+  id: string;
+  fullName: string;
+  studentId: string;
+  department: string;
+  email: string;
+  skills: string;
+  interests: string;
+  preferredTopics?: string;
+  previousProjects?: string;
+  partnershipStatus: 'none' | 'pending_sent' | 'pending_received' | 'paired';
+  partnerId?: string;
 }

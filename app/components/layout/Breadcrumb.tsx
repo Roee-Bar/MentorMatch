@@ -17,7 +17,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 }) => {
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${className}`}>
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex-gap-2 text-sm text-gray-600">
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (

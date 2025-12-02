@@ -15,17 +15,24 @@ const StatusMessage: React.FC<StatusMessageProps> = ({
   className = '',
   onClose,
 }) => {
-  const typeStyles = {
-    success: 'badge-success',
-    error: 'badge-danger',
-    warning: 'badge-warning',
-    info: 'badge-info',
+  const boxStyles = {
+    success: 'message-box-success',
+    error: 'message-box-error',
+    warning: 'message-box-warning',
+    info: 'message-box-info',
+  };
+
+  const textStyles = {
+    success: 'message-text-success',
+    error: 'message-text-error',
+    warning: 'message-text-warning',
+    info: 'message-text-info',
   };
 
   return (
-    <div className={`mt-5 p-3 rounded-lg text-center text-sm font-bold ${typeStyles[type]} ${className}`}>
-      <div className="flex items-center justify-center gap-2">
-        <span>{message}</span>
+    <div className={`${boxStyles[type]} ${className}`}>
+      <div className="flex-center-gap-2">
+        <span className={textStyles[type]}>{message}</span>
         {onClose && (
           <button
             onClick={onClose}

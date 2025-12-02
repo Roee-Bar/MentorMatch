@@ -158,6 +158,52 @@ export const apiClient = {
   },
 
   // ========================================
+  // Student Partnerships API
+  // ========================================
+  
+  getAvailablePartners: (token: string) => {
+    return apiFetch('/students/available-partners', { token });
+  },
+
+  createPartnershipRequest: (data: { targetStudentId: string }, token: string) => {
+    return apiFetch('/partnerships/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  getPartnershipRequests: (studentId: string, type: string, token: string) => {
+    return apiFetch(`/students/${studentId}/partnership-requests?type=${type}`, { token });
+  },
+
+  respondToPartnershipRequest: (requestId: string, action: string, token: string) => {
+    return apiFetch(`/partnerships/${requestId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+      token,
+    });
+  },
+
+  cancelPartnershipRequest: (requestId: string, token: string) => {
+    return apiFetch(`/partnerships/${requestId}`, {
+      method: 'DELETE',
+      token,
+    });
+  },
+
+  unpairFromPartner: (token: string) => {
+    return apiFetch('/partnerships/unpair', {
+      method: 'POST',
+      token,
+    });
+  },
+
+  getPartnerDetails: (partnerId: string, token: string) => {
+    return apiFetch(`/students/${partnerId}`, { token });
+  },
+
+  // ========================================
   // Projects API
   // ========================================
   

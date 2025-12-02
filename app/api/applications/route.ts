@@ -29,6 +29,24 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
     return ApiResponse.notFound('Student or supervisor');
   }
 
+  // Check if student has a partner and get partner details
+  let partnerInfo = {
+    hasPartner: false,
+    partnerName: '',
+    partnerEmail: ''
+  };
+
+  if (student.partnerId) {
+    const partner = await AdminStudentService.getStudentById(student.partnerId);
+    if (partner) {
+      partnerInfo = {
+        hasPartner: true,
+        partnerName: partner.fullName,
+        partnerEmail: partner.email
+      };
+    }
+  }
+
   // Create application with complete data
   const applicationData = {
     ...validation.data,
@@ -38,6 +56,7 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
     supervisorName: supervisor.fullName,
     studentSkills: student.skills || '',
     studentInterests: student.interests || '',
+    ...partnerInfo,
     isOwnTopic: true,
     status: 'pending' as const,
   };

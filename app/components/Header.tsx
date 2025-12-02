@@ -51,9 +51,9 @@ export default function Header() {
 
   return (
     <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-[1000]">
-      <nav className="max-w-container mx-auto flex items-center justify-between" role="navigation" aria-label="Main navigation">
+      <nav className="max-w-container mx-auto flex-between" role="navigation" aria-label="Main navigation">
         {/* Logo Section */}
-        <Link href="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
+        <Link href="/" className="flex-gap-4 hover:opacity-90 transition-opacity">
           <span className="text-xl-custom">INSERT IMAGE HERE</span>
           <div>
             <h1 className="m-0 text-2xl font-bold">MentorMatch</h1>
@@ -66,7 +66,7 @@ export default function Header() {
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-full py-2 px-4 transition-colors cursor-pointer border-none"
+              className="flex-gap-3 bg-white/10 hover:bg-white/20 rounded-full py-2 px-4 transition-colors cursor-pointer border-none"
               aria-label="User menu"
               aria-expanded={showDropdown}
               aria-haspopup="true"
@@ -81,7 +81,7 @@ export default function Header() {
                   className="w-10 h-10 rounded-full object-cover border-2 border-white"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-bold text-sm border-2 border-white">
+                <div className="w-10 h-10 rounded-full bg-blue-800 flex-center text-white font-bold text-sm border-2 border-white">
                   {getInitials(userProfile.name)}
                 </div>
               )}

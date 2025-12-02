@@ -45,7 +45,7 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
   
   return (
     <div className="card-base">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Capacity Status</h3>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor()}`}>
           {statusText}
@@ -54,7 +54,7 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
       
       <div className="space-y-3">
         {/* Capacity numbers */}
-        <div className="flex items-center justify-between">
+        <div className="flex-between">
           <span className="text-2xl font-bold text-gray-800">
             {current} / {max}
           </span>

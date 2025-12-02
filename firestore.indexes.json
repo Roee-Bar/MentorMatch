@@ -23,6 +23,29 @@
         { "fieldPath": "supervisorId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "requesterId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "targetStudentId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "students",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "partnershipStatus", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
