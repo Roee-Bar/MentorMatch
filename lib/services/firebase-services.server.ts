@@ -3,20 +3,7 @@
 // DO NOT import this file in any client-side components or pages
 // Firebase services for backend data operations
 
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  Timestamp,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase-admin';
 import type {
   BaseUser,
   Student,
@@ -36,8 +23,8 @@ export const UserService = {
   // Get current user's full profile (from users collection)
   async getUserById(userId: string): Promise<BaseUser | null> {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
+      const userDoc = await adminDb.collection('users').doc(userId).get();
+      if (userDoc.exists) {
         return { ...userDoc.data() } as BaseUser;
       }
       return null;
@@ -50,7 +37,7 @@ export const UserService = {
   // Get all users
   async getAllUsers(): Promise<BaseUser[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'users'));
+      const querySnapshot = await adminDb.collection('users').get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -69,8 +56,8 @@ export const StudentService = {
   // Get student by ID
   async getStudentById(studentId: string): Promise<Student | null> {
     try {
-      const studentDoc = await getDoc(doc(db, 'students', studentId));
-      if (studentDoc.exists()) {
+      const studentDoc = await adminDb.collection('students').doc(studentId).get();
+      if (studentDoc.exists) {
         return { ...studentDoc.data() } as Student;
       }
       return null;
@@ -83,7 +70,7 @@ export const StudentService = {
   // Get all students
   async getAllStudents(): Promise<Student[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'students'));
+      const querySnapshot = await adminDb.collection('students').get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -97,11 +84,9 @@ export const StudentService = {
   // Get unmatched students
   async getUnmatchedStudents(): Promise<Student[]> {
     try {
-      const q = query(
-        collection(db, 'students'),
-        where('matchStatus', '==', 'unmatched')
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('students')
+        .where('matchStatus', '==', 'unmatched')
+        .get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -115,7 +100,7 @@ export const StudentService = {
   // Update student
   async updateStudent(studentId: string, data: Partial<Student>): Promise<boolean> {
     try {
-      await updateDoc(doc(db, 'students', studentId), {
+      await adminDb.collection('students').doc(studentId).update({
         ...data,
         updatedAt: new Date(),
       });
@@ -134,8 +119,8 @@ export const SupervisorService = {
   // Get supervisor by ID
   async getSupervisorById(supervisorId: string): Promise<Supervisor | null> {
     try {
-      const supervisorDoc = await getDoc(doc(db, 'supervisors', supervisorId));
-      if (supervisorDoc.exists()) {
+      const supervisorDoc = await adminDb.collection('supervisors').doc(supervisorId).get();
+      if (supervisorDoc.exists) {
         return { ...supervisorDoc.data() } as Supervisor;
       }
       return null;
@@ -148,7 +133,7 @@ export const SupervisorService = {
   // Get all supervisors
   async getAllSupervisors(): Promise<Supervisor[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'supervisors'));
+      const querySnapshot = await adminDb.collection('supervisors').get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -162,12 +147,10 @@ export const SupervisorService = {
   // Get available supervisors (with capacity)
   async getAvailableSupervisors(): Promise<SupervisorCardData[]> {
     try {
-      const q = query(
-        collection(db, 'supervisors'),
-        where('isActive', '==', true),
-        where('isApproved', '==', true)
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('supervisors')
+        .where('isActive', '==', true)
+        .where('isApproved', '==', true)
+        .get();
       
       return querySnapshot.docs
         .map((doc) => {
@@ -194,7 +177,7 @@ export const SupervisorService = {
   // Update supervisor
   async updateSupervisor(supervisorId: string, data: Partial<Supervisor>): Promise<boolean> {
     try {
-      await updateDoc(doc(db, 'supervisors', supervisorId), {
+      await adminDb.collection('supervisors').doc(supervisorId).update({
         ...data,
         updatedAt: new Date(),
       });
@@ -208,12 +191,10 @@ export const SupervisorService = {
   // Get supervisors by department
   async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
     try {
-      const q = query(
-        collection(db, 'supervisors'),
-        where('department', '==', department),
-        where('isActive', '==', true)
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('supervisors')
+        .where('department', '==', department)
+        .where('isActive', '==', true)
+        .get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -232,16 +213,16 @@ export const ApplicationService = {
   // Get application by ID
   async getApplicationById(applicationId: string): Promise<Application | null> {
     try {
-      const appDoc = await getDoc(doc(db, 'applications', applicationId));
-      if (appDoc.exists()) {
+      const appDoc = await adminDb.collection('applications').doc(applicationId).get();
+      if (appDoc.exists) {
         const data = appDoc.data();
         return {
           id: appDoc.id,
           ...data,
           // Convert Firestore Timestamps to JavaScript Dates
-          dateApplied: data.dateApplied?.toDate ? data.dateApplied.toDate() : data.dateApplied,
-          lastUpdated: data.lastUpdated?.toDate ? data.lastUpdated.toDate() : data.lastUpdated,
-          responseDate: data.responseDate?.toDate ? data.responseDate.toDate() : data.responseDate,
+          dateApplied: data?.dateApplied?.toDate ? data.dateApplied.toDate() : data?.dateApplied,
+          lastUpdated: data?.lastUpdated?.toDate ? data.lastUpdated.toDate() : data?.lastUpdated,
+          responseDate: data?.responseDate?.toDate ? data.responseDate.toDate() : data?.responseDate,
         } as Application;
       }
       return null;
@@ -254,11 +235,9 @@ export const ApplicationService = {
   // Get all applications for a student
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
-      const q = query(
-        collection(db, 'applications'),
-        where('studentId', '==', studentId)
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('applications')
+        .where('studentId', '==', studentId)
+        .get();
       
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
@@ -282,11 +261,9 @@ export const ApplicationService = {
   // Get all applications for a supervisor
   async getSupervisorApplications(supervisorId: string): Promise<Application[]> {
     try {
-      const q = query(
-        collection(db, 'applications'),
-        where('supervisorId', '==', supervisorId)
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('applications')
+        .where('supervisorId', '==', supervisorId)
+        .get();
       
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
@@ -308,12 +285,10 @@ export const ApplicationService = {
   // Get pending applications for a supervisor
   async getPendingApplications(supervisorId: string): Promise<Application[]> {
     try {
-      const q = query(
-        collection(db, 'applications'),
-        where('supervisorId', '==', supervisorId),
-        where('status', 'in', ['pending', 'under_review'])
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('applications')
+        .where('supervisorId', '==', supervisorId)
+        .where('status', 'in', ['pending', 'under_review'])
+        .get();
       
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
@@ -335,7 +310,7 @@ export const ApplicationService = {
   // Create new application
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<string | null> {
     try {
-      const docRef = await addDoc(collection(db, 'applications'), {
+      const docRef = await adminDb.collection('applications').add({
         ...applicationData,
         dateApplied: new Date(),
         lastUpdated: new Date(),
@@ -367,7 +342,7 @@ export const ApplicationService = {
         updateData.responseDate = new Date();
       }
 
-      await updateDoc(doc(db, 'applications', applicationId), updateData);
+      await adminDb.collection('applications').doc(applicationId).update(updateData);
       return true;
     } catch (error) {
       console.error('Error updating application:', error);
@@ -378,7 +353,7 @@ export const ApplicationService = {
   // Get all applications (for admin)
   async getAllApplications(): Promise<Application[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'applications'));
+      const querySnapshot = await adminDb.collection('applications').get();
       return querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -404,8 +379,8 @@ export const ProjectService = {
   // Get project by ID
   async getProjectById(projectId: string): Promise<Project | null> {
     try {
-      const projectDoc = await getDoc(doc(db, 'projects', projectId));
-      if (projectDoc.exists()) {
+      const projectDoc = await adminDb.collection('projects').doc(projectId).get();
+      if (projectDoc.exists) {
         return { ...projectDoc.data(), id: projectDoc.id } as Project;
       }
       return null;
@@ -418,7 +393,7 @@ export const ProjectService = {
   // Get all projects
   async getAllProjects(): Promise<Project[]> {
     try {
-      const querySnapshot = await getDocs(collection(db, 'projects'));
+      const querySnapshot = await adminDb.collection('projects').get();
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -432,11 +407,9 @@ export const ProjectService = {
   // Get projects for a supervisor
   async getSupervisorProjects(supervisorId: string): Promise<Project[]> {
     try {
-      const q = query(
-        collection(db, 'projects'),
-        where('supervisorId', '==', supervisorId)
-      );
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await adminDb.collection('projects')
+        .where('supervisorId', '==', supervisorId)
+        .get();
       
       return querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -451,7 +424,7 @@ export const ProjectService = {
   // Create new project
   async createProject(projectData: Omit<Project, 'id'>): Promise<string | null> {
     try {
-      const docRef = await addDoc(collection(db, 'projects'), {
+      const docRef = await adminDb.collection('projects').add({
         ...projectData,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -477,8 +450,8 @@ export const AdminService = {
   // Get admin by ID
   async getAdminById(adminId: string): Promise<Admin | null> {
     try {
-      const adminDoc = await getDoc(doc(db, 'admins', adminId));
-      if (adminDoc.exists()) {
+      const adminDoc = await adminDb.collection('admins').doc(adminId).get();
+      if (adminDoc.exists) {
         return { ...adminDoc.data() } as Admin;
       }
       return null;
@@ -492,8 +465,8 @@ export const AdminService = {
   async getDashboardStats(): Promise<DashboardStats> {
     try {
       const [studentsSnapshot, supervisorsSnapshot] = await Promise.all([
-        getDocs(collection(db, 'students')),
-        getDocs(query(collection(db, 'supervisors'), where('isActive', '==', true))),
+        adminDb.collection('students').get(),
+        adminDb.collection('supervisors').where('isActive', '==', true).get(),
       ]);
 
       const students = studentsSnapshot.docs.map((doc) => doc.data());

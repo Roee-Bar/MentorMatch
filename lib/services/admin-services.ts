@@ -341,6 +341,19 @@ export const AdminApplicationService = {
       return null;
     }
   },
+
+  /**
+   * Delete application using Admin SDK
+   */
+  async deleteApplication(applicationId: string): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).delete();
+      return true;
+    } catch (error) {
+      console.error('Admin: Error deleting application:', error);
+      return false;
+    }
+  },
 };
 
 
