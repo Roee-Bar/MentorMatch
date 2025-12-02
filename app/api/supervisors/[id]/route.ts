@@ -5,93 +5,44 @@
  * Get or update a specific supervisor
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { SupervisorService } from '@/lib/services/firebase-services.server';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { validateRequest, updateSupervisorSchema } from '@/lib/middleware/validation';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
-    const supervisor = await SupervisorService.getSupervisorById(params.id);
-    
-    if (!supervisor) {
-      return NextResponse.json(
-        { error: 'Supervisor not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: supervisor,
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in GET /api/supervisors/[id]:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+  const supervisor = await SupervisorService.getSupervisorById(params.id);
+  
+  if (!supervisor) {
+    return ApiResponse.notFound('Supervisor');
   }
-}
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
+  return ApiResponse.success(supervisor);
+});
 
-    // Check authorization: user must be owner or admin
-    const isOwner = authResult.user?.uid === params.id;
-    const isAdmin = authResult.user?.role === 'admin';
+export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
+  // Check authorization: user must be owner or admin
+  const isOwner = user.uid === params.id;
+  const isAdmin = user.role === 'admin';
 
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    const success = await SupervisorService.updateSupervisor(params.id, body);
-
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to update supervisor' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Supervisor updated successfully',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in PUT /api/supervisors/[id]:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+  if (!isOwner && !isAdmin) {
+    return ApiResponse.forbidden();
   }
-}
+
+  // Validate request body
+  const validation = await validateRequest(request, updateSupervisorSchema);
+  if (!validation.valid || !validation.data) {
+    return ApiResponse.validationError(validation.error || 'Invalid request data');
+  }
+
+  const success = await SupervisorService.updateSupervisor(params.id, validation.data);
+
+  if (!success) {
+    return ApiResponse.error('Failed to update supervisor', 500);
+  }
+
+  return ApiResponse.successMessage('Supervisor updated successfully');
+});
+
 

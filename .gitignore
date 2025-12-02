@@ -29,6 +29,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+TEST_DATA.md
 
 # local env files
 .env*.local

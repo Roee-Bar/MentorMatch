@@ -16,15 +16,18 @@ if (!admin.apps.length) {
 
     // Check if all required environment variables are present
     if (!projectId || !clientEmail || !privateKey) {
+      // Fail fast in production to prevent silent failures
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('CRITICAL: Missing Firebase Admin credentials in production');
+      }
+      
       console.warn(
         'Firebase Admin SDK: Missing environment variables. ' +
         'Server-side Firebase features will not be available.'
       );
       
-      // Initialize with minimal config for testing or development
-      // This prevents errors but limits functionality
-      // Also allows builds to succeed without credentials
-      if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'production') {
+      // Initialize with minimal config for testing or development only
+      if (process.env.NODE_ENV === 'test') {
         admin.initializeApp({
           projectId: projectId || 'placeholder-project',
         });
