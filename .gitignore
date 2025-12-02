@@ -6,14 +6,6 @@
 .pnp.js
 .yarn/install-state.gz
 
-# testing
-/coverage
-
-# Playwright
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
 # next.js
 /.next/
 /out/
@@ -27,6 +19,7 @@
 
 # cursor
 .cursor/rules/language.mdc
+.cursorrules.*
 
 # VSCode / Cursor workspace settings (local only)
 .vscode/settings.json
@@ -48,7 +41,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# test credentials
-TEST_ACCOUNTS.md
-MANUAL_TESTS.md
