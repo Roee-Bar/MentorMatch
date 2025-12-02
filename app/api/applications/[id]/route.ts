@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { AdminApplicationService } from '@/lib/services/admin-services';
 import { verifyAuth } from '@/lib/middleware/auth';
 
 export async function GET(
@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const application = await ApplicationService.getApplicationById(params.id);
+    const application = await AdminApplicationService.getApplicationById(params.id);
     
     if (!application) {
       return NextResponse.json(
@@ -69,7 +69,7 @@ export async function PUT(
       );
     }
 
-    const application = await ApplicationService.getApplicationById(params.id);
+    const application = await AdminApplicationService.getApplicationById(params.id);
     
     if (!application) {
       return NextResponse.json(
@@ -119,7 +119,7 @@ export async function DELETE(
       );
     }
 
-    const application = await ApplicationService.getApplicationById(params.id);
+    const application = await AdminApplicationService.getApplicationById(params.id);
     
     if (!application) {
       return NextResponse.json(
@@ -139,8 +139,15 @@ export async function DELETE(
       );
     }
 
-    // Note: In a real implementation, you'd have a deleteApplication method
-    
+    const success = await AdminApplicationService.deleteApplication(params.id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Failed to delete application' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Application deleted successfully',

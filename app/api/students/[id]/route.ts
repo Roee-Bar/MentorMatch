@@ -3,64 +3,50 @@
  * PUT /api/students/[id] - Update student
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AdminStudentService } from '@/lib/services/admin-services';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { validateRequest, updateStudentSchema } from '@/lib/middleware/validation';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+  // Owner, supervisor, or admin can view
+  const isOwner = user.uid === params.id;
+  const isSupervisorOrAdmin = ['supervisor', 'admin'].includes(user.role);
 
-    // Owner, supervisor, or admin can view
-    const isOwner = authResult.user?.uid === params.id;
-    const isSupervisorOrAdmin = ['supervisor', 'admin'].includes(authResult.user?.role || '');
-
-    if (!isOwner && !isSupervisorOrAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const student = await AdminStudentService.getStudentById(params.id);
-    if (!student) {
-      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, data: student }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in GET /api/students/[id]:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+  if (!isOwner && !isSupervisorOrAdmin) {
+    return ApiResponse.forbidden();
   }
-}
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const isOwner = authResult.user?.uid === params.id;
-    const isAdmin = authResult.user?.role === 'admin';
-
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-
-    const body = await request.json();
-    const success = await AdminStudentService.updateStudent(params.id, body);
-
-    if (!success) {
-      return NextResponse.json({ error: 'Failed to update student' }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true, message: 'Student updated successfully' }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in PUT /api/students/[id]:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+  const student = await AdminStudentService.getStudentById(params.id);
+  if (!student) {
+    return ApiResponse.notFound('Student');
   }
-}
+
+  return ApiResponse.success(student);
+});
+
+export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
+  const isOwner = user.uid === params.id;
+  const isAdmin = user.role === 'admin';
+
+  if (!isOwner && !isAdmin) {
+    return ApiResponse.forbidden();
+  }
+
+  // Validate request body
+  const validation = await validateRequest(request, updateStudentSchema);
+  if (!validation.valid || !validation.data) {
+    return ApiResponse.validationError(validation.error || 'Invalid request data');
+  }
+
+  const success = await AdminStudentService.updateStudent(params.id, validation.data);
+
+  if (!success) {
+    return ApiResponse.error('Failed to update student', 500);
+  }
+
+  return ApiResponse.successMessage('Student updated successfully');
+});
+
 

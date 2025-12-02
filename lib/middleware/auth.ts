@@ -28,7 +28,12 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       return { authenticated: false, user: null };
     }
 
-    const token = authHeader.split('Bearer ')[1];
+    // Extract token using regex for robustness (handles multiple spaces, case variations)
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    
+    if (!token) {
+      return { authenticated: false, user: null };
+    }
     
     // Verify Firebase token using Admin SDK
     const decodedToken = await adminAuth.verifyIdToken(token);
@@ -52,5 +57,49 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     console.error('Auth verification error:', error);
     return { authenticated: false, user: null };
   }
+}
+
+export interface AuthorizationResult {
+  authorized: boolean;
+  status: number;
+  error?: string;
+  user: AuthResult['user'];
+}
+
+/**
+ * Verify user has one of the required roles
+ */
+export async function requireRole(request: NextRequest, ...allowedRoles: string[]): Promise<AuthorizationResult> {
+  const authResult = await verifyAuth(request);
+  
+  if (!authResult.authenticated || !authResult.user) {
+    return { authorized: false, status: 401, error: 'Unauthorized', user: null };
+  }
+  
+  if (!allowedRoles.includes(authResult.user.role)) {
+    return { authorized: false, status: 403, error: 'Forbidden', user: authResult.user };
+  }
+  
+  return { authorized: true, status: 200, user: authResult.user };
+}
+
+/**
+ * Verify user is either the resource owner or an admin
+ */
+export async function requireOwnerOrAdmin(request: NextRequest, resourceUserId: string): Promise<AuthorizationResult> {
+  const authResult = await verifyAuth(request);
+  
+  if (!authResult.authenticated || !authResult.user) {
+    return { authorized: false, status: 401, error: 'Unauthorized', user: null };
+  }
+  
+  const isOwner = authResult.user.uid === resourceUserId;
+  const isAdmin = authResult.user.role === 'admin';
+  
+  if (!isOwner && !isAdmin) {
+    return { authorized: false, status: 403, error: 'Forbidden', user: authResult.user };
+  }
+  
+  return { authorized: true, status: 200, user: authResult.user };
 }
 

@@ -97,3 +97,51 @@ export function validateRegistration(data: any): { success: boolean; data?: z.in
     return { success: false, error: 'Invalid registration data' };
   }
 }
+
+/**
+ * Schema for updating user profile
+ */
+export const updateUserSchema = z.object({
+  email: z.string().email('Invalid email format').optional(),
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
+  department: z.string().min(1, 'Department is required').optional(),
+}).strict();
+
+/**
+ * Schema for updating student profile
+ */
+export const updateStudentSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
+  email: z.string().email('Invalid email format').optional(),
+  studentId: z.string().min(1, 'Student ID is required').optional(),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
+  department: z.string().min(1, 'Department is required').optional(),
+  skills: z.string().max(500, 'Skills must be at most 500 characters').optional(),
+  interests: z.string().max(500, 'Interests must be at most 500 characters').optional(),
+  previousProjects: z.string().max(1000, 'Previous projects must be at most 1000 characters').optional(),
+  preferredTopics: z.string().max(500, 'Preferred topics must be at most 500 characters').optional(),
+  hasPartner: z.boolean().optional(),
+  partnerName: z.string().max(100, 'Partner name too long').optional(),
+  partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
+  matchedSupervisorId: z.string().optional(),
+  matchedProjectId: z.string().optional(),
+}).strict();
+
+/**
+ * Schema for updating supervisor profile
+ */
+export const updateSupervisorSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
+  email: z.string().email('Invalid email format').optional(),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
+  department: z.string().min(1, 'Department is required').optional(),
+  academicRank: z.string().max(100, 'Academic rank too long').optional(),
+  researchAreas: z.string().max(500, 'Research areas must be at most 500 characters').optional(),
+  maxCapacity: z.number().int().min(0, 'Max capacity must be non-negative').max(20, 'Max capacity too high').optional(),
+  currentCapacity: z.number().int().min(0, 'Current capacity must be non-negative').optional(),
+  officeLocation: z.string().max(100, 'Office location too long').optional(),
+  officeHours: z.string().max(200, 'Office hours too long').optional(),
+  bio: z.string().max(2000, 'Bio must be at most 2000 characters').optional(),
+  isAvailable: z.boolean().optional(),
+}).strict();

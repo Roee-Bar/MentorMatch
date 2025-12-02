@@ -5,9 +5,10 @@ import type { ApplicationCardData } from '@/types/database';
 
 interface ApplicationCardProps {
   application: ApplicationCardData;
+  onWithdraw?: (applicationId: string) => void;
 }
 
-export default function ApplicationCard({ application }: ApplicationCardProps) {
+export default function ApplicationCard({ application, onWithdraw }: ApplicationCardProps) {
   const statusColors = {
     pending: 'badge-warning',
     approved: 'badge-success',
@@ -77,7 +78,10 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
       {/* Action Buttons based on status */}
       <div className="mt-4 pt-4 border-t flex gap-2">
         {application.status === 'pending' && (
-          <button className="btn-danger flex-1">
+          <button 
+            className="btn-danger flex-1"
+            onClick={() => onWithdraw?.(application.id)}
+          >
             Withdraw
           </button>
         )}

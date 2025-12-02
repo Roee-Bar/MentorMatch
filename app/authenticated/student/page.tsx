@@ -133,6 +133,34 @@ export default function StudentAuthenticated() {
     }
   };
 
+  // Handle application withdrawal
+  const handleWithdrawApplication = async (applicationId: string) => {
+    // Confirm before deletion using browser's native confirm dialog
+    if (!confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Not authenticated');
+
+      // Use existing API client method
+      await apiClient.deleteApplication(applicationId, token);
+
+      // Refresh applications list using existing pattern
+      const appsResponse = await apiClient.getStudentApplications(userId!, token);
+      setApplications(appsResponse.data);
+
+      // Show success message using existing StatusMessage component pattern
+      setSuccessMessage('Application withdrawn successfully!');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (error) {
+      console.error('Error withdrawing application:', error);
+      setError('Failed to withdraw application. Please try again.');
+      setTimeout(() => setError(null), 5000);
+    }
+  };
+
   // Calculate stats
   const approvedCount = applications.filter((app) => app.status === 'approved').length;
   const pendingCount = applications.filter(
@@ -226,7 +254,11 @@ export default function StudentAuthenticated() {
           ) : (
             <div className="grid-cards">
               {applications.map((application) => (
-                <ApplicationCard key={application.id} application={application} />
+                <ApplicationCard 
+                  key={application.id} 
+                  application={application}
+                  onWithdraw={handleWithdrawApplication}
+                />
               ))}
             </div>
           )}

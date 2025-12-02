@@ -6,6 +6,7 @@
  */
 
 import * as admin from 'firebase-admin';
+import { logger } from './logger';
 
 // Initialize Firebase Admin SDK only if not already initialized
 if (!admin.apps.length) {
@@ -16,18 +17,24 @@ if (!admin.apps.length) {
 
     // Check if all required environment variables are present
     if (!projectId || !clientEmail || !privateKey) {
-      console.warn(
-        'Firebase Admin SDK: Missing environment variables. ' +
-        'Server-side Firebase features will not be available.'
+      // Fail fast in production to prevent silent failures
+      if (process.env.NODE_ENV === 'production') {
+        const error = new Error('CRITICAL: Missing Firebase Admin credentials in production');
+        logger.error('Firebase initialization failed', error, { context: 'Firebase' });
+        throw error;
+      }
+      
+      logger.warn(
+        'Missing Firebase Admin environment variables. Server-side features unavailable.',
+        { context: 'Firebase', data: { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKey } }
       );
       
-      // Initialize with minimal config for testing or development
-      // This prevents errors but limits functionality
-      // Also allows builds to succeed without credentials
-      if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'production') {
+      // Initialize with minimal config for testing or development only
+      if (process.env.NODE_ENV === 'test') {
         admin.initializeApp({
           projectId: projectId || 'placeholder-project',
         });
+        logger.debug('Initialized with minimal config for testing', { context: 'Firebase' });
       }
     } else {
       // Initialize with full credentials
@@ -41,10 +48,10 @@ if (!admin.apps.length) {
         projectId,
       });
 
-      console.log('Firebase Admin SDK initialized successfully');
+      logger.firebase.init();
     }
   } catch (error) {
-    console.error('Error initializing Firebase Admin SDK:', error);
+    logger.firebase.error('Initialization', error);
     // Only throw in development to help debug
     // In production/test builds, allow it to continue with limited functionality
     if (process.env.NODE_ENV === 'development') {

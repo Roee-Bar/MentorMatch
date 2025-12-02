@@ -62,6 +62,22 @@ export const AdminUserService = {
       return [];
     }
   },
+
+  /**
+   * Update user using Admin SDK
+   */
+  async updateUser(userId: string, data: Partial<BaseUser>): Promise<boolean> {
+    try {
+      await adminDb.collection('users').doc(userId).update({
+        ...data,
+        updatedAt: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Admin: Error updating user:', error);
+      return false;
+    }
+  },
 };
 
 // ============================================
@@ -339,6 +355,19 @@ export const AdminApplicationService = {
     } catch (error) {
       console.error('Admin: Error creating application:', error);
       return null;
+    }
+  },
+
+  /**
+   * Delete application using Admin SDK
+   */
+  async deleteApplication(applicationId: string): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).delete();
+      return true;
+    } catch (error) {
+      console.error('Admin: Error deleting application:', error);
+      return false;
     }
   },
 };
