@@ -62,6 +62,22 @@ export const AdminUserService = {
       return [];
     }
   },
+
+  /**
+   * Update user using Admin SDK
+   */
+  async updateUser(userId: string, data: Partial<BaseUser>): Promise<boolean> {
+    try {
+      await adminDb.collection('users').doc(userId).update({
+        ...data,
+        updatedAt: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Admin: Error updating user:', error);
+      return false;
+    }
+  },
 };
 
 // ============================================
