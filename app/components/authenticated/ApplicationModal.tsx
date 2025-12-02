@@ -20,7 +20,11 @@ export default function ApplicationModal({
   studentProfile,
   onSubmit,
 }: ApplicationModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    projectTitle: string;
+    projectDescription: string;
+    partnerEmail?: string;
+  }>({
     projectTitle: '',
     projectDescription: '',
   });

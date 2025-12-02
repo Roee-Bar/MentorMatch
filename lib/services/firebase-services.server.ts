@@ -60,7 +60,7 @@ export const StudentService = {
     try {
       const studentDoc = await adminDb.collection('students').doc(studentId).get();
       if (studentDoc.exists) {
-        return { id: studentDoc.id, ...studentDoc.data() } as Student;
+        return { id: studentDoc.id, ...studentDoc.data() } as unknown as Student;
       }
       return null;
     } catch (error) {
@@ -123,7 +123,7 @@ export const SupervisorService = {
     try {
       const supervisorDoc = await adminDb.collection('supervisors').doc(supervisorId).get();
       if (supervisorDoc.exists) {
-        return { id: supervisorDoc.id, ...supervisorDoc.data() } as Supervisor;
+        return { id: supervisorDoc.id, ...supervisorDoc.data() } as unknown as Supervisor;
       }
       return null;
     } catch (error) {
@@ -383,7 +383,7 @@ export const ProjectService = {
     try {
       const projectDoc = await adminDb.collection('projects').doc(projectId).get();
       if (projectDoc.exists) {
-        return { id: projectDoc.id, ...projectDoc.data() } as Project;
+        return { id: projectDoc.id, ...projectDoc.data() } as unknown as Project;
       }
       return null;
     } catch (error) {
@@ -459,7 +459,7 @@ export const StudentPartnershipService = {
       
       return snapshot.docs
         .filter(doc => doc.id !== currentUserId)
-        .map(doc => ({ id: doc.id, ...doc.data() } as Student));
+        .map(doc => ({ id: doc.id, ...doc.data() } as unknown as Student));
     } catch (error) {
       console.error('Error fetching available students:', error);
       return [];
@@ -829,7 +829,7 @@ export const AdminService = {
     try {
       const adminDoc = await adminDb.collection('admins').doc(adminId).get();
       if (adminDoc.exists) {
-        return { id: adminDoc.id, ...adminDoc.data() } as Admin;
+        return { id: adminDoc.id, ...adminDoc.data() } as unknown as Admin;
       }
       return null;
     } catch (error) {
