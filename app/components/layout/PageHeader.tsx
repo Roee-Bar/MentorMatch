@@ -19,9 +19,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header className={`bg-white shadow-sm ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <div className="flex-between">
+          <div className="flex-gap-3">
+            <Link href="/" className="flex-gap-3 hover:opacity-80 transition-opacity">
               <svg 
                 className="w-10 h-10 text-blue-600" 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -40,7 +40,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
             </Link>
           </div>
           {navigationItems.length > 0 && (
-            <nav className="flex items-center gap-4">
+            <nav className="flex-gap-4">
               {navigationItems.map((item, index) => (
                 item.active ? (
                   <span key={index} className="text-blue-600 font-medium">

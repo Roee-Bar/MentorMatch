@@ -56,7 +56,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
         ))}
       </select>
       {helperText && (
-        <small className="text-gray-500 text-xs mt-1 block">{helperText}</small>
+        <small className="helper-text">{helperText}</small>
       )}
     </div>
   );

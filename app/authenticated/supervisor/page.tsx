@@ -86,7 +86,7 @@ export default function SupervisorAuthenticated() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Supervisor Dashboard</h1>
+          <h1 className="page-title">Supervisor Dashboard</h1>
           <p className="text-gray-600">
             Welcome back, {userProfile?.name || 'Supervisor'}! Here&apos;s your supervision overview.
           </p>

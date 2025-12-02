@@ -119,7 +119,7 @@ export default function SupervisorCard({
 
       {/* Action Buttons */}
       {showApplyButton && supervisor.availabilityStatus !== 'unavailable' && (
-        <div className="mt-4 pt-4 border-t flex gap-2">
+        <div className="mt-4 pt-4 border-t flex-gap-2">
           <button
             onClick={handleApply}
             className="btn-primary flex-1"

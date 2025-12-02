@@ -143,9 +143,16 @@ export const updateStudentSchema = z.object({
   interests: z.string().max(500, 'Interests must be at most 500 characters').optional(),
   previousProjects: z.string().max(1000, 'Previous projects must be at most 1000 characters').optional(),
   preferredTopics: z.string().max(500, 'Preferred topics must be at most 500 characters').optional(),
+  
+  // New partnership fields
+  partnerId: z.string().optional(),
+  partnershipStatus: z.enum(['none', 'pending_sent', 'pending_received', 'paired']).optional(),
+  
+  // Deprecated partnership fields
   hasPartner: z.boolean().optional(),
   partnerName: z.string().max(100, 'Partner name too long').optional(),
   partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
+  
   matchedSupervisorId: z.string().optional(),
   matchedProjectId: z.string().optional(),
 }).strict();
@@ -166,4 +173,18 @@ export const updateSupervisorSchema = z.object({
   maxCapacity: z.number().int().min(0, 'Max capacity must be non-negative').max(20, 'Max capacity too high').optional(),
   currentCapacity: z.number().int().min(0, 'Current capacity must be non-negative').optional(),
   availabilityStatus: z.enum(['available', 'limited', 'unavailable']).optional(),
+}).strict();
+
+/**
+ * Schema for creating partnership request
+ */
+export const partnershipRequestSchema = z.object({
+  targetStudentId: z.string().min(1, 'Target student ID is required'),
+}).strict();
+
+/**
+ * Schema for responding to partnership request
+ */
+export const partnershipResponseSchema = z.object({
+  action: z.enum(['accept', 'reject']),
 }).strict();

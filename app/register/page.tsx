@@ -255,8 +255,8 @@ export default function RegisterPage() {
         {/* Partner Information Section */}
         <FormSection title="Partner Information" />
 
-        <div className="mb-5 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <label className="flex items-center gap-2.5 cursor-pointer">
+        <div className="message-box-info">
+          <label className="flex-gap-3 cursor-pointer">
             <input
               type="checkbox"
               name="hasPartner"

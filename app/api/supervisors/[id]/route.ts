@@ -13,6 +13,13 @@ import { validateBody, updateSupervisorSchema } from '@/lib/middleware/validatio
 import { logger } from '@/lib/logger';
 
 export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+  // Authorization: All authenticated users can view supervisor profiles
+  // This is intentional because:
+  // - Students need to browse supervisors to submit applications
+  // - Students need to view their assigned supervisor's details
+  // - Supervisors can view their own profile
+  // - Admins need access for management purposes
+  
   const supervisor = await SupervisorService.getSupervisorById(params.id);
   
   if (!supervisor) {

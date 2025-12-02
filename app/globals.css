@@ -172,6 +172,162 @@ body {
     @apply text-2xl font-bold text-gray-800;
   }
 
+  /* Typography */
+  .page-title {
+    @apply text-3xl font-bold text-gray-800 mb-2 text-balance;
+  }
+
+  .page-subtitle {
+    @apply text-gray-600;
+  }
+
+  .section-heading {
+    @apply text-2xl font-bold text-gray-800;
+  }
+
+  .section-subheading {
+    @apply text-xl font-bold text-gray-800;
+  }
+
+  /* Message Boxes */
+  .message-box {
+    @apply mb-6 p-4 rounded-lg border;
+  }
+
+  .message-box-success {
+    @apply message-box bg-green-50 border-green-200;
+  }
+
+  .message-box-error {
+    @apply message-box bg-red-50 border-red-200;
+  }
+
+  .message-box-info {
+    @apply message-box bg-blue-50 border-blue-200;
+  }
+
+  .message-box-warning {
+    @apply message-box bg-yellow-50 border-yellow-200;
+  }
+
+  /* Message Text Styles */
+  .message-text-success {
+    @apply text-green-800 font-medium;
+  }
+
+  .message-text-error {
+    @apply text-red-800 font-medium;
+  }
+
+  .message-text-info {
+    @apply text-blue-800 font-medium;
+  }
+
+  .message-text-warning {
+    @apply text-yellow-800 font-medium;
+  }
+
+  /* Form Helper Text */
+  .helper-text {
+    @apply text-gray-500 text-xs mt-1 block;
+  }
+
+  .helper-text-inline {
+    @apply text-gray-500 text-xs;
+  }
+
+  .helper-text-muted {
+    @apply text-gray-400 text-xs;
+  }
+
+  .char-counter {
+    @apply text-gray-400 text-xs ml-auto;
+  }
+
+  /* Flexbox Layout Utilities */
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-start {
+    @apply flex items-center justify-start;
+  }
+
+  .flex-end {
+    @apply flex items-center justify-end;
+  }
+
+  .flex-col-center {
+    @apply flex flex-col items-center justify-center;
+  }
+
+  /* Flex with common gaps */
+  .flex-gap-2 {
+    @apply flex gap-2;
+  }
+
+  .flex-gap-3 {
+    @apply flex gap-3;
+  }
+
+  .flex-gap-4 {
+    @apply flex gap-4;
+  }
+
+  .flex-gap-6 {
+    @apply flex gap-6;
+  }
+
+  /* Flex between with gaps */
+  .flex-between-gap-2 {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .flex-between-gap-4 {
+    @apply flex items-center justify-between gap-4;
+  }
+
+  /* Flex center with gaps */
+  .flex-center-gap-2 {
+    @apply flex items-center justify-center gap-2;
+  }
+
+  .flex-center-gap-3 {
+    @apply flex items-center justify-center gap-3;
+  }
+
+  /* Responsive variants for common patterns */
+  @media (min-width: 768px) {
+    .md\:flex-between {
+      @apply flex items-center justify-between;
+    }
+  }
+
+  /* Spacing Utilities */
+  .form-section {
+    @apply space-y-4;
+  }
+
+  .form-group {
+    @apply space-y-6;
+  }
+
+  .content-section {
+    @apply space-y-3;
+  }
+
+  .action-buttons {
+    @apply flex gap-4 justify-end;
+  }
+
+  .action-buttons-center {
+    @apply flex gap-4 justify-center;
+  }
+
   /* Grid Layouts */
   .grid-stats {
     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8;

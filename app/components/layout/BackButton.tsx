@@ -15,7 +15,7 @@ const BackButton: React.FC<BackButtonProps> = ({
   return (
     <Link
       href={href}
-      className={`bg-transparent border-none text-blue-600 cursor-pointer text-sm mb-8 flex items-center gap-1 p-1 hover:underline ${className}`}
+      className={`bg-transparent border-none text-blue-600 cursor-pointer text-sm mb-8 flex-gap-2 p-1 hover:underline ${className}`}
     >
       ← {label}
     </Link>

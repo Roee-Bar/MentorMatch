@@ -10,7 +10,9 @@ import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
-import { Student } from '@/types/database';
+import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
+import StudentCard from '@/app/components/authenticated/StudentCard';
+import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -18,6 +20,8 @@ export default function StudentProfilePage() {
   
   const [dataLoading, setDataLoading] = useState(true);
   const [student, setStudent] = useState<Student | null>(null);
+  const [partnerDetails, setPartnerDetails] = useState<StudentCardData | null>(null);
+  const [supervisorDetails, setSupervisorDetails] = useState<SupervisorCardData | null>(null);
   const [error, setError] = useState(false);
 
   // Fetch student profile
@@ -35,6 +39,56 @@ export default function StudentProfilePage() {
         const response = await apiClient.getStudentById(userId, token);
         if (response.data) {
           setStudent(response.data);
+          
+          // Fetch partner details if paired
+          if (response.data.partnerId) {
+            try {
+              const partnerRes = await apiClient.getPartnerDetails(response.data.partnerId, token);
+              // Transform Student data to StudentCardData format
+              if (partnerRes.data) {
+                setPartnerDetails({
+                  id: partnerRes.data.id,
+                  fullName: partnerRes.data.fullName,
+                  studentId: partnerRes.data.studentId,
+                  department: partnerRes.data.department,
+                  email: partnerRes.data.email,
+                  skills: partnerRes.data.skills,
+                  interests: partnerRes.data.interests,
+                  preferredTopics: partnerRes.data.preferredTopics,
+                  previousProjects: partnerRes.data.previousProjects,
+                  partnershipStatus: partnerRes.data.partnershipStatus,
+                  partnerId: partnerRes.data.partnerId,
+                });
+              }
+            } catch (err) {
+              console.error('Error fetching partner details:', err);
+              setPartnerDetails(null);
+            }
+          }
+          
+          // Fetch supervisor details if matched
+          if (response.data.assignedSupervisorId) {
+            try {
+              const supervisorRes = await apiClient.getSupervisorById(response.data.assignedSupervisorId, token);
+              // Transform Supervisor data to SupervisorCardData format
+              if (supervisorRes.data) {
+                setSupervisorDetails({
+                  id: supervisorRes.data.id,
+                  name: supervisorRes.data.fullName,
+                  department: supervisorRes.data.department,
+                  bio: supervisorRes.data.bio,
+                  expertiseAreas: supervisorRes.data.expertiseAreas,
+                  researchInterests: supervisorRes.data.researchInterests,
+                  availabilityStatus: supervisorRes.data.availabilityStatus,
+                  currentCapacity: `${supervisorRes.data.currentCapacity}/${supervisorRes.data.maxCapacity} projects`,
+                  contact: supervisorRes.data.email,
+                });
+              }
+            } catch (err) {
+              console.error('Error fetching supervisor details:', err);
+              setSupervisorDetails(null);
+            }
+          }
         } else {
           setError(true);
         }
@@ -91,7 +145,7 @@ export default function StudentProfilePage() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Profile</h1>
+            <h1 className="page-title">Profile</h1>
             <p className="text-gray-600">
               View your profile information and match status
             </p>
@@ -216,9 +270,21 @@ export default function StudentProfilePage() {
               
               {student.matchStatus === 'matched' && student.assignedSupervisorId && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 text-center">
-                    You have been matched with a supervisor
-                  </p>
+                  {supervisorDetails ? (
+                    <>
+                      <p className="text-sm text-gray-600 mb-3 text-center">
+                        You have been matched with:
+                      </p>
+                      <SupervisorCard
+                        supervisor={supervisorDetails}
+                        showApplyButton={false}
+                      />
+                    </>
+                  ) : (
+                    <p className="text-sm text-red-600 text-center">
+                      Unable to load supervisor details. Please try again later.
+                    </p>
+                  )}
                 </div>
               )}
               
@@ -240,6 +306,78 @@ export default function StudentProfilePage() {
                     className="btn-primary w-full mt-2"
                   >
                     Browse Supervisors
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Partnership Status */}
+            <div className="card-base">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Partnership Status</h2>
+              
+              <div className="flex items-center justify-center">
+                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                  student.partnershipStatus === 'paired' ? 'bg-green-100 text-green-800' :
+                  student.partnershipStatus === 'pending_sent' ? 'bg-yellow-100 text-yellow-800' :
+                  student.partnershipStatus === 'pending_received' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {student.partnershipStatus === 'paired' ? 'Paired' :
+                   student.partnershipStatus === 'pending_sent' ? 'Request Sent' :
+                   student.partnershipStatus === 'pending_received' ? 'Request Received' :
+                   'No Partner'}
+                </span>
+              </div>
+              
+              {student.partnerId && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  {partnerDetails ? (
+                    <>
+                      <p className="text-sm text-gray-600 mb-3 text-center">
+                        Paired with:
+                      </p>
+                      <StudentCard
+                        student={partnerDetails}
+                        showRequestButton={false}
+                        isCurrentPartner={true}
+                        onUnpair={async () => {
+                          try {
+                            const token = await auth.currentUser?.getIdToken();
+                            if (!token) throw new Error('Not authenticated');
+                            
+                            if (!confirm('Are you sure you want to unpair from your partner?')) {
+                              return;
+                            }
+                            
+                            await apiClient.unpairFromPartner(token);
+                            
+                            // Refresh the page or refetch data
+                            window.location.reload();
+                          } catch (error) {
+                            console.error('Error unpairing:', error);
+                            alert('Failed to unpair. Please try again.');
+                          }
+                        }}
+                      />
+                    </>
+                  ) : (
+                    <p className="text-sm text-red-600 text-center">
+                      Unable to load partner details. Please try again later.
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {!student.partnerId && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 text-center mb-2">
+                    Find a project partner
+                  </p>
+                  <button
+                    onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
+                    className="btn-primary w-full text-sm"
+                  >
+                    Browse Students
                   </button>
                 </div>
               )}

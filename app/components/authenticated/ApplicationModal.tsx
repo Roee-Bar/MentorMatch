@@ -23,9 +23,6 @@ export default function ApplicationModal({
   const [formData, setFormData] = useState({
     projectTitle: '',
     projectDescription: '',
-    hasPartner: studentProfile?.hasPartner || false,
-    partnerName: studentProfile?.partnerName || '',
-    partnerEmail: studentProfile?.partnerEmail || '',
   });
 
   const [loading, setLoading] = useState(false);
@@ -96,9 +93,6 @@ export default function ApplicationModal({
         supervisorId: supervisor.id,
         projectTitle: formData.projectTitle.trim(),
         projectDescription: formData.projectDescription.trim(),
-        hasPartner: formData.hasPartner,
-        partnerName: formData.partnerName.trim() || undefined,
-        partnerEmail: formData.partnerEmail.trim() || undefined,
       });
 
       // Close modal on success (parent will handle success message)
@@ -125,7 +119,7 @@ export default function ApplicationModal({
     >
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div className="border-b px-6 py-4 flex-between sticky top-0 bg-white z-10">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">Apply for Supervision</h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -143,13 +137,13 @@ export default function ApplicationModal({
 
         {/* Error Message */}
         {error && (
-          <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm">{error}</p>
+          <div className="mx-6 mt-4 message-box-error">
+            <p className="message-text-error text-sm">{error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 form-group">
           {/* Project Title */}
           <div>
             <FormInput
@@ -189,48 +183,35 @@ export default function ApplicationModal({
             )}
           </div>
 
-          {/* Partner Information */}
+          {/* Partner Information - Display Only */}
           <div className="border-t pt-6">
-            <div className="flex items-center mb-4">
-              <input
-                type="checkbox"
-                id="hasPartner"
-                name="hasPartner"
-                checked={formData.hasPartner}
-                onChange={handleChange}
-                disabled={loading}
-                className="mr-2 h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <label htmlFor="hasPartner" className="text-sm font-medium text-gray-700">
-                I have a partner for this project
-              </label>
-            </div>
-
-            {formData.hasPartner && (
-              <div className="space-y-4 ml-6">
-                <FormInput
-                  label="Partner Name"
-                  name="partnerName"
-                  value={formData.partnerName}
-                  onChange={handleChange}
-                  placeholder="Enter your partner's full name"
-                  disabled={loading}
-                />
-
-                <div>
-                  <FormInput
-                    label="Partner Email"
-                    name="partnerEmail"
-                    type="email"
-                    value={formData.partnerEmail}
-                    onChange={handleChange}
-                    placeholder="Enter your partner's email address"
-                    disabled={loading}
-                  />
-                  {validationErrors.partnerEmail && (
-                    <p className="text-red-600 text-xs mt-1">{validationErrors.partnerEmail}</p>
-                  )}
+            {studentProfile?.partnerId ? (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center mb-2">
+                  <svg className="w-5 h-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                  </svg>
+                  <h3 className="font-semibold text-blue-900">Team Project</h3>
                 </div>
+                <p className="text-sm text-blue-800 mb-1">
+                  Project Partner: <strong>{studentProfile.partnerName || 'Your Partner'}</strong>
+                </p>
+                <p className="text-xs text-blue-600">
+                  This application will be submitted as a team project. Both students will be listed.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <p className="text-sm text-gray-600">
+                  This will be an individual project. Want to work with a partner? 
+                  <button 
+                    type="button"
+                    onClick={onClose}
+                    className="text-blue-600 hover:underline ml-1"
+                  >
+                    Find a partner first
+                  </button>
+                </p>
               </div>
             )}
           </div>
@@ -246,7 +227,7 @@ export default function ApplicationModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 border-t pt-6 -mx-6 px-6 pb-0">
+          <div className="flex-gap-3 border-t pt-6 -mx-6 px-6 pb-0">
             <button
               type="button"
               onClick={onClose}

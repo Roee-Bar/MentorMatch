@@ -32,11 +32,11 @@ class Logger {
     
     // Add level
     const levelMap = {
-      info: '📘 INFO',
-      warn: '⚠️  WARN',
-      error: '❌ ERROR',
-      debug: '🔍 DEBUG',
-      success: '✅ SUCCESS'
+      info: 'INFO',
+      warn: 'WARN',
+      error: 'ERROR',
+      debug: 'DEBUG',
+      success: 'SUCCESS'
     };
     parts.push(levelMap[level]);
     

@@ -38,7 +38,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/supervisor/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 border-none bg-transparent cursor-pointer"
           role="menuitem"
           aria-label="View profile"
         >
@@ -53,7 +53,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/student/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 border-none bg-transparent cursor-pointer"
           role="menuitem"
           aria-label="View profile"
         >
@@ -66,7 +66,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
       <button
         onClick={handleLogout}
-        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex items-center gap-2 text-red-600 border-none bg-transparent cursor-pointer"
+        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 text-red-600 border-none bg-transparent cursor-pointer"
         role="menuitem"
         aria-label="Logout"
       >

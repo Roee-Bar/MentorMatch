@@ -50,12 +50,12 @@ const FormTextArea: React.FC<FormTextAreaProps> = ({
         disabled={disabled}
         className="textarea-base"
       />
-      <div className="flex justify-between items-center mt-1">
+      <div className="flex-between mt-1">
         {helperText && (
-          <small className="text-gray-500 text-xs">{helperText}</small>
+          <small className="helper-text-inline">{helperText}</small>
         )}
         {showCharCount && maxLength && (
-          <small className="text-gray-400 text-xs ml-auto">
+          <small className="char-counter">
             {value.length}/{maxLength}
           </small>
         )}

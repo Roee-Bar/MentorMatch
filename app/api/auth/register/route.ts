@@ -62,10 +62,14 @@ export async function POST(request: NextRequest) {
       previousProjects: data.previousProjects || '',
       preferredTopics: data.preferredTopics || '',
       
-      // Partner Information
-      hasPartner: data.hasPartner,
-      partnerName: data.partnerName || '',
-      partnerEmail: data.partnerEmail || '',
+      // Partner Information - NEW PARTNERSHIP SYSTEM
+      partnerId: null,
+      partnershipStatus: 'none',
+      
+      // DEPRECATED - Keep for backwards compatibility (set to defaults)
+      hasPartner: false,
+      partnerName: '',
+      partnerEmail: '',
       
       // Status
       profileComplete: true,

@@ -221,7 +221,7 @@ export default function SupervisorProfileEditPage() {
       <div className="page-content-narrow">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2 text-balance">Edit Profile</h1>
+          <h1 className="page-title">Edit Profile</h1>
           <p className="text-gray-600">
             Update your profile information and click Save Changes when done
           </p>
@@ -229,8 +229,8 @@ export default function SupervisorProfileEditPage() {
 
         {/* Success Message */}
         {saveSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-800 font-medium">
+          <div className="message-box-success">
+            <p className="message-text-success">
               Profile updated successfully! Redirecting...
             </p>
           </div>
@@ -238,18 +238,18 @@ export default function SupervisorProfileEditPage() {
 
         {/* Error Message */}
         {saveError && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 font-medium">{saveError}</p>
+          <div className="message-box-error">
+            <p className="message-text-error">{saveError}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="form-group">
           {/* Personal Information */}
           <div className="card-base">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
             
-            <div className="space-y-4">
+            <div className="form-section">
               <FormInput
                 label="Full Name"
                 name="fullName"
@@ -371,7 +371,7 @@ export default function SupervisorProfileEditPage() {
                 <div className="input-base bg-gray-50 cursor-not-allowed">
                   {supervisor?.currentCapacity || 0} projects currently supervised
                 </div>
-                <small className="text-gray-500 text-xs mt-1 block">
+                <small className="helper-text">
                   This is automatically calculated based on your active projects
                 </small>
               </div>
@@ -406,7 +406,7 @@ export default function SupervisorProfileEditPage() {
                   <option value="limited">Limited - Few spots remaining</option>
                   <option value="unavailable">Unavailable - Not accepting students</option>
                 </select>
-                <small className="text-gray-500 text-xs mt-1 block">
+                <small className="helper-text">
                   This status will be shown to students browsing supervisors
                 </small>
               </div>
@@ -414,7 +414,7 @@ export default function SupervisorProfileEditPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-end">
+          <div className="action-buttons">
             <button
               type="button"
               onClick={handleCancel}
