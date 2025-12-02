@@ -7,7 +7,8 @@ import { NextRequest } from 'next/server';
 import { AdminStudentService } from '@/lib/services/admin-services';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateRequest, updateStudentSchema } from '@/lib/middleware/validation';
+import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   // Owner, supervisor, or admin can view
@@ -15,11 +16,16 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   const isSupervisorOrAdmin = ['supervisor', 'admin'].includes(user.role);
 
   if (!isOwner && !isSupervisorOrAdmin) {
+    logger.error('Unauthorized student view attempt', undefined, { 
+      context: 'API', 
+      data: { studentId: params.id, role: user.role } 
+    });
     return ApiResponse.forbidden();
   }
 
   const student = await AdminStudentService.getStudentById(params.id);
   if (!student) {
+    logger.warn('Student not found', { context: 'API', data: { studentId: params.id } });
     return ApiResponse.notFound('Student');
   }
 
@@ -31,18 +37,36 @@ export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
   const isAdmin = user.role === 'admin';
 
   if (!isOwner && !isAdmin) {
+    logger.error('Unauthorized student update attempt', undefined, { 
+      context: 'API', 
+      data: { studentId: params.id, role: user.role } 
+    });
     return ApiResponse.forbidden();
   }
 
-  // Validate request body
-  const validation = await validateRequest(request, updateStudentSchema);
+  // Read and validate request body
+  const body = await request.json();
+  const validation = validateBody(body, updateStudentSchema);
+  
   if (!validation.valid || !validation.data) {
+    logger.error('Student update validation failed', undefined, { 
+      context: 'API', 
+      data: { 
+        studentId: params.id,
+        validationError: validation.error,
+        receivedFields: Object.keys(body)
+      } 
+    });
     return ApiResponse.validationError(validation.error || 'Invalid request data');
   }
 
   const success = await AdminStudentService.updateStudent(params.id, validation.data);
 
   if (!success) {
+    logger.error('Student database update failed', undefined, { 
+      context: 'API', 
+      data: { studentId: params.id } 
+    });
     return ApiResponse.error('Failed to update student', 500);
   }
 
