@@ -4,187 +4,96 @@
  * DELETE /api/applications/[id] - Delete application
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { AdminApplicationService } from '@/lib/services/admin-services';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { adminDb } from '@/lib/firebase-admin';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
-    const application = await AdminApplicationService.getApplicationById(params.id);
-    
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      );
-    }
-
-    // Check authorization: user must be owner, supervisor, or admin
-    const isOwner = authResult.user?.uid === application.studentId;
-    const isSupervisor = authResult.user?.uid === application.supervisorId;
-    const isAdmin = authResult.user?.role === 'admin';
-
-    if (!isOwner && !isSupervisor && !isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: application,
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in GET /api/applications/[id]:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+  const application = await AdminApplicationService.getApplicationById(params.id);
+  
+  if (!application) {
+    return ApiResponse.notFound('Application');
   }
-}
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
+  // Authorization: user must be owner, supervisor, or admin
+  const isOwner = user.uid === application.studentId;
+  const isSupervisor = user.uid === application.supervisorId;
+  const isAdmin = user.role === 'admin';
 
-    const application = await AdminApplicationService.getApplicationById(params.id);
-    
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      );
-    }
-
-    // Only owner or admin can update
-    const isOwner = authResult.user?.uid === application.studentId;
-    const isAdmin = authResult.user?.role === 'admin';
-
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
-    const body = await request.json();
-    // Note: In a real implementation, you'd have an updateApplication method in ApplicationService
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Application updated successfully',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in PUT /api/applications/[id]:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+  if (!isOwner && !isSupervisor && !isAdmin) {
+    return ApiResponse.error('Forbidden', 403);
   }
-}
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
+  return ApiResponse.success(application);
+});
 
-    const application = await AdminApplicationService.getApplicationById(params.id);
-    
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      );
-    }
+export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
+  const application = await AdminApplicationService.getApplicationById(params.id);
+  
+  if (!application) {
+    return ApiResponse.notFound('Application');
+  }
 
-    // Only owner or admin can delete
-    const isOwner = authResult.user?.uid === application.studentId;
-    const isAdmin = authResult.user?.role === 'admin';
+  // Authorization: only owner or admin can update
+  const isOwner = user.uid === application.studentId;
+  const isAdmin = user.role === 'admin';
 
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
+  if (!isOwner && !isAdmin) {
+    return ApiResponse.error('Forbidden', 403);
+  }
 
-    const { adminDb } = await import('@/lib/firebase-admin');
-    
-    if (application.status === 'approved') {
-      // Use transaction to ensure atomicity
-      await adminDb.runTransaction(async (transaction) => {
-        const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
-        const supervisorSnap = await transaction.get(supervisorRef);
+  const body = await request.json();
+  // Note: In a real implementation, you'd have an updateApplication method in ApplicationService
+  
+  return ApiResponse.success({ message: 'Application updated successfully' });
+});
 
-        if (supervisorSnap.exists) {
-          const supervisorData = supervisorSnap.data();
-          const currentCapacity = supervisorData?.currentCapacity || 0;
-          const newCapacity = Math.max(0, currentCapacity - 1);
+export const DELETE = withAuth(async (request: NextRequest, { params }, user) => {
+  const application = await AdminApplicationService.getApplicationById(params.id);
+  
+  if (!application) {
+    return ApiResponse.notFound('Application');
+  }
 
-          transaction.update(supervisorRef, {
-            currentCapacity: newCapacity,
-            updatedAt: new Date()
-          });
-        }
+  // Authorization: only owner or admin can delete
+  const isOwner = user.uid === application.studentId;
+  const isAdmin = user.role === 'admin';
 
-        // Delete application
-        const applicationRef = adminDb.collection('applications').doc(params.id);
-        transaction.delete(applicationRef);
-      });
-    } else {
-      // No capacity change needed - delete normally
-      const success = await AdminApplicationService.deleteApplication(params.id);
+  if (!isOwner && !isAdmin) {
+    return ApiResponse.error('Forbidden', 403);
+  }
 
-      if (!success) {
-        return NextResponse.json(
-          { error: 'Failed to delete application' },
-          { status: 500 }
-        );
+  if (application.status === 'approved') {
+    // Use transaction to ensure atomicity when updating supervisor capacity
+    await adminDb.runTransaction(async (transaction) => {
+      const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
+      const supervisorSnap = await transaction.get(supervisorRef);
+
+      if (supervisorSnap.exists) {
+        const supervisorData = supervisorSnap.data();
+        const currentCapacity = supervisorData?.currentCapacity || 0;
+        const newCapacity = Math.max(0, currentCapacity - 1);
+
+        transaction.update(supervisorRef, {
+          currentCapacity: newCapacity,
+          updatedAt: new Date()
+        });
       }
+
+      // Delete application
+      const applicationRef = adminDb.collection('applications').doc(params.id);
+      transaction.delete(applicationRef);
+    });
+  } else {
+    // No capacity change needed - delete normally
+    const success = await AdminApplicationService.deleteApplication(params.id);
+
+    if (!success) {
+      return ApiResponse.error('Failed to delete application', 500);
     }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Application deleted successfully',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in DELETE /api/applications/[id]:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
   }
-}
 
+  return ApiResponse.success({ message: 'Application deleted successfully' });
+});

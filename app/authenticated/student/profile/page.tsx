@@ -3,9 +3,8 @@
 // app/authenticated/student/profile/page.tsx
 // Student Profile View - Read-only display of profile and match status
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth } from '@/lib/hooks';
+import { useStudentAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -23,92 +22,72 @@ export default function StudentProfilePage() {
   const router = useRouter();
   const { userId, isAuthLoading } = useStudentAuth();
   
-  const [dataLoading, setDataLoading] = useState(true);
-  const [student, setStudent] = useState<Student | null>(null);
-  const [partnerDetails, setPartnerDetails] = useState<StudentCardData | null>(null);
-  const [supervisorDetails, setSupervisorDetails] = useState<SupervisorCardData | null>(null);
-  const [error, setError] = useState(false);
+  // Fetch student profile and related data using the new hook
+  const { data: profileData, loading: dataLoading, error } = useAuthenticatedFetch(
+    async (token) => {
+      if (!userId) return null;
 
-  // Fetch student profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!userId) return;
+      const response = await apiClient.getStudentById(userId, token);
+      if (!response.data) return null;
 
-      try {
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          router.push(ROUTES.LOGIN);
-          return;
-        }
+      const student = response.data;
+      let partnerDetails: StudentCardData | null = null;
+      let supervisorDetails: SupervisorCardData | null = null;
 
-        const response = await apiClient.getStudentById(userId, token);
-        if (response.data) {
-          setStudent(response.data);
-          
-          // Fetch partner details if paired
-          if (response.data.partnerId) {
-            try {
-              const partnerRes = await apiClient.getPartnerDetails(response.data.partnerId, token);
-              // Transform Student data to StudentCardData format
-              if (partnerRes.data) {
-                setPartnerDetails({
-                  id: partnerRes.data.id,
-                  fullName: partnerRes.data.fullName,
-                  studentId: partnerRes.data.studentId,
-                  department: partnerRes.data.department,
-                  email: partnerRes.data.email,
-                  skills: partnerRes.data.skills,
-                  interests: partnerRes.data.interests,
-                  preferredTopics: partnerRes.data.preferredTopics,
-                  previousProjects: partnerRes.data.previousProjects,
-                  partnershipStatus: partnerRes.data.partnershipStatus,
-                  partnerId: partnerRes.data.partnerId,
-                });
-              }
-            } catch (err) {
-              console.error('Error fetching partner details:', err);
-              setPartnerDetails(null);
-            }
+      // Fetch partner details if paired
+      if (student.partnerId) {
+        try {
+          const partnerRes = await apiClient.getPartnerDetails(student.partnerId, token);
+          if (partnerRes.data) {
+            partnerDetails = {
+              id: partnerRes.data.id,
+              fullName: partnerRes.data.fullName,
+              studentId: partnerRes.data.studentId,
+              department: partnerRes.data.department,
+              email: partnerRes.data.email,
+              skills: partnerRes.data.skills,
+              interests: partnerRes.data.interests,
+              preferredTopics: partnerRes.data.preferredTopics,
+              previousProjects: partnerRes.data.previousProjects,
+              partnershipStatus: partnerRes.data.partnershipStatus,
+              partnerId: partnerRes.data.partnerId,
+            };
           }
-          
-          // Fetch supervisor details if matched
-          if (response.data.assignedSupervisorId) {
-            try {
-              const supervisorRes = await apiClient.getSupervisorById(response.data.assignedSupervisorId, token);
-              // Transform Supervisor data to SupervisorCardData format
-              if (supervisorRes.data) {
-                setSupervisorDetails({
-                  id: supervisorRes.data.id,
-                  name: supervisorRes.data.fullName,
-                  department: supervisorRes.data.department,
-                  bio: supervisorRes.data.bio,
-                  expertiseAreas: supervisorRes.data.expertiseAreas,
-                  researchInterests: supervisorRes.data.researchInterests,
-                  availabilityStatus: supervisorRes.data.availabilityStatus,
-                  currentCapacity: `${supervisorRes.data.currentCapacity}/${supervisorRes.data.maxCapacity} projects`,
-                  contact: supervisorRes.data.email,
-                });
-              }
-            } catch (err) {
-              console.error('Error fetching supervisor details:', err);
-              setSupervisorDetails(null);
-            }
-          }
-        } else {
-          setError(true);
+        } catch (err) {
+          console.error('Error fetching partner details:', err);
         }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError(true);
-      } finally {
-        setDataLoading(false);
       }
-    };
 
-    if (userId) {
-      fetchProfile();
-    }
-  }, [userId, router]);
+      // Fetch supervisor details if matched
+      if (student.assignedSupervisorId) {
+        try {
+          const supervisorRes = await apiClient.getSupervisorById(student.assignedSupervisorId, token);
+          if (supervisorRes.data) {
+            supervisorDetails = {
+              id: supervisorRes.data.id,
+              name: supervisorRes.data.fullName,
+              department: supervisorRes.data.department,
+              bio: supervisorRes.data.bio,
+              expertiseAreas: supervisorRes.data.expertiseAreas,
+              researchInterests: supervisorRes.data.researchInterests,
+              availabilityStatus: supervisorRes.data.availabilityStatus,
+              currentCapacity: `${supervisorRes.data.currentCapacity}/${supervisorRes.data.maxCapacity} projects`,
+              contact: supervisorRes.data.email,
+            };
+          }
+        } catch (err) {
+          console.error('Error fetching supervisor details:', err);
+        }
+      }
+
+      return { student, partnerDetails, supervisorDetails };
+    },
+    [userId]
+  );
+
+  const student = profileData?.student || null;
+  const partnerDetails = profileData?.partnerDetails || null;
+  const supervisorDetails = profileData?.supervisorDetails || null;
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {

@@ -3,5 +3,7 @@
 
 export { useSupervisorAuth } from './useSupervisorAuth';
 export { useStudentAuth } from './useStudentAuth';
+export { useAdminAuth } from './useAdminAuth';
 export { useLoadingState } from './useLoadingState';
+export { useAuthenticatedFetch } from './useAuthenticatedFetch';
 

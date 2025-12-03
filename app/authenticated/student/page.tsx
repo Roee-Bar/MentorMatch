@@ -3,9 +3,9 @@
 // app/authenticated/student/page.tsx
 // Updated Student Authenticated - Uses real Firebase data
 
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth, useLoadingState } from '@/lib/hooks';
+import { useStudentAuth, useLoadingState, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -28,19 +28,9 @@ export default function StudentAuthenticated() {
   
   // Authentication
   const { userId, isAuthLoading } = useStudentAuth();
-  const [userProfile, setUserProfile] = useState<Student | null>(null);
   
   // Loading states
-  const [dataLoading, setDataLoading] = useState(true);
   const { startLoading, stopLoading, isLoading } = useLoadingState();
-  
-  // Data states
-  const [applications, setApplications] = useState<ApplicationCardData[]>([]);
-  const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
-  const [availableStudents, setAvailableStudents] = useState<StudentCardData[]>([]);
-  const [incomingRequests, setIncomingRequests] = useState<StudentPartnershipRequest[]>([]);
-  const [outgoingRequests, setOutgoingRequests] = useState<StudentPartnershipRequest[]>([]);
-  const [currentPartner, setCurrentPartner] = useState<StudentCardData | null>(null);
   
   // UI states
   const [showAllStudents, setShowAllStudents] = useState(false);
@@ -49,85 +39,75 @@ export default function StudentAuthenticated() {
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!userId) return;
+  // Fetch dashboard data using the new hook
+  const { data: dashboardData, loading: dataLoading, refetch } = useAuthenticatedFetch(
+    async (token) => {
+      if (!userId) return null;
 
-      setDataLoading(true);
-      setError(null);
-      
+      // Fetch student profile first to get partnerId
+      const profileRes = await apiClient.getStudentById(userId, token);
+      const userProfile = profileRes.success && profileRes.data ? profileRes.data : null;
+
+      // Call API endpoints
+      const [appsResponse, supervisorsResponse] = await Promise.all([
+        apiClient.getStudentApplications(userId, token),
+        apiClient.getSupervisors(token, { available: true }),
+      ]);
+
+      // Fetch partnership data
+      let availableStudents: StudentCardData[] = [];
+      let incomingRequests: StudentPartnershipRequest[] = [];
+      let outgoingRequests: StudentPartnershipRequest[] = [];
+      let currentPartner: StudentCardData | null = null;
+
       try {
-        // Get Firebase ID token
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          router.push(ROUTES.LOGIN);
-          return;
-        }
-
-        // Fetch student profile first to get partnerId
-        const profileRes = await apiClient.getStudentById(userId, token);
-        if (profileRes.success && profileRes.data) {
-          setUserProfile(profileRes.data);
-        }
-
-        // Call API endpoints
-        const [appsResponse, supervisorsResponse] = await Promise.all([
-          apiClient.getStudentApplications(userId, token),
-          apiClient.getSupervisors(token, { available: true }),
+        const [studentsRes, incomingRes, outgoingRes] = await Promise.all([
+          apiClient.getAvailablePartners(token),
+          apiClient.getPartnershipRequests(userId, 'incoming', token),
+          apiClient.getPartnershipRequests(userId, 'outgoing', token),
         ]);
 
-        setApplications(appsResponse.data);
-        setSupervisors(supervisorsResponse.data);
+        availableStudents = studentsRes.data || [];
+        incomingRequests = incomingRes.data || [];
+        outgoingRequests = outgoingRes.data || [];
 
-        // Fetch partnership data
-        try {
-          const [studentsRes, incomingRes, outgoingRes] = await Promise.all([
-            apiClient.getAvailablePartners(token),
-            apiClient.getPartnershipRequests(userId, 'incoming', token),
-            apiClient.getPartnershipRequests(userId, 'outgoing', token),
-          ]);
-
-          setAvailableStudents(studentsRes.data || []);
-          setIncomingRequests(incomingRes.data || []);
-          setOutgoingRequests(outgoingRes.data || []);
-
-          // Get partner details if student has a partner
-          if (profileRes.data?.partnerId) {
-            try {
-              const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
-              setCurrentPartner(partnerRes.data);
-            } catch (partnerError) {
-              console.error('Error fetching partner details:', partnerError);
-              setCurrentPartner(null);
-            }
+        // Get partner details if student has a partner
+        if (userProfile?.partnerId) {
+          try {
+            const partnerRes = await apiClient.getPartnerDetails(userProfile.partnerId, token);
+            currentPartner = partnerRes.data;
+          } catch (partnerError) {
+            console.error('Error fetching partner details:', partnerError);
           }
-        } catch (partnershipError) {
-          console.error('Error fetching partnership data:', partnershipError);
-          // Don't fail the whole page if partnership data fails
-          setAvailableStudents([]);
-          setIncomingRequests([]);
-          setOutgoingRequests([]);
         }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to load dashboard data. Please try again.');
-        // Even on error, we should stop loading to show the page
-        setApplications([]);
-        setSupervisors([]);
-      } finally {
-        setDataLoading(false);
+      } catch (partnershipError) {
+        console.error('Error fetching partnership data:', partnershipError);
       }
-    };
 
-    if (userId) {
-      fetchData();
-    }
-  }, [userId, router]);
+      return {
+        userProfile,
+        applications: appsResponse.data,
+        supervisors: supervisorsResponse.data,
+        availableStudents,
+        incomingRequests,
+        outgoingRequests,
+        currentPartner,
+      };
+    },
+    [userId]
+  );
+
+  const userProfile = dashboardData?.userProfile || null;
+  const applications = dashboardData?.applications || [];
+  const supervisors = dashboardData?.supervisors || [];
+  const availableStudents = dashboardData?.availableStudents || [];
+  const incomingRequests = dashboardData?.incomingRequests || [];
+  const outgoingRequests = dashboardData?.outgoingRequests || [];
+  const currentPartner = dashboardData?.currentPartner || null;
 
   // Handle apply button click
   const handleApply = (supervisorId: string) => {
-    const supervisor = supervisors.find(s => s.id === supervisorId);
+    const supervisor = supervisors.find((s: SupervisorCardData) => s.id === supervisorId);
     if (supervisor) {
       setSelectedSupervisor(supervisor);
       setShowApplicationModal(true);
@@ -145,9 +125,8 @@ export default function StudentAuthenticated() {
         ...applicationData
       }, token);
 
-      // Refresh applications list
-      const appsResponse = await apiClient.getStudentApplications(userId!, token);
-      setApplications(appsResponse.data);
+      // Refresh dashboard data
+      await refetch();
 
       // Close modal and show success
       setShowApplicationModal(false);
@@ -175,9 +154,8 @@ export default function StudentAuthenticated() {
       // Use existing API client method
       await apiClient.deleteApplication(applicationId, token);
 
-      // Refresh applications list using existing pattern
-      const appsResponse = await apiClient.getStudentApplications(userId!, token);
-      setApplications(appsResponse.data);
+      // Refresh dashboard data
+      await refetch();
 
       // Show success message using existing StatusMessage component pattern
       setSuccessMessage('Application withdrawn successfully!');
@@ -192,39 +170,6 @@ export default function StudentAuthenticated() {
   };
 
   // Partnership handlers
-  const refreshPartnershipData = async () => {
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-
-      const [studentsRes, incomingRes, outgoingRes, profileRes] = await Promise.all([
-        apiClient.getAvailablePartners(token),
-        apiClient.getPartnershipRequests(userId!, 'incoming', token),
-        apiClient.getPartnershipRequests(userId!, 'outgoing', token),
-        apiClient.getStudentById(userId!, token),
-      ]);
-
-      setAvailableStudents(studentsRes.data || []);
-      setIncomingRequests(incomingRes.data || []);
-      setOutgoingRequests(outgoingRes.data || []);
-      
-      // Update user profile with latest data
-      if (profileRes.success && profileRes.data) {
-        setUserProfile({ ...userProfile, ...profileRes.data });
-        
-        // Get partner details if newly paired
-        if (profileRes.data.partnerId && profileRes.data.partnerId !== currentPartner?.id) {
-          const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
-          setCurrentPartner(partnerRes.data);
-        } else if (!profileRes.data.partnerId) {
-          setCurrentPartner(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing partnership data:', error);
-    }
-  };
-
   const handleRequestPartnership = async (targetStudentId: string) => {
     const loadingKey = `partnership-${targetStudentId}`;
     startLoading(loadingKey);
@@ -234,7 +179,7 @@ export default function StudentAuthenticated() {
 
       await apiClient.createPartnershipRequest({ targetStudentId }, token);
       
-      await refreshPartnershipData();
+      await refetch();
       
       setSuccessMessage('Partnership request sent successfully!');
       setTimeout(() => setSuccessMessage(null), 5000);
@@ -256,7 +201,7 @@ export default function StudentAuthenticated() {
 
       await apiClient.respondToPartnershipRequest(requestId, 'accept', token);
       
-      await refreshPartnershipData();
+      await refetch();
       
       setSuccessMessage('Partnership accepted! You are now paired.');
       setTimeout(() => setSuccessMessage(null), 5000);
@@ -278,7 +223,7 @@ export default function StudentAuthenticated() {
 
       await apiClient.respondToPartnershipRequest(requestId, 'reject', token);
       
-      await refreshPartnershipData();
+      await refetch();
       
       setSuccessMessage('Partnership request rejected.');
       setTimeout(() => setSuccessMessage(null), 5000);
@@ -300,7 +245,7 @@ export default function StudentAuthenticated() {
 
       await apiClient.cancelPartnershipRequest(requestId, token);
       
-      await refreshPartnershipData();
+      await refetch();
       
       setSuccessMessage('Partnership request cancelled.');
       setTimeout(() => setSuccessMessage(null), 5000);
@@ -326,7 +271,7 @@ export default function StudentAuthenticated() {
 
       await apiClient.unpairFromPartner(token);
       
-      await refreshPartnershipData();
+      await refetch();
       
       setSuccessMessage('Successfully unpaired from your partner.');
       setTimeout(() => setSuccessMessage(null), 5000);
@@ -340,9 +285,9 @@ export default function StudentAuthenticated() {
   };
 
   // Calculate stats
-  const approvedCount = applications.filter((app) => app.status === 'approved').length;
+  const approvedCount = applications.filter((app: ApplicationCardData) => app.status === 'approved').length;
   const pendingCount = applications.filter(
-    (app) => app.status === 'pending' || app.status === 'under_review'
+    (app: ApplicationCardData) => app.status === 'pending' || app.status === 'under_review'
   ).length;
 
   if (isAuthLoading || dataLoading) {
@@ -521,7 +466,7 @@ export default function StudentAuthenticated() {
             />
           ) : (
             <div className="grid-cards">
-              {applications.map((application) => (
+              {applications.map((application: ApplicationCardData) => (
                 <ApplicationCard 
                   key={application.id} 
                   application={application}
@@ -551,7 +496,7 @@ export default function StudentAuthenticated() {
             <EmptyState message="No supervisors available at the moment." />
           ) : (
             <div className="grid-cards">
-              {supervisors.slice(0, 3).map((supervisor) => (
+              {supervisors.slice(0, 3).map((supervisor: SupervisorCardData) => (
                 <SupervisorCard 
                   key={supervisor.id} 
                   supervisor={supervisor}
