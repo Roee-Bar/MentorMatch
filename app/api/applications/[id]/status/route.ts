@@ -55,11 +55,34 @@ export async function PATCH(
     const { status, feedback } = validation.data!;
     const previousStatus = application.status;
 
+    // Handle edge case: Rejecting a lead application with a linked partner
+    if (status === 'rejected' && application.isLeadApplication && application.linkedApplicationId) {
+      // Check if linked application exists and update it
+      const linkedAppRef = adminDb.collection('applications').doc(application.linkedApplicationId);
+      const linkedAppSnap = await linkedAppRef.get();
+      
+      if (linkedAppSnap.exists) {
+        const linkedAppData = linkedAppSnap.data();
+        // If linked application is not yet processed, auto-reject it too
+        if (linkedAppData?.status === 'pending' || linkedAppData?.status === 'under_review') {
+          await linkedAppRef.update({
+            status: 'rejected',
+            supervisorFeedback: feedback ? `${feedback} (Linked partner application was rejected)` : 'Linked partner application was rejected',
+            lastUpdated: new Date(),
+            responseDate: new Date()
+          });
+        }
+      }
+    }
+
     // Check if capacity needs to be updated (approving or unapproving)
     const isApproving = status === 'approved' && previousStatus !== 'approved';
     const isUnapproving = previousStatus === 'approved' && status !== 'approved';
     
-    if (isApproving || isUnapproving) {
+    // Only update capacity for lead applications (or applications without a partner)
+    const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
+    
+    if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
       await adminDb.runTransaction(async (transaction) => {
         const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
         const supervisorSnap = await transaction.get(supervisorRef);
@@ -80,14 +103,14 @@ export async function PATCH(
             );
           }
 
-          // Increment capacity
+          // Increment capacity (only for lead applications)
           transaction.update(supervisorRef, {
             currentCapacity: currentCapacity + 1,
             updatedAt: new Date()
           });
 
         } else if (isUnapproving) {
-          // Changing from approved to something else - release capacity
+          // Changing from approved to something else - release capacity (only for lead applications)
           const newCapacity = Math.max(0, currentCapacity - 1);
           transaction.update(supervisorRef, {
             currentCapacity: newCapacity,

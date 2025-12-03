@@ -19,7 +19,7 @@
 
 # cursor
 .cursor/rules/language.mdc
-.cursorrules.*
+.cursorrules
 
 # VSCode / Cursor workspace settings (local only)
 .vscode/settings.json

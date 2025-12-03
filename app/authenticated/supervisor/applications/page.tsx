@@ -133,6 +133,10 @@ export default function SupervisorApplicationsPage() {
                   status: application.status,
                   responseTime: application.responseTime || '5-7 business days',
                   comments: application.supervisorFeedback,
+                  hasPartner: application.hasPartner,
+                  partnerName: application.partnerName,
+                  linkedApplicationId: application.linkedApplicationId,
+                  isLeadApplication: application.isLeadApplication,
                 }} 
               />
             ))}

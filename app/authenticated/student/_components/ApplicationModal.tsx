@@ -197,12 +197,16 @@ export default function ApplicationModal({
                   </svg>
                   <h3 className="font-semibold text-blue-900">Team Project</h3>
                 </div>
-                <p className="text-sm text-blue-800 mb-1">
+                <p className="text-sm text-blue-800 mb-2">
                   Project Partner: <strong>{studentProfile.partnerName || 'Your Partner'}</strong>
                 </p>
-                <p className="text-xs text-blue-600">
-                  This application will be submitted as a team project. Both students will be listed.
-                </p>
+                <div className="space-y-1 text-xs text-blue-700">
+                  <p>✓ This application will be submitted as a team project</p>
+                  <p>✓ Both students will be listed on the application</p>
+                  <p>✓ Your partner can also apply separately to the same supervisor</p>
+                  <p>✓ Applications will be automatically linked as one project</p>
+                  <p>✓ Only one capacity slot will be used for both students</p>
+                </div>
               </div>
             ) : (
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">

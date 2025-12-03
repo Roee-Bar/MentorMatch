@@ -191,6 +191,11 @@ export interface Application {
   partnerName?: string;
   partnerEmail?: string;
   
+  // Project-Based Capacity Tracking
+  linkedApplicationId?: string; // References partner's application ID
+  isLeadApplication: boolean; // True for the first application in a pair (or solo)
+  projectId?: string; // Optional reference to created Project (for future use)
+  
   // Status
   status: ApplicationStatus;
   
@@ -260,6 +265,10 @@ export interface ApplicationCardData {
   status: ApplicationStatus;
   responseTime: string;
   comments?: string;
+  hasPartner?: boolean;
+  partnerName?: string;
+  linkedApplicationId?: string;
+  isLeadApplication?: boolean;
 }
 
 export interface DashboardStats {
