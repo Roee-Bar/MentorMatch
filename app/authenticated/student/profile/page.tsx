@@ -11,6 +11,10 @@ import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import ErrorState from '@/app/components/feedback/ErrorState';
+import ProfileField from '@/app/components/display/ProfileField';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -113,78 +117,50 @@ export default function StudentProfilePage() {
 
   if (error || !student) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <p className="error-text">Unable to load profile. Please try again later.</p>
-          <button
-            onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-            className="btn-primary"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        message="Unable to load profile. Please try again later."
+        action={{
+          label: 'Back to Dashboard',
+          onClick: () => router.push(ROUTES.AUTHENTICATED.STUDENT)
+        }}
+      />
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content-narrow">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="page-title">Profile</h1>
-            <p className="text-gray-600">
-              View your profile information and match status
-            </p>
-          </div>
+    <PageLayout variant="narrow">
+      {/* Header */}
+      <PageHeader
+        title="Profile"
+        description="View your profile information and match status"
+        action={
           <button
             onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_PROFILE_EDIT)}
-            className="btn-primary"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             Edit Profile
           </button>
-        </div>
+        }
+      />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Profile Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
               
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Full Name</label>
-                  <p className="text-gray-800 mt-1">{student.fullName}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="text-gray-800 mt-1">{student.email}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Student ID</label>
-                  <p className="text-gray-800 mt-1">{student.studentId}</p>
-                </div>
-                
-                {student.phone && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Phone</label>
-                    <p className="text-gray-800 mt-1">{student.phone}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Department</label>
-                  <p className="text-gray-800 mt-1">{student.department}</p>
-                </div>
+                <ProfileField label="Full Name" value={student.fullName} />
+                <ProfileField label="Email" value={student.email} />
+                <ProfileField label="Student ID" value={student.studentId} />
+                {student.phone && <ProfileField label="Phone" value={student.phone} />}
+                <ProfileField label="Department" value={student.department} />
               </div>
             </div>
 
             {/* Academic Information */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Academic Information</h2>
               
               <div className="space-y-4">
@@ -194,21 +170,18 @@ export default function StudentProfilePage() {
                     <p className="text-gray-800 mt-1 text-balance">{student.skills}</p>
                   </div>
                 )}
-                
                 {student.interests && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Interests</label>
                     <p className="text-gray-800 mt-1 text-balance">{student.interests}</p>
                   </div>
                 )}
-                
                 {student.previousProjects && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Previous Projects</label>
                     <p className="text-gray-800 mt-1 text-balance">{student.previousProjects}</p>
                   </div>
                 )}
-                
                 {student.preferredTopics && (
                   <div>
                     <label className="text-sm font-medium text-gray-600">Preferred Topics</label>
@@ -220,23 +193,12 @@ export default function StudentProfilePage() {
 
             {/* Partner Information */}
             {student.hasPartner && (
-              <div className="card-base">
+              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Partner Information</h2>
                 
                 <div className="space-y-4">
-                  {student.partnerName && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Partner Name</label>
-                      <p className="text-gray-800 mt-1">{student.partnerName}</p>
-                    </div>
-                  )}
-                  
-                  {student.partnerEmail && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Partner Email</label>
-                      <p className="text-gray-800 mt-1">{student.partnerEmail}</p>
-                    </div>
-                  )}
+                  {student.partnerName && <ProfileField label="Partner Name" value={student.partnerName} />}
+                  {student.partnerEmail && <ProfileField label="Partner Email" value={student.partnerEmail} />}
                 </div>
               </div>
             )}
@@ -245,7 +207,7 @@ export default function StudentProfilePage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Match Status */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Match Status</h2>
               
               <div className="flex-center">
@@ -296,7 +258,7 @@ export default function StudentProfilePage() {
                   </p>
                   <button
                     onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-                    className="btn-primary w-full mt-2"
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full mt-2"
                   >
                     Browse Supervisors
                   </button>
@@ -305,7 +267,7 @@ export default function StudentProfilePage() {
             </div>
 
             {/* Partnership Status */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Partnership Status</h2>
               
               <div className="flex-center">
@@ -361,7 +323,7 @@ export default function StudentProfilePage() {
                   </p>
                   <button
                     onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-                    className="btn-primary w-full text-sm"
+                    className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full text-sm"
                   >
                     Browse Students
                   </button>
@@ -370,8 +332,7 @@ export default function StudentProfilePage() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }
 

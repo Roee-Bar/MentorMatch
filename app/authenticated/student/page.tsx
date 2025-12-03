@@ -17,6 +17,10 @@ import PartnershipRequestCard from './_components/PartnershipRequestCard';
 import ApplicationModal from './_components/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import SectionHeader from '@/app/components/layout/SectionHeader';
+import EmptyState from '@/app/components/feedback/EmptyState';
 import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest, Student } from '@/types/database';
 
 export default function StudentAuthenticated() {
@@ -346,31 +350,28 @@ export default function StudentAuthenticated() {
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        {/* Error Banner */}
-        {error && (
-          <StatusMessage 
-            message={error} 
-            type="error"
-          />
-        )}
+    <PageLayout>
+      {/* Error Banner */}
+      {error && (
+        <StatusMessage 
+          message={error} 
+          type="error"
+        />
+      )}
 
-        {/* Success Message */}
-        {successMessage && (
-          <StatusMessage 
-            message={successMessage} 
-            type="success"
-          />
-        )}
+      {/* Success Message */}
+      {successMessage && (
+        <StatusMessage 
+          message={successMessage} 
+          type="success"
+        />
+      )}
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Student Dashboard</h1>
-          <p className="text-gray-600">
-            Welcome back, {userProfile?.fullName || 'Student'}! Here&apos;s your project matching overview.
-          </p>
-        </div>
+      {/* Header */}
+      <PageHeader
+        title="Student Dashboard"
+        description={`Welcome back, ${userProfile?.fullName || 'Student'}! Here's your project matching overview.`}
+      />
 
         {/* Stats Grid */}
         <div className="grid-stats">
@@ -406,10 +407,10 @@ export default function StudentAuthenticated() {
         {/* Partnership Requests Section - Show if any exist AND not already paired */}
         {incomingRequests.length > 0 && !currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Partnership Requests</h2>
-              <span className="badge-warning">{incomingRequests.length} Pending</span>
-            </div>
+            <SectionHeader
+              title="Partnership Requests"
+              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{incomingRequests.length} Pending</span>}
+            />
             <div className="grid-cards">
               {incomingRequests.map(request => (
                 <PartnershipRequestCard
@@ -428,9 +429,7 @@ export default function StudentAuthenticated() {
         {/* Current Partner Section - Show if paired */}
         {currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">My Partner</h2>
-            </div>
+            <SectionHeader title="My Partner" />
             <div className="grid-cards">
               <StudentCard
                 student={currentPartner}
@@ -446,10 +445,10 @@ export default function StudentAuthenticated() {
         {/* Outgoing Requests - Show if any */}
         {outgoingRequests.length > 0 && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Pending Partnership Requests</h2>
-              <span className="badge-warning">{outgoingRequests.length} Sent</span>
-            </div>
+            <SectionHeader
+              title="Pending Partnership Requests"
+              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{outgoingRequests.length} Sent</span>}
+            />
             <div className="grid-cards">
               {outgoingRequests.map(request => (
                 <PartnershipRequestCard
@@ -467,20 +466,20 @@ export default function StudentAuthenticated() {
         {/* Available Students - Show if not paired */}
         {!currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Available Students</h2>
-              <button
-                onClick={() => setShowAllStudents(!showAllStudents)}
-                className="text-blue-600 text-sm font-medium hover:underline"
-              >
-                {showAllStudents ? 'Show Less' : 'View All'} →
-              </button>
-            </div>
+            <SectionHeader
+              title="Available Students"
+              action={
+                <button
+                  onClick={() => setShowAllStudents(!showAllStudents)}
+                  className="text-blue-600 text-sm font-medium hover:underline"
+                >
+                  {showAllStudents ? 'Show Less' : 'View All'} →
+                </button>
+              }
+            />
             
             {availableStudents.length === 0 ? (
-              <div className="empty-state">
-                <p className="empty-state-text">No available students at the moment.</p>
-              </div>
+              <EmptyState message="No available students at the moment." />
             ) : (
               <div className="grid-cards">
                 {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
@@ -500,26 +499,26 @@ export default function StudentAuthenticated() {
 
         {/* My Applications Section */}
         <div className="mb-8">
-          <div className="section-header">
-            <h2 className="section-title">My Applications</h2>
-            <button
-              onClick={() => router.push(ROUTES.SUPERVISORS)}
-              className="btn-primary"
-            >
-              + New Application
-            </button>
-          </div>
-
-          {applications.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text mb-4">You haven&apos;t submitted any applications yet.</p>
+          <SectionHeader
+            title="My Applications"
+            action={
               <button
                 onClick={() => router.push(ROUTES.SUPERVISORS)}
-                className="btn-primary px-6 py-2"
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Browse Supervisors
+                + New Application
               </button>
-            </div>
+            }
+          />
+
+          {applications.length === 0 ? (
+            <EmptyState
+              message="You haven't submitted any applications yet."
+              action={{
+                label: 'Browse Supervisors',
+                onClick: () => router.push(ROUTES.SUPERVISORS)
+              }}
+            />
           ) : (
             <div className="grid-cards">
               {applications.map((application) => (
@@ -536,20 +535,20 @@ export default function StudentAuthenticated() {
 
         {/* Available Supervisors Section */}
         <div className="mb-8">
-          <div className="section-header">
-            <h2 className="section-title">Available Supervisors</h2>
-            <button
-              onClick={() => router.push(ROUTES.SUPERVISORS)}
-              className="text-blue-600 text-sm font-medium hover:underline"
-            >
-              View All →
-            </button>
-          </div>
+          <SectionHeader
+            title="Available Supervisors"
+            action={
+              <button
+                onClick={() => router.push(ROUTES.SUPERVISORS)}
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                View All →
+              </button>
+            }
+          />
 
           {supervisors.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text">No supervisors available at the moment.</p>
-            </div>
+            <EmptyState message="No supervisors available at the moment." />
           ) : (
             <div className="grid-cards">
               {supervisors.slice(0, 3).map((supervisor) => (
@@ -573,7 +572,6 @@ export default function StudentAuthenticated() {
             onSubmit={handleSubmitApplication}
           />
         )}
-      </div>
-    </div>
+    </PageLayout>
   );
 }

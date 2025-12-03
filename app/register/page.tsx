@@ -8,8 +8,8 @@ import FormInput from '@/app/components/form/FormInput'
 import FormTextArea from '@/app/components/form/FormTextArea'
 import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
-import BackButton from '@/app/components/layout/BackButton'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
+import AuthLayout from '@/app/components/layout/AuthLayout'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -90,20 +90,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="py-10 px-5 max-w-form mx-auto font-sans">
-      <BackButton href="/" />
+    <div className="py-10 px-5">
+      <AuthLayout backHref="/" maxWidth="lg">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-gray-800 mb-2.5 text-xl-custom font-bold">
+            Create Account
+          </h1>
+          <p className="text-gray-500 text-base m-0">
+            Create your MentorMatch account and complete your profile
+          </p>
+        </div>
 
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-gray-800 mb-2.5 text-xl-custom font-bold">
-          Create Account
-        </h1>
-        <p className="text-gray-500 text-base m-0">
-          Create your MentorMatch account and complete your profile
-        </p>
-      </div>
-
-      <form onSubmit={handleRegistration} noValidate className="bg-gray-50 p-10 rounded-xl border border-gray-200">
+        <form onSubmit={handleRegistration} noValidate className="bg-gray-50 p-10 rounded-xl border border-gray-200">
         
         {/* Account Information Section */}
         <FormSection title="Account Information" />
@@ -297,7 +296,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="btn-primary w-full py-4"
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full py-4"
         >
           {loading ? 'Creating Account...' : 'Complete Registration'}
         </button>
@@ -323,6 +322,7 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
+      </AuthLayout>
     </div>
   )
 }

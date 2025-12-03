@@ -12,6 +12,8 @@ import StatCardWithIcon from '@/app/components/shared/StatCardWithIcon';
 import Table from '@/app/components/shared/Table';
 import ProgressBar from '@/app/components/shared/ProgressBar';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
 import type { Supervisor } from '@/types/database';
 
 export default function AdminAuthenticated() {
@@ -118,8 +120,8 @@ export default function AdminAuthenticated() {
   }
 
   return (
-    <div className="page-container-simple">
-      <div className="page-content py-8">
+    <PageLayout variant="simple">
+      <div className="py-8">
         {/* Error Banner */}
         {error && (
           <StatusMessage 
@@ -137,12 +139,10 @@ export default function AdminAuthenticated() {
         )}
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 text-balance">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">
-            Manage users, projects, and system settings
-          </p>
-        </div>
+        <PageHeader
+          title="Admin Dashboard"
+          description="Manage users, projects, and system settings"
+        />
 
         {/* Quick Stats */}
         <div className="grid-stats">
@@ -196,12 +196,12 @@ export default function AdminAuthenticated() {
         </div>
 
         {/* Admin Actions */}
-        <div className="card-base">
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <button 
               onClick={() => router.push('/admin/seed')}
-              className="btn-primary text-left p-4 flex items-center space-x-3"
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed text-left p-4 flex items-center space-x-3"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
@@ -212,7 +212,7 @@ export default function AdminAuthenticated() {
               </div>
             </button>
 
-            <button className="btn-secondary text-left p-4 flex items-center space-x-3" disabled>
+            <button className="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 text-left p-4 flex items-center space-x-3" disabled>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
@@ -222,7 +222,7 @@ export default function AdminAuthenticated() {
               </div>
             </button>
 
-            <button className="btn-secondary text-left p-4 flex items-center space-x-3" disabled>
+            <button className="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 text-left p-4 flex items-center space-x-3" disabled>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
@@ -235,8 +235,8 @@ export default function AdminAuthenticated() {
         </div>
 
         {/* Supervisor Capacity Management Section */}
-        <div className="card-base">
-          <div className="flex-between mb-4">
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Manage Supervisor Capacity</h2>
             <button
               onClick={() => fetchSupervisors()}
@@ -327,7 +327,7 @@ export default function AdminAuthenticated() {
           />
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }
 
