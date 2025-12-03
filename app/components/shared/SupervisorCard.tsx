@@ -1,7 +1,8 @@
-// app/components/authenticated/SupervisorCard.tsx
+// app/components/shared/SupervisorCard.tsx
 // Updated to work with Firebase data types
 
 import type { SupervisorCardData } from '@/types/database';
+import StatusBadge from './StatusBadge';
 
 interface SupervisorCardProps {
   supervisor: SupervisorCardData;
@@ -14,18 +15,6 @@ export default function SupervisorCard({
   onApply,
   showApplyButton = true 
 }: SupervisorCardProps) {
-  const availabilityColors = {
-    available: 'badge-success',
-    limited: 'badge-warning',
-    unavailable: 'badge-danger',
-  };
-
-  const availabilityLabels = {
-    available: 'Available',
-    limited: 'Limited Capacity',
-    unavailable: 'Unavailable',
-  };
-
   const handleApply = () => {
     if (onApply) {
       onApply(supervisor.id);
@@ -42,9 +31,7 @@ export default function SupervisorCard({
           </h3>
           <p className="text-sm text-gray-600">{supervisor.department}</p>
         </div>
-        <span className={availabilityColors[supervisor.availabilityStatus]}>
-          {availabilityLabels[supervisor.availabilityStatus]}
-        </span>
+        <StatusBadge status={supervisor.availabilityStatus} variant="availability" />
       </div>
 
       {/* Bio */}

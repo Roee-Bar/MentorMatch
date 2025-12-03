@@ -85,15 +85,15 @@ export default function CapacityEditModal({
 
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="modal-backdrop"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
+      <div className="modal-container">
+        <h2 className="modal-title">
           Edit Supervisor Capacity
         </h2>
 
-        <div className="mb-4 p-3 bg-blue-50 rounded">
+        <div className="info-box-blue">
           <p className="text-sm text-gray-700">
             <span className="font-medium">Supervisor:</span> {supervisor.fullName}
           </p>
@@ -103,7 +103,7 @@ export default function CapacityEditModal({
         </div>
 
         {/* Current vs New Capacity Comparison */}
-        <div className="mb-4 p-3 bg-gray-50 rounded">
+        <div className="info-box-gray">
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-600">Current Capacity:</span>
             <span className="font-medium text-gray-800">

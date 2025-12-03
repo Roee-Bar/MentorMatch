@@ -1,7 +1,8 @@
-// app/components/authenticated/ApplicationCard.tsx
+// app/components/shared/ApplicationCard.tsx
 // Updated to work with Firebase data types
 
 import type { ApplicationCardData } from '@/types/database';
+import StatusBadge from './StatusBadge';
 
 interface ApplicationCardProps {
   application: ApplicationCardData;
@@ -10,22 +11,6 @@ interface ApplicationCardProps {
 }
 
 export default function ApplicationCard({ application, onWithdraw, isLoading = false }: ApplicationCardProps) {
-  const statusColors = {
-    pending: 'badge-warning',
-    approved: 'badge-success',
-    rejected: 'badge-danger',
-    under_review: 'badge-info',
-    revision_requested: 'badge-orange',
-  };
-
-  const statusLabels = {
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    under_review: 'Under Review',
-    revision_requested: 'Revision Requested',
-  };
-
   return (
     <div className="card-base">
       {/* Header with Title and Status */}
@@ -38,9 +23,7 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
             Supervisor: {application.supervisorName}
           </p>
         </div>
-        <span className={statusColors[application.status]}>
-          {statusLabels[application.status]}
-        </span>
+        <StatusBadge status={application.status} variant="application" />
       </div>
 
       {/* Project Description */}

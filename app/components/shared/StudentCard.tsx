@@ -1,7 +1,8 @@
-// app/components/authenticated/StudentCard.tsx
+// app/components/shared/StudentCard.tsx
 // Component for displaying student information for partnership matching
 
 import type { StudentCardData } from '@/types/database';
+import StatusBadge from './StatusBadge';
 
 interface StudentCardProps {
   student: StudentCardData;
@@ -20,20 +21,6 @@ export default function StudentCard({
   onUnpair,
   isLoading = false
 }: StudentCardProps) {
-  const partnershipStatusColors = {
-    none: 'badge-gray',
-    pending_sent: 'badge-warning',
-    pending_received: 'badge-warning',
-    paired: 'badge-success',
-  };
-
-  const partnershipStatusLabels = {
-    none: 'Available',
-    pending_sent: 'Request Sent',
-    pending_received: 'Has Request',
-    paired: 'Paired',
-  };
-
   const handleRequestPartnership = () => {
     if (onRequestPartnership) {
       onRequestPartnership(student.id);
@@ -68,9 +55,7 @@ export default function StudentCard({
           <p className="text-sm text-gray-600">{student.department}</p>
         </div>
         {!isCurrentPartner && (
-          <span className={partnershipStatusColors[student.partnershipStatus]}>
-            {partnershipStatusLabels[student.partnershipStatus]}
-          </span>
+          <StatusBadge status={student.partnershipStatus} variant="partnership" />
         )}
       </div>
 

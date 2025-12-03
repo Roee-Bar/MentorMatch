@@ -118,7 +118,7 @@ export default function ApplicationModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      className="modal-backdrop"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">

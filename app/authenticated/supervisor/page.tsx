@@ -11,6 +11,7 @@ import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
+import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { Application, Supervisor, Project } from '@/types/database';
@@ -108,20 +109,13 @@ export default function SupervisorAuthenticated() {
             color="gray"
           />
 
-          <div className="card-base">
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">Capacity Status</h3>
-            <p className="text-sm text-gray-600">
-              {currentCapacity} / {supervisor?.maxCapacity || 0} students
-            </p>
-            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-600 transition-all"
-                style={{ 
-                  width: `${supervisor?.maxCapacity ? (currentCapacity / supervisor.maxCapacity) * 100 : 0}%` 
-                }}
-              />
-            </div>
-          </div>
+          {supervisor && (
+            <CapacityIndicator
+              current={currentCapacity}
+              max={supervisor.maxCapacity}
+              status={supervisor.availabilityStatus}
+            />
+          )}
 
           <StatCard
             title="Approved Projects"

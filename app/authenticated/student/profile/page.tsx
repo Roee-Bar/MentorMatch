@@ -10,6 +10,7 @@ import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusBadge from '@/app/components/shared/StatusBadge';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -125,19 +126,6 @@ export default function StudentProfilePage() {
       </div>
     );
   }
-
-  // Helper function to get match status badge color
-  const getMatchStatusColor = (status: string) => {
-    switch (status) {
-      case 'matched':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'unmatched':
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   return (
     <div className="page-container">
@@ -260,12 +248,17 @@ export default function StudentProfilePage() {
             <div className="card-base">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Match Status</h2>
               
-              <div className="flex items-center justify-center">
-                <span 
-                  className={`px-4 py-2 rounded-full text-sm font-semibold ${getMatchStatusColor(student.matchStatus)}`}
-                >
-                  {student.matchStatus.charAt(0).toUpperCase() + student.matchStatus.slice(1)}
-                </span>
+              <div className="flex-center">
+                <StatusBadge
+                  status={student.matchStatus}
+                  variant="custom"
+                  customClassName={
+                    student.matchStatus === 'matched' ? 'badge-success' :
+                    student.matchStatus === 'pending' ? 'badge-warning' :
+                    'badge-gray'
+                  }
+                  customLabel={student.matchStatus.charAt(0).toUpperCase() + student.matchStatus.slice(1)}
+                />
               </div>
               
               {student.matchStatus === 'matched' && student.assignedSupervisorId && (
@@ -315,18 +308,11 @@ export default function StudentProfilePage() {
             <div className="card-base">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Partnership Status</h2>
               
-              <div className="flex items-center justify-center">
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                  student.partnershipStatus === 'paired' ? 'bg-green-100 text-green-800' :
-                  student.partnershipStatus === 'pending_sent' ? 'bg-yellow-100 text-yellow-800' :
-                  student.partnershipStatus === 'pending_received' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {student.partnershipStatus === 'paired' ? 'Paired' :
-                   student.partnershipStatus === 'pending_sent' ? 'Request Sent' :
-                   student.partnershipStatus === 'pending_received' ? 'Request Received' :
-                   'No Partner'}
-                </span>
+              <div className="flex-center">
+                <StatusBadge
+                  status={student.partnershipStatus}
+                  variant="partnership"
+                />
               </div>
               
               {student.partnerId && (

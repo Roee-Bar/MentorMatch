@@ -41,7 +41,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-200px)] flex-center">
         <LoadingSpinner message="Loading..." fullScreen={false} />
       </div>
     )
