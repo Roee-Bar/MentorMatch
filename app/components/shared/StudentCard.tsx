@@ -9,6 +9,7 @@ interface StudentCardProps {
   showRequestButton?: boolean;
   isCurrentPartner?: boolean;
   onUnpair?: () => void;
+  isLoading?: boolean;
 }
 
 export default function StudentCard({ 
@@ -16,7 +17,8 @@ export default function StudentCard({
   onRequestPartnership, 
   showRequestButton = true,
   isCurrentPartner = false,
-  onUnpair
+  onUnpair,
+  isLoading = false
 }: StudentCardProps) {
   const partnershipStatusColors = {
     none: 'badge-gray',
@@ -155,8 +157,9 @@ export default function StudentCard({
           <button
             onClick={handleRequestPartnership}
             className="btn-primary w-full"
+            disabled={isLoading}
           >
-            Request Partnership
+            {isLoading ? 'Sending...' : 'Request Partnership'}
           </button>
         </div>
       )}
@@ -166,8 +169,9 @@ export default function StudentCard({
           <button
             onClick={handleUnpair}
             className="btn-danger flex-1"
+            disabled={isLoading}
           >
-            Unpair
+            {isLoading ? 'Unpairing...' : 'Unpair'}
           </button>
         </div>
       )}

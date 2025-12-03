@@ -34,6 +34,24 @@ export default function StudentAuthenticated() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+  // Loading states for all buttons
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
+
+  // Helper functions for loading state
+  const startLoading = (key: string) => {
+    setLoadingActions(prev => new Set(prev).add(key));
+  };
+
+  const stopLoading = (key: string) => {
+    setLoadingActions(prev => {
+      const updated = new Set(prev);
+      updated.delete(key);
+      return updated;
+    });
+  };
+
+  const isLoading = (key: string) => loadingActions.has(key);
 
   // Check authentication
   useEffect(() => {
@@ -177,6 +195,8 @@ export default function StudentAuthenticated() {
       return;
     }
 
+    const loadingKey = `withdraw-${applicationId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -195,6 +215,8 @@ export default function StudentAuthenticated() {
       console.error('Error withdrawing application:', error);
       setError('Failed to withdraw application. Please try again.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -233,6 +255,8 @@ export default function StudentAuthenticated() {
   };
 
   const handleRequestPartnership = async (targetStudentId: string) => {
+    const loadingKey = `partnership-${targetStudentId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -247,10 +271,14 @@ export default function StudentAuthenticated() {
       console.error('Error sending partnership request:', error);
       setError(error.message || 'Failed to send partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleAcceptPartnership = async (requestId: string) => {
+    const loadingKey = `accept-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -265,10 +293,14 @@ export default function StudentAuthenticated() {
       console.error('Error accepting partnership:', error);
       setError(error.message || 'Failed to accept partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleRejectPartnership = async (requestId: string) => {
+    const loadingKey = `reject-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -283,10 +315,14 @@ export default function StudentAuthenticated() {
       console.error('Error rejecting partnership:', error);
       setError(error.message || 'Failed to reject partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleCancelRequest = async (requestId: string) => {
+    const loadingKey = `cancel-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -301,6 +337,8 @@ export default function StudentAuthenticated() {
       console.error('Error cancelling request:', error);
       setError(error.message || 'Failed to cancel partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -309,6 +347,8 @@ export default function StudentAuthenticated() {
       return;
     }
 
+    const loadingKey = 'unpair';
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -323,6 +363,8 @@ export default function StudentAuthenticated() {
       console.error('Error unpairing:', error);
       setError(error.message || 'Failed to unpair from partner.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -409,6 +451,7 @@ export default function StudentAuthenticated() {
                   type="incoming"
                   onAccept={handleAcceptPartnership}
                   onReject={handleRejectPartnership}
+                  isLoading={isLoading(`accept-${request.id}`) || isLoading(`reject-${request.id}`)}
                 />
               ))}
             </div>
@@ -427,6 +470,7 @@ export default function StudentAuthenticated() {
                 showRequestButton={false}
                 isCurrentPartner={true}
                 onUnpair={handleUnpair}
+                isLoading={isLoading('unpair')}
               />
             </div>
           </div>
@@ -446,6 +490,7 @@ export default function StudentAuthenticated() {
                   request={request}
                   type="outgoing"
                   onCancel={handleCancelRequest}
+                  isLoading={isLoading(`cancel-${request.id}`)}
                 />
               ))}
             </div>
@@ -478,6 +523,7 @@ export default function StudentAuthenticated() {
                       student={student}
                       onRequestPartnership={handleRequestPartnership}
                       showRequestButton={true}
+                      isLoading={isLoading(`partnership-${student.id}`)}
                     />
                   ))}
               </div>
@@ -514,6 +560,7 @@ export default function StudentAuthenticated() {
                   key={application.id} 
                   application={application}
                   onWithdraw={handleWithdrawApplication}
+                  isLoading={isLoading(`withdraw-${application.id}`)}
                 />
               ))}
             </div>

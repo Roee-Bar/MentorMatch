@@ -9,6 +9,7 @@ interface PartnershipRequestCardProps {
   onAccept?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
   onCancel?: (requestId: string) => void;
+  isLoading?: boolean;
 }
 
 export default function PartnershipRequestCard({ 
@@ -16,7 +17,8 @@ export default function PartnershipRequestCard({
   type, 
   onAccept, 
   onReject, 
-  onCancel 
+  onCancel,
+  isLoading = false
 }: PartnershipRequestCardProps) {
   const isIncoming = type === 'incoming';
   
@@ -116,14 +118,16 @@ export default function PartnershipRequestCard({
           <button
             onClick={handleAccept}
             className="btn-success flex-1"
+            disabled={isLoading}
           >
-            Accept
+            {isLoading ? 'Accepting...' : 'Accept'}
           </button>
           <button
             onClick={handleReject}
             className="btn-secondary flex-1"
+            disabled={isLoading}
           >
-            Reject
+            {isLoading ? 'Rejecting...' : 'Reject'}
           </button>
         </div>
       )}
@@ -133,8 +137,9 @@ export default function PartnershipRequestCard({
           <button
             onClick={handleCancel}
             className="btn-danger w-full"
+            disabled={isLoading}
           >
-            Cancel Request
+            {isLoading ? 'Cancelling...' : 'Cancel Request'}
           </button>
         </div>
       )}

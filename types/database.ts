@@ -72,6 +72,7 @@ export interface Student {
 // SUPERVISOR TYPE (stored in 'supervisors' collection)
 // ============================================
 export interface Supervisor {
+  id: string; // Document ID from Firestore
   
   // Personal Information
   firstName: string;

@@ -6,9 +6,10 @@ import type { ApplicationCardData } from '@/types/database';
 interface ApplicationCardProps {
   application: ApplicationCardData;
   onWithdraw?: (applicationId: string) => void;
+  isLoading?: boolean;
 }
 
-export default function ApplicationCard({ application, onWithdraw }: ApplicationCardProps) {
+export default function ApplicationCard({ application, onWithdraw, isLoading = false }: ApplicationCardProps) {
   const statusColors = {
     pending: 'badge-warning',
     approved: 'badge-success',
@@ -81,8 +82,9 @@ export default function ApplicationCard({ application, onWithdraw }: Application
           <button 
             className="btn-danger flex-1"
             onClick={() => onWithdraw?.(application.id)}
+            disabled={isLoading}
           >
-            Withdraw
+            {isLoading ? 'Withdrawing...' : 'Withdraw'}
           </button>
         )}
         {application.status === 'revision_requested' && (

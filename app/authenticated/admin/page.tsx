@@ -7,6 +7,8 @@ import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
+import CapacityEditModal from './_components/CapacityEditModal';
+import type { Supervisor } from '@/types/database';
 
 export default function AdminAuthenticated() {
   const router = useRouter();
@@ -14,6 +16,11 @@ export default function AdminAuthenticated() {
   const [authorized, setAuthorized] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [supervisors, setSupervisors] = useState<Supervisor[]>([]);
+  const [loadingSupervisors, setLoadingSupervisors] = useState(false);
+  const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
+  const [showCapacityModal, setShowCapacityModal] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
@@ -52,6 +59,8 @@ export default function AdminAuthenticated() {
 
         const response = await apiClient.getAdminStats(token);
         setStats(response.data);
+
+        fetchSupervisors(token);
       } catch (err) {
         console.error('Error fetching admin stats:', err);
         setError('Failed to load statistics. Please refresh the page.');
@@ -62,6 +71,39 @@ export default function AdminAuthenticated() {
 
     return () => unsubscribe();
   }, [router]);
+
+  const fetchSupervisors = async (token?: string) => {
+    setLoadingSupervisors(true);
+    try {
+      if (!token) {
+        token = await auth.currentUser?.getIdToken();
+      }
+      if (!token) return;
+
+      const response = await apiClient.getSupervisors(token, {});
+      setSupervisors(response.data || []);
+    } catch (err) {
+      console.error('Error fetching supervisors:', err);
+    } finally {
+      setLoadingSupervisors(false);
+    }
+  };
+
+  const handleEditCapacity = (supervisor: Supervisor) => {
+    setSelectedSupervisor(supervisor);
+    setShowCapacityModal(true);
+  };
+
+  const handleCapacityUpdateSuccess = async () => {
+    setSuccessMessage('Supervisor capacity updated successfully!');
+    setTimeout(() => setSuccessMessage(null), 5000);
+    
+    // Refresh supervisors list
+    const token = await auth.currentUser?.getIdToken();
+    if (token) {
+      await fetchSupervisors(token);
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner message="Loading admin dashboard..." />;
@@ -79,6 +121,14 @@ export default function AdminAuthenticated() {
           <StatusMessage 
             message={error} 
             type="error"
+          />
+        )}
+
+        {/* Success Message */}
+        {successMessage && (
+          <StatusMessage 
+            message={successMessage} 
+            type="success"
           />
         )}
 
@@ -195,6 +245,127 @@ export default function AdminAuthenticated() {
             </button>
           </div>
         </div>
+
+        {/* Supervisor Capacity Management Section */}
+        <div className="card-base">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-900">Manage Supervisor Capacity</h2>
+            <button
+              onClick={() => fetchSupervisors()}
+              className="text-blue-600 text-sm font-medium hover:underline"
+              disabled={loadingSupervisors}
+            >
+              {loadingSupervisors ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+
+          {loadingSupervisors ? (
+            <div className="text-center py-8">
+              <LoadingSpinner message="Loading supervisors..." />
+            </div>
+          ) : supervisors.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No supervisors found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Department
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Capacity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {supervisors.map((supervisor) => (
+                    <tr key={supervisor.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {supervisor.fullName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {supervisor.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {supervisor.department}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {supervisor.currentCapacity} / {supervisor.maxCapacity}
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                          <div
+                            className={`h-2 rounded-full ${
+                              supervisor.currentCapacity >= supervisor.maxCapacity
+                                ? 'bg-red-500'
+                                : supervisor.currentCapacity / supervisor.maxCapacity > 0.8
+                                ? 'bg-yellow-500'
+                                : 'bg-green-500'
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (supervisor.currentCapacity / supervisor.maxCapacity) * 100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            supervisor.availabilityStatus === 'available'
+                              ? 'bg-green-100 text-green-800'
+                              : supervisor.availabilityStatus === 'limited'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {supervisor.availabilityStatus}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button
+                          onClick={() => handleEditCapacity(supervisor)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Edit Capacity
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Capacity Edit Modal */}
+        {selectedSupervisor && (
+          <CapacityEditModal
+            supervisor={selectedSupervisor}
+            isOpen={showCapacityModal}
+            onClose={() => {
+              setShowCapacityModal(false);
+              setSelectedSupervisor(null);
+            }}
+            onSuccess={handleCapacityUpdateSuccess}
+          />
+        )}
       </div>
     </div>
   );
