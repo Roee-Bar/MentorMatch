@@ -9,7 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
+import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Application, ApplicationStatus } from '@/types/database';
 

@@ -11,8 +11,8 @@ import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
-import StudentCard from '@/app/components/authenticated/StudentCard';
-import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
+import StudentCard from '@/app/components/shared/StudentCard';
+import SupervisorCard from '@/app/components/shared/SupervisorCard';
 
 export default function StudentProfilePage() {
   const router = useRouter();

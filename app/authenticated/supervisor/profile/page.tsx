@@ -9,7 +9,7 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import CapacityIndicator from '@/app/components/authenticated/CapacityIndicator';
+import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import { Supervisor } from '@/types/database';
 

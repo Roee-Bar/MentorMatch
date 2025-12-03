@@ -8,12 +8,12 @@ import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import StatCard from '@/app/components/authenticated/StatCard';
-import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
-import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
-import StudentCard from '@/app/components/authenticated/StudentCard';
-import PartnershipRequestCard from '@/app/components/authenticated/PartnershipRequestCard';
-import ApplicationModal from '@/app/components/authenticated/ApplicationModal';
+import StatCard from '@/app/components/shared/StatCard';
+import ApplicationCard from '@/app/components/shared/ApplicationCard';
+import SupervisorCard from '@/app/components/shared/SupervisorCard';
+import StudentCard from '@/app/components/shared/StudentCard';
+import PartnershipRequestCard from './_components/PartnershipRequestCard';
+import ApplicationModal from './_components/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest } from '@/types/database';
@@ -394,8 +394,8 @@ export default function StudentAuthenticated() {
           />
         </div>
 
-        {/* Partnership Requests Section - Show if any exist */}
-        {incomingRequests.length > 0 && (
+        {/* Partnership Requests Section - Show if any exist AND not already paired */}
+        {incomingRequests.length > 0 && !currentPartner && (
           <div className="mb-8">
             <div className="section-header">
               <h2 className="section-title">Partnership Requests</h2>

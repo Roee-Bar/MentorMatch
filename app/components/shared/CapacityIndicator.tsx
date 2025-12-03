@@ -78,3 +78,4 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
     </div>
   );
 }
+
