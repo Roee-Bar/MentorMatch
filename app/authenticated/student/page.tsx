@@ -5,81 +5,70 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { useStudentAuth, useLoadingState } from '@/lib/hooks';
+import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import StatCard from '@/app/components/authenticated/StatCard';
-import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
-import SupervisorCard from '@/app/components/authenticated/SupervisorCard';
-import StudentCard from '@/app/components/authenticated/StudentCard';
-import PartnershipRequestCard from '@/app/components/authenticated/PartnershipRequestCard';
-import ApplicationModal from '@/app/components/authenticated/ApplicationModal';
+import StatCard from '@/app/components/shared/StatCard';
+import ApplicationCard from '@/app/components/shared/ApplicationCard';
+import SupervisorCard from '@/app/components/shared/SupervisorCard';
+import StudentCard from '@/app/components/shared/StudentCard';
+import PartnershipRequestCard from './_components/PartnershipRequestCard';
+import ApplicationModal from './_components/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
-import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest } from '@/types/database';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import SectionHeader from '@/app/components/layout/SectionHeader';
+import EmptyState from '@/app/components/feedback/EmptyState';
+import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest, Student } from '@/types/database';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Authentication
+  const { userId, isAuthLoading } = useStudentAuth();
+  const [userProfile, setUserProfile] = useState<Student | null>(null);
+  
+  // Loading states
+  const [dataLoading, setDataLoading] = useState(true);
+  const { startLoading, stopLoading, isLoading } = useLoadingState();
+  
+  // Data states
   const [applications, setApplications] = useState<ApplicationCardData[]>([]);
   const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
   const [availableStudents, setAvailableStudents] = useState<StudentCardData[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<StudentPartnershipRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<StudentPartnershipRequest[]>([]);
   const [currentPartner, setCurrentPartner] = useState<StudentCardData | null>(null);
+  
+  // UI states
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  // Check authentication
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        // User not logged in - redirect to homepage
-        router.replace('/');
-        return;
-      }
-
-      // Get user profile to verify they're a student
-      const token = await user.getIdToken();
-      const profile = await getUserProfile(user.uid, token);
-      if (!profile.success || profile.data?.role !== 'student') {
-        // Redirect non-students to appropriate authenticated page
-        if (profile.data?.role === 'supervisor') {
-          router.replace('/authenticated/supervisor');
-        } else if (profile.data?.role === 'admin') {
-          router.replace('/authenticated/admin');
-        } else {
-          router.replace('/');
-        }
-        return;
-      }
-
-      setUserId(user.uid);
-      setUserProfile(profile.data);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
+  
   // Fetch dashboard data
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
 
-      setLoading(true);
+      setDataLoading(true);
       setError(null);
       
       try {
         // Get Firebase ID token
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
-          router.push('/login');
+          router.push(ROUTES.LOGIN);
           return;
+        }
+
+        // Fetch student profile first to get partnerId
+        const profileRes = await apiClient.getStudentById(userId, token);
+        if (profileRes.success && profileRes.data) {
+          setUserProfile(profileRes.data);
         }
 
         // Call API endpoints
@@ -104,9 +93,9 @@ export default function StudentAuthenticated() {
           setOutgoingRequests(outgoingRes.data || []);
 
           // Get partner details if student has a partner
-          if (userProfile?.partnerId) {
+          if (profileRes.data?.partnerId) {
             try {
-              const partnerRes = await apiClient.getPartnerDetails(userProfile.partnerId, token);
+              const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
               setCurrentPartner(partnerRes.data);
             } catch (partnerError) {
               console.error('Error fetching partner details:', partnerError);
@@ -127,7 +116,7 @@ export default function StudentAuthenticated() {
         setApplications([]);
         setSupervisors([]);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
@@ -177,6 +166,8 @@ export default function StudentAuthenticated() {
       return;
     }
 
+    const loadingKey = `withdraw-${applicationId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -195,6 +186,8 @@ export default function StudentAuthenticated() {
       console.error('Error withdrawing application:', error);
       setError('Failed to withdraw application. Please try again.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -233,6 +226,8 @@ export default function StudentAuthenticated() {
   };
 
   const handleRequestPartnership = async (targetStudentId: string) => {
+    const loadingKey = `partnership-${targetStudentId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -247,10 +242,14 @@ export default function StudentAuthenticated() {
       console.error('Error sending partnership request:', error);
       setError(error.message || 'Failed to send partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleAcceptPartnership = async (requestId: string) => {
+    const loadingKey = `accept-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -265,10 +264,14 @@ export default function StudentAuthenticated() {
       console.error('Error accepting partnership:', error);
       setError(error.message || 'Failed to accept partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleRejectPartnership = async (requestId: string) => {
+    const loadingKey = `reject-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -283,10 +286,14 @@ export default function StudentAuthenticated() {
       console.error('Error rejecting partnership:', error);
       setError(error.message || 'Failed to reject partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
   const handleCancelRequest = async (requestId: string) => {
+    const loadingKey = `cancel-${requestId}`;
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -301,6 +308,8 @@ export default function StudentAuthenticated() {
       console.error('Error cancelling request:', error);
       setError(error.message || 'Failed to cancel partnership request.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -309,6 +318,8 @@ export default function StudentAuthenticated() {
       return;
     }
 
+    const loadingKey = 'unpair';
+    startLoading(loadingKey);
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('Not authenticated');
@@ -323,6 +334,8 @@ export default function StudentAuthenticated() {
       console.error('Error unpairing:', error);
       setError(error.message || 'Failed to unpair from partner.');
       setTimeout(() => setError(null), 5000);
+    } finally {
+      stopLoading(loadingKey);
     }
   };
 
@@ -332,36 +345,33 @@ export default function StudentAuthenticated() {
     (app) => app.status === 'pending' || app.status === 'under_review'
   ).length;
 
-  if (loading) {
+  if (isAuthLoading || dataLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        {/* Error Banner */}
-        {error && (
-          <StatusMessage 
-            message={error} 
-            type="error"
-          />
-        )}
+    <PageLayout>
+      {/* Error Banner */}
+      {error && (
+        <StatusMessage 
+          message={error} 
+          type="error"
+        />
+      )}
 
-        {/* Success Message */}
-        {successMessage && (
-          <StatusMessage 
-            message={successMessage} 
-            type="success"
-          />
-        )}
+      {/* Success Message */}
+      {successMessage && (
+        <StatusMessage 
+          message={successMessage} 
+          type="success"
+        />
+      )}
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Student Dashboard</h1>
-          <p className="text-gray-600">
-            Welcome back, {userProfile?.name || 'Student'}! Here&apos;s your project matching overview.
-          </p>
-        </div>
+      {/* Header */}
+      <PageHeader
+        title="Student Dashboard"
+        description={`Welcome back, ${userProfile?.fullName || 'Student'}! Here's your project matching overview.`}
+      />
 
         {/* Stats Grid */}
         <div className="grid-stats">
@@ -394,13 +404,13 @@ export default function StudentAuthenticated() {
           />
         </div>
 
-        {/* Partnership Requests Section - Show if any exist */}
-        {incomingRequests.length > 0 && (
+        {/* Partnership Requests Section - Show if any exist AND not already paired */}
+        {incomingRequests.length > 0 && !currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Partnership Requests</h2>
-              <span className="badge-warning">{incomingRequests.length} Pending</span>
-            </div>
+            <SectionHeader
+              title="Partnership Requests"
+              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{incomingRequests.length} Pending</span>}
+            />
             <div className="grid-cards">
               {incomingRequests.map(request => (
                 <PartnershipRequestCard
@@ -409,6 +419,7 @@ export default function StudentAuthenticated() {
                   type="incoming"
                   onAccept={handleAcceptPartnership}
                   onReject={handleRejectPartnership}
+                  isLoading={isLoading(`accept-${request.id}`) || isLoading(`reject-${request.id}`)}
                 />
               ))}
             </div>
@@ -418,15 +429,14 @@ export default function StudentAuthenticated() {
         {/* Current Partner Section - Show if paired */}
         {currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">My Partner</h2>
-            </div>
+            <SectionHeader title="My Partner" />
             <div className="grid-cards">
               <StudentCard
                 student={currentPartner}
                 showRequestButton={false}
                 isCurrentPartner={true}
                 onUnpair={handleUnpair}
+                isLoading={isLoading('unpair')}
               />
             </div>
           </div>
@@ -435,10 +445,10 @@ export default function StudentAuthenticated() {
         {/* Outgoing Requests - Show if any */}
         {outgoingRequests.length > 0 && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Pending Partnership Requests</h2>
-              <span className="badge-warning">{outgoingRequests.length} Sent</span>
-            </div>
+            <SectionHeader
+              title="Pending Partnership Requests"
+              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{outgoingRequests.length} Sent</span>}
+            />
             <div className="grid-cards">
               {outgoingRequests.map(request => (
                 <PartnershipRequestCard
@@ -446,6 +456,7 @@ export default function StudentAuthenticated() {
                   request={request}
                   type="outgoing"
                   onCancel={handleCancelRequest}
+                  isLoading={isLoading(`cancel-${request.id}`)}
                 />
               ))}
             </div>
@@ -455,20 +466,20 @@ export default function StudentAuthenticated() {
         {/* Available Students - Show if not paired */}
         {!currentPartner && (
           <div className="mb-8">
-            <div className="section-header">
-              <h2 className="section-title">Available Students</h2>
-              <button
-                onClick={() => setShowAllStudents(!showAllStudents)}
-                className="text-blue-600 text-sm font-medium hover:underline"
-              >
-                {showAllStudents ? 'Show Less' : 'View All'} →
-              </button>
-            </div>
+            <SectionHeader
+              title="Available Students"
+              action={
+                <button
+                  onClick={() => setShowAllStudents(!showAllStudents)}
+                  className="text-blue-600 text-sm font-medium hover:underline"
+                >
+                  {showAllStudents ? 'Show Less' : 'View All'} →
+                </button>
+              }
+            />
             
             {availableStudents.length === 0 ? (
-              <div className="empty-state">
-                <p className="empty-state-text">No available students at the moment.</p>
-              </div>
+              <EmptyState message="No available students at the moment." />
             ) : (
               <div className="grid-cards">
                 {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
@@ -478,6 +489,7 @@ export default function StudentAuthenticated() {
                       student={student}
                       onRequestPartnership={handleRequestPartnership}
                       showRequestButton={true}
+                      isLoading={isLoading(`partnership-${student.id}`)}
                     />
                   ))}
               </div>
@@ -487,26 +499,26 @@ export default function StudentAuthenticated() {
 
         {/* My Applications Section */}
         <div className="mb-8">
-          <div className="section-header">
-            <h2 className="section-title">My Applications</h2>
-            <button
-              onClick={() => router.push('/supervisors')}
-              className="btn-primary"
-            >
-              + New Application
-            </button>
-          </div>
+          <SectionHeader
+            title="My Applications"
+            action={
+              <button
+                onClick={() => router.push(ROUTES.SUPERVISORS)}
+                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                + New Application
+              </button>
+            }
+          />
 
           {applications.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text mb-4">You haven&apos;t submitted any applications yet.</p>
-              <button
-                onClick={() => router.push('/supervisors')}
-                className="btn-primary px-6 py-2"
-              >
-                Browse Supervisors
-              </button>
-            </div>
+            <EmptyState
+              message="You haven't submitted any applications yet."
+              action={{
+                label: 'Browse Supervisors',
+                onClick: () => router.push(ROUTES.SUPERVISORS)
+              }}
+            />
           ) : (
             <div className="grid-cards">
               {applications.map((application) => (
@@ -514,6 +526,7 @@ export default function StudentAuthenticated() {
                   key={application.id} 
                   application={application}
                   onWithdraw={handleWithdrawApplication}
+                  isLoading={isLoading(`withdraw-${application.id}`)}
                 />
               ))}
             </div>
@@ -522,20 +535,20 @@ export default function StudentAuthenticated() {
 
         {/* Available Supervisors Section */}
         <div className="mb-8">
-          <div className="section-header">
-            <h2 className="section-title">Available Supervisors</h2>
-            <button
-              onClick={() => router.push('/supervisors')}
-              className="text-blue-600 text-sm font-medium hover:underline"
-            >
-              View All →
-            </button>
-          </div>
+          <SectionHeader
+            title="Available Supervisors"
+            action={
+              <button
+                onClick={() => router.push(ROUTES.SUPERVISORS)}
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                View All →
+              </button>
+            }
+          />
 
           {supervisors.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text">No supervisors available at the moment.</p>
-            </div>
+            <EmptyState message="No supervisors available at the moment." />
           ) : (
             <div className="grid-cards">
               {supervisors.slice(0, 3).map((supervisor) => (
@@ -559,7 +572,6 @@ export default function StudentAuthenticated() {
             onSubmit={handleSubmitApplication}
           />
         )}
-      </div>
-    </div>
+    </PageLayout>
   );
 }

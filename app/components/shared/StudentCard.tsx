@@ -1,7 +1,8 @@
-// app/components/authenticated/StudentCard.tsx
+// app/components/shared/StudentCard.tsx
 // Component for displaying student information for partnership matching
 
 import type { StudentCardData } from '@/types/database';
+import StatusBadge from './StatusBadge';
 
 interface StudentCardProps {
   student: StudentCardData;
@@ -9,6 +10,7 @@ interface StudentCardProps {
   showRequestButton?: boolean;
   isCurrentPartner?: boolean;
   onUnpair?: () => void;
+  isLoading?: boolean;
 }
 
 export default function StudentCard({ 
@@ -16,22 +18,9 @@ export default function StudentCard({
   onRequestPartnership, 
   showRequestButton = true,
   isCurrentPartner = false,
-  onUnpair
+  onUnpair,
+  isLoading = false
 }: StudentCardProps) {
-  const partnershipStatusColors = {
-    none: 'badge-gray',
-    pending_sent: 'badge-warning',
-    pending_received: 'badge-warning',
-    paired: 'badge-success',
-  };
-
-  const partnershipStatusLabels = {
-    none: 'Available',
-    pending_sent: 'Request Sent',
-    pending_received: 'Has Request',
-    paired: 'Paired',
-  };
-
   const handleRequestPartnership = () => {
     if (onRequestPartnership) {
       onRequestPartnership(student.id);
@@ -66,9 +55,7 @@ export default function StudentCard({
           <p className="text-sm text-gray-600">{student.department}</p>
         </div>
         {!isCurrentPartner && (
-          <span className={partnershipStatusColors[student.partnershipStatus]}>
-            {partnershipStatusLabels[student.partnershipStatus]}
-          </span>
+          <StatusBadge status={student.partnershipStatus} variant="partnership" />
         )}
       </div>
 
@@ -155,8 +142,9 @@ export default function StudentCard({
           <button
             onClick={handleRequestPartnership}
             className="btn-primary w-full"
+            disabled={isLoading}
           >
-            Request Partnership
+            {isLoading ? 'Sending...' : 'Request Partnership'}
           </button>
         </div>
       )}
@@ -166,8 +154,9 @@ export default function StudentCard({
           <button
             onClick={handleUnpair}
             className="btn-danger flex-1"
+            disabled={isLoading}
           >
-            Unpair
+            {isLoading ? 'Unpairing...' : 'Unpair'}
           </button>
         </div>
       )}

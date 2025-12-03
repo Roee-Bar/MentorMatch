@@ -10,8 +10,14 @@ import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import ErrorState from '@/app/components/feedback/ErrorState';
+import FormCard from '@/app/components/display/FormCard';
+import FormActions from '@/app/components/display/FormActions';
 import { Student } from '@/types/database';
 
 export default function StudentProfileEditPage() {
@@ -181,222 +187,189 @@ export default function StudentProfileEditPage() {
 
   if (loadError || !student) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <p className="error-text">{loadError || 'Unable to load profile. Please try again later.'}</p>
-          <button
-            onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-            className="btn-primary"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        message={loadError || 'Unable to load profile. Please try again later.'}
+        action={{
+          label: 'Back to Dashboard',
+          onClick: () => router.push(ROUTES.AUTHENTICATED.STUDENT)
+        }}
+      />
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content-narrow">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Edit Profile</h1>
-          <p className="text-gray-600">
-            Update your profile information and click Save Changes when done
-          </p>
-        </div>
+    <PageLayout variant="narrow">
+      {/* Header */}
+      <PageHeader
+        title="Edit Profile"
+        description="Update your profile information and click Save Changes when done"
+      />
 
-        {/* Success Message */}
-        {saveSuccess && (
-          <div className="message-box-success">
-            <p className="message-text-success">
-              Profile updated successfully! Redirecting...
-            </p>
-          </div>
-        )}
+      {/* Success Message */}
+      {saveSuccess && (
+        <StatusMessage
+          message="Profile updated successfully! Redirecting..."
+          type="success"
+        />
+      )}
 
-        {/* Error Message */}
-        {saveError && (
-          <div className="message-box-error">
-            <p className="message-text-error">{saveError}</p>
-          </div>
-        )}
+      {/* Error Message */}
+      {saveError && (
+        <StatusMessage
+          message={saveError}
+          type="error"
+        />
+      )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="form-group">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
+          <FormCard title="Personal Information">
+            <FormInput
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              required
+              minLength={1}
+              maxLength={100}
+            />
             
-            <div className="form-section">
-              <FormInput
-                label="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                required
-                minLength={1}
-                maxLength={100}
-              />
-              
-              <FormInput
-                label="Email"
-                name="email"
-                type="email"
-                value={student.email}
-                onChange={() => {}}
-                disabled={true}
-                helperText="Email cannot be changed"
-              />
-              
-              <FormInput
-                label="Student ID"
-                name="studentId"
-                value={student.studentId}
-                onChange={() => {}}
-                disabled={true}
-                helperText="Student ID cannot be changed"
-              />
-              
-              <FormInput
-                label="Phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                minLength={10}
-                placeholder="e.g., 555-123-4567"
-              />
-              
-              <FormInput
-                label="Department"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                required
-                minLength={1}
-              />
-            </div>
-          </div>
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              value={student.email}
+              onChange={() => {}}
+              disabled={true}
+              helperText="Email cannot be changed"
+            />
+            
+            <FormInput
+              label="Student ID"
+              name="studentId"
+              value={student.studentId}
+              onChange={() => {}}
+              disabled={true}
+              helperText="Student ID cannot be changed"
+            />
+            
+            <FormInput
+              label="Phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              minLength={10}
+              placeholder="e.g., 555-123-4567"
+            />
+            
+            <FormInput
+              label="Department"
+              name="department"
+              value={formData.department}
+              onChange={handleInputChange}
+              required
+              minLength={1}
+            />
+          </FormCard>
 
           {/* Academic Information */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Academic Information</h2>
+          <FormCard title="Academic Information">
+            <FormTextArea
+              label="Skills"
+              name="skills"
+              value={formData.skills}
+              onChange={handleInputChange}
+              rows={3}
+              maxLength={500}
+              showCharCount={true}
+              placeholder="e.g., Python, JavaScript, Machine Learning"
+              helperText="List your technical and professional skills"
+            />
             
-            <div className="space-y-4">
-              <FormTextArea
-                label="Skills"
-                name="skills"
-                value={formData.skills}
-                onChange={handleInputChange}
-                rows={3}
-                maxLength={500}
-                showCharCount={true}
-                placeholder="e.g., Python, JavaScript, Machine Learning"
-                helperText="List your technical and professional skills"
-              />
-              
-              <FormTextArea
-                label="Interests"
-                name="interests"
-                value={formData.interests}
-                onChange={handleInputChange}
-                rows={3}
-                maxLength={500}
-                showCharCount={true}
-                placeholder="e.g., Data Science, Web Development, AI"
-                helperText="Describe your academic and research interests"
-              />
-              
-              <FormTextArea
-                label="Previous Projects"
-                name="previousProjects"
-                value={formData.previousProjects}
-                onChange={handleInputChange}
-                rows={4}
-                maxLength={1000}
-                showCharCount={true}
-                placeholder="Describe any relevant projects you've worked on"
-              />
-              
-              <FormTextArea
-                label="Preferred Topics"
-                name="preferredTopics"
-                value={formData.preferredTopics}
-                onChange={handleInputChange}
-                rows={3}
-                maxLength={500}
-                showCharCount={true}
-                placeholder="e.g., Cloud Computing, Mobile Development, Security"
-                helperText="Topics you'd like to work on for your project"
-              />
-            </div>
-          </div>
+            <FormTextArea
+              label="Interests"
+              name="interests"
+              value={formData.interests}
+              onChange={handleInputChange}
+              rows={3}
+              maxLength={500}
+              showCharCount={true}
+              placeholder="e.g., Data Science, Web Development, AI"
+              helperText="Describe your academic and research interests"
+            />
+            
+            <FormTextArea
+              label="Previous Projects"
+              name="previousProjects"
+              value={formData.previousProjects}
+              onChange={handleInputChange}
+              rows={4}
+              maxLength={1000}
+              showCharCount={true}
+              placeholder="Describe any relevant projects you've worked on"
+            />
+            
+            <FormTextArea
+              label="Preferred Topics"
+              name="preferredTopics"
+              value={formData.preferredTopics}
+              onChange={handleInputChange}
+              rows={3}
+              maxLength={500}
+              showCharCount={true}
+              placeholder="e.g., Cloud Computing, Mobile Development, Security"
+              helperText="Topics you'd like to work on for your project"
+            />
+          </FormCard>
 
           {/* Partner Information */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Partner Information</h2>
-            
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="hasPartner"
-                  name="hasPartner"
-                  checked={formData.hasPartner}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="hasPartner" className="ml-2 text-sm font-medium text-gray-700">
-                  I have a project partner
-                </label>
-              </div>
-              
-              {formData.hasPartner && (
-                <>
-                  <FormInput
-                    label="Partner Name"
-                    name="partnerName"
-                    value={formData.partnerName}
-                    onChange={handleInputChange}
-                    maxLength={100}
-                    placeholder="Full name of your partner"
-                  />
-                  
-                  <FormInput
-                    label="Partner Email"
-                    name="partnerEmail"
-                    type="email"
-                    value={formData.partnerEmail}
-                    onChange={handleInputChange}
-                    placeholder="partner@example.com"
-                  />
-                </>
-              )}
+          <FormCard title="Partner Information">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="hasPartner"
+                name="hasPartner"
+                checked={formData.hasPartner}
+                onChange={handleInputChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="hasPartner" className="ml-2 text-sm font-medium text-gray-700">
+                I have a project partner
+              </label>
             </div>
-          </div>
+            
+            {formData.hasPartner && (
+              <>
+                <FormInput
+                  label="Partner Name"
+                  name="partnerName"
+                  value={formData.partnerName}
+                  onChange={handleInputChange}
+                  maxLength={100}
+                  placeholder="Full name of your partner"
+                />
+                
+                <FormInput
+                  label="Partner Email"
+                  name="partnerEmail"
+                  type="email"
+                  value={formData.partnerEmail}
+                  onChange={handleInputChange}
+                  placeholder="partner@example.com"
+                />
+              </>
+            )}
+          </FormCard>
 
           {/* Action Buttons */}
-          <div className="action-buttons">
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="btn-primary"
-            >
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
+          <FormActions
+            onCancel={handleCancel}
+            isLoading={isSaving}
+          />
         </form>
-      </div>
-    </div>
+    </PageLayout>
   );
 }
 

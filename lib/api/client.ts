@@ -33,18 +33,33 @@ export async function apiFetch(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...fetchOptions,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...fetchOptions,
+      headers,
+    });
 
-  const data = await response.json();
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.error || 'API request failed');
+    if (!response.ok) {
+      // Extract error message from various formats
+      const errorMessage = 
+        data.error || 
+        data.message || 
+        data.data?.error || 
+        data.details ||
+        (typeof data === 'string' ? data : 'API request failed');
+      throw new Error(errorMessage);
+    }
+
+    return data;
+  } catch (error: any) {
+    // Handle network errors gracefully
+    if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    throw error;
   }
-
-  return data;
 }
 
 /**
@@ -229,6 +244,23 @@ export const apiClient = {
   
   getAdminStats: (token: string) => {
     return apiFetch('/admin/stats', { token });
+  },
+
+  // Admin capacity override endpoint
+  updateSupervisorCapacity: async (
+    supervisorId: string,
+    maxCapacity: number,
+    reason: string,
+    token: string
+  ) => {
+    return apiFetch(
+      `/admin/supervisors/${supervisorId}/capacity`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ maxCapacity, reason }),
+        token,
+      }
+    );
   },
 
   // ========================================

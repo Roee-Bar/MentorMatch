@@ -139,13 +139,39 @@ export async function DELETE(
       );
     }
 
-    const success = await AdminApplicationService.deleteApplication(params.id);
+    const { adminDb } = await import('@/lib/firebase-admin');
+    
+    if (application.status === 'approved') {
+      // Use transaction to ensure atomicity
+      await adminDb.runTransaction(async (transaction) => {
+        const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
+        const supervisorSnap = await transaction.get(supervisorRef);
 
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to delete application' },
-        { status: 500 }
-      );
+        if (supervisorSnap.exists) {
+          const supervisorData = supervisorSnap.data();
+          const currentCapacity = supervisorData?.currentCapacity || 0;
+          const newCapacity = Math.max(0, currentCapacity - 1);
+
+          transaction.update(supervisorRef, {
+            currentCapacity: newCapacity,
+            updatedAt: new Date()
+          });
+        }
+
+        // Delete application
+        const applicationRef = adminDb.collection('applications').doc(params.id);
+        transaction.delete(applicationRef);
+      });
+    } else {
+      // No capacity change needed - delete normally
+      const success = await AdminApplicationService.deleteApplication(params.id);
+
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Failed to delete application' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({

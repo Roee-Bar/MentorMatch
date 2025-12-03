@@ -9,10 +9,15 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import StatCard from '@/app/components/authenticated/StatCard';
-import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
+import StatCard from '@/app/components/shared/StatCard';
+import ApplicationCard from '@/app/components/shared/ApplicationCard';
+import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import SectionHeader from '@/app/components/layout/SectionHeader';
+import EmptyState from '@/app/components/feedback/EmptyState';
 import { Application, Supervisor, Project } from '@/types/database';
 
 export default function SupervisorAuthenticated() {
@@ -74,23 +79,20 @@ export default function SupervisorAuthenticated() {
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        {/* Error Banner */}
-        {error && (
-          <StatusMessage 
-            message={error} 
-            type="error"
-          />
-        )}
+    <PageLayout>
+      {/* Error Banner */}
+      {error && (
+        <StatusMessage 
+          message={error} 
+          type="error"
+        />
+      )}
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Supervisor Dashboard</h1>
-          <p className="text-gray-600">
-            Welcome back, {userProfile?.name || 'Supervisor'}! Here&apos;s your supervision overview.
-          </p>
-        </div>
+      {/* Header */}
+      <PageHeader
+        title="Supervisor Dashboard"
+        description={`Welcome back, ${userProfile?.name || 'Supervisor'}! Here's your supervision overview.`}
+      />
 
         {/* Stats Grid */}
         <div className="grid-stats">
@@ -108,20 +110,13 @@ export default function SupervisorAuthenticated() {
             color="gray"
           />
 
-          <div className="card-base">
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">Capacity Status</h3>
-            <p className="text-sm text-gray-600">
-              {currentCapacity} / {supervisor?.maxCapacity || 0} students
-            </p>
-            <div className="mt-3 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-600 transition-all"
-                style={{ 
-                  width: `${supervisor?.maxCapacity ? (currentCapacity / supervisor.maxCapacity) * 100 : 0}%` 
-                }}
-              />
-            </div>
-          </div>
+          {supervisor && (
+            <CapacityIndicator
+              current={currentCapacity}
+              max={supervisor.maxCapacity}
+              status={supervisor.availabilityStatus}
+            />
+          )}
 
           <StatCard
             title="Approved Projects"
@@ -133,20 +128,20 @@ export default function SupervisorAuthenticated() {
 
         {/* Recent Applications Section */}
         <div className="mb-8">
-          <div className="section-header">
-            <h2 className="section-title">Recent Applications</h2>
-            <button
-              onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
-              className="text-blue-600 text-sm font-medium hover:underline"
-            >
-              View All →
-            </button>
-          </div>
+          <SectionHeader
+            title="Recent Applications"
+            action={
+              <button
+                onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                View All →
+              </button>
+            }
+          />
 
           {applications.length === 0 ? (
-            <div className="empty-state">
-              <p className="empty-state-text">No applications received yet.</p>
-            </div>
+            <EmptyState message="No applications received yet." />
           ) : (
             <div className="grid-cards">
               {applications.slice(0, 6).map((application) => {
@@ -178,12 +173,11 @@ export default function SupervisorAuthenticated() {
         {/* Quick Actions */}
         <button
           onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
-          className="btn-primary p-6 text-left"
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed p-6 text-left"
         >
           <h3 className="text-lg font-semibold mb-2">View All Applications</h3>
           <p className="text-sm opacity-90">Review and manage student applications</p>
         </button>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

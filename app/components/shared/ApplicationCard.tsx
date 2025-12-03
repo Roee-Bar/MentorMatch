@@ -1,30 +1,16 @@
-// app/components/authenticated/ApplicationCard.tsx
+// app/components/shared/ApplicationCard.tsx
 // Updated to work with Firebase data types
 
 import type { ApplicationCardData } from '@/types/database';
+import StatusBadge from './StatusBadge';
 
 interface ApplicationCardProps {
   application: ApplicationCardData;
   onWithdraw?: (applicationId: string) => void;
+  isLoading?: boolean;
 }
 
-export default function ApplicationCard({ application, onWithdraw }: ApplicationCardProps) {
-  const statusColors = {
-    pending: 'badge-warning',
-    approved: 'badge-success',
-    rejected: 'badge-danger',
-    under_review: 'badge-info',
-    revision_requested: 'badge-orange',
-  };
-
-  const statusLabels = {
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    under_review: 'Under Review',
-    revision_requested: 'Revision Requested',
-  };
-
+export default function ApplicationCard({ application, onWithdraw, isLoading = false }: ApplicationCardProps) {
   return (
     <div className="card-base">
       {/* Header with Title and Status */}
@@ -37,10 +23,24 @@ export default function ApplicationCard({ application, onWithdraw }: Application
             Supervisor: {application.supervisorName}
           </p>
         </div>
-        <span className={statusColors[application.status]}>
-          {statusLabels[application.status]}
-        </span>
+        <StatusBadge status={application.status} variant="application" />
       </div>
+
+      {/* Partner Information Badge */}
+      {application.hasPartner && application.partnerName && (
+        <div className="mb-4 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm text-blue-900 font-medium">Team Project</p>
+            <p className="text-xs text-blue-700">Partner: {application.partnerName}</p>
+          </div>
+          {application.linkedApplicationId && (
+            <span className="badge-info text-xs">Linked</span>
+          )}
+        </div>
+      )}
 
       {/* Project Description */}
       <div className="mb-4">
@@ -81,8 +81,9 @@ export default function ApplicationCard({ application, onWithdraw }: Application
           <button 
             className="btn-danger flex-1"
             onClick={() => onWithdraw?.(application.id)}
+            disabled={isLoading}
           >
-            Withdraw
+            {isLoading ? 'Withdrawing...' : 'Withdraw'}
           </button>
         )}
         {application.status === 'revision_requested' && (

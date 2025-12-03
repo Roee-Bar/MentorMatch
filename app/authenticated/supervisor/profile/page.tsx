@@ -9,8 +9,12 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import CapacityIndicator from '@/app/components/authenticated/CapacityIndicator';
+import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import ErrorState from '@/app/components/feedback/ErrorState';
+import ProfileField from '@/app/components/display/ProfileField';
 import { Supervisor } from '@/types/database';
 
 export default function SupervisorProfilePage() {
@@ -61,79 +65,55 @@ export default function SupervisorProfilePage() {
 
   if (error || !supervisor) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <p className="error-text">Unable to load profile. Please try again later.</p>
-          <button
-            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)}
-            className="btn-primary"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        message="Unable to load profile. Please try again later."
+        action={{
+          label: 'Back to Dashboard',
+          onClick: () => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)
+        }}
+      />
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content-narrow">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="page-title">Profile</h1>
-            <p className="text-gray-600">
-              View your profile information and supervision capacity
-            </p>
-          </div>
+    <PageLayout variant="narrow">
+      {/* Header */}
+      <PageHeader
+        title="Profile"
+        description="View your profile information and supervision capacity"
+        action={
           <button
             onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_PROFILE_EDIT)}
-            className="btn-primary"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             Edit Profile
           </button>
-        </div>
+        }
+      />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Profile Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
               
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Full Name</label>
-                  <p className="text-gray-800 mt-1">{supervisor.fullName}</p>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="text-gray-800 mt-1">{supervisor.email}</p>
-                </div>
-                
-                {supervisor.phone && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Phone</label>
-                    <p className="text-gray-800 mt-1">{supervisor.phone}</p>
-                  </div>
-                )}
-                
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Department</label>
-                  <p className="text-gray-800 mt-1">{supervisor.department}</p>
-                </div>
+                <ProfileField label="Full Name" value={supervisor.fullName} />
+                <ProfileField label="Email" value={supervisor.email} />
+                {supervisor.phone && <ProfileField label="Phone" value={supervisor.phone} />}
+                <ProfileField label="Department" value={supervisor.department} />
               </div>
             </div>
 
             {/* Bio */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Bio</h2>
               <p className="text-gray-700 leading-relaxed text-balance">{supervisor.bio}</p>
             </div>
 
             {/* Research Interests */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Research Interests</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.researchInterests.map((interest, index) => (
@@ -148,7 +128,7 @@ export default function SupervisorProfilePage() {
             </div>
 
             {/* Expertise Areas */}
-            <div className="card-base">
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Expertise Areas</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.expertiseAreas.map((area, index) => (
@@ -164,23 +144,12 @@ export default function SupervisorProfilePage() {
 
             {/* Office Information */}
             {(supervisor.officeLocation || supervisor.officeHours) && (
-              <div className="card-base">
+              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Office Information</h2>
                 
                 <div className="space-y-4">
-                  {supervisor.officeLocation && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Location</label>
-                      <p className="text-gray-800 mt-1">{supervisor.officeLocation}</p>
-                    </div>
-                  )}
-                  
-                  {supervisor.officeHours && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Office Hours</label>
-                      <p className="text-gray-800 mt-1">{supervisor.officeHours}</p>
-                    </div>
-                  )}
+                  {supervisor.officeLocation && <ProfileField label="Location" value={supervisor.officeLocation} />}
+                  {supervisor.officeHours && <ProfileField label="Office Hours" value={supervisor.officeHours} />}
                 </div>
               </div>
             )}
@@ -196,7 +165,6 @@ export default function SupervisorProfilePage() {
             />
           </div>
         </div>
-      </div>
-    </div>
+    </PageLayout>
   );
 }

@@ -9,8 +9,13 @@ import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
-import ApplicationCard from '@/app/components/authenticated/ApplicationCard';
+import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import ErrorState from '@/app/components/feedback/ErrorState';
+import EmptyState from '@/app/components/feedback/EmptyState';
+import FilterButtons from '@/app/components/display/FilterButtons';
 import { Application, ApplicationStatus } from '@/types/database';
 
 type FilterStatus = 'all' | ApplicationStatus;
@@ -74,78 +79,46 @@ export default function SupervisorApplicationsPage() {
 
   if (error) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <p className="error-text">Unable to load applications. Please try again later.</p>
-          <button
-            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)}
-            className="btn-primary"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        message="Unable to load applications. Please try again later."
+        action={{
+          label: 'Back to Dashboard',
+          onClick: () => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)
+        }}
+      />
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Applications</h1>
-          <p className="text-gray-600">
-            Review and manage student project applications
-          </p>
-        </div>
+    <PageLayout>
+      {/* Header */}
+      <PageHeader
+        title="Applications"
+        description="Review and manage student project applications"
+      />
 
-        {/* Filter Buttons */}
-        <div className="mb-6 flex flex-wrap gap-3">
-          <button
-            onClick={() => setFilterStatus('all')}
-            className={`filter-btn ${filterStatus === 'all' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
-          >
-            All ({statusCounts.all})
-          </button>
-          
-          <button
-            onClick={() => setFilterStatus('pending')}
-            className={`filter-btn ${filterStatus === 'pending' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
-          >
-            Pending ({statusCounts.pending})
-          </button>
-          
-          <button
-            onClick={() => setFilterStatus('under_review')}
-            className={`filter-btn ${filterStatus === 'under_review' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
-          >
-            Under Review ({statusCounts.under_review})
-          </button>
-          
-          <button
-            onClick={() => setFilterStatus('approved')}
-            className={`filter-btn ${filterStatus === 'approved' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
-          >
-            Approved ({statusCounts.approved})
-          </button>
-          
-          <button
-            onClick={() => setFilterStatus('rejected')}
-            className={`filter-btn ${filterStatus === 'rejected' ? 'filter-btn-active' : 'filter-btn-inactive'}`}
-          >
-            Rejected ({statusCounts.rejected})
-          </button>
-        </div>
+      {/* Filter Buttons */}
+      <FilterButtons
+        filters={[
+          { label: 'All', value: 'all', count: statusCounts.all },
+          { label: 'Pending', value: 'pending', count: statusCounts.pending },
+          { label: 'Under Review', value: 'under_review', count: statusCounts.under_review },
+          { label: 'Approved', value: 'approved', count: statusCounts.approved },
+          { label: 'Rejected', value: 'rejected', count: statusCounts.rejected },
+        ]}
+        activeFilter={filterStatus}
+        onChange={(value) => setFilterStatus(value as FilterStatus)}
+      />
 
         {/* Applications Grid */}
         {filteredApplications.length === 0 ? (
-          <div className="empty-state">
-            <p className="empty-state-text">
-              {applications.length === 0 
+          <EmptyState
+            message={
+              applications.length === 0 
                 ? 'No applications received yet.' 
-                : `No ${filterStatus} applications.`}
-            </p>
-          </div>
+                : `No ${filterStatus} applications.`
+            }
+          />
         ) : (
           <div className="grid-cards">
             {filteredApplications.map((application) => (
@@ -160,12 +133,15 @@ export default function SupervisorApplicationsPage() {
                   status: application.status,
                   responseTime: application.responseTime || '5-7 business days',
                   comments: application.supervisorFeedback,
+                  hasPartner: application.hasPartner,
+                  partnerName: application.partnerName,
+                  linkedApplicationId: application.linkedApplicationId,
+                  isLeadApplication: application.isLeadApplication,
                 }} 
               />
             ))}
           </div>
         )}
-      </div>
-    </div>
+    </PageLayout>
   );
 }

@@ -5,9 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { ApplicationService, SupervisorService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
+import { adminDb } from '@/lib/firebase-admin';
 
 export async function PATCH(
   request: NextRequest,
@@ -26,7 +27,7 @@ export async function PATCH(
     
     if (!application) {
       return NextResponse.json(
-        { error: 'Application not found' },
+        { error: 'Application not found. It may have been deleted.' },
         { status: 404 }
       );
     }
@@ -37,7 +38,7 @@ export async function PATCH(
 
     if (!isSupervisor && !isAdmin) {
       return NextResponse.json(
-        { error: 'Forbidden' },
+        { error: 'You don\'t have permission to update this application.' },
         { status: 403 }
       );
     }
@@ -52,17 +53,103 @@ export async function PATCH(
     }
 
     const { status, feedback } = validation.data!;
-    const success = await ApplicationService.updateApplicationStatus(
-      params.id,
-      status,
-      feedback
-    );
+    const previousStatus = application.status;
 
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Failed to update application status' },
-        { status: 500 }
+    // Handle edge case: Rejecting a lead application with a linked partner
+    if (status === 'rejected' && application.isLeadApplication && application.linkedApplicationId) {
+      // Check if linked application exists and update it
+      const linkedAppRef = adminDb.collection('applications').doc(application.linkedApplicationId);
+      const linkedAppSnap = await linkedAppRef.get();
+      
+      if (linkedAppSnap.exists) {
+        const linkedAppData = linkedAppSnap.data();
+        // If linked application is not yet processed, auto-reject it too
+        if (linkedAppData?.status === 'pending' || linkedAppData?.status === 'under_review') {
+          await linkedAppRef.update({
+            status: 'rejected',
+            supervisorFeedback: feedback ? `${feedback} (Linked partner application was rejected)` : 'Linked partner application was rejected',
+            lastUpdated: new Date(),
+            responseDate: new Date()
+          });
+        }
+      }
+    }
+
+    // Check if capacity needs to be updated (approving or unapproving)
+    const isApproving = status === 'approved' && previousStatus !== 'approved';
+    const isUnapproving = previousStatus === 'approved' && status !== 'approved';
+    
+    // Only update capacity for lead applications (or applications without a partner)
+    const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
+    
+    if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
+      await adminDb.runTransaction(async (transaction) => {
+        const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
+        const supervisorSnap = await transaction.get(supervisorRef);
+
+        if (!supervisorSnap.exists) {
+          throw new Error('Supervisor not found');
+        }
+
+        const supervisorData = supervisorSnap.data();
+        const currentCapacity = supervisorData?.currentCapacity || 0;
+        const maxCapacity = supervisorData?.maxCapacity || 0;
+
+        if (isApproving) {
+          // Approving application - check capacity
+          if (currentCapacity >= maxCapacity) {
+            throw new Error(
+              `Cannot approve: Supervisor has reached maximum capacity (${currentCapacity}/${maxCapacity} projects). Please contact admin to increase capacity or select a different supervisor.`
+            );
+          }
+
+          // Increment capacity (only for lead applications)
+          transaction.update(supervisorRef, {
+            currentCapacity: currentCapacity + 1,
+            updatedAt: new Date()
+          });
+
+        } else if (isUnapproving) {
+          // Changing from approved to something else - release capacity (only for lead applications)
+          const newCapacity = Math.max(0, currentCapacity - 1);
+          transaction.update(supervisorRef, {
+            currentCapacity: newCapacity,
+            updatedAt: new Date()
+          });
+        }
+
+        // Update application status
+        const applicationRef = adminDb.collection('applications').doc(params.id);
+        const updateData: any = {
+          status,
+          lastUpdated: new Date(),
+        };
+        
+        if (feedback) {
+          updateData.supervisorFeedback = feedback;
+        }
+        
+        if (status === 'approved' || status === 'rejected') {
+          updateData.responseDate = new Date();
+        }
+
+        transaction.update(applicationRef, updateData);
+      });
+
+    } else {
+      // No capacity change needed - update normally
+      const success = await ApplicationService.updateApplicationStatus(
+        params.id,
+        status,
+        feedback
       );
+
+      if (!success) {
+        return NextResponse.json(
+          { error: 'Failed to update application status' },
+          { status: 500 }
+        );
+      }
     }
 
     return NextResponse.json({

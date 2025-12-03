@@ -10,8 +10,14 @@ import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import PageLayout from '@/app/components/layout/PageLayout';
+import PageHeader from '@/app/components/layout/PageHeader';
+import ErrorState from '@/app/components/feedback/ErrorState';
+import FormCard from '@/app/components/display/FormCard';
+import FormActions from '@/app/components/display/FormActions';
 import { Supervisor } from '@/types/database';
 
 export default function SupervisorProfileEditPage() {
@@ -202,98 +208,86 @@ export default function SupervisorProfileEditPage() {
 
   if (loadError || !supervisor) {
     return (
-      <div className="error-container">
-        <div className="error-content">
-          <p className="error-text">{loadError || 'Unable to load profile. Please try again later.'}</p>
-          <button
-            onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)}
-            className="btn-primary"
-          >
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        message={loadError || 'Unable to load profile. Please try again later.'}
+        action={{
+          label: 'Back to Dashboard',
+          onClick: () => router.push(ROUTES.AUTHENTICATED.SUPERVISOR)
+        }}
+      />
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content-narrow">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="page-title">Edit Profile</h1>
-          <p className="text-gray-600">
-            Update your profile information and click Save Changes when done
-          </p>
-        </div>
+    <PageLayout variant="narrow">
+      {/* Header */}
+      <PageHeader
+        title="Edit Profile"
+        description="Update your profile information and click Save Changes when done"
+      />
 
-        {/* Success Message */}
-        {saveSuccess && (
-          <div className="message-box-success">
-            <p className="message-text-success">
-              Profile updated successfully! Redirecting...
-            </p>
-          </div>
-        )}
+      {/* Success Message */}
+      {saveSuccess && (
+        <StatusMessage
+          message="Profile updated successfully! Redirecting..."
+          type="success"
+        />
+      )}
 
-        {/* Error Message */}
-        {saveError && (
-          <div className="message-box-error">
-            <p className="message-text-error">{saveError}</p>
-          </div>
-        )}
+      {/* Error Message */}
+      {saveError && (
+        <StatusMessage
+          message={saveError}
+          type="error"
+        />
+      )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="form-group">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
+          <FormCard title="Personal Information">
+            <FormInput
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              required
+              minLength={1}
+              maxLength={100}
+            />
             
-            <div className="form-section">
-              <FormInput
-                label="Full Name"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                required
-                minLength={1}
-                maxLength={100}
-              />
-              
-              <FormInput
-                label="Email"
-                name="email"
-                type="email"
-                value={supervisor.email}
-                onChange={() => {}}
-                disabled={true}
-                helperText="Email cannot be changed"
-              />
-              
-              <FormInput
-                label="Phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                minLength={10}
-                placeholder="e.g., 555-123-4567"
-              />
-              
-              <FormInput
-                label="Department"
-                name="department"
-                value={formData.department}
-                onChange={handleInputChange}
-                required
-                minLength={1}
-              />
-            </div>
-          </div>
+            <FormInput
+              label="Email"
+              name="email"
+              type="email"
+              value={supervisor.email}
+              onChange={() => {}}
+              disabled={true}
+              helperText="Email cannot be changed"
+            />
+            
+            <FormInput
+              label="Phone"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              minLength={10}
+              placeholder="e.g., 555-123-4567"
+            />
+            
+            <FormInput
+              label="Department"
+              name="department"
+              value={formData.department}
+              onChange={handleInputChange}
+              required
+              minLength={1}
+            />
+          </FormCard>
 
           {/* Bio */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Bio</h2>
+          <FormCard title="Bio">
             <FormTextArea
               label="Bio"
               name="bio"
@@ -305,11 +299,10 @@ export default function SupervisorProfileEditPage() {
               helperText="Describe your background and research focus"
               required
             />
-          </div>
+          </FormCard>
 
           {/* Research Interests */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Research Interests</h2>
+          <FormCard title="Research Interests">
             <FormInput
               label="Research Interests"
               name="researchInterests"
@@ -319,11 +312,10 @@ export default function SupervisorProfileEditPage() {
               helperText="Separate multiple interests with commas"
               required
             />
-          </div>
+          </FormCard>
 
           {/* Expertise Areas */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Expertise Areas</h2>
+          <FormCard title="Expertise Areas">
             <FormInput
               label="Expertise Areas"
               name="expertiseAreas"
@@ -333,107 +325,85 @@ export default function SupervisorProfileEditPage() {
               helperText="Separate multiple areas with commas"
               required
             />
-          </div>
+          </FormCard>
 
           {/* Office Information */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Office Information</h2>
+          <FormCard title="Office Information">
+            <FormInput
+              label="Office Location"
+              name="officeLocation"
+              value={formData.officeLocation}
+              onChange={handleInputChange}
+              placeholder="e.g., Building A, Room 305"
+              maxLength={100}
+            />
             
-            <div className="space-y-4">
-              <FormInput
-                label="Office Location"
-                name="officeLocation"
-                value={formData.officeLocation}
-                onChange={handleInputChange}
-                placeholder="e.g., Building A, Room 305"
-                maxLength={100}
-              />
-              
-              <FormInput
-                label="Office Hours"
-                name="officeHours"
-                value={formData.officeHours}
-                onChange={handleInputChange}
-                placeholder="e.g., Monday 2-4 PM, Wednesday 10-12 PM"
-                maxLength={200}
-              />
-            </div>
-          </div>
+            <FormInput
+              label="Office Hours"
+              name="officeHours"
+              value={formData.officeHours}
+              onChange={handleInputChange}
+              placeholder="e.g., Monday 2-4 PM, Wednesday 10-12 PM"
+              maxLength={200}
+            />
+          </FormCard>
 
           {/* Capacity Management */}
-          <div className="card-base">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Supervision Capacity</h2>
-            
-            <div className="space-y-4">
-              {/* Current Capacity - Read Only */}
-              <div>
-                <label className="label-base">Current Capacity</label>
-                <div className="input-base bg-gray-50 cursor-not-allowed">
-                  {supervisor?.currentCapacity || 0} projects currently supervised
-                </div>
-                <small className="helper-text">
-                  This is automatically calculated based on your active projects
-                </small>
+          <FormCard title="Supervision Capacity">
+            {/* Current Capacity - Read Only */}
+            <div>
+              <label className="block mb-2 font-semibold text-gray-700 text-sm">Current Capacity</label>
+              <div className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-gray-50 cursor-not-allowed">
+                {supervisor?.currentCapacity || 0} projects currently supervised
               </div>
-              
-              {/* Max Capacity - Editable */}
-              <FormInput
-                label="Maximum Capacity"
-                name="maxCapacity"
-                type="number"
-                value={formData.maxCapacity.toString()}
-                onChange={handleInputChange}
-                required
-                min={supervisor?.currentCapacity || 0}
-                max={20}
-                helperText="Maximum number of projects you can supervise this semester"
-              />
-              
-              {/* Availability Status */}
-              <div>
-                <label htmlFor="availabilityStatus" className="label-base">
-                  Availability Status *
-                </label>
-                <select
-                  id="availabilityStatus"
-                  name="availabilityStatus"
-                  value={formData.availabilityStatus}
-                  onChange={handleInputChange}
-                  className="input-base"
-                  required
-                >
-                  <option value="available">Available - Accepting new students</option>
-                  <option value="limited">Limited - Few spots remaining</option>
-                  <option value="unavailable">Unavailable - Not accepting students</option>
-                </select>
-                <small className="helper-text">
-                  This status will be shown to students browsing supervisors
-                </small>
-              </div>
+              <small className="text-gray-500 text-xs mt-1 block">
+                This is automatically calculated based on your active projects
+              </small>
             </div>
-          </div>
+            
+            {/* Max Capacity - Editable */}
+            <FormInput
+              label="Maximum Capacity"
+              name="maxCapacity"
+              type="number"
+              value={formData.maxCapacity.toString()}
+              onChange={handleInputChange}
+              required
+              min={supervisor?.currentCapacity || 0}
+              max={20}
+              helperText="Maximum number of projects you can supervise this semester"
+            />
+            
+            {/* Availability Status */}
+            <div>
+              <label htmlFor="availabilityStatus" className="block mb-2 font-semibold text-gray-700 text-sm">
+                Availability Status *
+              </label>
+              <select
+                id="availabilityStatus"
+                name="availabilityStatus"
+                value={formData.availabilityStatus}
+                onChange={handleInputChange}
+                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                required
+              >
+                <option value="available">Available - Accepting new students</option>
+                <option value="limited">Limited - Few spots remaining</option>
+                <option value="unavailable">Unavailable - Not accepting students</option>
+              </select>
+              <small className="text-gray-500 text-xs mt-1 block">
+                This status will be shown to students browsing supervisors
+              </small>
+            </div>
+          </FormCard>
 
           {/* Action Buttons */}
-          <div className="action-buttons">
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="btn-primary"
-            >
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
+          <FormActions
+            onCancel={handleCancel}
+            isLoading={isSaving}
+          />
         </form>
-      </div>
-    </div>
+    </PageLayout>
   );
 }
 
