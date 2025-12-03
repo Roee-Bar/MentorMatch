@@ -5,7 +5,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { useStudentAuth, useLoadingState } from '@/lib/hooks';
+import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/shared/StatCard';
@@ -16,88 +17,54 @@ import PartnershipRequestCard from './_components/PartnershipRequestCard';
 import ApplicationModal from './_components/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
-import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest } from '@/types/database';
+import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest, Student } from '@/types/database';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Authentication
+  const { userId, isAuthLoading } = useStudentAuth();
+  const [userProfile, setUserProfile] = useState<Student | null>(null);
+  
+  // Loading states
+  const [dataLoading, setDataLoading] = useState(true);
+  const { startLoading, stopLoading, isLoading } = useLoadingState();
+  
+  // Data states
   const [applications, setApplications] = useState<ApplicationCardData[]>([]);
   const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
   const [availableStudents, setAvailableStudents] = useState<StudentCardData[]>([]);
   const [incomingRequests, setIncomingRequests] = useState<StudentPartnershipRequest[]>([]);
   const [outgoingRequests, setOutgoingRequests] = useState<StudentPartnershipRequest[]>([]);
   const [currentPartner, setCurrentPartner] = useState<StudentCardData | null>(null);
+  
+  // UI states
   const [showAllStudents, setShowAllStudents] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
-  // Loading states for all buttons
-  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
-
-  // Helper functions for loading state
-  const startLoading = (key: string) => {
-    setLoadingActions(prev => new Set(prev).add(key));
-  };
-
-  const stopLoading = (key: string) => {
-    setLoadingActions(prev => {
-      const updated = new Set(prev);
-      updated.delete(key);
-      return updated;
-    });
-  };
-
-  const isLoading = (key: string) => loadingActions.has(key);
-
-  // Check authentication
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        // User not logged in - redirect to homepage
-        router.replace('/');
-        return;
-      }
-
-      // Get user profile to verify they're a student
-      const token = await user.getIdToken();
-      const profile = await getUserProfile(user.uid, token);
-      if (!profile.success || profile.data?.role !== 'student') {
-        // Redirect non-students to appropriate authenticated page
-        if (profile.data?.role === 'supervisor') {
-          router.replace('/authenticated/supervisor');
-        } else if (profile.data?.role === 'admin') {
-          router.replace('/authenticated/admin');
-        } else {
-          router.replace('/');
-        }
-        return;
-      }
-
-      setUserId(user.uid);
-      setUserProfile(profile.data);
-    });
-
-    return () => unsubscribe();
-  }, [router]);
-
   // Fetch dashboard data
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
 
-      setLoading(true);
+      setDataLoading(true);
       setError(null);
       
       try {
         // Get Firebase ID token
         const token = await auth.currentUser?.getIdToken();
         if (!token) {
-          router.push('/login');
+          router.push(ROUTES.LOGIN);
           return;
+        }
+
+        // Fetch student profile first to get partnerId
+        const profileRes = await apiClient.getStudentById(userId, token);
+        if (profileRes.success && profileRes.data) {
+          setUserProfile(profileRes.data);
         }
 
         // Call API endpoints
@@ -122,9 +89,9 @@ export default function StudentAuthenticated() {
           setOutgoingRequests(outgoingRes.data || []);
 
           // Get partner details if student has a partner
-          if (userProfile?.partnerId) {
+          if (profileRes.data?.partnerId) {
             try {
-              const partnerRes = await apiClient.getPartnerDetails(userProfile.partnerId, token);
+              const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
               setCurrentPartner(partnerRes.data);
             } catch (partnerError) {
               console.error('Error fetching partner details:', partnerError);
@@ -145,7 +112,7 @@ export default function StudentAuthenticated() {
         setApplications([]);
         setSupervisors([]);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
@@ -374,7 +341,7 @@ export default function StudentAuthenticated() {
     (app) => app.status === 'pending' || app.status === 'under_review'
   ).length;
 
-  if (loading) {
+  if (isAuthLoading || dataLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
 
@@ -401,7 +368,7 @@ export default function StudentAuthenticated() {
         <div className="mb-8">
           <h1 className="page-title">Student Dashboard</h1>
           <p className="text-gray-600">
-            Welcome back, {userProfile?.name || 'Student'}! Here&apos;s your project matching overview.
+            Welcome back, {userProfile?.fullName || 'Student'}! Here&apos;s your project matching overview.
           </p>
         </div>
 
@@ -536,7 +503,7 @@ export default function StudentAuthenticated() {
           <div className="section-header">
             <h2 className="section-title">My Applications</h2>
             <button
-              onClick={() => router.push('/supervisors')}
+              onClick={() => router.push(ROUTES.SUPERVISORS)}
               className="btn-primary"
             >
               + New Application
@@ -547,7 +514,7 @@ export default function StudentAuthenticated() {
             <div className="empty-state">
               <p className="empty-state-text mb-4">You haven&apos;t submitted any applications yet.</p>
               <button
-                onClick={() => router.push('/supervisors')}
+                onClick={() => router.push(ROUTES.SUPERVISORS)}
                 className="btn-primary px-6 py-2"
               >
                 Browse Supervisors
@@ -572,7 +539,7 @@ export default function StudentAuthenticated() {
           <div className="section-header">
             <h2 className="section-title">Available Supervisors</h2>
             <button
-              onClick={() => router.push('/supervisors')}
+              onClick={() => router.push(ROUTES.SUPERVISORS)}
               className="text-blue-600 text-sm font-medium hover:underline"
             >
               View All →
