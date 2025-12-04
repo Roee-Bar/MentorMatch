@@ -1,4 +1,18 @@
 /**
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * All services have been consolidated into lib/services/firebase-services.server.ts
+ * 
+ * Migration guide:
+ * - AdminUserService -> UserService
+ * - AdminStudentService -> StudentService
+ * - AdminSupervisorService -> SupervisorService
+ * - AdminApplicationService -> ApplicationService
+ * 
+ * This file is kept temporarily for backward compatibility during migration.
+ * Last updated: December 04, 2025
+ */
+
+/**
  * Firebase Admin Services
  * 
  * SERVER-ONLY: These services use the Firebase Admin SDK
@@ -23,6 +37,9 @@ import type {
 // ============================================
 // ADMIN USER SERVICES
 // ============================================
+/**
+ * @deprecated Use UserService from lib/services/firebase-services.server.ts instead
+ */
 export const AdminUserService = {
   /**
    * Get user by ID using Admin SDK (bypasses security rules)
@@ -83,6 +100,9 @@ export const AdminUserService = {
 // ============================================
 // ADMIN SUPERVISOR SERVICES
 // ============================================
+/**
+ * @deprecated Use SupervisorService from lib/services/firebase-services.server.ts instead
+ */
 export const AdminSupervisorService = {
   /**
    * Get supervisor by ID using Admin SDK
@@ -180,6 +200,9 @@ export const AdminSupervisorService = {
 // ============================================
 // ADMIN STUDENT SERVICES
 // ============================================
+/**
+ * @deprecated Use StudentService from lib/services/firebase-services.server.ts instead
+ */
 export const AdminStudentService = {
   /**
    * Get student by ID using Admin SDK
@@ -239,6 +262,9 @@ export const AdminStudentService = {
 // ============================================
 // ADMIN APPLICATION SERVICES
 // ============================================
+/**
+ * @deprecated Use ApplicationService from lib/services/firebase-services.server.ts instead
+ */
 export const AdminApplicationService = {
   /**
    * Get application by ID using Admin SDK
