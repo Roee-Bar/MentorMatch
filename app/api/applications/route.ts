@@ -35,7 +35,7 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
     .collection('applications')
     .where('studentId', '==', user.uid)
     .where('supervisorId', '==', validation.data.supervisorId)
-    .where('status', 'in', ['pending', 'approved'])
+    .where('status', 'in', ['pending', 'under_review', 'approved'])
     .get();
 
   if (!existingApplicationsSnapshot.empty) {
@@ -69,7 +69,7 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
         .collection('applications')
         .where('studentId', '==', student.partnerId)
         .where('supervisorId', '==', validation.data.supervisorId)
-        .where('status', 'in', ['pending', 'approved'])
+        .where('status', 'in', ['pending', 'under_review', 'approved'])
         .get();
 
       if (!partnerApplicationsSnapshot.empty) {
