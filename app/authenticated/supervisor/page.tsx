@@ -3,10 +3,12 @@
 // app/authenticated/supervisor/page.tsx
 // Supervisor Authenticated - Read-only view of applications and profile
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useAuthenticatedFetch } from '@/lib/hooks';
+import { useSupervisorAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
+import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
@@ -22,35 +24,53 @@ export default function SupervisorAuthenticated() {
   const router = useRouter();
   const { userId, userProfile, isAuthLoading } = useSupervisorAuth();
   
-  // Fetch all dashboard data using the new hook
-  const { data: dashboardData, loading: dataLoading, error } = useAuthenticatedFetch(
-    async (token) => {
-      if (!userId) return null;
-      
-      const [supervisorResponse, applicationsResponse, projectsResponse] = await Promise.all([
-        apiClient.getSupervisorById(userId, token),
-        apiClient.getSupervisorApplications(userId, token),
-        apiClient.getSupervisorProjects(userId, token),
-      ]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-      return {
-        supervisor: supervisorResponse.data,
-        applications: applicationsResponse.data,
-        projects: projectsResponse.data,
-      };
-    },
-    [userId]
-  );
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!userId) return;
 
-  const supervisor = dashboardData?.supervisor || null;
-  const applications = dashboardData?.applications || [];
-  const projects = dashboardData?.projects || [];
+      try {
+        // Get Firebase ID token
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        // Call API endpoints
+        const [supervisorResponse, applicationsResponse, projectsResponse] = await Promise.all([
+          apiClient.getSupervisorById(userId, token),
+          apiClient.getSupervisorApplications(userId, token),
+          apiClient.getSupervisorProjects(userId, token),
+        ]);
+
+        setSupervisor(supervisorResponse.data);
+        setApplications(applicationsResponse.data);
+        setProjects(projectsResponse.data);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load some dashboard data. Please refresh the page.');
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchData();
+    }
+  }, [userId, router]);
 
   // Calculate stats
   const pendingCount = applications.filter(
-    (app: Application) => app.status === 'pending'
+    (app) => app.status === 'pending' || app.status === 'under_review'
   ).length;
-  const approvedProjects = projects.filter((proj: Project) => proj.status === 'approved').length;
+  const approvedProjects = projects.filter((proj) => proj.status === 'approved').length;
   const currentCapacity = supervisor?.currentCapacity || 0;
 
   // Show loading while auth is checking or data is loading
@@ -124,7 +144,7 @@ export default function SupervisorAuthenticated() {
             <EmptyState message="No applications received yet." />
           ) : (
             <div className="grid-cards">
-              {applications.slice(0, 6).map((application: Application) => {
+              {applications.slice(0, 6).map((application) => {
                 // Convert Firestore Timestamp to Date, then format as string
                 const dateAppliedStr = application.dateApplied instanceof Date
                   ? application.dateApplied.toLocaleDateString()

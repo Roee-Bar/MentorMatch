@@ -38,6 +38,7 @@ export default function StatusBadge({
     pending: { class: 'badge-warning', label: 'Pending' },
     approved: { class: 'badge-success', label: 'Approved' },
     rejected: { class: 'badge-danger', label: 'Rejected' },
+    under_review: { class: 'badge-info', label: 'Under Review' },
     revision_requested: { class: 'badge-orange', label: 'Revision Requested' },
   };
 
