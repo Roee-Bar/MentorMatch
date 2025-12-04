@@ -59,7 +59,8 @@ export async function PATCH(
       params.id,
       status,
       feedback,
-      authResult.user?.uid
+      authResult.user?.uid,
+      authResult.user?.role as 'admin' | 'supervisor' | 'student' | undefined
     );
 
     if (!result.success) {

@@ -15,6 +15,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import FilterButtons from '@/app/components/display/FilterButtons';
 import { Application, ApplicationStatus } from '@/types/database';
+import { formatFirestoreDate } from '@/lib/utils/date';
 
 type FilterStatus = 'all' | ApplicationStatus;
 
@@ -94,9 +95,7 @@ export default function SupervisorApplicationsPage() {
           <div className="grid-cards">
             {filteredApplications.map((application) => {
               // Convert Firestore Timestamp to Date, then format as string
-              const dateAppliedStr = application.dateApplied instanceof Date
-                ? application.dateApplied.toLocaleDateString()
-                : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+              const dateAppliedStr = formatFirestoreDate(application.dateApplied);
               
               return (
                 <ApplicationCard 

@@ -16,7 +16,9 @@ import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
+import ErrorState from '@/app/components/feedback/ErrorState';
 import { Application, Supervisor, Project } from '@/types/database';
+import { formatFirestoreDate } from '@/lib/utils/date';
 
 export default function SupervisorAuthenticated() {
   const router = useRouter();
@@ -42,17 +44,21 @@ export default function SupervisorAuthenticated() {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
 
+  // Show error state if data fetch fails
+  if (error) {
+    return (
+      <ErrorState
+        message="Unable to load dashboard data. Please try again later."
+        action={{
+          label: 'Retry',
+          onClick: () => window.location.reload()
+        }}
+      />
+    );
+  }
+
   return (
     <PageLayout>
-      {/* Error Banner */}
-      {error && (
-        <StatusMessage 
-          message={error} 
-          type="error"
-        />
-      )}
-
-      {/* Header */}
       <PageHeader
         title="Supervisor Dashboard"
         description={`Welcome back, ${userProfile?.name || 'Supervisor'}! Here's your supervision overview.`}
@@ -110,9 +116,7 @@ export default function SupervisorAuthenticated() {
             <div className="grid-cards">
               {applications.slice(0, 6).map((application) => {
                 // Convert Firestore Timestamp to Date, then format as string
-                const dateAppliedStr = application.dateApplied instanceof Date
-                  ? application.dateApplied.toLocaleDateString()
-                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+                const dateAppliedStr = formatFirestoreDate(application.dateApplied);
                 
                 return (
                   <ApplicationCard 

@@ -274,10 +274,18 @@ export interface ApplicationCardData {
 }
 
 export interface DashboardStats {
+  // Existing fields
   totalStudents: number;
   matchedStudents: number;
   pendingMatches: number;
   activeSupervisors: number;
+  
+  // NEW fields
+  totalSupervisors: number;              // Total supervisor accounts
+  approvedApplications: number;          // Approved project applications
+  pendingApplications: number;           // Pending project applications
+  studentsWithoutApprovedApp: number;    // Students without any approved application
+  totalAvailableCapacity: number;        // Sum of available supervisor slots
 }
 
 // ============================================

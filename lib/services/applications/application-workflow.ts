@@ -18,7 +18,8 @@ export const ApplicationWorkflowService = {
     applicationId: string,
     newStatus: ApplicationStatus,
     feedback?: string,
-    currentUserId?: string
+    currentUserId?: string,
+    userRole?: 'admin' | 'supervisor' | 'student'
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Fetch application
@@ -29,10 +30,9 @@ export const ApplicationWorkflowService = {
       }
 
       // Authorization check
+      const isAdmin = userRole === 'admin';
       const isSupervisor = currentUserId === application.supervisorId;
-      const isAdmin = false; // Role check should be done at route level
       
-      // This check is just for safety, authorization should be handled by route
       if (!isSupervisor && !isAdmin) {
         return { success: false, error: 'You don\'t have permission to update this application.' };
       }
@@ -83,7 +83,7 @@ export const ApplicationWorkflowService = {
           if (isApproving) {
             if (currentCapacity >= maxCapacity) {
               throw new Error(
-                `Cannot approve: Supervisor has reached maximum capacity (${currentCapacity}/${maxCapacity} projects). Please contact admin to increase capacity or select a different supervisor.`
+                `Cannot approve: Maximum capacity reached (${currentCapacity}/${maxCapacity} projects). Please contact an administrator to increase capacity.`
               );
             }
 
