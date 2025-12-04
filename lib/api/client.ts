@@ -137,6 +137,21 @@ export const apiClient = {
     });
   },
 
+  updateApplication: (id: string, data: any, token: string) => {
+    return apiFetch(`/applications/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  resubmitApplication: (id: string, token: string) => {
+    return apiFetch(`/applications/${id}/resubmit`, {
+      method: 'POST',
+      token,
+    });
+  },
+
   deleteApplication: (id: string, token: string) => {
     return apiFetch(`/applications/${id}`, {
       method: 'DELETE',

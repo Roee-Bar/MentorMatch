@@ -55,6 +55,15 @@ export async function PATCH(
     const { status, feedback } = validation.data!;
     const previousStatus = application.status;
 
+    // Prevent reverting to pending after a decision has been made (except via resubmit endpoint)
+    // Supervisors can still transition: pending -> any, revision_requested -> approved/rejected
+    if (status === 'pending' && ['approved', 'rejected', 'revision_requested'].includes(previousStatus)) {
+      return NextResponse.json(
+        { error: 'Cannot revert application back to pending status after a decision has been made.' },
+        { status: 400 }
+      );
+    }
+
     // Handle edge case: Rejecting a lead application with a linked partner
     if (status === 'rejected' && application.isLeadApplication && application.linkedApplicationId) {
       // Check if linked application exists and update it
@@ -64,7 +73,7 @@ export async function PATCH(
       if (linkedAppSnap.exists) {
         const linkedAppData = linkedAppSnap.data();
         // If linked application is not yet processed, auto-reject it too
-        if (linkedAppData?.status === 'pending' || linkedAppData?.status === 'under_review') {
+        if (linkedAppData?.status === 'pending') {
           await linkedAppRef.update({
             status: 'rejected',
             supervisorFeedback: feedback ? `${feedback} (Linked partner application was rejected)` : 'Linked partner application was rejected',

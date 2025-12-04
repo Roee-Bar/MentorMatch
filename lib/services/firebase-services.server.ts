@@ -289,7 +289,7 @@ export const ApplicationService = {
     try {
       const querySnapshot = await adminDb.collection('applications')
         .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'under_review'])
+        .where('status', '==', 'pending')
         .get();
       
       return querySnapshot.docs.map((doc) => {
@@ -306,6 +306,23 @@ export const ApplicationService = {
     } catch (error) {
       console.error('Error fetching pending applications:', error);
       return [];
+    }
+  },
+
+  // Update application content
+  async updateApplication(
+    applicationId: string, 
+    updates: Partial<Application>
+  ): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).update({
+        ...updates,
+        lastUpdated: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating application:', error);
+      return false;
     }
   },
 
@@ -875,7 +892,7 @@ export const StudentPartnershipService = {
       // Query applications for both students in relevant statuses
       const applicationsSnapshot = await adminDb.collection('applications')
         .where('studentId', 'in', [studentId1, studentId2])
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (applicationsSnapshot.empty) {
@@ -943,7 +960,7 @@ export const StudentPartnershipService = {
       // Query applications for the student in relevant statuses
       const applicationsSnapshot = await adminDb.collection('applications')
         .where('studentId', '==', studentId)
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (applicationsSnapshot.empty) {

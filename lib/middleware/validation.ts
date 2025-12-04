@@ -67,8 +67,23 @@ export const createApplicationSchema = z.object({
  * Schema for updating application status
  */
 export const updateApplicationStatusSchema = z.object({
-  status: z.enum(['pending', 'under_review', 'approved', 'rejected', 'revision_requested']),
+  status: z.enum(['pending', 'approved', 'rejected', 'revision_requested']),
   feedback: z.string().max(1000, 'Feedback must be at most 1000 characters').optional(),
+});
+
+/**
+ * Schema for updating application content
+ */
+export const updateApplicationSchema = z.object({
+  projectTitle: z.string().min(5, 'Project title must be at least 5 characters').max(200, 'Project title must be at most 200 characters'),
+  projectDescription: z.string().min(10, 'Project description must be at least 10 characters').max(2000, 'Project description must be at most 2000 characters'),
+  isOwnTopic: z.boolean(),
+  proposedTopicId: z.string().optional(),
+  studentSkills: z.string().min(1, 'Skills are required').max(500, 'Skills must be at most 500 characters'),
+  studentInterests: z.string().min(1, 'Interests are required').max(500, 'Interests must be at most 500 characters'),
+  hasPartner: z.boolean(),
+  partnerName: z.string().max(100, 'Partner name too long').optional(),
+  partnerEmail: z.string().email('Invalid email format').optional().or(z.literal('')),
 });
 
 /**

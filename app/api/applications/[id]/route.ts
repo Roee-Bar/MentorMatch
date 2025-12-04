@@ -6,8 +6,10 @@
 
 import { NextRequest } from 'next/server';
 import { AdminApplicationService } from '@/lib/services/admin-services';
+import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 
 export const GET = withAuth(async (request: NextRequest, { params }, user) => {
@@ -44,8 +46,37 @@ export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
     return ApiResponse.error('Forbidden', 403);
   }
 
+  // Can only edit if status is 'revision_requested'
+  if (application.status !== 'revision_requested') {
+    return ApiResponse.error('Application can only be edited when in revision_requested status', 400);
+  }
+
   const body = await request.json();
-  // Note: In a real implementation, you'd have an updateApplication method in ApplicationService
+  const validation = validateBody(body, updateApplicationSchema);
+
+  if (!validation.valid || !validation.data) {
+    return ApiResponse.validationError(validation.error || 'Invalid application data');
+  }
+
+  // Prepare update data
+  const updateData = {
+    projectTitle: validation.data.projectTitle,
+    projectDescription: validation.data.projectDescription,
+    isOwnTopic: validation.data.isOwnTopic,
+    proposedTopicId: validation.data.proposedTopicId,
+    studentSkills: validation.data.studentSkills,
+    studentInterests: validation.data.studentInterests,
+    hasPartner: validation.data.hasPartner,
+    partnerName: validation.data.partnerName,
+    partnerEmail: validation.data.partnerEmail,
+  };
+
+  // Update the application
+  const success = await ApplicationService.updateApplication(params.id, updateData);
+
+  if (!success) {
+    return ApiResponse.error('Failed to update application', 500);
+  }
   
   return ApiResponse.success({ message: 'Application updated successfully' });
 });

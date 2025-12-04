@@ -67,7 +67,6 @@ export default function SupervisorApplicationsPage() {
   const statusCounts = {
     all: applications.length,
     pending: applications.filter(app => app.status === 'pending').length,
-    under_review: applications.filter(app => app.status === 'under_review').length,
     approved: applications.filter(app => app.status === 'approved').length,
     rejected: applications.filter(app => app.status === 'rejected').length,
   };
@@ -102,7 +101,6 @@ export default function SupervisorApplicationsPage() {
         filters={[
           { label: 'All', value: 'all', count: statusCounts.all },
           { label: 'Pending', value: 'pending', count: statusCounts.pending },
-          { label: 'Under Review', value: 'under_review', count: statusCounts.under_review },
           { label: 'Approved', value: 'approved', count: statusCounts.approved },
           { label: 'Rejected', value: 'rejected', count: statusCounts.rejected },
         ]}

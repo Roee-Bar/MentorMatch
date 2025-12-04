@@ -1,6 +1,9 @@
 // app/components/shared/ApplicationCard.tsx
 // Updated to work with Firebase data types
 
+'use client';
+
+import { useRouter } from 'next/navigation';
 import type { ApplicationCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
 
@@ -11,6 +14,8 @@ interface ApplicationCardProps {
 }
 
 export default function ApplicationCard({ application, onWithdraw, isLoading = false }: ApplicationCardProps) {
+  const router = useRouter();
+
   return (
     <div className="card-base">
       {/* Header with Title and Status */}
@@ -67,9 +72,21 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
 
       {/* Comments Section */}
       {application.comments && (
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-xs text-gray-500 mb-1">Supervisor Feedback:</p>
-          <p className="text-sm text-gray-700 italic bg-gray-50 p-2 rounded">
+        <div className={`mt-4 pt-4 border-t ${
+          application.status === 'revision_requested' 
+            ? 'bg-orange-50 border-orange-200 -mx-4 -mb-4 px-4 pb-4' 
+            : ''
+        }`}>
+          <p className={`text-xs font-semibold mb-1 ${
+            application.status === 'revision_requested' 
+              ? 'text-orange-700' 
+              : 'text-gray-500'
+          }`}>
+            {application.status === 'revision_requested' 
+              ? '⚠️ Revision Requested' 
+              : 'Supervisor Feedback:'}
+          </p>
+          <p className="text-sm text-gray-700 bg-white p-3 rounded border">
             {application.comments}
           </p>
         </div>
@@ -87,7 +104,10 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
           </button>
         )}
         {application.status === 'revision_requested' && (
-          <button className="btn-primary flex-1">
+          <button 
+            className="btn-primary flex-1"
+            onClick={() => router.push(`/authenticated/student/applications/${application.id}/edit`)}
+          >
             Edit & Resubmit
           </button>
         )}
