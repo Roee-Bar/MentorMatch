@@ -1,13 +1,13 @@
 // lib/hooks/index.ts
 // Export all custom hooks
 
-// Auth hooks
 export { useSupervisorAuth } from './useSupervisorAuth';
 export { useStudentAuth } from './useStudentAuth';
 export { useAdminAuth } from './useAdminAuth';
-
-// Data fetching hooks
+export { useLoadingState } from './useLoadingState';
 export { useAuthenticatedFetch } from './useAuthenticatedFetch';
+
+// Student dashboard hooks
 export { useStudentDashboard } from './useStudentDashboard';
 export { useStudentPartnerships } from './useStudentPartnerships';
 
@@ -15,6 +15,6 @@ export { useStudentPartnerships } from './useStudentPartnerships';
 export { usePartnershipActions } from './usePartnershipActions';
 export { useApplicationActions } from './useApplicationActions';
 
-// Utility hooks
-export { useLoadingState } from './useLoadingState';
-
+// Supervisor dashboard hooks
+export { useSupervisorDashboard } from './useSupervisorDashboard';
+export { useSupervisorApplications } from './useSupervisorApplications';

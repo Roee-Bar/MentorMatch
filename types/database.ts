@@ -31,6 +31,7 @@ export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
 // STUDENT TYPE (stored in 'students' collection)
 // ============================================
 export interface Student {
+  id: string; // Document ID from Firestore
  
   // Personal Information
   firstName: string;

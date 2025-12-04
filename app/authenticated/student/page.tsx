@@ -295,14 +295,34 @@ export default function StudentAuthenticated() {
             />
           ) : (
             <div className="grid-cards">
-              {applications.map((application) => (
-                <ApplicationCard 
-                  key={application.id} 
-                  application={application}
-                  onWithdraw={applicationActions.withdrawApplication}
-                  isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}
-                />
-              ))}
+              {applications.map((application) => {
+                // Convert Firestore Timestamp to Date, then format as string
+                const dateAppliedStr = application.dateApplied instanceof Date
+                  ? application.dateApplied.toLocaleDateString()
+                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+                
+                return (
+                  <ApplicationCard 
+                    key={application.id} 
+                    application={{
+                      id: application.id,
+                      projectTitle: application.projectTitle,
+                      projectDescription: application.projectDescription,
+                      supervisorName: application.supervisorName,
+                      dateApplied: dateAppliedStr,
+                      status: application.status,
+                      responseTime: application.responseTime || '5-7 business days',
+                      comments: application.supervisorFeedback,
+                      hasPartner: application.hasPartner,
+                      partnerName: application.partnerName,
+                      linkedApplicationId: application.linkedApplicationId,
+                      isLeadApplication: application.isLeadApplication,
+                    }}
+                    onWithdraw={applicationActions.withdrawApplication}
+                    isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

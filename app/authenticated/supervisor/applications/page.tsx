@@ -3,12 +3,10 @@
 // app/authenticated/supervisor/applications/page.tsx
 // Supervisor Applications View - Read-only view with filtering
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth } from '@/lib/hooks';
+import { useSupervisorAuth, useSupervisorApplications } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
-import { apiClient } from '@/lib/api/client';
-import { auth } from '@/lib/firebase';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import PageLayout from '@/app/components/layout/PageLayout';
@@ -24,39 +22,12 @@ export default function SupervisorApplicationsPage() {
   const router = useRouter();
   const { userId, isAuthLoading } = useSupervisorAuth();
   
-  const [dataLoading, setDataLoading] = useState(true);
-  const [applications, setApplications] = useState<Application[]>([]);
+  // Fetch applications using custom hook
+  const { data, loading: dataLoading, error: fetchError } = useSupervisorApplications(userId);
+  
+  const applications = data || [];
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-  const [error, setError] = useState(false);
-
-  // Fetch applications
-  useEffect(() => {
-    const fetchApplications = async () => {
-      if (!userId) return;
-
-      try {
-        // Get Firebase ID token
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        // Call API endpoint
-        const response = await apiClient.getSupervisorApplications(userId, token);
-        setApplications(response.data);
-      } catch (err) {
-        console.error('Error fetching applications:', err);
-        setError(true);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchApplications();
-    }
-  }, [userId, router]);
+  const error = !!fetchError;
 
   // Filter applications based on selected status
   const filteredApplications = filterStatus === 'all' 
@@ -104,6 +75,7 @@ export default function SupervisorApplicationsPage() {
           { label: 'Pending', value: 'pending', count: statusCounts.pending },
           { label: 'Approved', value: 'approved', count: statusCounts.approved },
           { label: 'Rejected', value: 'rejected', count: statusCounts.rejected },
+          { label: 'Revision Requested', value: 'revision_requested', count: statusCounts.revision_requested },
         ]}
         activeFilter={filterStatus}
         onChange={(value) => setFilterStatus(value as FilterStatus)}
@@ -120,25 +92,32 @@ export default function SupervisorApplicationsPage() {
           />
         ) : (
           <div className="grid-cards">
-            {filteredApplications.map((application) => (
-              <ApplicationCard 
-                key={application.id} 
-                application={{
-                  id: application.id,
-                  projectTitle: application.projectTitle,
-                  projectDescription: application.projectDescription,
-                  supervisorName: application.supervisorName,
-                  dateApplied: application.dateApplied.toLocaleDateString(),
-                  status: application.status,
-                  responseTime: application.responseTime || '5-7 business days',
-                  comments: application.supervisorFeedback,
-                  hasPartner: application.hasPartner,
-                  partnerName: application.partnerName,
-                  linkedApplicationId: application.linkedApplicationId,
-                  isLeadApplication: application.isLeadApplication,
-                }} 
-              />
-            ))}
+            {filteredApplications.map((application) => {
+              // Convert Firestore Timestamp to Date, then format as string
+              const dateAppliedStr = application.dateApplied instanceof Date
+                ? application.dateApplied.toLocaleDateString()
+                : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+              
+              return (
+                <ApplicationCard 
+                  key={application.id} 
+                  application={{
+                    id: application.id,
+                    projectTitle: application.projectTitle,
+                    projectDescription: application.projectDescription,
+                    supervisorName: application.supervisorName,
+                    dateApplied: dateAppliedStr,
+                    status: application.status,
+                    responseTime: application.responseTime || '5-7 business days',
+                    comments: application.supervisorFeedback,
+                    hasPartner: application.hasPartner,
+                    partnerName: application.partnerName,
+                    linkedApplicationId: application.linkedApplicationId,
+                    isLeadApplication: application.isLeadApplication,
+                  }} 
+                />
+              );
+            })}
           </div>
         )}
     </PageLayout>
