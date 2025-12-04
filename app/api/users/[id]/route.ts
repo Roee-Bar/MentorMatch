@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { AdminUserService } from '@/lib/services/admin-services';
+import { UserService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, updateUserSchema } from '@/lib/middleware/validation';
@@ -12,7 +12,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
     return ApiResponse.forbidden();
   }
   
-  const fetchedUser = await AdminUserService.getUserById(params.id);
+  const fetchedUser = await UserService.getUserById(params.id);
   if (!fetchedUser) {
     return ApiResponse.notFound('User');
   }
@@ -35,12 +35,11 @@ export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
   }
   
   // Update user with validated data
-  const success = await AdminUserService.updateUser(params.id, validation.data);
+  const success = await UserService.updateUser(params.id, validation.data);
   if (!success) {
     return ApiResponse.error('Failed to update user', 500);
   }
   
   return ApiResponse.successMessage('User updated successfully');
 });
-
 
