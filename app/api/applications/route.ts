@@ -4,14 +4,14 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminApplicationService, AdminStudentService, AdminSupervisorService } from '@/lib/services/admin-services';
+import { ApplicationService, StudentService, SupervisorService } from '@/lib/services/firebase-services.server';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 
 export const GET = withRoles(['admin'], async (request: NextRequest, context, user) => {
-  const applications = await AdminApplicationService.getAllApplications();
+  const applications = await ApplicationService.getAllApplications();
   return ApiResponse.successWithCount(applications);
 });
 
@@ -23,8 +23,8 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
   }
 
   // Fetch student and supervisor details
-  const student = await AdminStudentService.getStudentById(user.uid);
-  const supervisor = await AdminSupervisorService.getSupervisorById(validation.data.supervisorId);
+  const student = await StudentService.getStudentById(user.uid);
+  const supervisor = await SupervisorService.getSupervisorById(validation.data.supervisorId);
 
   if (!student || !supervisor) {
     return ApiResponse.notFound('Student or supervisor');
@@ -56,7 +56,7 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
   let isLeadApplication = true; // Default to true for solo students
 
   if (student.partnerId) {
-    const partner = await AdminStudentService.getStudentById(student.partnerId);
+    const partner = await StudentService.getStudentById(student.partnerId);
     if (partner) {
       partnerInfo = {
         hasPartner: true,
@@ -103,7 +103,7 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
     status: 'pending' as const,
   };
 
-  const applicationId = await AdminApplicationService.createApplication(applicationData as any);
+  const applicationId = await ApplicationService.createApplication(applicationData as any);
 
   if (!applicationId) {
     return ApiResponse.error('Failed to create application', 500);

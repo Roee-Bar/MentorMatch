@@ -5,7 +5,6 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminApplicationService } from '@/lib/services/admin-services';
 import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
@@ -13,7 +12,7 @@ import { validateBody, updateApplicationSchema } from '@/lib/middleware/validati
 import { adminDb } from '@/lib/firebase-admin';
 
 export const GET = withAuth(async (request: NextRequest, { params }, user) => {
-  const application = await AdminApplicationService.getApplicationById(params.id);
+  const application = await ApplicationService.getApplicationById(params.id);
   
   if (!application) {
     return ApiResponse.notFound('Application');
@@ -32,7 +31,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
 });
 
 export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
-  const application = await AdminApplicationService.getApplicationById(params.id);
+  const application = await ApplicationService.getApplicationById(params.id);
   
   if (!application) {
     return ApiResponse.notFound('Application');
@@ -82,7 +81,7 @@ export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
 });
 
 export const DELETE = withAuth(async (request: NextRequest, { params }, user) => {
-  const application = await AdminApplicationService.getApplicationById(params.id);
+  const application = await ApplicationService.getApplicationById(params.id);
   
   if (!application) {
     return ApiResponse.notFound('Application');
@@ -119,7 +118,7 @@ export const DELETE = withAuth(async (request: NextRequest, { params }, user) =>
     });
   } else {
     // No capacity change needed - delete normally
-    const success = await AdminApplicationService.deleteApplication(params.id);
+    const success = await ApplicationService.deleteApplication(params.id);
 
     if (!success) {
       return ApiResponse.error('Failed to delete application', 500);
