@@ -219,7 +219,7 @@ export const ApplicationWorkflowService = {
         .collection('applications')
         .where('studentId', '==', studentId)
         .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (!existingApplicationsSnapshot.empty) {
@@ -256,7 +256,7 @@ export const ApplicationWorkflowService = {
         .collection('applications')
         .where('studentId', '==', partnerId)
         .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (!partnerApplicationsSnapshot.empty) {

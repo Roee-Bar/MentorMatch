@@ -161,7 +161,7 @@ export interface ProjectTopic {
 // ============================================
 // APPLICATION STATUS TYPE
 // ============================================
-export type ApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'revision_requested';
 
 // ============================================
 // APPLICATION TYPE (stored in 'applications' collection)

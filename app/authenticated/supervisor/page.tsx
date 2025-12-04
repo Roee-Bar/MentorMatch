@@ -68,7 +68,7 @@ export default function SupervisorAuthenticated() {
 
   // Calculate stats
   const pendingCount = applications.filter(
-    (app) => app.status === 'pending' || app.status === 'under_review'
+    (app) => app.status === 'pending'
   ).length;
   const approvedProjects = projects.filter((proj) => proj.status === 'approved').length;
   const currentCapacity = supervisor?.currentCapacity || 0;

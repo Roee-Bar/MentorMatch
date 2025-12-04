@@ -105,7 +105,7 @@ export default function StudentAuthenticated() {
   // Calculate stats
   const approvedCount = applications.filter((app) => app.status === 'approved').length;
   const pendingCount = applications.filter(
-    (app) => app.status === 'pending' || app.status === 'under_review'
+    (app) => app.status === 'pending'
   ).length;
 
   // Show errors from data fetching

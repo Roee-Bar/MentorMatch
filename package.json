@@ -9,6 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "migrate:partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/migrate-partnerships.ts",
+    "migrate:under-review": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/migrate-under-review-status.ts",
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix"
   },
