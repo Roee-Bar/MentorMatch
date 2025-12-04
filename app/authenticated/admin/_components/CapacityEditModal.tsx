@@ -4,6 +4,8 @@
 
 import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
+import FormInput from '@/app/components/form/FormInput';
+import FormTextArea from '@/app/components/form/FormTextArea';
 
 interface CapacityEditModalProps {
   supervisor: Supervisor;
@@ -18,7 +20,7 @@ export default function CapacityEditModal({
   onClose,
   onSuccess
 }: CapacityEditModalProps) {
-  const [maxCapacity, setMaxCapacity] = useState(supervisor.maxCapacity);
+  const [maxCapacity, setMaxCapacity] = useState(supervisor.maxCapacity.toString());
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,18 +31,20 @@ export default function CapacityEditModal({
     e.preventDefault();
     setError(null);
 
+    const maxCapacityNum = parseInt(maxCapacity) || 0;
+
     // Validation
-    if (maxCapacity < supervisor.currentCapacity) {
+    if (maxCapacityNum < supervisor.currentCapacity) {
       setError(`Maximum capacity cannot be less than current capacity (${supervisor.currentCapacity})`);
       return;
     }
 
-    if (maxCapacity > 50) {
+    if (maxCapacityNum > 50) {
       setError('Maximum capacity cannot exceed 50');
       return;
     }
 
-    if (maxCapacity < 0) {
+    if (maxCapacityNum < 0) {
       setError('Maximum capacity cannot be negative');
       return;
     }
@@ -63,7 +67,7 @@ export default function CapacityEditModal({
       const { apiClient } = await import('@/lib/api/client');
       await apiClient.updateSupervisorCapacity(
         supervisor.id,
-        maxCapacity,
+        maxCapacityNum,
         reason,
         token
       );
@@ -113,50 +117,40 @@ export default function CapacityEditModal({
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">New Maximum:</span>
             <span className="font-medium text-blue-600">
-              {supervisor.currentCapacity} / {maxCapacity}
+              {supervisor.currentCapacity} / {maxCapacity || '0'}
             </span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* Max Capacity Input */}
-          <div className="mb-4">
-            <label htmlFor="maxCapacity" className="block text-sm font-medium text-gray-700 mb-1">
-              Maximum Capacity <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="maxCapacity"
-              value={maxCapacity}
-              onChange={(e) => setMaxCapacity(parseInt(e.target.value) || 0)}
-              min={supervisor.currentCapacity}
-              max={50}
-              className="input-base w-full"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Must be between {supervisor.currentCapacity} (current) and 50
-            </p>
-          </div>
+          <FormInput
+            id="maxCapacity"
+            name="maxCapacity"
+            type="number"
+            label="Maximum Capacity"
+            value={maxCapacity}
+            onChange={(e) => setMaxCapacity(e.target.value)}
+            min={supervisor.currentCapacity}
+            max={50}
+            required
+            helperText={`Must be between ${supervisor.currentCapacity} (current) and 50`}
+            className="mb-4"
+          />
 
           {/* Reason Textarea */}
-          <div className="mb-4">
-            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
-              Reason for Change <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              className="input-base w-full"
-              placeholder="Explain why this capacity change is needed..."
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              This will be logged for audit purposes
-            </p>
-          </div>
+          <FormTextArea
+            id="reason"
+            name="reason"
+            label="Reason for Change"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            rows={3}
+            placeholder="Explain why this capacity change is needed..."
+            required
+            helperText="This will be logged for audit purposes"
+            className="mb-4"
+          />
 
           {/* Error Message */}
           {error && (

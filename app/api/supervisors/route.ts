@@ -4,49 +4,26 @@
  * Get all supervisors or filter by availability/department
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { AdminSupervisorService } from '@/lib/services/admin-services';
-import { verifyAuth } from '@/lib/middleware/auth';
-import { handleApiError } from '@/lib/middleware/errorHandler';
+import { NextRequest } from 'next/server';
+import { SupervisorService } from '@/lib/services/firebase-services.server';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
+export const GET = withAuth(async (request: NextRequest, context, user) => {
+  // Get query parameters
+  const { searchParams } = new URL(request.url);
+  const available = searchParams.get('available') === 'true';
+  const department = searchParams.get('department');
 
-    // Get query parameters
-    const { searchParams } = new URL(request.url);
-    const available = searchParams.get('available') === 'true';
-    const department = searchParams.get('department');
-
-    let supervisors;
-    
-    if (available) {
-      supervisors = await AdminSupervisorService.getAvailableSupervisors();
-    } else if (department) {
-      supervisors = await AdminSupervisorService.getSupervisorsByDepartment(department);
-    } else {
-      supervisors = await AdminSupervisorService.getAllSupervisors();
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: supervisors,
-      count: supervisors.length,
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in GET /api/supervisors:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+  let supervisors;
+  
+  if (available) {
+    supervisors = await SupervisorService.getAvailableSupervisors();
+  } else if (department) {
+    supervisors = await SupervisorService.getSupervisorsByDepartment(department);
+  } else {
+    supervisors = await SupervisorService.getAllSupervisors();
   }
-}
 
+  return ApiResponse.successWithCount(supervisors);
+});

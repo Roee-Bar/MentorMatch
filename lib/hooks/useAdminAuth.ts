@@ -1,5 +1,5 @@
-// lib/hooks/useStudentAuth.ts
-// Custom hook for student authentication - eliminates duplicated auth logic
+// lib/hooks/useAdminAuth.ts
+// Custom hook for admin authentication - eliminates duplicated auth logic
 
 'use client';
 
@@ -9,21 +9,21 @@ import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { BaseUser } from '@/types/database';
 import { ROUTES } from '@/lib/routes';
 
-interface UseStudentAuthReturn {
+interface UseAdminAuthReturn {
   userId: string | null;
   userProfile: BaseUser | null;
   isAuthLoading: boolean;
 }
 
 /**
- * Custom hook that handles student authentication.
+ * Custom hook that handles admin authentication.
  * Automatically redirects:
- * - Unauthenticated users to login
- * - Non-students to their appropriate authenticated page
+ * - Unauthenticated users to homepage
+ * - Non-admins to their appropriate authenticated page
  * 
  * @returns userId, userProfile, and loading state
  */
-export function useStudentAuth(): UseStudentAuthReturn {
+export function useAdminAuth(): UseAdminAuthReturn {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<BaseUser | null>(null);
@@ -36,16 +36,16 @@ export function useStudentAuth(): UseStudentAuthReturn {
         return;
       }
 
-      // Get user profile to verify they're a student
+      // Get user profile to verify they're an admin
       const token = await user.getIdToken();
       const profile = await getUserProfile(user.uid, token);
       
-      if (!profile.success || profile.data?.role !== 'student') {
-        // Redirect non-students to appropriate authenticated page
-        if (profile.data?.role === 'supervisor') {
+      if (!profile.success || profile.data?.role !== 'admin') {
+        // Redirect non-admins to appropriate authenticated page
+        if (profile.data?.role === 'student') {
+          router.replace(ROUTES.AUTHENTICATED.STUDENT);
+        } else if (profile.data?.role === 'supervisor') {
           router.replace(ROUTES.AUTHENTICATED.SUPERVISOR);
-        } else if (profile.data?.role === 'admin') {
-          router.replace(ROUTES.AUTHENTICATED.ADMIN);
         } else {
           router.replace(ROUTES.HOME);
         }
@@ -62,7 +62,4 @@ export function useStudentAuth(): UseStudentAuthReturn {
 
   return { userId, userProfile, isAuthLoading };
 }
-
-
-
 

@@ -3,12 +3,10 @@
 // app/authenticated/student/page.tsx
 // Updated Student Authenticated - Uses real Firebase data
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth, useLoadingState } from '@/lib/hooks';
+import { useStudentAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
-import { apiClient } from '@/lib/api/client';
-import { auth } from '@/lib/firebase';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -21,26 +19,20 @@ import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
-import { ApplicationCardData, SupervisorCardData, StudentCardData, StudentPartnershipRequest, Student } from '@/types/database';
+import { SupervisorCardData } from '@/types/database';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
   
   // Authentication
   const { userId, isAuthLoading } = useStudentAuth();
-  const [userProfile, setUserProfile] = useState<Student | null>(null);
   
-  // Loading states
-  const [dataLoading, setDataLoading] = useState(true);
-  const { startLoading, stopLoading, isLoading } = useLoadingState();
+  // Data fetching hooks
+  const { data: dashboardData, loading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = 
+    useStudentDashboard(userId);
   
-  // Data states
-  const [applications, setApplications] = useState<ApplicationCardData[]>([]);
-  const [supervisors, setSupervisors] = useState<SupervisorCardData[]>([]);
-  const [availableStudents, setAvailableStudents] = useState<StudentCardData[]>([]);
-  const [incomingRequests, setIncomingRequests] = useState<StudentPartnershipRequest[]>([]);
-  const [outgoingRequests, setOutgoingRequests] = useState<StudentPartnershipRequest[]>([]);
-  const [currentPartner, setCurrentPartner] = useState<StudentCardData | null>(null);
+  const { data: partnershipData, loading: partnershipsLoading, error: partnershipsError, refetch: refetchPartnerships } = 
+    useStudentPartnerships(userId, dashboardData?.profile?.partnerId);
   
   // UI states
   const [showAllStudents, setShowAllStudents] = useState(false);
@@ -49,81 +41,41 @@ export default function StudentAuthenticated() {
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!userId) return;
-
-      setDataLoading(true);
-      setError(null);
-      
-      try {
-        // Get Firebase ID token
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          router.push(ROUTES.LOGIN);
-          return;
-        }
-
-        // Fetch student profile first to get partnerId
-        const profileRes = await apiClient.getStudentById(userId, token);
-        if (profileRes.success && profileRes.data) {
-          setUserProfile(profileRes.data);
-        }
-
-        // Call API endpoints
-        const [appsResponse, supervisorsResponse] = await Promise.all([
-          apiClient.getStudentApplications(userId, token),
-          apiClient.getSupervisors(token, { available: true }),
-        ]);
-
-        setApplications(appsResponse.data);
-        setSupervisors(supervisorsResponse.data);
-
-        // Fetch partnership data
-        try {
-          const [studentsRes, incomingRes, outgoingRes] = await Promise.all([
-            apiClient.getAvailablePartners(token),
-            apiClient.getPartnershipRequests(userId, 'incoming', token),
-            apiClient.getPartnershipRequests(userId, 'outgoing', token),
-          ]);
-
-          setAvailableStudents(studentsRes.data || []);
-          setIncomingRequests(incomingRes.data || []);
-          setOutgoingRequests(outgoingRes.data || []);
-
-          // Get partner details if student has a partner
-          if (profileRes.data?.partnerId) {
-            try {
-              const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
-              setCurrentPartner(partnerRes.data);
-            } catch (partnerError) {
-              console.error('Error fetching partner details:', partnerError);
-              setCurrentPartner(null);
-            }
-          }
-        } catch (partnershipError) {
-          console.error('Error fetching partnership data:', partnershipError);
-          // Don't fail the whole page if partnership data fails
-          setAvailableStudents([]);
-          setIncomingRequests([]);
-          setOutgoingRequests([]);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to load dashboard data. Please try again.');
-        // Even on error, we should stop loading to show the page
-        setApplications([]);
-        setSupervisors([]);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchData();
+  // Action hooks with auto-refetch and message handling
+  const partnershipActions = usePartnershipActions({
+    userId,
+    onRefresh: refetchPartnerships,
+    onSuccess: (msg) => { 
+      setSuccessMessage(msg); 
+      setTimeout(() => setSuccessMessage(null), 5000); 
+    },
+    onError: (msg) => { 
+      setError(msg); 
+      setTimeout(() => setError(null), 5000); 
     }
-  }, [userId, router]);
+  });
+
+  const applicationActions = useApplicationActions({
+    userId,
+    onRefresh: refetchDashboard,
+    onSuccess: (msg) => { 
+      setSuccessMessage(msg); 
+      setTimeout(() => setSuccessMessage(null), 5000); 
+    },
+    onError: (msg) => { 
+      setError(msg); 
+      setTimeout(() => setError(null), 5000); 
+    }
+  });
+  
+  // Extract data from hooks (with defaults)
+  const userProfile = dashboardData?.profile || null;
+  const applications = dashboardData?.applications || [];
+  const supervisors = dashboardData?.supervisors || [];
+  const availableStudents = partnershipData?.availableStudents || [];
+  const incomingRequests = partnershipData?.incomingRequests || [];
+  const outgoingRequests = partnershipData?.outgoingRequests || [];
+  const currentPartner = partnershipData?.currentPartner || null;
 
   // Handle apply button click
   const handleApply = (supervisorId: string) => {
@@ -137,221 +89,43 @@ export default function StudentAuthenticated() {
   // Handle application submission
   const handleSubmitApplication = async (applicationData: any) => {
     try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.createApplication({
+      await applicationActions.submitApplication({
         supervisorId: selectedSupervisor?.id,
         ...applicationData
-      }, token);
+      });
 
-      // Refresh applications list
-      const appsResponse = await apiClient.getStudentApplications(userId!, token);
-      setApplications(appsResponse.data);
-
-      // Close modal and show success
+      // Close modal on success
       setShowApplicationModal(false);
-      setSuccessMessage('Application submitted successfully!');
-      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (error) {
-      console.error('Error creating application:', error);
-      throw error; // Let modal handle the error display
-    }
-  };
-
-  // Handle application withdrawal
-  const handleWithdrawApplication = async (applicationId: string) => {
-    // Confirm before deletion using browser's native confirm dialog
-    if (!confirm('Are you sure you want to withdraw this application? This action cannot be undone.')) {
-      return;
-    }
-
-    const loadingKey = `withdraw-${applicationId}`;
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      // Use existing API client method
-      await apiClient.deleteApplication(applicationId, token);
-
-      // Refresh applications list using existing pattern
-      const appsResponse = await apiClient.getStudentApplications(userId!, token);
-      setApplications(appsResponse.data);
-
-      // Show success message using existing StatusMessage component pattern
-      setSuccessMessage('Application withdrawn successfully!');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error) {
-      console.error('Error withdrawing application:', error);
-      setError('Failed to withdraw application. Please try again.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
-    }
-  };
-
-  // Partnership handlers
-  const refreshPartnershipData = async () => {
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) return;
-
-      const [studentsRes, incomingRes, outgoingRes, profileRes] = await Promise.all([
-        apiClient.getAvailablePartners(token),
-        apiClient.getPartnershipRequests(userId!, 'incoming', token),
-        apiClient.getPartnershipRequests(userId!, 'outgoing', token),
-        apiClient.getStudentById(userId!, token),
-      ]);
-
-      setAvailableStudents(studentsRes.data || []);
-      setIncomingRequests(incomingRes.data || []);
-      setOutgoingRequests(outgoingRes.data || []);
-      
-      // Update user profile with latest data
-      if (profileRes.success && profileRes.data) {
-        setUserProfile({ ...userProfile, ...profileRes.data });
-        
-        // Get partner details if newly paired
-        if (profileRes.data.partnerId && profileRes.data.partnerId !== currentPartner?.id) {
-          const partnerRes = await apiClient.getPartnerDetails(profileRes.data.partnerId, token);
-          setCurrentPartner(partnerRes.data);
-        } else if (!profileRes.data.partnerId) {
-          setCurrentPartner(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing partnership data:', error);
-    }
-  };
-
-  const handleRequestPartnership = async (targetStudentId: string) => {
-    const loadingKey = `partnership-${targetStudentId}`;
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.createPartnershipRequest({ targetStudentId }, token);
-      
-      await refreshPartnershipData();
-      
-      setSuccessMessage('Partnership request sent successfully!');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: any) {
-      console.error('Error sending partnership request:', error);
-      setError(error.message || 'Failed to send partnership request.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
-    }
-  };
-
-  const handleAcceptPartnership = async (requestId: string) => {
-    const loadingKey = `accept-${requestId}`;
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.respondToPartnershipRequest(requestId, 'accept', token);
-      
-      await refreshPartnershipData();
-      
-      setSuccessMessage('Partnership accepted! You are now paired.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: any) {
-      console.error('Error accepting partnership:', error);
-      setError(error.message || 'Failed to accept partnership request.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
-    }
-  };
-
-  const handleRejectPartnership = async (requestId: string) => {
-    const loadingKey = `reject-${requestId}`;
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.respondToPartnershipRequest(requestId, 'reject', token);
-      
-      await refreshPartnershipData();
-      
-      setSuccessMessage('Partnership request rejected.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: any) {
-      console.error('Error rejecting partnership:', error);
-      setError(error.message || 'Failed to reject partnership request.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
-    }
-  };
-
-  const handleCancelRequest = async (requestId: string) => {
-    const loadingKey = `cancel-${requestId}`;
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.cancelPartnershipRequest(requestId, token);
-      
-      await refreshPartnershipData();
-      
-      setSuccessMessage('Partnership request cancelled.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: any) {
-      console.error('Error cancelling request:', error);
-      setError(error.message || 'Failed to cancel partnership request.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
-    }
-  };
-
-  const handleUnpair = async () => {
-    if (!confirm('Are you sure you want to unpair from your partner? This action cannot be undone.')) {
-      return;
-    }
-
-    const loadingKey = 'unpair';
-    startLoading(loadingKey);
-    try {
-      const token = await auth.currentUser?.getIdToken();
-      if (!token) throw new Error('Not authenticated');
-
-      await apiClient.unpairFromPartner(token);
-      
-      await refreshPartnershipData();
-      
-      setSuccessMessage('Successfully unpaired from your partner.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (error: any) {
-      console.error('Error unpairing:', error);
-      setError(error.message || 'Failed to unpair from partner.');
-      setTimeout(() => setError(null), 5000);
-    } finally {
-      stopLoading(loadingKey);
+      // Error already handled by applicationActions hook
+      // Modal stays open to show error
     }
   };
 
   // Calculate stats
   const approvedCount = applications.filter((app) => app.status === 'approved').length;
   const pendingCount = applications.filter(
-    (app) => app.status === 'pending' || app.status === 'under_review'
+    (app) => app.status === 'pending'
   ).length;
 
-  if (isAuthLoading || dataLoading) {
+  // Show errors from data fetching
+  const fetchError = dashboardError || partnershipsError;
+
+  if (isAuthLoading || dashboardLoading || partnershipsLoading) {
     return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   return (
     <PageLayout>
-      {/* Error Banner */}
+      {/* Error Banner - for fetch errors */}
+      {fetchError && (
+        <StatusMessage 
+          message={fetchError} 
+          type="error"
+        />
+      )}
+
+      {/* Error Banner - for action errors */}
       {error && (
         <StatusMessage 
           message={error} 
@@ -417,9 +191,9 @@ export default function StudentAuthenticated() {
                   key={request.id}
                   request={request}
                   type="incoming"
-                  onAccept={handleAcceptPartnership}
-                  onReject={handleRejectPartnership}
-                  isLoading={isLoading(`accept-${request.id}`) || isLoading(`reject-${request.id}`)}
+                  onAccept={partnershipActions.acceptPartnership}
+                  onReject={partnershipActions.rejectPartnership}
+                  isLoading={partnershipActions.isLoading(`accept-${request.id}`) || partnershipActions.isLoading(`reject-${request.id}`)}
                 />
               ))}
             </div>
@@ -435,8 +209,8 @@ export default function StudentAuthenticated() {
                 student={currentPartner}
                 showRequestButton={false}
                 isCurrentPartner={true}
-                onUnpair={handleUnpair}
-                isLoading={isLoading('unpair')}
+                onUnpair={partnershipActions.unpair}
+                isLoading={partnershipActions.isLoading('unpair')}
               />
             </div>
           </div>
@@ -455,8 +229,8 @@ export default function StudentAuthenticated() {
                   key={request.id}
                   request={request}
                   type="outgoing"
-                  onCancel={handleCancelRequest}
-                  isLoading={isLoading(`cancel-${request.id}`)}
+                  onCancel={partnershipActions.cancelRequest}
+                  isLoading={partnershipActions.isLoading(`cancel-${request.id}`)}
                 />
               ))}
             </div>
@@ -487,9 +261,9 @@ export default function StudentAuthenticated() {
                     <StudentCard
                       key={student.id}
                       student={student}
-                      onRequestPartnership={handleRequestPartnership}
+                      onRequestPartnership={partnershipActions.requestPartnership}
                       showRequestButton={true}
-                      isLoading={isLoading(`partnership-${student.id}`)}
+                      isLoading={partnershipActions.isLoading(`partnership-${student.id}`)}
                     />
                   ))}
               </div>
@@ -521,14 +295,34 @@ export default function StudentAuthenticated() {
             />
           ) : (
             <div className="grid-cards">
-              {applications.map((application) => (
-                <ApplicationCard 
-                  key={application.id} 
-                  application={application}
-                  onWithdraw={handleWithdrawApplication}
-                  isLoading={isLoading(`withdraw-${application.id}`)}
-                />
-              ))}
+              {applications.map((application) => {
+                // Convert Firestore Timestamp to Date, then format as string
+                const dateAppliedStr = application.dateApplied instanceof Date
+                  ? application.dateApplied.toLocaleDateString()
+                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+                
+                return (
+                  <ApplicationCard 
+                    key={application.id} 
+                    application={{
+                      id: application.id,
+                      projectTitle: application.projectTitle,
+                      projectDescription: application.projectDescription,
+                      supervisorName: application.supervisorName,
+                      dateApplied: dateAppliedStr,
+                      status: application.status,
+                      responseTime: application.responseTime || '5-7 business days',
+                      comments: application.supervisorFeedback,
+                      hasPartner: application.hasPartner,
+                      partnerName: application.partnerName,
+                      linkedApplicationId: application.linkedApplicationId,
+                      isLeadApplication: application.isLeadApplication,
+                    }}
+                    onWithdraw={applicationActions.withdrawApplication}
+                    isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

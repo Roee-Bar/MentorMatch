@@ -49,6 +49,20 @@ export const UserService = {
       return [];
     }
   },
+
+  // Update user
+  async updateUser(userId: string, data: Partial<BaseUser>): Promise<boolean> {
+    try {
+      await adminDb.collection('users').doc(userId).update({
+        ...data,
+        updatedAt: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return false;
+    }
+  },
 };
 
 // ============================================
@@ -289,7 +303,7 @@ export const ApplicationService = {
     try {
       const querySnapshot = await adminDb.collection('applications')
         .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'under_review'])
+        .where('status', '==', 'pending')
         .get();
       
       return querySnapshot.docs.map((doc) => {
@@ -306,6 +320,23 @@ export const ApplicationService = {
     } catch (error) {
       console.error('Error fetching pending applications:', error);
       return [];
+    }
+  },
+
+  // Update application content
+  async updateApplication(
+    applicationId: string, 
+    updates: Partial<Application>
+  ): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).update({
+        ...updates,
+        lastUpdated: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating application:', error);
+      return false;
     }
   },
 
@@ -370,6 +401,17 @@ export const ApplicationService = {
     } catch (error) {
       console.error('Error fetching all applications:', error);
       return [];
+    }
+  },
+
+  // Delete application
+  async deleteApplication(applicationId: string): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).delete();
+      return true;
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      return false;
     }
   },
 };
@@ -875,7 +917,7 @@ export const StudentPartnershipService = {
       // Query applications for both students in relevant statuses
       const applicationsSnapshot = await adminDb.collection('applications')
         .where('studentId', 'in', [studentId1, studentId2])
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (applicationsSnapshot.empty) {
@@ -943,7 +985,7 @@ export const StudentPartnershipService = {
       // Query applications for the student in relevant statuses
       const applicationsSnapshot = await adminDb.collection('applications')
         .where('studentId', '==', studentId)
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
+        .where('status', 'in', ['pending', 'approved'])
         .get();
 
       if (applicationsSnapshot.empty) {
@@ -1008,22 +1050,60 @@ export const AdminService = {
   // Get dashboard statistics
   async getDashboardStats(): Promise<DashboardStats> {
     try {
-      const [studentsSnapshot, supervisorsSnapshot] = await Promise.all([
+      const [studentsSnapshot, supervisorsSnapshot, applicationsSnapshot] = await Promise.all([
         adminDb.collection('students').get(),
         adminDb.collection('supervisors').where('isActive', '==', true).get(),
+        adminDb.collection('applications').get(),
       ]);
 
       const students = studentsSnapshot.docs.map((doc) => doc.data());
+      const supervisors = supervisorsSnapshot.docs.map((doc) => doc.data());
+      const applications = applicationsSnapshot.docs.map((doc) => doc.data());
+
+      // Existing metrics
       const matchedStudents = students.filter((s) => s.matchStatus === 'matched').length;
       const pendingMatches = students.filter(
         (s) => s.matchStatus === 'pending' || s.matchStatus === 'unmatched'
       ).length;
+
+      // NEW METRICS
+      // 1. Total supervisors (count all)
+      const totalSupervisors = supervisorsSnapshot.size;
+
+      // 2. Approved applications
+      const approvedApplications = applications.filter(
+        (app) => app.status === 'approved'
+      ).length;
+
+      // 3. Pending applications
+      const pendingApplications = applications.filter(
+        (app) => app.status === 'pending'
+      ).length;
+
+      // 4. Students without approved application (ALL students)
+      const studentsWithoutApprovedApp = students.filter((student) => {
+        const hasApprovedApp = applications.some(
+          (app) => app.studentId === student.id && app.status === 'approved'
+        );
+        return !hasApprovedApp;
+      }).length;
+
+      // 5. Total available capacity (sum of available slots)
+      const totalAvailableCapacity = supervisors.reduce((total, supervisor) => {
+        const available = supervisor.maxCapacity - supervisor.currentCapacity;
+        return total + (available > 0 ? available : 0);
+      }, 0);
 
       return {
         totalStudents: students.length,
         matchedStudents,
         pendingMatches,
         activeSupervisors: supervisorsSnapshot.size,
+        totalSupervisors,
+        approvedApplications,
+        pendingApplications,
+        studentsWithoutApprovedApp,
+        totalAvailableCapacity,
       };
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
@@ -1032,6 +1112,11 @@ export const AdminService = {
         matchedStudents: 0,
         pendingMatches: 0,
         activeSupervisors: 0,
+        totalSupervisors: 0,
+        approvedApplications: 0,
+        pendingApplications: 0,
+        studentsWithoutApprovedApp: 0,
+        totalAvailableCapacity: 0,
       };
     }
   },

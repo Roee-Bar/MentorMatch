@@ -31,6 +31,7 @@ export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
 // STUDENT TYPE (stored in 'students' collection)
 // ============================================
 export interface Student {
+  id: string; // Document ID from Firestore
  
   // Personal Information
   firstName: string;
@@ -161,7 +162,7 @@ export interface ProjectTopic {
 // ============================================
 // APPLICATION STATUS TYPE
 // ============================================
-export type ApplicationStatus = 'pending' | 'under_review' | 'approved' | 'rejected' | 'revision_requested';
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'revision_requested';
 
 // ============================================
 // APPLICATION TYPE (stored in 'applications' collection)
@@ -206,6 +207,7 @@ export interface Application {
   dateApplied: Date;
   lastUpdated: Date;
   responseDate?: Date;
+  resubmittedDate?: Date; // When application was last resubmitted
   
   // For display purposes
   responseTime?: string;
@@ -272,10 +274,18 @@ export interface ApplicationCardData {
 }
 
 export interface DashboardStats {
+  // Existing fields
   totalStudents: number;
   matchedStudents: number;
   pendingMatches: number;
   activeSupervisors: number;
+  
+  // NEW fields
+  totalSupervisors: number;              // Total supervisor accounts
+  approvedApplications: number;          // Approved project applications
+  pendingApplications: number;           // Pending project applications
+  studentsWithoutApprovedApp: number;    // Students without any approved application
+  totalAvailableCapacity: number;        // Sum of available supervisor slots
 }
 
 // ============================================

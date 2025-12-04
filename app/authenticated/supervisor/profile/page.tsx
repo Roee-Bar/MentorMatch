@@ -3,12 +3,10 @@
 // app/authenticated/supervisor/profile/page.tsx
 // Supervisor Profile View - Read-only display of profile and capacity
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth } from '@/lib/hooks';
+import { useSupervisorAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
-import { auth } from '@/lib/firebase';
 import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import PageLayout from '@/app/components/layout/PageLayout';
@@ -21,42 +19,15 @@ export default function SupervisorProfilePage() {
   const router = useRouter();
   const { userId, isAuthLoading } = useSupervisorAuth();
   
-  const [dataLoading, setDataLoading] = useState(true);
-  const [supervisor, setSupervisor] = useState<Supervisor | null>(null);
-  const [error, setError] = useState(false);
-
-  // Fetch supervisor profile
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!userId) return;
-
-      try {
-        // Get Firebase ID token
-        const token = await auth.currentUser?.getIdToken();
-        if (!token) {
-          router.push('/login');
-          return;
-        }
-
-        // Call API endpoint
-        const response = await apiClient.getSupervisorById(userId, token);
-        if (response.data) {
-          setSupervisor(response.data);
-        } else {
-          setError(true);
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-        setError(true);
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
-    if (userId) {
-      fetchProfile();
-    }
-  }, [userId, router]);
+  // Fetch supervisor profile using the new hook
+  const { data: supervisor, loading: dataLoading, error } = useAuthenticatedFetch(
+    async (token) => {
+      if (!userId) return null;
+      const response = await apiClient.getSupervisorById(userId, token);
+      return response.data;
+    },
+    [userId]
+  );
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
@@ -116,7 +87,7 @@ export default function SupervisorProfilePage() {
             <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Research Interests</h2>
               <div className="flex flex-wrap gap-2">
-                {supervisor.researchInterests.map((interest, index) => (
+                {supervisor.researchInterests.map((interest: string, index: number) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
@@ -131,7 +102,7 @@ export default function SupervisorProfilePage() {
             <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Expertise Areas</h2>
               <div className="flex flex-wrap gap-2">
-                {supervisor.expertiseAreas.map((area, index) => (
+                {supervisor.expertiseAreas.map((area: string, index: number) => (
                   <span
                     key={index}
                     className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"

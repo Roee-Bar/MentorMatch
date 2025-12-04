@@ -4,14 +4,15 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminApplicationService, AdminStudentService, AdminSupervisorService } from '@/lib/services/admin-services';
+import { ApplicationService, StudentService, SupervisorService } from '@/lib/services/firebase-services.server';
+import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 
 export const GET = withRoles(['admin'], async (request: NextRequest, context, user) => {
-  const applications = await AdminApplicationService.getAllApplications();
+  const applications = await ApplicationService.getAllApplications();
   return ApiResponse.successWithCount(applications);
 });
 
@@ -23,40 +24,33 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
   }
 
   // Fetch student and supervisor details
-  const student = await AdminStudentService.getStudentById(user.uid);
-  const supervisor = await AdminSupervisorService.getSupervisorById(validation.data.supervisorId);
+  const student = await StudentService.getStudentById(user.uid);
+  const supervisor = await SupervisorService.getSupervisorById(validation.data.supervisorId);
 
   if (!student || !supervisor) {
     return ApiResponse.notFound('Student or supervisor');
   }
 
-  // Check for duplicate applications to the same supervisor
-  const existingApplicationsSnapshot = await adminDb
-    .collection('applications')
-    .where('studentId', '==', user.uid)
-    .where('supervisorId', '==', validation.data.supervisorId)
-    .where('status', 'in', ['pending', 'under_review', 'approved'])
-    .get();
+  // Check for duplicate applications (using workflow service)
+  const duplicateCheck = await ApplicationWorkflowService.checkDuplicateApplication(
+    user.uid,
+    validation.data.supervisorId
+  );
 
-  if (!existingApplicationsSnapshot.empty) {
+  if (duplicateCheck.isDuplicate) {
     return ApiResponse.error(
       'You already have a pending or approved application to this supervisor. Please wait for a response or withdraw your existing application.',
       400
     );
   }
 
-  // Check if student has a partner and get partner details
-  let partnerInfo = {
-    hasPartner: false,
-    partnerName: '',
-    partnerEmail: ''
-  };
-
+  // Handle partner logic (using workflow service)
+  let partnerInfo = { hasPartner: false, partnerName: '', partnerEmail: '' };
   let linkedApplicationId: string | undefined = undefined;
-  let isLeadApplication = true; // Default to true for solo students
+  let isLeadApplication = true;
 
   if (student.partnerId) {
-    const partner = await AdminStudentService.getStudentById(student.partnerId);
+    const partner = await StudentService.getStudentById(student.partnerId);
     if (partner) {
       partnerInfo = {
         hasPartner: true,
@@ -64,30 +58,18 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
         partnerEmail: partner.email
       };
 
-      // Check if partner already has an application to the same supervisor
-      const partnerApplicationsSnapshot = await adminDb
-        .collection('applications')
-        .where('studentId', '==', student.partnerId)
-        .where('supervisorId', '==', validation.data.supervisorId)
-        .where('status', 'in', ['pending', 'under_review', 'approved'])
-        .get();
+      const linkResult = await ApplicationWorkflowService.handlePartnerApplicationLink(
+        user.uid,
+        student.partnerId,
+        validation.data.supervisorId
+      );
 
-      if (!partnerApplicationsSnapshot.empty) {
-        // Partner has an existing application - link to it
-        const partnerApplication = partnerApplicationsSnapshot.docs[0];
-        linkedApplicationId = partnerApplication.id;
-        isLeadApplication = false; // This is the second application in the pair
-
-        // Update partner's application to link back
-        await adminDb.collection('applications').doc(partnerApplication.id).update({
-          linkedApplicationId: 'pending', // Will be updated with this application's ID after creation
-          lastUpdated: new Date()
-        });
-      }
+      linkedApplicationId = linkResult.linkedApplicationId;
+      isLeadApplication = linkResult.isLeadApplication;
     }
   }
 
-  // Create application with complete data
+  // Create application
   const applicationData = {
     ...validation.data,
     studentId: user.uid,
@@ -103,14 +85,14 @@ export const POST = withAuth(async (request: NextRequest, context, user) => {
     status: 'pending' as const,
   };
 
-  const applicationId = await AdminApplicationService.createApplication(applicationData as any);
+  const applicationId = await ApplicationService.createApplication(applicationData as any);
 
   if (!applicationId) {
     return ApiResponse.error('Failed to create application', 500);
   }
 
   // If this was the second application in a pair, update the partner's application with this ID
-  if (linkedApplicationId && linkedApplicationId !== 'pending') {
+  if (linkedApplicationId && linkedApplicationId === 'pending') {
     await adminDb.collection('applications').doc(linkedApplicationId).update({
       linkedApplicationId: applicationId,
       lastUpdated: new Date()
