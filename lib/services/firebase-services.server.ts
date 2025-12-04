@@ -49,6 +49,20 @@ export const UserService = {
       return [];
     }
   },
+
+  // Update user
+  async updateUser(userId: string, data: Partial<BaseUser>): Promise<boolean> {
+    try {
+      await adminDb.collection('users').doc(userId).update({
+        ...data,
+        updatedAt: new Date(),
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return false;
+    }
+  },
 };
 
 // ============================================
@@ -387,6 +401,17 @@ export const ApplicationService = {
     } catch (error) {
       console.error('Error fetching all applications:', error);
       return [];
+    }
+  },
+
+  // Delete application
+  async deleteApplication(applicationId: string): Promise<boolean> {
+    try {
+      await adminDb.collection('applications').doc(applicationId).delete();
+      return true;
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      return false;
     }
   },
 };
