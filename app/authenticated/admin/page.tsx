@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api/client';
 import { useAdminAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
@@ -18,7 +17,6 @@ import SectionHeader from '@/app/components/layout/SectionHeader';
 import type { Supervisor } from '@/types/database';
 
 export default function AdminAuthenticated() {
-  const router = useRouter();
   const { userId, isAuthLoading } = useAdminAuth();
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -193,47 +191,9 @@ export default function AdminAuthenticated() {
           </div>
         </div>
 
-        {/* Admin Actions */}
-        <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <button 
-              onClick={() => router.push('/admin/seed')}
-              className="btn-primary text-left flex items-center space-x-3 w-full"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-              </svg>
-              <div>
-                <div className="font-medium">Database Seeder</div>
-                <div className="text-sm text-gray-500">Populate test data</div>
-              </div>
-            </button>
-
-            <button className="btn-secondary text-left flex items-center space-x-3 w-full" disabled>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <div>
-                <div className="font-medium">Manage Users</div>
-                <div className="text-sm text-gray-500">Coming soon</div>
-              </div>
-            </button>
-
-            <button className="btn-secondary text-left flex items-center space-x-3 w-full" disabled>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              <div>
-                <div className="font-medium">View Reports</div>
-                <div className="text-sm text-gray-500">Coming soon</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
         {/* Supervisor Capacity Management Section */}
-        <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+        <div className="mb-8">
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">Manage Supervisor Capacity</h2>
             <button
@@ -310,6 +270,7 @@ export default function AdminAuthenticated() {
               </Table.Body>
             </Table.Container>
           )}
+        </div>
         </div>
 
         {/* Capacity Edit Modal */}
