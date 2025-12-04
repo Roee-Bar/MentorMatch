@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminStudentService } from '@/lib/services/admin-services';
+import { StudentService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
@@ -25,8 +25,8 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   // For students viewing other profiles (not their own)
   if (user.role === 'student' && !isOwner && !isSupervisorOrAdmin) {
     const [requestingStudent, targetStudent] = await Promise.all([
-      AdminStudentService.getStudentById(user.uid),
-      AdminStudentService.getStudentById(params.id)
+      StudentService.getStudentById(user.uid),
+      StudentService.getStudentById(params.id)
     ]);
     
     // Check if student is viewing their actual partner
@@ -60,7 +60,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   }
 
   // For owner, supervisor, or admin: fetch the student data
-  const student = await AdminStudentService.getStudentById(params.id);
+  const student = await StudentService.getStudentById(params.id);
   if (!student) {
     logger.warn('Student not found', { context: 'API', data: { studentId: params.id } });
     return ApiResponse.notFound('Student');
@@ -97,7 +97,7 @@ export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
     return ApiResponse.validationError(validation.error || 'Invalid request data');
   }
 
-  const success = await AdminStudentService.updateStudent(params.id, validation.data);
+  const success = await StudentService.updateStudent(params.id, validation.data);
 
   if (!success) {
     logger.error('Student database update failed', undefined, { 

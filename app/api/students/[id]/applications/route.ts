@@ -3,7 +3,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminApplicationService } from '@/lib/services/admin-services';
+import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
@@ -17,7 +17,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
     return ApiResponse.error('Forbidden', 403);
   }
 
-  const applications = await AdminApplicationService.getStudentApplications(params.id);
+  const applications = await ApplicationService.getStudentApplications(params.id);
   return ApiResponse.successWithCount(applications);
 });
 
