@@ -70,6 +70,7 @@ export default function SupervisorApplicationsPage() {
     under_review: applications.filter(app => app.status === 'under_review').length,
     approved: applications.filter(app => app.status === 'approved').length,
     rejected: applications.filter(app => app.status === 'rejected').length,
+    revision_requested: applications.filter(app => app.status === 'revision_requested').length,
   };
 
   // Show loading while auth is checking or data is loading
