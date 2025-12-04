@@ -7,13 +7,12 @@ import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import CapacityEditModal from './_components/CapacityEditModal';
-import StatCardWithIcon from '@/app/components/shared/StatCardWithIcon';
+import StatCard from '@/app/components/shared/StatCard';
 import Table from '@/app/components/shared/Table';
 import ProgressBar from '@/app/components/shared/ProgressBar';
 import StatusBadge from '@/app/components/shared/StatusBadge';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
-import SectionHeader from '@/app/components/layout/SectionHeader';
 import type { Supervisor } from '@/types/database';
 
 export default function AdminAuthenticated() {
@@ -98,97 +97,52 @@ export default function AdminAuthenticated() {
         {/* Header */}
         <PageHeader
           title="Admin Dashboard"
-          description="Manage users, projects, and system settings"
+          description="Overview of students, supervisors, and project applications"
         />
 
-        {/* Section 1: Student Metrics */}
-        <div className="mb-8">
-          <SectionHeader title="Student Metrics" />
-          <div className="grid-stats">
-            <StatCardWithIcon
-              title="Total Students"
-              value={stats?.totalStudents ?? '-'}
-              description="Enrolled students"
-              color="blue"
-              icon={
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              }
-            />
+        {/* Unified Metrics Grid */}
+        <div className="grid-stats mb-8">
+          <StatCard
+            title="Total Students"
+            value={stats?.totalStudents ?? '-'}
+            description="Students enrolled in the system"
+            color="blue"
+          />
 
-            <StatCardWithIcon
-              title="Students Without Project"
-              value={stats?.studentsWithoutApprovedApp ?? '-'}
-              description="Need project assignments"
-              color="red"
-              icon={
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              }
-            />
-          </div>
-        </div>
+          <StatCard
+            title="Students Without Projects"
+            value={stats?.studentsWithoutApprovedApp ?? '-'}
+            description="Students still needing project assignments"
+            color="red"
+          />
 
-        {/* Section 2: Supervisor Metrics */}
-        <div className="mb-8">
-          <SectionHeader title="Supervisor Metrics" />
-          <div className="grid-stats">
-            <StatCardWithIcon
-              title="Total Supervisors"
-              value={stats?.totalSupervisors ?? '-'}
-              description="Active accounts"
-              color="green"
-              icon={
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              }
-            />
+          <StatCard
+            title="Total Supervisors"
+            value={stats?.totalSupervisors ?? '-'}
+            description="Active supervisor accounts in system"
+            color="green"
+          />
 
-            <StatCardWithIcon
-              title="Available Capacity"
-              value={stats?.totalAvailableCapacity ?? '-'}
-              description="Total available project slots"
-              color="blue"
-              icon={
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              }
-            />
-          </div>
-        </div>
+          <StatCard
+            title="Available Capacity"
+            value={stats?.totalAvailableCapacity ?? '-'}
+            description="Open project slots across all supervisors"
+            color="blue"
+          />
 
-        {/* Section 3: Application Metrics */}
-        <div className="mb-8">
-          <SectionHeader title="Application Metrics" />
-          <div className="grid-stats">
-            <StatCardWithIcon
-              title="Approved Projects"
-              value={stats?.approvedApplications ?? '-'}
-              description="Successfully matched"
-              color="green"
-              icon={
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-            />
+          <StatCard
+            title="Approved Projects"
+            value={stats?.approvedApplications ?? '-'}
+            description="Successfully matched student-supervisor pairs"
+            color="green"
+          />
 
-            <StatCardWithIcon
-              title="Pending Applications"
-              value={stats?.pendingApplications ?? '-'}
-              description="Awaiting review"
-              color="yellow"
-              icon={
-                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              }
-            />
-          </div>
+          <StatCard
+            title="Pending Applications"
+            value={stats?.pendingApplications ?? '-'}
+            description="Applications currently awaiting supervisor review"
+            color="gray"
+          />
         </div>
 
         {/* Supervisor Capacity Management Section */}
