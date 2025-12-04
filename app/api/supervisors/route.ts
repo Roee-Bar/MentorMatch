@@ -5,7 +5,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { AdminSupervisorService } from '@/lib/services/admin-services';
+import { SupervisorService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
@@ -18,13 +18,12 @@ export const GET = withAuth(async (request: NextRequest, context, user) => {
   let supervisors;
   
   if (available) {
-    supervisors = await AdminSupervisorService.getAvailableSupervisors();
+    supervisors = await SupervisorService.getAvailableSupervisors();
   } else if (department) {
-    supervisors = await AdminSupervisorService.getSupervisorsByDepartment(department);
+    supervisors = await SupervisorService.getSupervisorsByDepartment(department);
   } else {
-    supervisors = await AdminSupervisorService.getAllSupervisors();
+    supervisors = await SupervisorService.getAllSupervisors();
   }
 
   return ApiResponse.successWithCount(supervisors);
 });
-
