@@ -3,46 +3,47 @@
  * 
  * Resubmit an application after revision (student only)
  * Transitions status from 'revision_requested' to 'pending'
+ * 
+ * Authorization: Application owner (student)
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { ApplicationService } from '@/lib/services/applications/application-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
+import type { ApplicationIdParams } from '@/types/api';
+import type { Application } from '@/types/database';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
+export const POST = withAuth<ApplicationIdParams, Application>(
+  async (request: NextRequest, { params, cachedResource }, user) => {
+    const application = cachedResource;
+    
+    if (!application) {
+      return ApiResponse.notFound('Application');
     }
 
-    // Delegate to workflow service
     const result = await ApplicationWorkflowService.resubmitApplication(
       params.id,
-      authResult.user!.uid
+      user.uid
     );
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      return ApiResponse.error(result.error || 'Failed to resubmit application', 400);
     }
 
-    return NextResponse.json({ 
-      success: true,
-      message: result.message || 'Application resubmitted successfully'
-    }, { status: 200 });
-
-  } catch (error) {
-    console.error('Error resubmitting application:', error);
-    return NextResponse.json(
-      { error: 'An error occurred while resubmitting the application. Please try again.' },
-      { status: 500 }
-    );
+    return ApiResponse.successMessage(result.message || 'Application resubmitted successfully');
+  },
+  {
+    resourceName: 'Application',
+    resourceLoader: async (params) => {
+      return await ApplicationService.getApplicationById(params.id);
+    },
+    requireResourceAccess: async (user, context, application) => {
+      if (!application) return false;
+      return user.uid === application.studentId || user.role === 'admin';
+    }
   }
-}
+);
 

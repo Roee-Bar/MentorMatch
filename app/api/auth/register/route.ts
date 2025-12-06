@@ -4,10 +4,10 @@
  * User registration endpoint - creates user in Firebase Auth and Firestore
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
-import { handleApiError } from '@/lib/middleware/errorHandler';
+import { ApiResponse } from '@/lib/middleware/response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +16,7 @@ export async function POST(request: NextRequest) {
     const validation = validateRegistration(body);
     
     if (!validation.success) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: validation.error || 'Invalid registration data' 
-        },
-        { status: 400 }
-      );
+      return ApiResponse.validationError(validation.error || 'Invalid registration data');
     }
 
     const data = validation.data!;
@@ -83,41 +77,25 @@ export async function POST(request: NextRequest) {
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 
-    return NextResponse.json({
-      success: true,
-      userId: userRecord.uid,
-      message: 'Registration successful',
-    }, { status: 201 });
+    return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
 
   } catch (error: any) {
     console.error('Registration error:', error);
     
     // Handle specific Firebase errors
     if (error.code === 'auth/email-already-exists') {
-      return NextResponse.json({
-        success: false,
-        error: 'Email already in use. Please try logging in instead.',
-      }, { status: 400 });
+      return ApiResponse.error('Email already in use. Please try logging in instead.', 400);
     }
     
     if (error.code === 'auth/invalid-email') {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid email address.',
-      }, { status: 400 });
+      return ApiResponse.validationError('Invalid email address.');
     }
     
     if (error.code === 'auth/weak-password') {
-      return NextResponse.json({
-        success: false,
-        error: 'Password is too weak. Please use a stronger password.',
-      }, { status: 400 });
+      return ApiResponse.validationError('Password is too weak. Please use a stronger password.');
     }
 
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Registration failed. Please try again.',
-    }, { status: 500 });
+    return ApiResponse.error(error.message || 'Registration failed. Please try again.', 500);
   }
 }
 

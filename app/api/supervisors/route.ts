@@ -5,11 +5,11 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/firebase-services.server';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
-export const GET = withAuth(async (request: NextRequest, context, user) => {
+export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Get query parameters
   const { searchParams } = new URL(request.url);
   const available = searchParams.get('available') === 'true';

@@ -3,83 +3,43 @@
  * 
  * Unpair from current partner
  * Phase 3: Includes application synchronization
+ * 
+ * Authorization: Student role required
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { StudentPartnershipService, StudentService } from '@/lib/services/firebase-services.server';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { NextRequest } from 'next/server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
+import { StudentService } from '@/lib/services/students/student-service';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
 
-export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = authResult.user?.uid;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
-
-    // Verify user is a student by role check
-    if (authResult.user?.role !== 'student') {
-      return NextResponse.json(
-        { error: 'Only students can unpair from partners' },
-        { status: 403 }
-      );
-    }
-
+export const POST = withAuth<Record<string, string>>(
+  async (request: NextRequest, context, user) => {
     // Get student document to retrieve partnerId
-    const student = await StudentService.getStudentById(userId);
+    const student = await StudentService.getStudentById(user.uid);
     
     if (!student) {
-      return NextResponse.json(
-        { error: 'Student not found' },
-        { status: 404 }
-      );
+      return ApiResponse.notFound('Student');
     }
 
     // Validate student is currently paired
     if (!student.partnerId || student.partnershipStatus !== 'paired') {
-      return NextResponse.json(
-        { error: 'You are not currently paired with anyone' },
-        { status: 400 }
-      );
+      logger.warn('Unpair attempt on unpaired student', {
+        context: 'API',
+        data: {
+          userId: user.uid,
+          partnershipStatus: student.partnershipStatus
+        }
+      });
+      return ApiResponse.error('You are not currently paired with anyone', 400);
     }
 
     // Unpair students (includes application synchronization)
-    await StudentPartnershipService.unpairStudents(userId, student.partnerId);
+    await StudentPartnershipService.unpairStudents(user.uid, student.partnerId);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully unpaired from your partner',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in POST /api/partnerships/unpair:', error);
-    
-    let errorMessage = error.message || 'Internal server error';
-    let statusCode = 500;
-
-    if (error.message?.includes('not found')) {
-      errorMessage = 'Student or partner not found';
-      statusCode = 404;
-    } else if (error.message?.includes('not paired')) {
-      errorMessage = 'You are not currently paired with anyone';
-      statusCode = 400;
-    }
-
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-    }, { status: statusCode });
-  }
-}
+    return ApiResponse.successMessage('Successfully unpaired from your partner');
+  },
+  { allowedRoles: ['student'] }
+);
 

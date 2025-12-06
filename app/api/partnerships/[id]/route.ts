@@ -2,82 +2,47 @@
  * DELETE /api/partnerships/[id]
  * 
  * Cancel a partnership request (by requester only)
+ * 
+ * Authorization: Requester owns the partnership request
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { NextRequest } from 'next/server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
+import type { PartnershipIdParams } from '@/types/api';
+import type { StudentPartnershipRequest } from '@/types/database';
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Verify authentication
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const userId = authResult.user?.uid;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
-
-    const requestId = params.id;
-
-    // Get the partnership request to verify ownership
-    const partnershipRequest = await StudentPartnershipService.getPartnershipRequest(requestId);
+export const DELETE = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
+  async (request: NextRequest, { params, cachedResource }, user) => {
+    const partnershipRequest = cachedResource;
     
     if (!partnershipRequest) {
-      return NextResponse.json(
-        { error: 'Partnership request not found' },
-        { status: 404 }
-      );
+      logger.warn('Partnership request not found', {
+        context: 'API',
+        data: { requestId: params.id, userId: user.uid }
+      });
+      return ApiResponse.notFound('Partnership request');
     }
 
-    // Verify the authenticated user is the requester
-    if (partnershipRequest.requesterId !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized to cancel this request' },
-        { status: 403 }
-      );
+    // Check if request can be cancelled
+    if (partnershipRequest.status !== 'pending') {
+      return ApiResponse.error('Can only cancel pending requests', 400);
     }
 
-    // Cancel the partnership request
-    await StudentPartnershipService.cancelPartnershipRequest(requestId, userId);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Partnership request cancelled successfully',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in DELETE /api/partnerships/[id]:', error);
-    
-    let errorMessage = error.message || 'Internal server error';
-    let statusCode = 500;
-
-    if (error.message?.includes('not found')) {
-      errorMessage = 'Partnership request not found';
-      statusCode = 404;
-    } else if (error.message?.includes('Unauthorized')) {
-      statusCode = 403;
-    } else if (error.message?.includes('Can only cancel pending requests')) {
-      errorMessage = 'Can only cancel pending requests';
-      statusCode = 400;
+    await StudentPartnershipService.cancelPartnershipRequest(params.id, user.uid);
+    return ApiResponse.successMessage('Partnership request cancelled successfully');
+  },
+  {
+    resourceName: 'Partnership request',
+    resourceLoader: async (params) => {
+      return await StudentPartnershipService.getPartnershipRequest(params.id);
+    },
+    requireResourceAccess: async (user, context, resource) => {
+      if (!resource) return false;
+      return resource.requesterId === user.uid;
     }
-
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-    }, { status: statusCode });
   }
-}
+);
 

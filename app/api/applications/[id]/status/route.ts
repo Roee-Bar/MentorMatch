@@ -2,54 +2,32 @@
  * PATCH /api/applications/[id]/status
  * 
  * Update application status (supervisor/admin only)
+ * 
+ * Authorization: Application supervisor or admin
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { NextRequest } from 'next/server';
+import { ApplicationService } from '@/lib/services/applications/application-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withAuth } from '@/lib/middleware/apiHandler';
 import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
+import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
+import type { ApplicationIdParams } from '@/types/api';
+import type { Application } from '@/types/database';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
-    const application = await ApplicationService.getApplicationById(params.id);
+export const PATCH = withAuth<ApplicationIdParams, Application>(
+  async (request: NextRequest, { params, cachedResource }, user) => {
+    const application = cachedResource;
     
     if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found. It may have been deleted.' },
-        { status: 404 }
-      );
-    }
-
-    // Only the supervisor or admin can update status
-    const isSupervisor = authResult.user?.uid === application.supervisorId;
-    const isAdmin = authResult.user?.role === 'admin';
-
-    if (!isSupervisor && !isAdmin) {
-      return NextResponse.json(
-        { error: 'You don\'t have permission to update this application.' },
-        { status: 403 }
-      );
+      return ApiResponse.notFound('Application not found. It may have been deleted.');
     }
 
     // Validate request body
     const validation = await validateRequest(request, updateApplicationStatusSchema);
     if (!validation.valid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
     const { status, feedback } = validation.data!;
@@ -59,25 +37,33 @@ export async function PATCH(
       params.id,
       status,
       feedback,
-      authResult.user?.uid,
-      authResult.user?.role as 'admin' | 'supervisor' | 'student' | undefined
+      user.uid,
+      user.role as 'admin' | 'supervisor' | 'student' | undefined
     );
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error }, { status: 400 });
+      logger.error('Application status update failed', undefined, {
+        context: 'API',
+        data: {
+          applicationId: params.id,
+          requestedStatus: status,
+          error: result.error
+        }
+      });
+      return ApiResponse.error(result.error || 'Failed to update application', 400);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Application status updated successfully',
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in PATCH /api/applications/[id]/status:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+    return ApiResponse.successMessage('Application status updated successfully');
+  },
+  {
+    resourceName: 'Application',
+    resourceLoader: async (params) => {
+      return await ApplicationService.getApplicationById(params.id);
+    },
+    requireResourceAccess: async (user, context, application) => {
+      if (!application) return false;
+      return user.uid === application.supervisorId || user.role === 'admin';
+    }
   }
-}
+);
 
