@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { SupervisorCardData } from '@/types/database';
 
 interface ApplicationModalProps {
@@ -101,8 +102,9 @@ export default function ApplicationModal({
 
       // Close modal on success (parent will handle success message)
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit application. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit application. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -140,11 +142,7 @@ export default function ApplicationModal({
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="mx-6 mt-4 message-box-error">
-            <p className="message-text-error text-sm">{error}</p>
-          </div>
-        )}
+        {error && <StatusMessage message={error} type="error" className="mx-6 mt-4" />}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 form-group">

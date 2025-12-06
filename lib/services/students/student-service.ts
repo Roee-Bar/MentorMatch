@@ -14,7 +14,11 @@ export const StudentService = {
     try {
       const studentDoc = await adminDb.collection('students').doc(studentId).get();
       if (studentDoc.exists) {
-        return { id: studentDoc.id, ...studentDoc.data() } as unknown as Student;
+        const data = studentDoc.data();
+        if (!data) {
+          return null;
+        }
+        return { id: studentDoc.id, ...data } as Student;
       }
       return null;
     } catch (error) {
@@ -27,10 +31,13 @@ export const StudentService = {
   async getAllStudents(): Promise<Student[]> {
     try {
       const querySnapshot = await adminDb.collection('students').get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as unknown as Student));
+      return querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          if (!data) return null;
+          return { id: doc.id, ...data } as Student;
+        })
+        .filter((student): student is Student => student !== null);
     } catch (error) {
       console.error('Error fetching students:', error);
       return [];
@@ -43,10 +50,13 @@ export const StudentService = {
       const querySnapshot = await adminDb.collection('students')
         .where('matchStatus', '==', 'unmatched')
         .get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as unknown as Student));
+      return querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          if (!data) return null;
+          return { id: doc.id, ...data } as Student;
+        })
+        .filter((student): student is Student => student !== null);
     } catch (error) {
       console.error('Error fetching unmatched students:', error);
       return [];

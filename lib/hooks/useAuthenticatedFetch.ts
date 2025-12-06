@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, DependencyList } from 'react';
+import { useState, useEffect, useCallback, DependencyList } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth } from '@/lib/firebase';
 import { ROUTES } from '@/lib/routes';
@@ -34,7 +34,7 @@ export function useAuthenticatedFetch<T>(
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -52,12 +52,11 @@ export function useAuthenticatedFetch<T>(
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetcher, router, ...deps]);
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 }

@@ -14,7 +14,11 @@ export const UserService = {
     try {
       const userDoc = await adminDb.collection('users').doc(userId).get();
       if (userDoc.exists) {
-        return { id: userDoc.id, ...userDoc.data() } as BaseUser;
+        const data = userDoc.data();
+        if (!data) {
+          return null;
+        }
+        return { id: userDoc.id, ...data } as BaseUser;
       }
       return null;
     } catch (error) {
@@ -27,10 +31,13 @@ export const UserService = {
   async getAllUsers(): Promise<BaseUser[]> {
     try {
       const querySnapshot = await adminDb.collection('users').get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as unknown as BaseUser));
+      return querySnapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+          if (!data) return null;
+          return { id: doc.id, ...data } as BaseUser;
+        })
+        .filter((user): user is BaseUser => user !== null);
     } catch (error) {
       console.error('Error fetching users:', error);
       return [];

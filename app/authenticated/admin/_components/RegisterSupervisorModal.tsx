@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
 import FormInput from '@/app/components/form/FormInput';
+import { auth } from '@/lib/firebase';
+import { apiClient } from '@/lib/api/client';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 
 interface RegisterSupervisorModalProps {
   isOpen: boolean;
@@ -40,14 +43,12 @@ export default function RegisterSupervisorModal({
     setLoading(true);
 
     try {
-      const { auth } = await import('@/lib/firebase');
       const token = await auth.currentUser?.getIdToken();
       
       if (!token) {
         throw new Error('Not authenticated');
       }
 
-      const { apiClient } = await import('@/lib/api/client');
       const response = await apiClient.createSupervisor(email, token);
 
       if (response.success) {
@@ -57,8 +58,9 @@ export default function RegisterSupervisorModal({
       } else {
         setError(response.error || 'Failed to create supervisor');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to create supervisor. Please try again.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create supervisor. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -107,11 +109,7 @@ export default function RegisterSupervisorModal({
           </div>
 
           {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
+          {error && <StatusMessage message={error} type="error" className="mb-4" />}
 
           {/* Action Buttons */}
           <div className="flex gap-3">

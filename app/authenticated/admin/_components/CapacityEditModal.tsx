@@ -6,6 +6,9 @@ import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import { auth } from '@/lib/firebase';
+import { apiClient } from '@/lib/api/client';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 
 interface CapacityEditModalProps {
   supervisor: Supervisor;
@@ -57,14 +60,12 @@ export default function CapacityEditModal({
     setLoading(true);
 
     try {
-      const { auth } = await import('@/lib/firebase');
       const token = await auth.currentUser?.getIdToken();
       
       if (!token) {
         throw new Error('Not authenticated');
       }
 
-      const { apiClient } = await import('@/lib/api/client');
       await apiClient.updateSupervisorCapacity(
         supervisor.id,
         maxCapacityNum,
@@ -74,8 +75,9 @@ export default function CapacityEditModal({
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to update capacity');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update capacity';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -153,11 +155,7 @@ export default function CapacityEditModal({
           />
 
           {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-              <p className="text-sm text-red-600">{error}</p>
-            </div>
-          )}
+          {error && <StatusMessage message={error} type="error" className="mb-4" />}
 
           {/* Action Buttons */}
           <div className="flex gap-3">
