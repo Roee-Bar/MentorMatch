@@ -1,16 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { AdminService } from '@/lib/services/firebase-services.server';
-import { verifyAuth } from '@/lib/middleware/auth';
+/**
+ * GET /api/admin/stats - Get admin dashboard statistics
+ * 
+ * Authorization: Admin only
+ */
 
-export async function GET(request: NextRequest) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (authResult.user?.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+import { NextRequest } from 'next/server';
+import { AdminService } from '@/lib/services/firebase-services.server';
+import { withRoles } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+
+export const GET = withRoles(
+  ['admin'],
+  async (request: NextRequest) => {
     const stats = await AdminService.getDashboardStats();
-    return NextResponse.json({ success: true, data: stats }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
+    return ApiResponse.success(stats);
   }
-}
+);
 

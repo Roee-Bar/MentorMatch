@@ -1,5 +1,7 @@
 /**
  * GET /api/students/[id]/applications - Get applications for a specific student
+ * 
+ * Authorization: Owner, Supervisor, or Admin
  */
 
 import { NextRequest } from 'next/server';
@@ -7,17 +9,11 @@ import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
-export const GET = withAuth(async (request: NextRequest, { params }, user) => {
-  // Authorization: Students can only view their own applications
-  // Supervisors and admins can view any student's applications
-  const isOwner = user.uid === params.id;
-  const isSupervisorOrAdmin = ['supervisor', 'admin'].includes(user.role || '');
-
-  if (!isOwner && !isSupervisorOrAdmin) {
-    return ApiResponse.error('Forbidden', 403);
-  }
-
-  const applications = await ApplicationService.getStudentApplications(params.id);
-  return ApiResponse.successWithCount(applications);
-});
+export const GET = withAuth(
+  async (request: NextRequest, { params }, user) => {
+    const applications = await ApplicationService.getStudentApplications(params.id);
+    return ApiResponse.successWithCount(applications);
+  },
+  { requireOwnerOrAdmin: true, allowedRoles: ['supervisor'] }
+);
 

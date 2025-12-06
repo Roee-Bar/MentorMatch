@@ -3,12 +3,16 @@
  * 
  * Respond to a partnership request (accept or reject)
  * Phase 7.2: Enhanced error messages for partnership operations
+ * 
+ * Authorization: Target student of the partnership request
+ * Note: Uses manual auth to verify target ownership after fetching resource
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { validateRequest, partnershipResponseSchema } from '@/lib/middleware/validation';
+import { ApiResponse, AuthMessages } from '@/lib/middleware/response';
 
 export async function POST(
   request: NextRequest,
@@ -17,28 +21,16 @@ export async function POST(
   try {
     // Verify authentication
     const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!authResult.authenticated || !authResult.user) {
+      return ApiResponse.unauthorized();
     }
 
-    const userId = authResult.user?.uid;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
+    const userId = authResult.user.uid;
 
     // Validate request body
     const validation = await validateRequest(request, partnershipResponseSchema);
     if (!validation.valid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
     const { action } = validation.data!;
@@ -48,26 +40,17 @@ export async function POST(
     const partnershipRequest = await StudentPartnershipService.getPartnershipRequest(requestId);
     
     if (!partnershipRequest) {
-      return NextResponse.json(
-        { error: 'Partnership request not found or has expired.' },
-        { status: 404 }
-      );
+      return ApiResponse.notFound('Partnership request not found or has expired.');
     }
 
     // Verify the authenticated user is the target of the request
     if (partnershipRequest.targetStudentId !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized to respond to this request' },
-        { status: 403 }
-      );
+      return ApiResponse.forbidden(AuthMessages.NO_PERMISSION_RESPOND);
     }
 
     // Check if request has already been processed
     if (partnershipRequest.status !== 'pending') {
-      return NextResponse.json(
-        { error: 'This request has already been accepted/rejected.' },
-        { status: 400 }
-      );
+      return ApiResponse.error('This request has already been accepted/rejected.', 400);
     }
 
     // Call service method to respond to the request
@@ -77,12 +60,11 @@ export async function POST(
       action
     );
 
-    return NextResponse.json({
-      success: true,
-      message: action === 'accept' 
+    return ApiResponse.successMessage(
+      action === 'accept' 
         ? 'Partnership accepted successfully' 
-        : 'Partnership request rejected',
-    }, { status: 200 });
+        : 'Partnership request rejected'
+    );
 
   } catch (error: any) {
     console.error('Error in POST /api/partnerships/[id]/respond:', error);
@@ -102,10 +84,7 @@ export async function POST(
       statusCode = 400;
     }
 
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-    }, { status: statusCode });
+    return ApiResponse.error(errorMessage, statusCode);
   }
 }
 

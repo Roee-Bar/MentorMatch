@@ -3,42 +3,24 @@
  * 
  * Update supervisor capacity (admin only)
  * Phase 6.1: Admin capacity override endpoint
+ * 
+ * Authorization: Admin only
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { SupervisorService } from '@/lib/services/firebase-services.server';
-import { verifyAuth } from '@/lib/middleware/auth';
+import { withRoles } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
 import { adminDb } from '@/lib/firebase-admin';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    // Verify authentication and admin role
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' }, 
-        { status: 401 }
-      );
-    }
-
-    if (authResult.user?.role !== 'admin') {
-      return NextResponse.json(
-        { error: 'Forbidden: Admin access required' },
-        { status: 403 }
-      );
-    }
-
+export const PATCH = withRoles(
+  ['admin'],
+  async (request: NextRequest, { params }, user) => {
     // Get supervisor
     const supervisor = await SupervisorService.getSupervisorById(params.id);
     
     if (!supervisor) {
-      return NextResponse.json(
-        { error: 'Supervisor not found' },
-        { status: 404 }
-      );
+      return ApiResponse.notFound('Supervisor');
     }
 
     // Parse and validate request body
@@ -46,39 +28,26 @@ export async function PATCH(
     const { maxCapacity, reason } = body;
 
     if (typeof maxCapacity !== 'number') {
-      return NextResponse.json(
-        { error: 'maxCapacity must be a number' },
-        { status: 400 }
-      );
+      return ApiResponse.validationError('maxCapacity must be a number');
     }
 
     if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'reason is required' },
-        { status: 400 }
-      );
+      return ApiResponse.validationError('reason is required');
     }
 
     // Validate capacity constraints
     if (maxCapacity < supervisor.currentCapacity) {
-      return NextResponse.json(
-        { error: `Maximum capacity cannot be less than current capacity (${supervisor.currentCapacity})` },
-        { status: 400 }
+      return ApiResponse.validationError(
+        `Maximum capacity cannot be less than current capacity (${supervisor.currentCapacity})`
       );
     }
 
     if (maxCapacity > 50) {
-      return NextResponse.json(
-        { error: 'Maximum capacity cannot exceed 50' },
-        { status: 400 }
-      );
+      return ApiResponse.validationError('Maximum capacity cannot exceed 50');
     }
 
     if (maxCapacity < 0) {
-      return NextResponse.json(
-        { error: 'Maximum capacity cannot be negative' },
-        { status: 400 }
-      );
+      return ApiResponse.validationError('Maximum capacity cannot be negative');
     }
 
     // Update supervisor capacity
@@ -91,8 +60,8 @@ export async function PATCH(
     await adminDb.collection('capacity_changes').add({
       supervisorId: params.id,
       supervisorName: supervisor.fullName,
-      adminId: authResult.user.uid,
-      adminEmail: authResult.user.email,
+      adminId: user.uid,
+      adminEmail: user.email,
       oldMaxCapacity: supervisor.maxCapacity,
       newMaxCapacity: maxCapacity,
       reason: reason.trim(),
@@ -102,19 +71,8 @@ export async function PATCH(
     // Get updated supervisor
     const updatedSupervisor = await SupervisorService.getSupervisorById(params.id);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Supervisor capacity updated successfully',
-      data: updatedSupervisor
-    }, { status: 200 });
-
-  } catch (error: any) {
-    console.error('Error in PATCH /api/admin/supervisors/[id]/capacity:', error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || 'Internal server error',
-    }, { status: 500 });
+    return ApiResponse.success(updatedSupervisor, 'Supervisor capacity updated successfully');
   }
-}
+);
 
 

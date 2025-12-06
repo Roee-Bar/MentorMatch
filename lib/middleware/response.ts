@@ -7,6 +7,15 @@
 import { NextResponse } from 'next/server';
 
 /**
+ * Standard authorization error messages
+ */
+export const AuthMessages = {
+  NO_PERMISSION: 'You do not have permission to access this resource',
+  NO_PERMISSION_UPDATE: 'You do not have permission to update this resource',
+  NO_PERMISSION_RESPOND: 'You do not have permission to respond to this request',
+} as const;
+
+/**
  * Standard API response helpers
  */
 export const ApiResponse = {
@@ -37,8 +46,11 @@ export const ApiResponse = {
   /**
    * 403 Forbidden response
    */
-  forbidden: () => 
-    NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
+  forbidden: (message?: string) => 
+    NextResponse.json({ 
+      success: false, 
+      error: message || 'Forbidden' 
+    }, { status: 403 }),
   
   /**
    * 404 Not Found response
@@ -63,5 +75,29 @@ export const ApiResponse = {
    */
   created: (data: any, message?: string) =>
     NextResponse.json({ success: true, message: message || 'Created successfully', data }, { status: 201 }),
+  
+  /**
+   * Authorization-specific error responses
+   */
+  
+  /**
+   * Not owner error - user doesn't own the resource
+   */
+  notOwner: () => 
+    NextResponse.json({ 
+      success: false, 
+      error: 'You do not have permission to access this resource' 
+    }, { status: 403 }),
+  
+  /**
+   * Insufficient role error - user doesn't have required role(s)
+   */
+  insufficientRole: (requiredRoles?: string[]) => 
+    NextResponse.json({ 
+      success: false,
+      error: requiredRoles 
+        ? `This action requires one of the following roles: ${requiredRoles.join(', ')}`
+        : 'Insufficient permissions'
+    }, { status: 403 }),
 };
 

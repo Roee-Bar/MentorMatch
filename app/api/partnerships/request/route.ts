@@ -3,49 +3,38 @@
  * 
  * Create a new partnership request
  * Phase 4: Includes duplicate request prevention
+ * 
+ * Authorization: Authenticated users only
+ * Note: Uses manual auth to perform self-partnership validation
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
 import { validateRequest, partnershipRequestSchema } from '@/lib/middleware/validation';
+import { ApiResponse, AuthMessages } from '@/lib/middleware/response';
 
 export async function POST(request: NextRequest) {
   try {
     // Verify authentication
     const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!authResult.authenticated || !authResult.user) {
+      return ApiResponse.unauthorized();
     }
 
-    const userId = authResult.user?.uid;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
+    const userId = authResult.user.uid;
 
     // Validate request body
     const validation = await validateRequest(request, partnershipRequestSchema);
     if (!validation.valid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
     const { targetStudentId } = validation.data!;
 
     // Prevent self-partnership
     if (targetStudentId === userId) {
-      return NextResponse.json(
-        { error: 'You cannot send a partnership request to yourself' },
-        { status: 400 }
-      );
+      return ApiResponse.error('You cannot send a partnership request to yourself', 400);
     }
 
     // Create partnership request (includes duplicate detection in service layer)
@@ -54,11 +43,7 @@ export async function POST(request: NextRequest) {
       targetStudentId
     );
 
-    return NextResponse.json({
-      success: true,
-      message: 'Partnership request sent successfully',
-      data: { requestId },
-    }, { status: 201 });
+    return ApiResponse.created({ requestId }, 'Partnership request sent successfully');
 
   } catch (error: any) {
     console.error('Error in POST /api/partnerships/request:', error);
@@ -79,10 +64,7 @@ export async function POST(request: NextRequest) {
       statusCode = 400;
     }
 
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-    }, { status: statusCode });
+    return ApiResponse.error(errorMessage, statusCode);
   }
 }
 

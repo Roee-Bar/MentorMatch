@@ -2,11 +2,15 @@
  * DELETE /api/partnerships/[id]
  * 
  * Cancel a partnership request (by requester only)
+ * 
+ * Authorization: Requester owns the partnership request
+ * Note: Uses manual auth to verify ownership after fetching resource
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
 import { verifyAuth } from '@/lib/middleware/auth';
+import { ApiResponse, AuthMessages } from '@/lib/middleware/response';
 
 export async function DELETE(
   request: NextRequest,
@@ -15,48 +19,29 @@ export async function DELETE(
   try {
     // Verify authentication
     const authResult = await verifyAuth(request);
-    if (!authResult.authenticated) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    if (!authResult.authenticated || !authResult.user) {
+      return ApiResponse.unauthorized();
     }
 
-    const userId = authResult.user?.uid;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found' },
-        { status: 401 }
-      );
-    }
-
+    const userId = authResult.user.uid;
     const requestId = params.id;
 
     // Get the partnership request to verify ownership
     const partnershipRequest = await StudentPartnershipService.getPartnershipRequest(requestId);
     
     if (!partnershipRequest) {
-      return NextResponse.json(
-        { error: 'Partnership request not found' },
-        { status: 404 }
-      );
+      return ApiResponse.notFound('Partnership request');
     }
 
     // Verify the authenticated user is the requester
     if (partnershipRequest.requesterId !== userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized to cancel this request' },
-        { status: 403 }
-      );
+      return ApiResponse.forbidden(AuthMessages.NO_PERMISSION);
     }
 
     // Cancel the partnership request
     await StudentPartnershipService.cancelPartnershipRequest(requestId, userId);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Partnership request cancelled successfully',
-    }, { status: 200 });
+    return ApiResponse.successMessage('Partnership request cancelled successfully');
 
   } catch (error: any) {
     console.error('Error in DELETE /api/partnerships/[id]:', error);
@@ -74,10 +59,7 @@ export async function DELETE(
       statusCode = 400;
     }
 
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-    }, { status: statusCode });
+    return ApiResponse.error(errorMessage, statusCode);
   }
 }
 
