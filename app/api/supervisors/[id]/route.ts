@@ -30,46 +30,36 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   return ApiResponse.success(supervisor);
 });
 
-export const PUT = withAuth(async (request: NextRequest, { params }, user) => {
-  // Check authorization: user must be owner or admin
-  const isOwner = user.uid === params.id;
-  const isAdmin = user.role === 'admin';
+export const PUT = withAuth(
+  async (request: NextRequest, { params }, user) => {
+    const body = await request.json();
+    const validation = validateBody(body, updateSupervisorSchema);
+    
+    if (!validation.valid || !validation.data) {
+      logger.error('Supervisor update validation failed', undefined, {
+        context: 'API',
+        data: {
+          supervisorId: params.id,
+          validationError: validation.error,
+          receivedFields: Object.keys(body)
+        }
+      });
+      return ApiResponse.validationError(validation.error || 'Invalid request data');
+    }
 
-  if (!isOwner && !isAdmin) {
-    logger.error('Unauthorized supervisor update attempt', undefined, { 
-      context: 'API', 
-      data: { supervisorId: params.id, role: user.role } 
-    });
-    return ApiResponse.forbidden();
-  }
+    const success = await SupervisorService.updateSupervisor(params.id, validation.data);
 
-  // Read and validate request body
-  const body = await request.json();
-  const validation = validateBody(body, updateSupervisorSchema);
-  
-  if (!validation.valid || !validation.data) {
-    logger.error('Supervisor update validation failed', undefined, { 
-      context: 'API', 
-      data: { 
-        supervisorId: params.id,
-        validationError: validation.error,
-        receivedFields: Object.keys(body)
-      } 
-    });
-    return ApiResponse.validationError(validation.error || 'Invalid request data');
-  }
+    if (!success) {
+      logger.error('Supervisor database update failed', undefined, {
+        context: 'API',
+        data: { supervisorId: params.id }
+      });
+      return ApiResponse.error('Failed to update supervisor', 500);
+    }
 
-  const success = await SupervisorService.updateSupervisor(params.id, validation.data);
-
-  if (!success) {
-    logger.error('Supervisor database update failed', undefined, { 
-      context: 'API', 
-      data: { supervisorId: params.id } 
-    });
-    return ApiResponse.error('Failed to update supervisor', 500);
-  }
-
-  return ApiResponse.successMessage('Supervisor updated successfully');
-});
+    return ApiResponse.successMessage('Supervisor updated successfully');
+  },
+  { requireOwnerOrAdmin: true }
+);
 
 

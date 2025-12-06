@@ -10,31 +10,22 @@ import { StudentPartnershipService } from '@/lib/services/firebase-services.serv
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
-export const GET = withAuth(async (request: NextRequest, { params }, user) => {
-  // Authorization: Students can only view their own requests
-  // Supervisors and admins can view any student's requests
-  const isOwner = user.uid === params.id;
-  const isSupervisorOrAdmin = ['supervisor', 'admin'].includes(user.role || '');
+export const GET = withAuth(
+  async (request: NextRequest, { params }, user) => {
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get('type') || 'all';
 
-  if (!isOwner && !isSupervisorOrAdmin) {
-    return ApiResponse.error('Forbidden', 403);
-  }
+    if (!['incoming', 'outgoing', 'all'].includes(type)) {
+      return ApiResponse.validationError('Invalid type parameter. Must be: incoming, outgoing, or all');
+    }
 
-  // Get query parameter for request type
-  const { searchParams } = new URL(request.url);
-  const type = searchParams.get('type') || 'all';
+    const requests = await StudentPartnershipService.getPartnershipRequests(
+      params.id,
+      type as 'incoming' | 'outgoing' | 'all'
+    );
 
-  // Validate type parameter
-  if (!['incoming', 'outgoing', 'all'].includes(type)) {
-    return ApiResponse.validationError('Invalid type parameter. Must be: incoming, outgoing, or all');
-  }
-
-  // Fetch partnership requests
-  const requests = await StudentPartnershipService.getPartnershipRequests(
-    params.id,
-    type as 'incoming' | 'outgoing' | 'all'
-  );
-
-  return ApiResponse.successWithCount(requests);
-});
+    return ApiResponse.successWithCount(requests);
+  },
+  { requireOwnerOrAdmin: true, allowedRoles: ['supervisor'] }
+);
 

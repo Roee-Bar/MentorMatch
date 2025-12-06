@@ -5,28 +5,26 @@
  * Transitions status from 'revision_requested' to 'pending'
  * 
  * Authorization: Application owner (student)
- * Note: Uses manual auth to delegate complex workflow validation to service layer
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { ApplicationService } from '@/lib/services/firebase-services.server';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
-import { verifyAuth } from '@/lib/middleware/auth';
-import { ApiResponse, AuthMessages } from '@/lib/middleware/response';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const authResult = await verifyAuth(request);
-    if (!authResult.authenticated || !authResult.user) {
-      return ApiResponse.unauthorized();
+export const POST = withAuth(
+  async (request: NextRequest, { params, cachedResource }, user) => {
+    const application = cachedResource;
+    
+    if (!application) {
+      return ApiResponse.notFound('Application');
     }
 
-    // Delegate to workflow service
     const result = await ApplicationWorkflowService.resubmitApplication(
       params.id,
-      authResult.user.uid
+      user.uid
     );
 
     if (!result.success) {
@@ -34,13 +32,15 @@ export async function POST(
     }
 
     return ApiResponse.successMessage(result.message || 'Application resubmitted successfully');
-
-  } catch (error) {
-    console.error('Error resubmitting application:', error);
-    return ApiResponse.error(
-      'An error occurred while resubmitting the application. Please try again.',
-      500
-    );
+  },
+  {
+    resourceLoader: async (params) => {
+      return await ApplicationService.getApplicationById(params.id);
+    },
+    requireResourceAccess: async (user, context, application) => {
+      if (!application) return false;
+      return user.uid === application.studentId || user.role === 'admin';
+    }
   }
-}
+);
 

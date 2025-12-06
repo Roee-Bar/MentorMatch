@@ -14,6 +14,7 @@ import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(
   async (request: NextRequest, { params, cachedResource }, user) => {
@@ -48,6 +49,14 @@ export const PUT = withAuth(
 
     // Can only edit if status is 'revision_requested'
     if (application.status !== 'revision_requested') {
+      logger.warn('Application edit attempt with wrong status', {
+        context: 'API',
+        data: {
+          applicationId: params.id,
+          userId: user.uid,
+          currentStatus: application.status
+        }
+      });
       return ApiResponse.error('Application can only be edited when in revision_requested status', 400);
     }
 
@@ -100,6 +109,13 @@ export const DELETE = withAuth(
     }
 
     if (application.status === 'approved') {
+      logger.info('Deleting approved application with capacity adjustment', {
+        context: 'API',
+        data: {
+          applicationId: params.id,
+          supervisorId: application.supervisorId
+        }
+      });
       // Use transaction to ensure atomicity when updating supervisor capacity
       await adminDb.runTransaction(async (transaction) => {
         const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
