@@ -4,14 +4,15 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentService } from '@/lib/services/firebase-services.server';
+import { StudentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
 import { logger } from '@/lib/logger';
 import { canViewStudentProfile } from '@/lib/middleware/authorization';
+import type { StudentIdParams } from '@/types/api';
 
-export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+export const GET = withAuth<StudentIdParams>(async (request: NextRequest, { params }, user) => {
   const { allowed, student } = await canViewStudentProfile(
     user.uid,
     user.role,
@@ -38,7 +39,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   return ApiResponse.success(student);
 });
 
-export const PUT = withAuth(
+export const PUT = withAuth<StudentIdParams>(
   async (request: NextRequest, { params }, user) => {
     const body = await request.json();
     const validation = validateBody(body, updateStudentSchema);

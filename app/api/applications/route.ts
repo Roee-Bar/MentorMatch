@@ -4,19 +4,21 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApplicationService, StudentService, SupervisorService } from '@/lib/services/firebase-services.server';
+import { ApplicationService } from '@/lib/services/applications/application-service';
+import { StudentService } from '@/lib/services/students/student-service';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 
-export const GET = withRoles(['admin'], async (request: NextRequest, context, user) => {
+export const GET = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
   const applications = await ApplicationService.getAllApplications();
   return ApiResponse.successWithCount(applications);
 });
 
-export const POST = withAuth(async (request: NextRequest, context, user) => {
+export const POST = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Validate request body
   const validation = await validateRequest(request, createApplicationSchema);
   if (!validation.valid || !validation.data) {

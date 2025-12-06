@@ -6,13 +6,14 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/firebase-services.server';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import type { SupervisorIdParams } from '@/types/api';
 
-export const PATCH = withRoles(['admin'], async (
+export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   request: NextRequest,
   { params },
   user
@@ -84,10 +85,7 @@ export const PATCH = withRoles(['admin'], async (
   // Get updated supervisor
   const updatedSupervisor = await SupervisorService.getSupervisorById(params.id);
 
-  return ApiResponse.success(
-    updatedSupervisor,
-    'Supervisor capacity updated successfully'
-  );
+  return ApiResponse.success(updatedSupervisor);
 });
 
 

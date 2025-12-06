@@ -7,12 +7,14 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
+import type { PartnershipIdParams } from '@/types/api';
+import type { StudentPartnershipRequest } from '@/types/database';
 
-export const DELETE = withAuth(
+export const DELETE = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
   async (request: NextRequest, { params, cachedResource }, user) => {
     const partnershipRequest = cachedResource;
     
@@ -33,6 +35,7 @@ export const DELETE = withAuth(
     return ApiResponse.successMessage('Partnership request cancelled successfully');
   },
   {
+    resourceName: 'Partnership request',
     resourceLoader: async (params) => {
       return await StudentPartnershipService.getPartnershipRequest(params.id);
     },

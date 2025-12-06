@@ -6,13 +6,14 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/firebase-services.server';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateSupervisorSchema } from '@/lib/middleware/validation';
 import { logger } from '@/lib/logger';
+import type { SupervisorIdParams } from '@/types/api';
 
-export const GET = withAuth(async (request: NextRequest, { params }, user) => {
+export const GET = withAuth<SupervisorIdParams>(async (request: NextRequest, { params }, user) => {
   // Authorization: All authenticated users can view supervisor profiles
   // This is intentional because:
   // - Students need to browse supervisors to submit applications
@@ -30,7 +31,7 @@ export const GET = withAuth(async (request: NextRequest, { params }, user) => {
   return ApiResponse.success(supervisor);
 });
 
-export const PUT = withAuth(
+export const PUT = withAuth<SupervisorIdParams>(
   async (request: NextRequest, { params }, user) => {
     const body = await request.json();
     const validation = validateBody(body, updateSupervisorSchema);

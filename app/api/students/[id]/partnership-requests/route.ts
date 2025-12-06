@@ -6,11 +6,12 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import type { StudentIdParams } from '@/types/api';
 
-export const GET = withAuth(
+export const GET = withAuth<StudentIdParams>(
   async (request: NextRequest, { params }, user) => {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'all';

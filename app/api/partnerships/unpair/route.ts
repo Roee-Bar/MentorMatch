@@ -8,12 +8,13 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentPartnershipService, StudentService } from '@/lib/services/firebase-services.server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
+import { StudentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
 
-export const POST = withAuth(
+export const POST = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
     // Get student document to retrieve partnerId
     const student = await StudentService.getStudentById(user.uid);

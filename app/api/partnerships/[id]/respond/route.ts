@@ -8,13 +8,15 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, partnershipResponseSchema } from '@/lib/middleware/validation';
 import { logger } from '@/lib/logger';
+import type { PartnershipIdParams } from '@/types/api';
+import type { StudentPartnershipRequest } from '@/types/database';
 
-export const POST = withAuth(
+export const POST = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
   async (request: NextRequest, { params, cachedResource }, user) => {
     const partnershipRequest = cachedResource;
     
@@ -57,6 +59,7 @@ export const POST = withAuth(
     );
   },
   {
+    resourceName: 'Partnership request',
     resourceLoader: async (params) => {
       return await StudentPartnershipService.getPartnershipRequest(params.id);
     },

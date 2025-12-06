@@ -8,13 +8,13 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentPartnershipService } from '@/lib/services/firebase-services.server';
+import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { validateRequest, partnershipRequestSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
 
-export const POST = withAuth(async (request: NextRequest, context, user) => {
+export const POST = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Validate request body
   const validation = await validateRequest(request, partnershipRequestSchema);
   if (!validation.valid) {

@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
-import { UserService } from '@/lib/services/firebase-services.server';
+import { UserService } from '@/lib/services/users/user-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, updateUserSchema } from '@/lib/middleware/validation';
+import type { UserIdParams } from '@/types/api';
 
-export const GET = withAuth(
+export const GET = withAuth<UserIdParams>(
   async (request: NextRequest, { params }, user) => {
     const fetchedUser = await UserService.getUserById(params.id);
     if (!fetchedUser) {
@@ -15,7 +16,7 @@ export const GET = withAuth(
   { requireOwnerOrAdmin: true }
 );
 
-export const PUT = withAuth(
+export const PUT = withAuth<UserIdParams>(
   async (request: NextRequest, { params }, user) => {
     const validation = await validateRequest(request, updateUserSchema);
     if (!validation.valid || !validation.data) {

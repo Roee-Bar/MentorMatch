@@ -9,14 +9,16 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { ApplicationService } from '@/lib/services/applications/application-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import type { ApplicationIdParams } from '@/types/api';
+import type { Application } from '@/types/database';
 
-export const GET = withAuth(
+export const GET = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {
     const application = cachedResource;
     
@@ -27,6 +29,7 @@ export const GET = withAuth(
     return ApiResponse.success(application);
   },
   { 
+    resourceName: 'Application',
     resourceLoader: async (params) => {
       return await ApplicationService.getApplicationById(params.id);
     },
@@ -39,7 +42,7 @@ export const GET = withAuth(
   }
 );
 
-export const PUT = withAuth(
+export const PUT = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {
     const application = cachedResource;
     
@@ -90,6 +93,7 @@ export const PUT = withAuth(
     return ApiResponse.success({ message: 'Application updated successfully' });
   },
   { 
+    resourceName: 'Application',
     resourceLoader: async (params) => {
       return await ApplicationService.getApplicationById(params.id);
     },
@@ -100,7 +104,7 @@ export const PUT = withAuth(
   }
 );
 
-export const DELETE = withAuth(
+export const DELETE = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {
     const application = cachedResource;
     
@@ -148,6 +152,7 @@ export const DELETE = withAuth(
     return ApiResponse.success({ message: 'Application deleted successfully' });
   },
   { 
+    resourceName: 'Application',
     resourceLoader: async (params) => {
       return await ApplicationService.getApplicationById(params.id);
     },
