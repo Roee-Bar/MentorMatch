@@ -2,17 +2,12 @@
  * POST /api/auth/register
  * 
  * User registration endpoint - creates user in Firebase Auth and Firestore
- * 
- * Authorization: PUBLIC ENDPOINT - No authentication required
- * This is an exception to the authentication requirement as users cannot 
- * authenticate before they've registered an account.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { handleApiError } from '@/lib/middleware/errorHandler';
-import { ApiResponse } from '@/lib/middleware/response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +16,13 @@ export async function POST(request: NextRequest) {
     const validation = validateRegistration(body);
     
     if (!validation.success) {
-      return ApiResponse.validationError(validation.error || 'Invalid registration data');
+      return NextResponse.json(
+        { 
+          success: false,
+          error: validation.error || 'Invalid registration data' 
+        },
+        { status: 400 }
+      );
     }
 
     const data = validation.data!;
@@ -82,28 +83,41 @@ export async function POST(request: NextRequest) {
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 
-    return ApiResponse.created(
-      { userId: userRecord.uid },
-      'Registration successful'
-    );
+    return NextResponse.json({
+      success: true,
+      userId: userRecord.uid,
+      message: 'Registration successful',
+    }, { status: 201 });
 
   } catch (error: any) {
     console.error('Registration error:', error);
     
     // Handle specific Firebase errors
     if (error.code === 'auth/email-already-exists') {
-      return ApiResponse.error('Email already in use. Please try logging in instead.', 400);
+      return NextResponse.json({
+        success: false,
+        error: 'Email already in use. Please try logging in instead.',
+      }, { status: 400 });
     }
     
     if (error.code === 'auth/invalid-email') {
-      return ApiResponse.error('Invalid email address.', 400);
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid email address.',
+      }, { status: 400 });
     }
     
     if (error.code === 'auth/weak-password') {
-      return ApiResponse.error('Password is too weak. Please use a stronger password.', 400);
+      return NextResponse.json({
+        success: false,
+        error: 'Password is too weak. Please use a stronger password.',
+      }, { status: 400 });
     }
 
-    return ApiResponse.error(error.message || 'Registration failed. Please try again.', 500);
+    return NextResponse.json({
+      success: false,
+      error: error.message || 'Registration failed. Please try again.',
+    }, { status: 500 });
   }
 }
 
