@@ -203,3 +203,10 @@ export const partnershipRequestSchema = z.object({
 export const partnershipResponseSchema = z.object({
   action: z.enum(['accept', 'reject']),
 }).strict();
+
+/**
+ * Schema for admin creating supervisor
+ */
+export const createSupervisorSchema = z.object({
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
+}).strict();

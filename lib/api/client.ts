@@ -278,6 +278,23 @@ export const apiClient = {
     );
   },
 
+  // Admin create supervisor
+  createSupervisor: (email: string, token: string) => {
+    return apiFetch('/admin/supervisors', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+      token,
+    });
+  },
+
+  // Admin delete supervisor
+  deleteSupervisor: (supervisorId: string, token: string) => {
+    return apiFetch(`/admin/supervisors/${supervisorId}`, {
+      method: 'DELETE',
+      token,
+    });
+  },
+
   // ========================================
   // Users API
   // ========================================

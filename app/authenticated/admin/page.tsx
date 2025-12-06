@@ -7,6 +7,8 @@ import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import CapacityEditModal from './_components/CapacityEditModal';
+import RegisterSupervisorModal from './_components/RegisterSupervisorModal';
+import DeleteSupervisorModal from './_components/DeleteSupervisorModal';
 import StatCard from '@/app/components/shared/StatCard';
 import Table from '@/app/components/shared/Table';
 import ProgressBar from '@/app/components/shared/ProgressBar';
@@ -21,6 +23,9 @@ export default function AdminAuthenticated() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
   const [showCapacityModal, setShowCapacityModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [supervisorToDelete, setSupervisorToDelete] = useState<Supervisor | null>(null);
 
   // Fetch admin data using the new hook
   const { data: adminData, loading: dataLoading, error: fetchError, refetch } = useAuthenticatedFetch(
@@ -51,6 +56,24 @@ export default function AdminAuthenticated() {
     setTimeout(() => setSuccessMessage(null), 5000);
     
     // Refresh admin data
+    await refetch();
+  };
+
+  const handleRegisterSuccess = async () => {
+    setSuccessMessage('Supervisor registered successfully! Default password: Supervisor123');
+    setTimeout(() => setSuccessMessage(null), 8000);
+    await refetch();
+  };
+
+  const handleDeleteClick = (supervisor: Supervisor) => {
+    setSupervisorToDelete(supervisor);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteSuccess = async () => {
+    setSuccessMessage('Supervisor and all related data deleted successfully!');
+    setTimeout(() => setSuccessMessage(null), 5000);
+    setSupervisorToDelete(null);
     await refetch();
   };
 
@@ -145,6 +168,16 @@ export default function AdminAuthenticated() {
           />
         </div>
 
+        {/* Supervisor Management Actions */}
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={() => setShowRegisterModal(true)}
+            className="btn-primary"
+          >
+            + Register Supervisor
+          </button>
+        </div>
+
         {/* Supervisor Capacity Management Section */}
         <div className="mb-8">
           <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
@@ -176,6 +209,7 @@ export default function AdminAuthenticated() {
                   <Table.HeaderCell>Capacity</Table.HeaderCell>
                   <Table.HeaderCell>Status</Table.HeaderCell>
                   <Table.HeaderCell align="right">Actions</Table.HeaderCell>
+                  <Table.HeaderCell align="right">Delete</Table.HeaderCell>
                 </tr>
               </Table.Header>
               <Table.Body>
@@ -219,6 +253,16 @@ export default function AdminAuthenticated() {
                         </button>
                       </div>
                     </Table.Cell>
+                    <Table.Cell>
+                      <div className="text-right">
+                        <button
+                          onClick={() => handleDeleteClick(supervisor)}
+                          className="text-red-600 hover:text-red-900 text-sm font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </Table.Cell>
                   </Table.Row>
                 ))}
               </Table.Body>
@@ -237,6 +281,26 @@ export default function AdminAuthenticated() {
               setSelectedSupervisor(null);
             }}
             onSuccess={handleCapacityUpdateSuccess}
+          />
+        )}
+
+        {/* Register Supervisor Modal */}
+        <RegisterSupervisorModal
+          isOpen={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+          onSuccess={handleRegisterSuccess}
+        />
+
+        {/* Delete Supervisor Modal */}
+        {supervisorToDelete && (
+          <DeleteSupervisorModal
+            supervisor={supervisorToDelete}
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setSupervisorToDelete(null);
+            }}
+            onSuccess={handleDeleteSuccess}
           />
         )}
       </div>

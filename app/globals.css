@@ -490,6 +490,10 @@ body {
   .info-box-gray {
     @apply info-box bg-gray-50;
   }
+
+  .info-box-red {
+    @apply info-box bg-red-50 border border-red-200;
+  }
 }
 
 @layer utilities {
