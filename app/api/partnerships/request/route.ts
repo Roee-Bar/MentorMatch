@@ -33,11 +33,15 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   }
 
   // Create partnership request (includes duplicate detection in service layer)
-  const requestId = await StudentPartnershipService.createPartnershipRequest(
+  const result = await StudentPartnershipService.createPartnershipRequest(
     user.uid,
     targetStudentId
   );
 
-  return ApiResponse.created({ requestId }, 'Partnership request sent successfully');
+  if (!result.success || !result.data) {
+    return ApiResponse.error(result.error || 'Failed to create partnership request', 400);
+  }
+
+  return ApiResponse.created({ requestId: result.data }, 'Partnership request sent successfully');
 });
 

@@ -48,14 +48,14 @@ export const PUT = withAuth<SupervisorIdParams>(
       return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
-    const success = await SupervisorService.updateSupervisor(params.id, validation.data);
+    const result = await SupervisorService.updateSupervisor(params.id, validation.data);
 
-    if (!success) {
+    if (!result.success) {
       logger.error('Supervisor database update failed', undefined, {
         context: 'API',
-        data: { supervisorId: params.id }
+        data: { supervisorId: params.id, error: result.error }
       });
-      return ApiResponse.error('Failed to update supervisor', 500);
+      return ApiResponse.error(result.error || 'Failed to update supervisor', 500);
     }
 
     return ApiResponse.successMessage('Supervisor updated successfully');

@@ -164,6 +164,63 @@ class Logger {
       this.error(message, error, { context: 'Build' });
     }
   };
+
+  // Service-specific logging
+  service = {
+    /**
+     * Log a service operation starting (debug level)
+     * @param serviceName - Name of the service (e.g., 'StudentService')
+     * @param operation - Operation name (e.g., 'getStudentById')
+     * @param data - Optional data to log
+     */
+    operation: (serviceName: string, operation: string, data?: Record<string, unknown>) => {
+      this.debug(`${serviceName}.${operation}`, {
+        context: 'Service',
+        data
+      });
+    },
+    
+    /**
+     * Log a successful service operation
+     * @param serviceName - Name of the service
+     * @param operation - Operation name
+     * @param data - Optional data to log
+     */
+    success: (serviceName: string, operation: string, data?: Record<string, unknown>) => {
+      this.success(`${serviceName}.${operation} completed`, {
+        context: 'Service',
+        data
+      });
+    },
+    
+    /**
+     * Log a failed service operation
+     * @param serviceName - Name of the service
+     * @param operation - Operation name
+     * @param error - The error that occurred
+     * @param data - Optional additional data to log
+     */
+    error: (serviceName: string, operation: string, error: Error | unknown, data?: Record<string, unknown>) => {
+      this.error(`${serviceName}.${operation} failed`, error, {
+        context: 'Service',
+        data
+      });
+    },
+
+    /**
+     * Log a warning in a service operation
+     * @param serviceName - Name of the service
+     * @param operation - Operation name
+     * @param message - Warning message
+     * @param data - Optional data to log
+     */
+    warn: (serviceName: string, operation: string, message: string, data?: Record<string, unknown>) => {
+      this.warn(`${serviceName}.${operation}: ${message}`, {
+        context: 'Service',
+        data
+      });
+    }
+  };
 }
 
 // Export singleton instance

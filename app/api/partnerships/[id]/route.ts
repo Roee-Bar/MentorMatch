@@ -31,7 +31,12 @@ export const DELETE = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
       return ApiResponse.error('Can only cancel pending requests', 400);
     }
 
-    await StudentPartnershipService.cancelPartnershipRequest(params.id, user.uid);
+    const result = await StudentPartnershipService.cancelPartnershipRequest(params.id, user.uid);
+    
+    if (!result.success) {
+      return ApiResponse.error(result.error || 'Failed to cancel partnership request', 400);
+    }
+    
     return ApiResponse.successMessage('Partnership request cancelled successfully');
   },
   {

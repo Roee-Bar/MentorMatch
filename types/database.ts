@@ -116,6 +116,7 @@ export interface Supervisor {
 // ADMIN TYPE (stored in 'admins' collection)
 // ============================================
 export interface Admin {
+  id: string; // Document ID from Firestore
  
   // Personal Information
   firstName: string;

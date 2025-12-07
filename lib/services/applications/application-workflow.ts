@@ -6,8 +6,13 @@
  */
 
 import { adminDb } from '@/lib/firebase-admin';
-import { ApplicationService } from '@/lib/services/firebase-services.server';
+import { logger } from '@/lib/logger';
+import { ApplicationService } from '@/lib/services/applications/application-service';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { serviceEvents } from '@/lib/services/shared/events';
 import type { Application, ApplicationStatus } from '@/types/database';
+
+const SERVICE_NAME = 'ApplicationWorkflowService';
 
 export const ApplicationWorkflowService = {
   /**
@@ -102,7 +107,7 @@ export const ApplicationWorkflowService = {
 
           // Update application status
           const applicationRef = adminDb.collection('applications').doc(applicationId);
-          const updateData: any = {
+          const updateData: Record<string, unknown> = {
             status: newStatus,
             lastUpdated: new Date(),
           };
@@ -120,22 +125,41 @@ export const ApplicationWorkflowService = {
 
       } else {
         // No capacity change needed - update normally
-        const success = await ApplicationService.updateApplicationStatus(
+        const result = await ApplicationService.updateApplicationStatus(
           applicationId,
           newStatus,
           feedback
         );
 
-        if (!success) {
-          return { success: false, error: 'Failed to update application status' };
+        if (!result.success) {
+          return { success: false, error: result.error || 'Failed to update application status' };
         }
       }
 
+      // Emit status changed event for side effects (e.g., email notifications)
+      await serviceEvents.emit({
+        type: 'application:status_changed',
+        applicationId,
+        studentId: application.studentId,
+        studentName: application.studentName,
+        studentEmail: application.studentEmail,
+        supervisorId: application.supervisorId,
+        supervisorName: application.supervisorName,
+        projectTitle: application.projectTitle,
+        previousStatus,
+        newStatus,
+        feedback,
+        hasPartner: application.hasPartner,
+        partnerName: application.partnerName,
+        partnerEmail: application.partnerEmail,
+      });
+
       return { success: true };
       
-    } catch (error: any) {
-      console.error('Error in updateApplicationStatus:', error);
-      return { success: false, error: error.message || 'Internal server error' };
+    } catch (error: unknown) {
+      logger.service.error(SERVICE_NAME, 'updateApplicationStatus', error, { applicationId, newStatus });
+      const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+      return { success: false, error: errorMessage };
     }
   },
 
@@ -167,7 +191,7 @@ export const ApplicationWorkflowService = {
       }
 
       // Prepare update data
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         status: 'pending',
         lastUpdated: new Date(),
         resubmittedDate: new Date(),
@@ -196,14 +220,34 @@ export const ApplicationWorkflowService = {
       const applicationRef = adminDb.collection('applications').doc(applicationId);
       await applicationRef.update(updateData);
 
+      // Get supervisor email for event
+      const supervisor = await SupervisorService.getSupervisorById(application.supervisorId);
+
+      // Emit resubmitted event for side effects (e.g., email notifications)
+      await serviceEvents.emit({
+        type: 'application:resubmitted',
+        applicationId,
+        studentId: application.studentId,
+        studentName: application.studentName,
+        studentEmail: application.studentEmail,
+        supervisorId: application.supervisorId,
+        supervisorName: application.supervisorName,
+        supervisorEmail: supervisor?.email || '',
+        projectTitle: application.projectTitle,
+        hasPartner: application.hasPartner,
+        partnerName: application.partnerName,
+        partnerEmail: application.partnerEmail,
+      });
+
       return { 
         success: true,
         message: 'Application resubmitted successfully. The supervisor will review your changes.' 
       };
       
-    } catch (error: any) {
-      console.error('Error in resubmitApplication:', error);
-      return { success: false, error: error.message || 'An error occurred while resubmitting the application. Please try again.' };
+    } catch (error: unknown) {
+      logger.service.error(SERVICE_NAME, 'resubmitApplication', error, { applicationId, studentId });
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while resubmitting the application. Please try again.';
+      return { success: false, error: errorMessage };
     }
   },
 
@@ -232,7 +276,7 @@ export const ApplicationWorkflowService = {
       return { isDuplicate: false };
       
     } catch (error) {
-      console.error('Error checking duplicate application:', error);
+      logger.service.error(SERVICE_NAME, 'checkDuplicateApplication', error, { studentId, supervisorId });
       // On error, assume no duplicate to avoid blocking legitimate applications
       return { isDuplicate: false };
     }
@@ -264,11 +308,8 @@ export const ApplicationWorkflowService = {
         const partnerApplication = partnerApplicationsSnapshot.docs[0];
         const linkedApplicationId = partnerApplication.id;
         
-        // Update partner's application to link back
-        await adminDb.collection('applications').doc(linkedApplicationId).update({
-          linkedApplicationId: 'pending', // Will be updated with this application's ID after creation
-          lastUpdated: new Date()
-        });
+        // Note: The partner's application will be updated to link back after this application is created
+        // This is handled in the API route to ensure we have the new application ID
 
         return {
           linkedApplicationId,
@@ -283,7 +324,7 @@ export const ApplicationWorkflowService = {
       };
       
     } catch (error) {
-      console.error('Error handling partner application link:', error);
+      logger.service.error(SERVICE_NAME, 'handlePartnerApplicationLink', error, { studentId, partnerId, supervisorId });
       // On error, treat as solo application
       return {
         linkedApplicationId: undefined,
@@ -292,4 +333,3 @@ export const ApplicationWorkflowService = {
     }
   },
 };
-

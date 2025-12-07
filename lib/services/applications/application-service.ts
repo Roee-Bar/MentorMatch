@@ -3,8 +3,13 @@
 // Application management services
 
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
+import { toApplication } from '@/lib/services/shared/firestore-converters';
+import { ServiceResults } from '@/lib/services/shared/types';
+import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
-import { convertFirestoreTimestamps } from '@/lib/services/shared/firestore-utils';
+
+const SERVICE_NAME = 'ApplicationService';
 
 // ============================================
 // APPLICATION SERVICES
@@ -15,15 +20,11 @@ export const ApplicationService = {
     try {
       const appDoc = await adminDb.collection('applications').doc(applicationId).get();
       if (appDoc.exists) {
-        const data = appDoc.data();
-        return convertFirestoreTimestamps<Application>(
-          { id: appDoc.id, ...data },
-          ['dateApplied', 'lastUpdated', 'responseDate']
-        );
+        return toApplication(appDoc.id, appDoc.data()!);
       }
       return null;
     } catch (error) {
-      console.error('Error fetching application:', error);
+      logger.service.error(SERVICE_NAME, 'getApplicationById', error, { applicationId });
       return null;
     }
   },
@@ -49,7 +50,7 @@ export const ApplicationService = {
         } as ApplicationCardData;
       });
     } catch (error) {
-      console.error('Error fetching student applications:', error);
+      logger.service.error(SERVICE_NAME, 'getStudentApplications', error, { studentId });
       return [];
     }
   },
@@ -61,15 +62,9 @@ export const ApplicationService = {
         .where('supervisorId', '==', supervisorId)
         .get();
       
-      return querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return convertFirestoreTimestamps<Application>(
-          { id: doc.id, ...data },
-          ['dateApplied', 'lastUpdated', 'responseDate']
-        );
-      });
+      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching supervisor applications:', error);
+      logger.service.error(SERVICE_NAME, 'getSupervisorApplications', error, { supervisorId });
       return [];
     }
   },
@@ -82,15 +77,9 @@ export const ApplicationService = {
         .where('status', '==', 'pending')
         .get();
       
-      return querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return convertFirestoreTimestamps<Application>(
-          { id: doc.id, ...data },
-          ['dateApplied', 'lastUpdated', 'responseDate']
-        );
-      });
+      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching pending applications:', error);
+      logger.service.error(SERVICE_NAME, 'getPendingApplications', error, { supervisorId });
       return [];
     }
   },
@@ -99,31 +88,35 @@ export const ApplicationService = {
   async updateApplication(
     applicationId: string, 
     updates: Partial<Application>
-  ): Promise<boolean> {
+  ): Promise<ServiceResult> {
     try {
       await adminDb.collection('applications').doc(applicationId).update({
         ...updates,
         lastUpdated: new Date(),
       });
-      return true;
+      return ServiceResults.success(undefined, 'Application updated successfully');
     } catch (error) {
-      console.error('Error updating application:', error);
-      return false;
+      logger.service.error(SERVICE_NAME, 'updateApplication', error, { applicationId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to update application'
+      );
     }
   },
 
   // Create new application
-  async createApplication(applicationData: Omit<Application, 'id'>): Promise<string | null> {
+  async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
     try {
       const docRef = await adminDb.collection('applications').add({
         ...applicationData,
         dateApplied: new Date(),
         lastUpdated: new Date(),
       });
-      return docRef.id;
+      return ServiceResults.success(docRef.id, 'Application created successfully');
     } catch (error) {
-      console.error('Error creating application:', error);
-      return null;
+      logger.service.error(SERVICE_NAME, 'createApplication', error);
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to create application'
+      );
     }
   },
 
@@ -132,9 +125,9 @@ export const ApplicationService = {
     applicationId: string,
     status: Application['status'],
     feedback?: string
-  ): Promise<boolean> {
+  ): Promise<ServiceResult> {
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         status,
         lastUpdated: new Date(),
       };
@@ -148,10 +141,12 @@ export const ApplicationService = {
       }
 
       await adminDb.collection('applications').doc(applicationId).update(updateData);
-      return true;
+      return ServiceResults.success(undefined, 'Application status updated successfully');
     } catch (error) {
-      console.error('Error updating application:', error);
-      return false;
+      logger.service.error(SERVICE_NAME, 'updateApplicationStatus', error, { applicationId, status });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to update application status'
+      );
     }
   },
 
@@ -159,28 +154,23 @@ export const ApplicationService = {
   async getAllApplications(): Promise<Application[]> {
     try {
       const querySnapshot = await adminDb.collection('applications').get();
-      return querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return convertFirestoreTimestamps<Application>(
-          { id: doc.id, ...data },
-          ['dateApplied', 'lastUpdated', 'responseDate']
-        );
-      });
+      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching all applications:', error);
+      logger.service.error(SERVICE_NAME, 'getAllApplications', error);
       return [];
     }
   },
 
   // Delete application
-  async deleteApplication(applicationId: string): Promise<boolean> {
+  async deleteApplication(applicationId: string): Promise<ServiceResult> {
     try {
       await adminDb.collection('applications').doc(applicationId).delete();
-      return true;
+      return ServiceResults.success(undefined, 'Application deleted successfully');
     } catch (error) {
-      console.error('Error deleting application:', error);
-      return false;
+      logger.service.error(SERVICE_NAME, 'deleteApplication', error, { applicationId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to delete application'
+      );
     }
   },
 };
-

@@ -3,8 +3,15 @@
 // Student partnership management services
 
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
 import { StudentService } from '@/lib/services/students/student-service';
-import type { Student } from '@/types/database';
+import { toStudent, toPartnershipRequest } from '@/lib/services/shared/firestore-converters';
+import { ServiceResults } from '@/lib/services/shared/types';
+import type { ServiceResult } from '@/lib/services/shared/types';
+import type { Student, StudentPartnershipRequest } from '@/types/database';
+import type { DocumentReference } from 'firebase-admin/firestore';
+
+const SERVICE_NAME = 'StudentPartnershipService';
 
 // ============================================
 // STUDENT PARTNERSHIP SERVICES
@@ -20,9 +27,9 @@ export const StudentPartnershipService = {
       
       return snapshot.docs
         .filter(doc => doc.id !== currentUserId)
-        .map(doc => ({ id: doc.id, ...doc.data() } as unknown as Student));
+        .map(doc => toStudent(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching available students:', error);
+      logger.service.error(SERVICE_NAME, 'getAvailableStudents', error, { currentUserId });
       return [];
     }
   },
@@ -31,7 +38,7 @@ export const StudentPartnershipService = {
   async createPartnershipRequest(
     requesterId: string, 
     targetStudentId: string
-  ): Promise<string> {
+  ): Promise<ServiceResult<string>> {
     try {
       // Get both student profiles first
       const [requester, target] = await Promise.all([
@@ -40,10 +47,10 @@ export const StudentPartnershipService = {
       ]);
 
       if (!requester || !target) {
-        throw new Error('One or both students not found');
+        return ServiceResults.error('One or both students not found');
       }
 
-      // Phase 4: Check for duplicate request (same direction)
+      // Check for duplicate request (same direction)
       const existingRequest = await adminDb.collection('partnership_requests')
         .where('requesterId', '==', requesterId)
         .where('targetStudentId', '==', targetStudentId)
@@ -51,7 +58,7 @@ export const StudentPartnershipService = {
         .get();
 
       if (!existingRequest.empty) {
-        throw new Error('You already have a pending request with this student');
+        return ServiceResults.error('You already have a pending request with this student');
       }
 
       // Check for reverse duplicate (target → requester)
@@ -62,7 +69,7 @@ export const StudentPartnershipService = {
         .get();
 
       if (!reverseRequest.empty) {
-        throw new Error('This student has already sent you a request. Check your incoming requests.');
+        return ServiceResults.error('This student has already sent you a request. Check your incoming requests.');
       }
 
       // Use transaction to atomically check and update student statuses
@@ -132,10 +139,12 @@ export const StudentPartnershipService = {
         });
       });
 
-      return requestId;
+      return ServiceResults.success(requestId, 'Partnership request created successfully');
     } catch (error) {
-      console.error('Error creating partnership request:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'createPartnershipRequest', error, { requesterId, targetStudentId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to create partnership request'
+      );
     }
   },
 
@@ -143,7 +152,7 @@ export const StudentPartnershipService = {
   async getPartnershipRequests(
     studentId: string, 
     type: 'incoming' | 'outgoing' | 'all'
-  ): Promise<any[]> {
+  ): Promise<StudentPartnershipRequest[]> {
     try {
       let query = adminDb.collection('partnership_requests')
         .where('status', '==', 'pending');
@@ -156,10 +165,7 @@ export const StudentPartnershipService = {
       // For 'all', we need to do two queries and merge
       
       const snapshot = await query.get();
-      const requests = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const requests = snapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
 
       // If type is 'all', also fetch the other direction
       if (type === 'all') {
@@ -168,31 +174,28 @@ export const StudentPartnershipService = {
           .where('requesterId', '==', studentId);
         
         const otherSnapshot = await otherQuery.get();
-        const otherRequests = otherSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const otherRequests = otherSnapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
 
         return [...requests, ...otherRequests];
       }
 
       return requests;
     } catch (error) {
-      console.error('Error fetching partnership requests:', error);
+      logger.service.error(SERVICE_NAME, 'getPartnershipRequests', error, { studentId, type });
       return [];
     }
   },
 
   // Get specific partnership request
-  async getPartnershipRequest(requestId: string): Promise<any | null> {
+  async getPartnershipRequest(requestId: string): Promise<StudentPartnershipRequest | null> {
     try {
       const requestDoc = await adminDb.collection('partnership_requests').doc(requestId).get();
       if (requestDoc.exists) {
-        return { id: requestDoc.id, ...requestDoc.data() };
+        return toPartnershipRequest(requestDoc.id, requestDoc.data()!);
       }
       return null;
     } catch (error) {
-      console.error('Error fetching partnership request:', error);
+      logger.service.error(SERVICE_NAME, 'getPartnershipRequest', error, { requestId });
       return null;
     }
   },
@@ -202,21 +205,21 @@ export const StudentPartnershipService = {
     requestId: string,
     targetStudentId: string,
     action: 'accept' | 'reject'
-  ): Promise<void> {
+  ): Promise<ServiceResult> {
     try {
       // Get request
       const request = await this.getPartnershipRequest(requestId);
       if (!request) {
-        throw new Error('Partnership request not found');
+        return ServiceResults.error('Partnership request not found');
       }
 
       // Verify target student
       if (request.targetStudentId !== targetStudentId) {
-        throw new Error('Unauthorized to respond to this request');
+        return ServiceResults.error('Unauthorized to respond to this request');
       }
 
       if (request.status !== 'pending') {
-        throw new Error('Request already processed');
+        return ServiceResults.error('Request already processed');
       }
 
       if (action === 'accept') {
@@ -271,28 +274,42 @@ export const StudentPartnershipService = {
         await this.cancelAllPendingRequests(request.requesterId);
         await this.cancelAllPendingRequests(targetStudentId);
 
+        return ServiceResults.success(undefined, 'Partnership accepted successfully');
+
       } else if (action === 'reject') {
-        // Update request status
-        await adminDb.collection('partnership_requests').doc(requestId).update({
-          status: 'rejected',
-          respondedAt: new Date()
+        // Use transaction to ensure atomic rejection
+        await adminDb.runTransaction(async (transaction) => {
+          const requestRef = adminDb.collection('partnership_requests').doc(requestId);
+          const requesterRef = adminDb.collection('students').doc(request.requesterId);
+          const targetRef = adminDb.collection('students').doc(targetStudentId);
+
+          // Update request status
+          transaction.update(requestRef, {
+            status: 'rejected',
+            respondedAt: new Date()
+          });
+
+          // Reset both students' partnership status
+          transaction.update(requesterRef, {
+            partnershipStatus: 'none',
+            updatedAt: new Date()
+          });
+
+          transaction.update(targetRef, {
+            partnershipStatus: 'none',
+            updatedAt: new Date()
+          });
         });
 
-        // Reset target's partnership status to 'none'
-        await adminDb.collection('students').doc(targetStudentId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        });
-
-        // Reset requester's partnership status to 'none'
-        await adminDb.collection('students').doc(request.requesterId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        });
+        return ServiceResults.success(undefined, 'Partnership request rejected');
       }
+
+      return ServiceResults.error('Invalid action');
     } catch (error) {
-      console.error('Error responding to partnership request:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'respondToPartnershipRequest', error, { requestId, targetStudentId, action });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to respond to partnership request'
+      );
     }
   },
 
@@ -300,20 +317,20 @@ export const StudentPartnershipService = {
   async cancelPartnershipRequest(
     requestId: string,
     requesterId: string
-  ): Promise<void> {
+  ): Promise<ServiceResult> {
     try {
       const request = await this.getPartnershipRequest(requestId);
       if (!request) {
-        throw new Error('Partnership request not found');
+        return ServiceResults.error('Partnership request not found');
       }
 
       // Verify requester owns the request
       if (request.requesterId !== requesterId) {
-        throw new Error('Unauthorized to cancel this request');
+        return ServiceResults.error('Unauthorized to cancel this request');
       }
 
       if (request.status !== 'pending') {
-        throw new Error('Can only cancel pending requests');
+        return ServiceResults.error('Can only cancel pending requests');
       }
 
       // Update request status
@@ -333,14 +350,18 @@ export const StudentPartnershipService = {
         partnershipStatus: 'none',
         updatedAt: new Date()
       });
+
+      return ServiceResults.success(undefined, 'Partnership request cancelled');
     } catch (error) {
-      console.error('Error cancelling partnership request:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'cancelPartnershipRequest', error, { requestId, requesterId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to cancel partnership request'
+      );
     }
   },
 
   // Cancel all pending requests for a student (used when accepting a partnership)
-  async cancelAllPendingRequests(studentId: string): Promise<void> {
+  async cancelAllPendingRequests(studentId: string): Promise<ServiceResult> {
     try {
       // Get all pending requests where student is requester or target
       const [requestsAsRequester, requestsAsTarget] = await Promise.all([
@@ -373,14 +394,19 @@ export const StudentPartnershipService = {
       });
 
       await batch.commit();
+      
+      const totalCancelled = requestsAsRequester.docs.length + requestsAsTarget.docs.length;
+      return ServiceResults.success(undefined, `Cancelled ${totalCancelled} pending request(s)`);
     } catch (error) {
-      console.error('Error cancelling all pending requests:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'cancelAllPendingRequests', error, { studentId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to cancel pending requests'
+      );
     }
   },
 
   // Unpair students
-  async unpairStudents(studentId1: string, studentId2: string): Promise<void> {
+  async unpairStudents(studentId1: string, studentId2: string): Promise<ServiceResult> {
     try {
       // Use transaction to ensure atomic unpair operation
       await adminDb.runTransaction(async (transaction) => {
@@ -421,12 +447,15 @@ export const StudentPartnershipService = {
         });
       });
 
-      // Update applications after successful unpair (Phase 3)
+      // Update applications after successful unpair
       await this.updateApplicationsAfterUnpair(studentId1, studentId2);
 
+      return ServiceResults.success(undefined, 'Students unpaired successfully');
     } catch (error) {
-      console.error('Error unpairing students:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'unpairStudents', error, { studentId1, studentId2 });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to unpair students'
+      );
     }
   },
 
@@ -444,8 +473,8 @@ export const StudentPartnershipService = {
       }
 
       // Split documents into batches of 500 to handle Firestore batch limit
-      const batches: any[][] = [];
-      let currentBatch: any[] = [];
+      const batches: DocumentReference[][] = [];
+      let currentBatch: DocumentReference[] = [];
 
       applicationsSnapshot.docs.forEach(doc => {
         if (currentBatch.length >= 500) {
@@ -472,9 +501,9 @@ export const StudentPartnershipService = {
         totalUpdated += batchRefs.length;
       }
 
-      console.log(`Updated ${totalUpdated} application(s) after unpair`);
+      logger.service.success(SERVICE_NAME, 'updateApplicationsAfterUnpair', { totalUpdated });
     } catch (error) {
-      console.error('Error updating applications after unpair:', error);
+      logger.service.error(SERVICE_NAME, 'updateApplicationsAfterUnpair', error, { studentId1, studentId2 });
       // Don't throw - unpair succeeded, this is cleanup
     }
   },
@@ -484,11 +513,11 @@ export const StudentPartnershipService = {
     try {
       const partner = await StudentService.getStudentById(partnerId);
       if (!partner) {
-        console.warn(`Partner not found: ${partnerId} - possible orphaned reference`);
+        logger.service.warn(SERVICE_NAME, 'getPartnerDetails', 'Partner not found - possible orphaned reference', { partnerId });
       }
       return partner;
     } catch (error) {
-      console.error('Error fetching partner details:', error);
+      logger.service.error(SERVICE_NAME, 'getPartnerDetails', error, { partnerId });
       return null;
     }
   },
@@ -499,7 +528,7 @@ export const StudentPartnershipService = {
     hasPartner: boolean,
     partnerName: string | null,
     partnerEmail: string | null
-  ): Promise<number> {
+  ): Promise<ServiceResult<number>> {
     try {
       // Query applications for the student in relevant statuses
       const applicationsSnapshot = await adminDb.collection('applications')
@@ -508,12 +537,12 @@ export const StudentPartnershipService = {
         .get();
 
       if (applicationsSnapshot.empty) {
-        return 0; // No applications to update
+        return ServiceResults.success(0, 'No applications to update');
       }
 
       // Split documents into batches of 500 to handle Firestore batch limit
-      const batches: any[][] = [];
-      let currentBatch: any[] = [];
+      const batches: DocumentReference[][] = [];
+      let currentBatch: DocumentReference[] = [];
 
       applicationsSnapshot.docs.forEach(doc => {
         if (currentBatch.length >= 500) {
@@ -540,11 +569,12 @@ export const StudentPartnershipService = {
         totalUpdated += batchRefs.length;
       }
 
-      return totalUpdated;
+      return ServiceResults.success(totalUpdated, `Updated ${totalUpdated} application(s)`);
     } catch (error) {
-      console.error('Error updating applications partner info:', error);
-      throw error;
+      logger.service.error(SERVICE_NAME, 'updateApplicationsPartnerInfo', error, { studentId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to update applications partner info'
+      );
     }
   },
 };
-

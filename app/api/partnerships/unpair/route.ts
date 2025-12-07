@@ -36,7 +36,11 @@ export const POST = withAuth<Record<string, string>>(
     }
 
     // Unpair students (includes application synchronization)
-    await StudentPartnershipService.unpairStudents(user.uid, student.partnerId);
+    const result = await StudentPartnershipService.unpairStudents(user.uid, student.partnerId);
+
+    if (!result.success) {
+      return ApiResponse.error(result.error || 'Failed to unpair from partner', 400);
+    }
 
     return ApiResponse.successMessage('Successfully unpaired from your partner');
   },

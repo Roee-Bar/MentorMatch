@@ -46,11 +46,15 @@ export const POST = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
     }
 
     // Call service method to respond to the request
-    await StudentPartnershipService.respondToPartnershipRequest(
+    const result = await StudentPartnershipService.respondToPartnershipRequest(
       params.id,
       user.uid,
       action
     );
+
+    if (!result.success) {
+      return ApiResponse.error(result.error || 'Failed to respond to partnership request', 400);
+    }
 
     return ApiResponse.successMessage(
       action === 'accept' 
