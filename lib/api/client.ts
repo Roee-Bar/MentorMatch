@@ -4,6 +4,19 @@
  * Type-safe client for making API calls to backend routes
  */
 
+import type {
+  SupervisorFilterParams,
+  RegistrationData,
+  Supervisor,
+  Application,
+  Student,
+  BaseUser,
+  CreateApplicationData,
+  UpdateApplicationData,
+  CreateProjectData,
+  ApplicationStatus,
+} from '@/types/database';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 interface FetchOptions extends RequestInit {
@@ -53,9 +66,10 @@ export async function apiFetch(
     }
 
     return data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle network errors gracefully
-    if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
+    const err = error as Error;
+    if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
       throw new Error('Network error. Please check your connection and try again.');
     }
     throw error;
@@ -70,7 +84,7 @@ export const apiClient = {
   // Auth API
   // ========================================
   
-  registerUser: (userData: any) => {
+  registerUser: (userData: RegistrationData) => {
     return apiFetch('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
@@ -81,10 +95,13 @@ export const apiClient = {
   // Supervisors API
   // ========================================
   
-  getSupervisors: (token: string, params?: { available?: boolean; department?: string }) => {
+  getSupervisors: (token: string, params?: SupervisorFilterParams) => {
     const query = new URLSearchParams();
-    if (params?.available) query.append('available', 'true');
     if (params?.department) query.append('department', params.department);
+    if (params?.search) query.append('search', params.search);
+    if (params?.availability) query.append('availability', params.availability);
+    if (params?.expertise) query.append('expertise', params.expertise);
+    if (params?.interests) query.append('interests', params.interests);
     
     return apiFetch(`/supervisors?${query.toString()}`, { token });
   },
@@ -101,7 +118,7 @@ export const apiClient = {
     return apiFetch(`/supervisors/${id}/projects`, { token });
   },
 
-  updateSupervisor: (id: string, data: any, token: string) => {
+  updateSupervisor: (id: string, data: Partial<Supervisor>, token: string) => {
     return apiFetch(`/supervisors/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -121,7 +138,7 @@ export const apiClient = {
     return apiFetch(`/applications/${id}`, { token });
   },
 
-  createApplication: (data: any, token: string) => {
+  createApplication: (data: CreateApplicationData, token: string) => {
     return apiFetch('/applications', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -129,7 +146,7 @@ export const apiClient = {
     });
   },
 
-  updateApplicationStatus: (id: string, status: string, feedback: string, token: string) => {
+  updateApplicationStatus: (id: string, status: ApplicationStatus, feedback: string, token: string) => {
     return apiFetch(`/applications/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, feedback }),
@@ -137,7 +154,7 @@ export const apiClient = {
     });
   },
 
-  updateApplication: (id: string, data: any, token: string) => {
+  updateApplication: (id: string, data: UpdateApplicationData, token: string) => {
     return apiFetch(`/applications/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -179,7 +196,7 @@ export const apiClient = {
     return apiFetch('/students/unmatched', { token });
   },
 
-  updateStudent: (id: string, data: any, token: string) => {
+  updateStudent: (id: string, data: Partial<Student>, token: string) => {
     return apiFetch(`/students/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -245,7 +262,7 @@ export const apiClient = {
     return apiFetch(`/projects/${id}`, { token });
   },
 
-  createProject: (data: any, token: string) => {
+  createProject: (data: CreateProjectData, token: string) => {
     return apiFetch('/projects', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -290,7 +307,7 @@ export const apiClient = {
     return apiFetch(`/users/${id}`, { token });
   },
 
-  updateUser: (id: string, data: any, token: string) => {
+  updateUser: (id: string, data: Partial<BaseUser>, token: string) => {
     return apiFetch(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

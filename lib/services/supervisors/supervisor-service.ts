@@ -7,7 +7,7 @@ import { logger } from '@/lib/logger';
 import { toSupervisor } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
-import type { Supervisor, SupervisorCardData } from '@/types/database';
+import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorService';
 
@@ -126,6 +126,75 @@ export const SupervisorService = {
       logger.service.error(SERVICE_NAME, 'deleteSupervisor', error, { supervisorId });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to delete supervisor'
+      );
+    }
+  },
+
+  // Get filtered supervisors with search and filtering capabilities
+  async getFilteredSupervisors(filters: SupervisorFilterParams): Promise<ServiceResult<SupervisorCardData[]>> {
+    try {
+      // Get base data
+      let supervisors = await this.getAvailableSupervisors();
+
+      // Normalize filter values
+      const search = filters.search?.toLowerCase().trim();
+      const department = filters.department;
+      const availability = filters.availability;
+      const expertise = filters.expertise?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+      const interests = filters.interests?.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
+
+      // Filter by search term (name, bio, expertise, research interests)
+      if (search) {
+        supervisors = supervisors.filter(supervisor => {
+          const nameMatch = supervisor.name.toLowerCase().includes(search);
+          const bioMatch = supervisor.bio?.toLowerCase().includes(search) ?? false;
+          const expertiseMatch = supervisor.expertiseAreas.some(area => 
+            area.toLowerCase().includes(search)
+          );
+          const interestsMatch = supervisor.researchInterests.some(interest => 
+            interest.toLowerCase().includes(search)
+          );
+          return nameMatch || bioMatch || expertiseMatch || interestsMatch;
+        });
+      }
+
+      // Filter by department
+      if (department && department !== 'all') {
+        supervisors = supervisors.filter(supervisor => 
+          supervisor.department.toLowerCase() === department.toLowerCase()
+        );
+      }
+
+      // Filter by availability status
+      if (availability && availability !== 'all') {
+        supervisors = supervisors.filter(supervisor => 
+          supervisor.availabilityStatus === availability
+        );
+      }
+
+      // Filter by expertise areas (any match)
+      if (expertise && expertise.length > 0) {
+        supervisors = supervisors.filter(supervisor => 
+          supervisor.expertiseAreas.some(area => 
+            expertise.some(exp => area.toLowerCase().includes(exp))
+          )
+        );
+      }
+
+      // Filter by research interests (any match)
+      if (interests && interests.length > 0) {
+        supervisors = supervisors.filter(supervisor => 
+          supervisor.researchInterests.some(interest => 
+            interests.some(int => interest.toLowerCase().includes(int))
+          )
+        );
+      }
+
+      return ServiceResults.success(supervisors);
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'getFilteredSupervisors', error, { filters });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to fetch supervisors'
       );
     }
   },

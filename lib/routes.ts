@@ -4,9 +4,10 @@
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  SUPERVISORS: '/supervisors',
+  SUPERVISORS: '/supervisors', // Deprecated - use AUTHENTICATED.STUDENT_SUPERVISORS
   AUTHENTICATED: {
     STUDENT: '/authenticated/student',
+    STUDENT_SUPERVISORS: '/authenticated/student/supervisors',
     STUDENT_PROFILE: '/authenticated/student/profile',
     STUDENT_PROFILE_EDIT: '/authenticated/student/profile/edit',
     SUPERVISOR: '/authenticated/supervisor',

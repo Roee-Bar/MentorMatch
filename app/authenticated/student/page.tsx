@@ -19,7 +19,7 @@ import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
-import { SupervisorCardData } from '@/types/database';
+import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -87,7 +87,7 @@ export default function StudentAuthenticated() {
   };
 
   // Handle application submission
-  const handleSubmitApplication = async (applicationData: any) => {
+  const handleSubmitApplication = async (applicationData: ApplicationSubmitData) => {
     try {
       await applicationActions.submitApplication({
         supervisorId: selectedSupervisor?.id,
@@ -96,7 +96,7 @@ export default function StudentAuthenticated() {
 
       // Close modal on success
       setShowApplicationModal(false);
-    } catch (error) {
+    } catch {
       // Error already handled by applicationActions hook
       // Modal stays open to show error
     }
@@ -277,8 +277,8 @@ export default function StudentAuthenticated() {
             title="My Applications"
             action={
               <button
-                onClick={() => router.push(ROUTES.SUPERVISORS)}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS)}
+                className="btn-primary"
               >
                 + New Application
               </button>
@@ -290,7 +290,7 @@ export default function StudentAuthenticated() {
               message="You haven't submitted any applications yet."
               action={{
                 label: 'Browse Supervisors',
-                onClick: () => router.push(ROUTES.SUPERVISORS)
+                onClick: () => router.push(ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS)
               }}
             />
           ) : (
@@ -333,7 +333,7 @@ export default function StudentAuthenticated() {
             title="Available Supervisors"
             action={
               <button
-                onClick={() => router.push(ROUTES.SUPERVISORS)}
+                onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS)}
                 className="text-blue-600 text-sm font-medium hover:underline"
               >
                 View All →
