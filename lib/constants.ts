@@ -40,3 +40,10 @@ export type Department = typeof DEPARTMENTS[number]['value'];
  */
 export type AvailabilityStatus = 'available' | 'limited' | 'unavailable';
 
+/**
+ * UI timing constants
+ */
+export const UI_CONSTANTS = {
+  MESSAGE_DISPLAY_DURATION: 5000, // ms - how long success/error messages show
+} as const;
+

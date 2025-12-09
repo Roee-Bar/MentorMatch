@@ -14,6 +14,8 @@ export { useStudentPartnerships } from './useStudentPartnerships';
 // Action hooks
 export { usePartnershipActions } from './usePartnershipActions';
 export { useApplicationActions } from './useApplicationActions';
+export { useSupervisorApplicationActions } from './useSupervisorApplicationActions';
+export { useApplicationStatusModal } from './useApplicationStatusModal';
 
 // Supervisor dashboard hooks
 export { useSupervisorDashboard } from './useSupervisorDashboard';

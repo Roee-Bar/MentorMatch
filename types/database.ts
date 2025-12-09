@@ -272,6 +272,9 @@ export interface ApplicationCardData {
   partnerName?: string;
   linkedApplicationId?: string;
   isLeadApplication?: boolean;
+  // For supervisor view
+  studentName?: string;
+  studentEmail?: string;
 }
 
 export interface DashboardStats {

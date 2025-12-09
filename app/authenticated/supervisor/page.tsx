@@ -1,11 +1,10 @@
 'use client';
 
 // app/authenticated/supervisor/page.tsx
-// Supervisor Authenticated - Read-only view of applications and profile
+// Supervisor Dashboard - View and manage applications
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useSupervisorDashboard } from '@/lib/hooks';
+import { useSupervisorAuth, useSupervisorDashboard, useApplicationStatusModal } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
@@ -17,7 +16,8 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import ErrorState from '@/app/components/feedback/ErrorState';
-import { Application, Supervisor, Project } from '@/types/database';
+import ApplicationStatusModal from './_components/ApplicationStatusModal';
+import type { Application } from '@/types/database';
 import { formatFirestoreDate } from '@/lib/utils/date';
 
 export default function SupervisorAuthenticated() {
@@ -25,12 +25,27 @@ export default function SupervisorAuthenticated() {
   const { userId, userProfile, isAuthLoading } = useSupervisorAuth();
   
   // Fetch dashboard data using custom hook
-  const { data, loading: dataLoading, error: fetchError } = useSupervisorDashboard(userId);
+  const { data, loading: dataLoading, error: fetchError, refetch } = useSupervisorDashboard(userId);
   
   const supervisor = data?.supervisor || null;
   const applications = data?.applications || [];
   const projects = data?.projects || [];
-  const error = fetchError;
+
+  // Application status modal hook - handles modal state, messages, and actions
+  const {
+    selectedApplication,
+    showStatusModal,
+    successMessage,
+    errorMessage,
+    handleReviewApplication,
+    handleUpdateStatus,
+    closeModal,
+    isLoading: isModalLoading,
+  } = useApplicationStatusModal({
+    applications,
+    userId,
+    onRefresh: refetch,
+  });
 
   // Calculate stats
   const pendingCount = applications.filter(
@@ -45,7 +60,7 @@ export default function SupervisorAuthenticated() {
   }
 
   // Show error state if data fetch fails
-  if (error) {
+  if (fetchError) {
     return (
       <ErrorState
         message="Unable to load dashboard data. Please try again later."
@@ -59,88 +74,113 @@ export default function SupervisorAuthenticated() {
 
   return (
     <PageLayout>
+      {/* Success Message */}
+      {successMessage && (
+        <StatusMessage message={successMessage} type="success" />
+      )}
+
+      {/* Error Message */}
+      {errorMessage && (
+        <StatusMessage message={errorMessage} type="error" />
+      )}
+
       <PageHeader
         title="Supervisor Dashboard"
         description={`Welcome back, ${userProfile?.name || 'Supervisor'}! Here's your supervision overview.`}
       />
 
-        {/* Stats Grid */}
-        <div className="grid-stats">
-          <StatCard
-            title="Total Applications"
-            value={applications.length}
-            description="All applications received"
-            color="blue"
+      {/* Stats Grid */}
+      <div className="grid-stats">
+        <StatCard
+          title="Total Applications"
+          value={applications.length}
+          description="All applications received"
+          color="blue"
+        />
+
+        <StatCard
+          title="Pending Review"
+          value={pendingCount}
+          description="Awaiting your response"
+          color="gray"
+        />
+
+        {supervisor && (
+          <CapacityIndicator
+            current={currentCapacity}
+            max={supervisor.maxCapacity}
+            status={supervisor.availabilityStatus}
           />
+        )}
 
-          <StatCard
-            title="Pending Review"
-            value={pendingCount}
-            description="Awaiting your response"
-            color="gray"
-          />
+        <StatCard
+          title="Approved Projects"
+          value={approvedProjects}
+          description="Projects in progress"
+          color="blue"
+        />
+      </div>
 
-          {supervisor && (
-            <CapacityIndicator
-              current={currentCapacity}
-              max={supervisor.maxCapacity}
-              status={supervisor.availabilityStatus}
-            />
-          )}
+      {/* Recent Applications Section */}
+      <div className="mb-8">
+        <SectionHeader
+          title="Recent Applications"
+          action={
+            <button
+              onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
+              className="text-blue-600 text-sm font-medium hover:underline"
+            >
+              View All →
+            </button>
+          }
+        />
 
-          <StatCard
-            title="Approved Projects"
-            value={approvedProjects}
-            description="Projects in progress"
-            color="blue"
-          />
-        </div>
+        {applications.length === 0 ? (
+          <EmptyState message="No applications received yet." />
+        ) : (
+          <div className="grid-cards">
+            {applications.slice(0, 6).map((application) => {
+              const dateAppliedStr = formatFirestoreDate(application.dateApplied);
+              
+              return (
+                <ApplicationCard 
+                  key={application.id} 
+                  application={{
+                    id: application.id,
+                    projectTitle: application.projectTitle,
+                    projectDescription: application.projectDescription,
+                    supervisorName: application.supervisorName,
+                    dateApplied: dateAppliedStr,
+                    status: application.status,
+                    responseTime: application.responseTime || '5-7 business days',
+                    comments: application.supervisorFeedback,
+                    hasPartner: application.hasPartner,
+                    partnerName: application.partnerName,
+                    linkedApplicationId: application.linkedApplicationId,
+                    isLeadApplication: application.isLeadApplication,
+                    studentName: application.studentName,
+                    studentEmail: application.studentEmail,
+                  }}
+                  viewMode="supervisor"
+                  onReviewApplication={handleReviewApplication}
+                  isLoading={isModalLoading}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-        {/* Recent Applications Section */}
-        <div className="mb-8">
-          <SectionHeader
-            title="Recent Applications"
-            action={
-              <button
-                onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
-                className="text-blue-600 text-sm font-medium hover:underline"
-              >
-                View All →
-              </button>
-            }
-          />
-
-          {applications.length === 0 ? (
-            <EmptyState message="No applications received yet." />
-          ) : (
-            <div className="grid-cards">
-              {applications.slice(0, 6).map((application) => {
-                // Convert Firestore Timestamp to Date, then format as string
-                const dateAppliedStr = formatFirestoreDate(application.dateApplied);
-                
-                return (
-                  <ApplicationCard 
-                    key={application.id} 
-                    application={{
-                      id: application.id,
-                      projectTitle: application.projectTitle,
-                      projectDescription: application.projectDescription,
-                      supervisorName: application.supervisorName,
-                      dateApplied: dateAppliedStr,
-                      status: application.status,
-                      responseTime: application.responseTime || '5-7 business days',
-                      comments: application.supervisorFeedback,
-                      hasPartner: application.hasPartner,
-                      partnerName: application.partnerName,
-                      linkedApplicationId: application.linkedApplicationId,
-                      isLeadApplication: application.isLeadApplication,
-                    }} 
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
+      {/* Application Status Modal */}
+      {selectedApplication && (
+        <ApplicationStatusModal
+          application={selectedApplication}
+          isOpen={showStatusModal}
+          onClose={closeModal}
+          onUpdateStatus={handleUpdateStatus}
+          isLoading={isModalLoading}
+        />
+      )}
     </PageLayout>
   );
 }
