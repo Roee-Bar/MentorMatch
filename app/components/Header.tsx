@@ -50,7 +50,7 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-[1000]">
+    <header className="bg-blue-600 text-white px-12 py-5 shadow-md sticky top-0 z-50">
       <nav className="max-w-container mx-auto flex-between" role="navigation" aria-label="Main navigation">
         {/* Logo Section */}
         <Link href="/" className="flex-gap-4 hover:opacity-90 transition-opacity">
