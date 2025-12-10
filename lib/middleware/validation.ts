@@ -58,6 +58,7 @@ export const createApplicationSchema = z.object({
   supervisorId: z.string().min(1, 'Supervisor ID is required'),
   projectTitle: z.string().min(5, 'Project title must be at least 5 characters').max(200, 'Project title must be at most 200 characters'),
   projectDescription: z.string().min(20, 'Project description must be at least 20 characters').max(2000, 'Project description must be at most 2000 characters'),
+  proposedTopicId: z.string().optional(),
   hasPartner: z.boolean(),
   partnerName: z.string().optional(),
   partnerEmail: z.string().email('Invalid email format').optional(),

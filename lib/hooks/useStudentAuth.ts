@@ -3,9 +3,10 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
+import { auth } from '@/lib/firebase';
 import { BaseUser } from '@/types/database';
 import { ROUTES } from '@/lib/routes';
 
@@ -13,6 +14,7 @@ interface UseStudentAuthReturn {
   userId: string | null;
   userProfile: BaseUser | null;
   isAuthLoading: boolean;
+  getToken: () => Promise<string>;
 }
 
 /**
@@ -60,11 +62,16 @@ export function useStudentAuth(): UseStudentAuthReturn {
     return () => unsubscribe();
   }, [router]);
 
-  return { userId, userProfile, isAuthLoading };
+  // Helper to get current user's token
+  const getToken = useCallback(async (): Promise<string> => {
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+    return token;
+  }, []);
+
+  return { userId, userProfile, isAuthLoading, getToken };
 }
-
-
-
-
 
 

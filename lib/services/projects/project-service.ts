@@ -3,7 +3,13 @@
 // Project management services
 
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
+import { toProject } from '@/lib/services/shared/firestore-converters';
+import { ServiceResults } from '@/lib/services/shared/types';
+import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
+
+const SERVICE_NAME = 'ProjectService';
 
 // ============================================
 // PROJECT SERVICES
@@ -14,11 +20,11 @@ export const ProjectService = {
     try {
       const projectDoc = await adminDb.collection('projects').doc(projectId).get();
       if (projectDoc.exists) {
-        return { id: projectDoc.id, ...projectDoc.data() } as unknown as Project;
+        return toProject(projectDoc.id, projectDoc.data()!);
       }
       return null;
     } catch (error) {
-      console.error('Error fetching project:', error);
+      logger.service.error(SERVICE_NAME, 'getProjectById', error, { projectId });
       return null;
     }
   },
@@ -27,12 +33,9 @@ export const ProjectService = {
   async getAllProjects(): Promise<Project[]> {
     try {
       const querySnapshot = await adminDb.collection('projects').get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Project[];
+      return querySnapshot.docs.map((doc) => toProject(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      logger.service.error(SERVICE_NAME, 'getAllProjects', error);
       return [];
     }
   },
@@ -44,28 +47,27 @@ export const ProjectService = {
         .where('supervisorId', '==', supervisorId)
         .get();
       
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Project[];
+      return querySnapshot.docs.map((doc) => toProject(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching supervisor projects:', error);
+      logger.service.error(SERVICE_NAME, 'getSupervisorProjects', error, { supervisorId });
       return [];
     }
   },
 
   // Create new project
-  async createProject(projectData: Omit<Project, 'id'>): Promise<string | null> {
+  async createProject(projectData: Omit<Project, 'id'>): Promise<ServiceResult<string>> {
     try {
       const docRef = await adminDb.collection('projects').add({
         ...projectData,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      return docRef.id;
+      return ServiceResults.success(docRef.id, 'Project created successfully');
     } catch (error) {
-      console.error('Error creating project:', error);
-      return null;
+      logger.service.error(SERVICE_NAME, 'createProject', error);
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to create project'
+      );
     }
   },
 
@@ -75,4 +77,3 @@ export const ProjectService = {
     return `${year}-${semester}-${deptCode}-${number.toString().padStart(2, '0')}`;
   },
 };
-

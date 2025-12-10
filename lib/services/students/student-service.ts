@@ -3,7 +3,13 @@
 // Student management services
 
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
+import { toStudent } from '@/lib/services/shared/firestore-converters';
+import { ServiceResults } from '@/lib/services/shared/types';
+import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student } from '@/types/database';
+
+const SERVICE_NAME = 'StudentService';
 
 // ============================================
 // STUDENT SERVICES
@@ -14,11 +20,11 @@ export const StudentService = {
     try {
       const studentDoc = await adminDb.collection('students').doc(studentId).get();
       if (studentDoc.exists) {
-        return { id: studentDoc.id, ...studentDoc.data() } as unknown as Student;
+        return toStudent(studentDoc.id, studentDoc.data()!);
       }
       return null;
     } catch (error) {
-      console.error('Error fetching student:', error);
+      logger.service.error(SERVICE_NAME, 'getStudentById', error, { studentId });
       return null;
     }
   },
@@ -27,12 +33,9 @@ export const StudentService = {
   async getAllStudents(): Promise<Student[]> {
     try {
       const querySnapshot = await adminDb.collection('students').get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as unknown as Student));
+      return querySnapshot.docs.map((doc) => toStudent(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching students:', error);
+      logger.service.error(SERVICE_NAME, 'getAllStudents', error);
       return [];
     }
   },
@@ -43,28 +46,26 @@ export const StudentService = {
       const querySnapshot = await adminDb.collection('students')
         .where('matchStatus', '==', 'unmatched')
         .get();
-      return querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      } as unknown as Student));
+      return querySnapshot.docs.map((doc) => toStudent(doc.id, doc.data()));
     } catch (error) {
-      console.error('Error fetching unmatched students:', error);
+      logger.service.error(SERVICE_NAME, 'getUnmatchedStudents', error);
       return [];
     }
   },
 
   // Update student
-  async updateStudent(studentId: string, data: Partial<Student>): Promise<boolean> {
+  async updateStudent(studentId: string, data: Partial<Student>): Promise<ServiceResult> {
     try {
       await adminDb.collection('students').doc(studentId).update({
         ...data,
         updatedAt: new Date(),
       });
-      return true;
+      return ServiceResults.success(undefined, 'Student updated successfully');
     } catch (error) {
-      console.error('Error updating student:', error);
-      return false;
+      logger.service.error(SERVICE_NAME, 'updateStudent', error, { studentId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to update student'
+      );
     }
   },
 };
-

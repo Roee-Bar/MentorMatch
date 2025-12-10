@@ -1,5 +1,5 @@
 // app/components/shared/ApplicationCard.tsx
-// Updated to work with Firebase data types
+// Updated to work with Firebase data types and support both student and supervisor views
 
 'use client';
 
@@ -9,12 +9,24 @@ import StatusBadge from './StatusBadge';
 
 interface ApplicationCardProps {
   application: ApplicationCardData;
+  // Student actions
   onWithdraw?: (applicationId: string) => void;
+  // Supervisor actions
+  onReviewApplication?: (applicationId: string) => void;
+  // View mode
+  viewMode?: 'student' | 'supervisor';
   isLoading?: boolean;
 }
 
-export default function ApplicationCard({ application, onWithdraw, isLoading = false }: ApplicationCardProps) {
+export default function ApplicationCard({ 
+  application, 
+  onWithdraw, 
+  onReviewApplication,
+  viewMode = 'student',
+  isLoading = false 
+}: ApplicationCardProps) {
   const router = useRouter();
+  const isSupervisorView = viewMode === 'supervisor';
 
   return (
     <div className="card-base">
@@ -24,9 +36,16 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
           <h3 className="text-lg font-bold text-gray-800 mb-1">
             {application.projectTitle}
           </h3>
-          <p className="text-sm text-gray-600">
-            Supervisor: {application.supervisorName}
-          </p>
+          {/* Show supervisor name for students, student name for supervisors */}
+          {isSupervisorView ? (
+            <p className="text-sm text-gray-600">
+              Student: <span className="font-medium">{application.studentName}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-600">
+              Supervisor: {application.supervisorName}
+            </p>
+          )}
         </div>
         <StatusBadge status={application.status} variant="application" />
       </div>
@@ -62,12 +81,23 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
             {application.dateApplied}
           </span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Expected Response:</span>
-          <span className="text-gray-800 font-medium">
-            {application.responseTime}
-          </span>
-        </div>
+        {!isSupervisorView && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Expected Response:</span>
+            <span className="text-gray-800 font-medium">
+              {application.responseTime}
+            </span>
+          </div>
+        )}
+        {/* Show student email for supervisor view */}
+        {isSupervisorView && application.studentEmail && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">Email:</span>
+            <span className="text-gray-800 font-medium">
+              {application.studentEmail}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Comments Section */}
@@ -92,29 +122,64 @@ export default function ApplicationCard({ application, onWithdraw, isLoading = f
         </div>
       )}
 
-      {/* Action Buttons based on status */}
+      {/* Action Buttons based on status and view mode */}
       <div className="mt-4 pt-4 border-t flex-gap-2">
-        {application.status === 'pending' && (
-          <button 
-            className="btn-danger flex-1"
-            onClick={() => onWithdraw?.(application.id)}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Withdrawing...' : 'Withdraw'}
-          </button>
+        {/* Student Actions */}
+        {!isSupervisorView && (
+          <>
+            {application.status === 'pending' && onWithdraw && (
+              <button 
+                className="btn-danger flex-1"
+                onClick={() => onWithdraw(application.id)}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Withdrawing...' : 'Withdraw'}
+              </button>
+            )}
+            {application.status === 'revision_requested' && (
+              <button 
+                className="btn-primary flex-1"
+                onClick={() => router.push(`/authenticated/student/applications/${application.id}/edit`)}
+              >
+                Edit & Resubmit
+              </button>
+            )}
+            {application.status === 'approved' && (
+              <button className="btn-success flex-1">
+                View Project Details
+              </button>
+            )}
+          </>
         )}
-        {application.status === 'revision_requested' && (
-          <button 
-            className="btn-primary flex-1"
-            onClick={() => router.push(`/authenticated/student/applications/${application.id}/edit`)}
-          >
-            Edit & Resubmit
-          </button>
-        )}
-        {application.status === 'approved' && (
-          <button className="btn-success flex-1">
-            View Project Details
-          </button>
+
+        {/* Supervisor Actions */}
+        {isSupervisorView && (
+          <>
+            {application.status === 'pending' && onReviewApplication && (
+              <button 
+                className="btn-primary flex-1"
+                onClick={() => onReviewApplication(application.id)}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Review Application'}
+              </button>
+            )}
+            {application.status === 'revision_requested' && (
+              <div className="flex-1 text-center text-sm text-orange-600 py-2">
+                Awaiting student revision
+              </div>
+            )}
+            {application.status === 'approved' && (
+              <div className="flex-1 text-center text-sm text-green-600 py-2">
+                ✓ Approved
+              </div>
+            )}
+            {application.status === 'rejected' && (
+              <div className="flex-1 text-center text-sm text-red-600 py-2">
+                ✗ Rejected
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

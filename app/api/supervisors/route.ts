@@ -1,7 +1,12 @@
 /**
  * GET /api/supervisors
  * 
- * Get all supervisors or filter by availability/department
+ * Get all supervisors with advanced filtering options:
+ * - search: Text search on name, bio, expertise, research interests
+ * - department: Filter by department
+ * - availability: Filter by availability status (available, limited, unavailable)
+ * - expertise: Filter by expertise areas (comma-separated)
+ * - interests: Filter by research interests (comma-separated)
  */
 
 import { NextRequest } from 'next/server';
@@ -12,18 +17,22 @@ import { ApiResponse } from '@/lib/middleware/response';
 export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Get query parameters
   const { searchParams } = new URL(request.url);
-  const available = searchParams.get('available') === 'true';
-  const department = searchParams.get('department');
-
-  let supervisors;
   
-  if (available) {
-    supervisors = await SupervisorService.getAvailableSupervisors();
-  } else if (department) {
-    supervisors = await SupervisorService.getSupervisorsByDepartment(department);
-  } else {
-    supervisors = await SupervisorService.getAllSupervisors();
+  // Build filter params from query string
+  const filters = {
+    search: searchParams.get('search') || undefined,
+    department: searchParams.get('department') || undefined,
+    availability: searchParams.get('availability') || undefined,
+    expertise: searchParams.get('expertise') || undefined,
+    interests: searchParams.get('interests') || undefined,
+  };
+
+  // Delegate filtering to service layer
+  const result = await SupervisorService.getFilteredSupervisors(filters);
+
+  if (!result.success) {
+    return ApiResponse.error(result.error || 'Failed to fetch supervisors');
   }
 
-  return ApiResponse.successWithCount(supervisors);
+  return ApiResponse.successWithCount(result.data || []);
 });

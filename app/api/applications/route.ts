@@ -8,10 +8,12 @@ import { ApplicationService } from '@/lib/services/applications/application-serv
 import { StudentService } from '@/lib/services/students/student-service';
 import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
+import { serviceEvents } from '@/lib/services/shared/events';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
+import type { Application } from '@/types/database';
 
 export const GET = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
   const applications = await ApplicationService.getAllApplications();
@@ -71,35 +73,67 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     }
   }
 
-  // Create application
-  const applicationData = {
-    ...validation.data,
+  // Create application with properly typed data
+  const applicationData: Omit<Application, 'id'> = {
+    // Participants
     studentId: user.uid,
     studentName: student.fullName,
     studentEmail: student.email,
+    supervisorId: validation.data.supervisorId,
     supervisorName: supervisor.fullName,
+    // Project Details
+    projectTitle: validation.data.projectTitle,
+    projectDescription: validation.data.projectDescription,
+    proposedTopicId: validation.data.proposedTopicId,
+    isOwnTopic: true,
+    // Student Information
     studentSkills: student.skills || '',
     studentInterests: student.interests || '',
-    ...partnerInfo,
+    // Partner Information
+    hasPartner: partnerInfo.hasPartner,
+    partnerName: partnerInfo.partnerName || undefined,
+    partnerEmail: partnerInfo.partnerEmail || undefined,
+    // Capacity Tracking
     linkedApplicationId,
     isLeadApplication,
-    isOwnTopic: true,
-    status: 'pending' as const,
+    // Status
+    status: 'pending',
+    // Timestamps (will be set by service, but required by type)
+    dateApplied: new Date(),
+    lastUpdated: new Date(),
   };
 
-  const applicationId = await ApplicationService.createApplication(applicationData as any);
+  const result = await ApplicationService.createApplication(applicationData);
 
-  if (!applicationId) {
-    return ApiResponse.error('Failed to create application', 500);
+  if (!result.success || !result.data) {
+    return ApiResponse.error(result.error || 'Failed to create application', 500);
   }
 
-  // If this was the second application in a pair, update the partner's application with this ID
-  if (linkedApplicationId && linkedApplicationId === 'pending') {
+  const applicationId = result.data;
+
+  // If we linked to a partner's existing application, update their application to link back to ours
+  if (linkedApplicationId && !isLeadApplication) {
     await adminDb.collection('applications').doc(linkedApplicationId).update({
       linkedApplicationId: applicationId,
       lastUpdated: new Date()
     });
   }
+
+  // Emit application created event for side effects (e.g., email notifications)
+  await serviceEvents.emit({
+    type: 'application:created',
+    applicationId,
+    studentId: user.uid,
+    studentName: student.fullName,
+    studentEmail: student.email,
+    supervisorId: supervisor.id,
+    supervisorName: supervisor.fullName,
+    supervisorEmail: supervisor.email,
+    projectTitle: validation.data.projectTitle,
+    hasPartner: partnerInfo.hasPartner,
+    partnerName: partnerInfo.partnerName,
+    partnerEmail: partnerInfo.partnerEmail,
+  });
 
   return ApiResponse.created({ applicationId }, 'Application created successfully');
 });

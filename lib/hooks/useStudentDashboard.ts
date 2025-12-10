@@ -31,7 +31,7 @@ export function useStudentDashboard(userId: string | null) {
       const [profileResponse, applicationsResponse, supervisorsResponse] = await Promise.all([
         apiClient.getStudentById(userId, token),
         apiClient.getStudentApplications(userId, token),
-        apiClient.getSupervisors(token, { available: true }),
+        apiClient.getSupervisors(token, { availability: 'available' }),
       ]);
 
       return {

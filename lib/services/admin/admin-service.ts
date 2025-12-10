@@ -3,7 +3,11 @@
 // Admin management services
 
 import { adminDb } from '@/lib/firebase-admin';
-import type { Admin, DashboardStats } from '@/types/database';
+import { logger } from '@/lib/logger';
+import { toAdmin, toStudent, toApplication } from '@/lib/services/shared/firestore-converters';
+import type { Admin, DashboardStats, Student } from '@/types/database';
+
+const SERVICE_NAME = 'AdminService';
 
 // ============================================
 // ADMIN SERVICES
@@ -14,11 +18,11 @@ export const AdminService = {
     try {
       const adminDoc = await adminDb.collection('admins').doc(adminId).get();
       if (adminDoc.exists) {
-        return { id: adminDoc.id, ...adminDoc.data() } as unknown as Admin;
+        return toAdmin(adminDoc.id, adminDoc.data()!);
       }
       return null;
     } catch (error) {
-      console.error('Error fetching admin:', error);
+      logger.service.error(SERVICE_NAME, 'getAdminById', error, { adminId });
       return null;
     }
   },
@@ -32,9 +36,9 @@ export const AdminService = {
         adminDb.collection('applications').get(),
       ]);
 
-      const students = studentsSnapshot.docs.map((doc) => doc.data());
+      const students: Student[] = studentsSnapshot.docs.map((doc) => toStudent(doc.id, doc.data()));
       const supervisors = supervisorsSnapshot.docs.map((doc) => doc.data());
-      const applications = applicationsSnapshot.docs.map((doc) => doc.data());
+      const applications = applicationsSnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
 
       // Existing metrics
       const matchedStudents = students.filter((s) => s.matchStatus === 'matched').length;
@@ -66,7 +70,7 @@ export const AdminService = {
 
       // 5. Total available capacity (sum of available slots)
       const totalAvailableCapacity = supervisors.reduce((total, supervisor) => {
-        const available = supervisor.maxCapacity - supervisor.currentCapacity;
+        const available = (supervisor.maxCapacity || 0) - (supervisor.currentCapacity || 0);
         return total + (available > 0 ? available : 0);
       }, 0);
 
@@ -82,7 +86,7 @@ export const AdminService = {
         totalAvailableCapacity,
       };
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logger.service.error(SERVICE_NAME, 'getDashboardStats', error);
       return {
         totalStudents: 0,
         matchedStudents: 0,
@@ -97,4 +101,3 @@ export const AdminService = {
     }
   },
 };
-

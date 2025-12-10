@@ -116,6 +116,7 @@ export interface Supervisor {
 // ADMIN TYPE (stored in 'admins' collection)
 // ============================================
 export interface Admin {
+  id: string; // Document ID from Firestore
  
   // Personal Information
   firstName: string;
@@ -271,6 +272,9 @@ export interface ApplicationCardData {
   partnerName?: string;
   linkedApplicationId?: string;
   isLeadApplication?: boolean;
+  // For supervisor view
+  studentName?: string;
+  studentEmail?: string;
 }
 
 export interface DashboardStats {
@@ -322,4 +326,73 @@ export interface StudentCardData {
   previousProjects?: string;
   partnershipStatus: 'none' | 'pending_sent' | 'pending_received' | 'paired';
   partnerId?: string;
+}
+
+// ============================================
+// API FILTER & SUBMISSION TYPES
+// ============================================
+
+// Supervisor filter parameters for API calls
+export interface SupervisorFilterParams {
+  search?: string;
+  department?: string;
+  availability?: string;
+  expertise?: string;
+  interests?: string;
+}
+
+// Application submission data
+export interface ApplicationSubmitData {
+  supervisorId: string;
+  projectTitle: string;
+  projectDescription: string;
+}
+
+// ============================================
+// API REQUEST TYPES (for client-side API calls)
+// ============================================
+
+// Registration form data
+export interface RegistrationData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  studentId: string;
+  phone: string;
+  department: string;
+  skills?: string;
+  interests?: string;
+  previousProjects?: string;
+  preferredTopics?: string;
+  hasPartner: boolean;
+  partnerName?: string;
+  partnerEmail?: string;
+}
+
+// Create application data (what client sends)
+export interface CreateApplicationData {
+  supervisorId: string;
+  projectTitle: string;
+  projectDescription: string;
+  isOwnTopic?: boolean;
+  proposedTopicId?: string;
+}
+
+// Update application data
+export interface UpdateApplicationData {
+  projectTitle?: string;
+  projectDescription?: string;
+  status?: ApplicationStatus;
+  supervisorFeedback?: string;
+}
+
+// Create project data
+export interface CreateProjectData {
+  title: string;
+  description: string;
+  studentIds: string[];
+  supervisorId: string;
+  coSupervisorId?: string;
 }

@@ -1,20 +1,22 @@
 'use client';
 
 // app/authenticated/supervisor/applications/page.tsx
-// Supervisor Applications View - Read-only view with filtering
+// Supervisor Applications View - View and manage applications with filtering
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useSupervisorApplications } from '@/lib/hooks';
+import { useSupervisorAuth, useSupervisorApplications, useApplicationStatusModal } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import FilterButtons from '@/app/components/display/FilterButtons';
-import { Application, ApplicationStatus } from '@/types/database';
+import ApplicationStatusModal from '../_components/ApplicationStatusModal';
+import type { ApplicationStatus } from '@/types/database';
 import { formatFirestoreDate } from '@/lib/utils/date';
 
 type FilterStatus = 'all' | ApplicationStatus;
@@ -24,11 +26,26 @@ export default function SupervisorApplicationsPage() {
   const { userId, isAuthLoading } = useSupervisorAuth();
   
   // Fetch applications using custom hook
-  const { data, loading: dataLoading, error: fetchError } = useSupervisorApplications(userId);
+  const { data, loading: dataLoading, error: fetchError, refetch } = useSupervisorApplications(userId);
   
   const applications = data || [];
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-  const error = !!fetchError;
+
+  // Application status modal hook - handles modal state, messages, and actions
+  const {
+    selectedApplication,
+    showStatusModal,
+    successMessage,
+    errorMessage,
+    handleReviewApplication,
+    handleUpdateStatus,
+    closeModal,
+    isLoading: isModalLoading,
+  } = useApplicationStatusModal({
+    applications,
+    userId,
+    onRefresh: refetch,
+  });
 
   // Filter applications based on selected status
   const filteredApplications = filterStatus === 'all' 
@@ -49,7 +66,7 @@ export default function SupervisorApplicationsPage() {
     return <LoadingSpinner message="Loading applications..." />;
   }
 
-  if (error) {
+  if (fetchError) {
     return (
       <ErrorState
         message="Unable to load applications. Please try again later."
@@ -63,6 +80,16 @@ export default function SupervisorApplicationsPage() {
 
   return (
     <PageLayout>
+      {/* Success Message */}
+      {successMessage && (
+        <StatusMessage message={successMessage} type="success" />
+      )}
+
+      {/* Error Message */}
+      {errorMessage && (
+        <StatusMessage message={errorMessage} type="error" />
+      )}
+
       {/* Header */}
       <PageHeader
         title="Applications"
@@ -82,43 +109,58 @@ export default function SupervisorApplicationsPage() {
         onChange={(value) => setFilterStatus(value as FilterStatus)}
       />
 
-        {/* Applications Grid */}
-        {filteredApplications.length === 0 ? (
-          <EmptyState
-            message={
-              applications.length === 0 
-                ? 'No applications received yet.' 
-                : `No ${filterStatus} applications.`
-            }
-          />
-        ) : (
-          <div className="grid-cards">
-            {filteredApplications.map((application) => {
-              // Convert Firestore Timestamp to Date, then format as string
-              const dateAppliedStr = formatFirestoreDate(application.dateApplied);
-              
-              return (
-                <ApplicationCard 
-                  key={application.id} 
-                  application={{
-                    id: application.id,
-                    projectTitle: application.projectTitle,
-                    projectDescription: application.projectDescription,
-                    supervisorName: application.supervisorName,
-                    dateApplied: dateAppliedStr,
-                    status: application.status,
-                    responseTime: application.responseTime || '5-7 business days',
-                    comments: application.supervisorFeedback,
-                    hasPartner: application.hasPartner,
-                    partnerName: application.partnerName,
-                    linkedApplicationId: application.linkedApplicationId,
-                    isLeadApplication: application.isLeadApplication,
-                  }} 
-                />
-              );
-            })}
-          </div>
-        )}
+      {/* Applications Grid */}
+      {filteredApplications.length === 0 ? (
+        <EmptyState
+          message={
+            applications.length === 0 
+              ? 'No applications received yet.' 
+              : `No ${filterStatus.replace('_', ' ')} applications.`
+          }
+        />
+      ) : (
+        <div className="grid-cards">
+          {filteredApplications.map((application) => {
+            const dateAppliedStr = formatFirestoreDate(application.dateApplied);
+            
+            return (
+              <ApplicationCard 
+                key={application.id} 
+                application={{
+                  id: application.id,
+                  projectTitle: application.projectTitle,
+                  projectDescription: application.projectDescription,
+                  supervisorName: application.supervisorName,
+                  dateApplied: dateAppliedStr,
+                  status: application.status,
+                  responseTime: application.responseTime || '5-7 business days',
+                  comments: application.supervisorFeedback,
+                  hasPartner: application.hasPartner,
+                  partnerName: application.partnerName,
+                  linkedApplicationId: application.linkedApplicationId,
+                  isLeadApplication: application.isLeadApplication,
+                  studentName: application.studentName,
+                  studentEmail: application.studentEmail,
+                }}
+                viewMode="supervisor"
+                onReviewApplication={handleReviewApplication}
+                isLoading={isModalLoading}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Application Status Modal */}
+      {selectedApplication && (
+        <ApplicationStatusModal
+          application={selectedApplication}
+          isOpen={showStatusModal}
+          onClose={closeModal}
+          onUpdateStatus={handleUpdateStatus}
+          isLoading={isModalLoading}
+        />
+      )}
     </PageLayout>
   );
 }

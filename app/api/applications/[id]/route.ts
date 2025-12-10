@@ -84,10 +84,10 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
     };
 
     // Update the application
-    const success = await ApplicationService.updateApplication(params.id, updateData);
+    const result = await ApplicationService.updateApplication(params.id, updateData);
 
-    if (!success) {
-      return ApiResponse.error('Failed to update application', 500);
+    if (!result.success) {
+      return ApiResponse.error(result.error || 'Failed to update application', 500);
     }
     
     return ApiResponse.success({ message: 'Application updated successfully' });
@@ -142,10 +142,10 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       });
     } else {
       // No capacity change needed - delete normally
-      const success = await ApplicationService.deleteApplication(params.id);
+      const result = await ApplicationService.deleteApplication(params.id);
 
-      if (!success) {
-        return ApiResponse.error('Failed to delete application', 500);
+      if (!result.success) {
+        return ApiResponse.error(result.error || 'Failed to delete application', 500);
       }
     }
 

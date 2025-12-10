@@ -56,14 +56,14 @@ export const PUT = withAuth<StudentIdParams>(
       return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
-    const success = await StudentService.updateStudent(params.id, validation.data);
+    const result = await StudentService.updateStudent(params.id, validation.data);
 
-    if (!success) {
+    if (!result.success) {
       logger.error('Student database update failed', undefined, {
         context: 'API',
-        data: { studentId: params.id }
+        data: { studentId: params.id, error: result.error }
       });
-      return ApiResponse.error('Failed to update student', 500);
+      return ApiResponse.error(result.error || 'Failed to update student', 500);
     }
 
     return ApiResponse.successMessage('Student updated successfully');

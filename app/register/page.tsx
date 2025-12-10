@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api/client'
+import { DEPARTMENTS } from '@/lib/constants'
 import FormInput from '@/app/components/form/FormInput'
 import FormTextArea from '@/app/components/form/FormTextArea'
 import FormSelect from '@/app/components/form/FormSelect'
@@ -194,14 +195,7 @@ export default function RegisterPage() {
           onChange={handleChange}
           required
           placeholder="Select Department"
-          options={[
-            { value: 'Computer Science', label: 'Computer Science' },
-            { value: 'Software Engineering', label: 'Software Engineering' },
-            { value: 'Electrical Engineering', label: 'Electrical Engineering' },
-            { value: 'Mechanical Engineering', label: 'Mechanical Engineering' },
-            { value: 'Industrial Engineering', label: 'Industrial Engineering' },
-            { value: 'Biotechnology', label: 'Biotechnology' },
-          ]}
+          options={[...DEPARTMENTS]}
           className="mb-5"
         />
 

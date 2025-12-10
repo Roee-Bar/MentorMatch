@@ -97,6 +97,9 @@ export default function ApplicationModal({
         supervisorId: supervisor.id,
         projectTitle: formData.projectTitle.trim(),
         projectDescription: formData.projectDescription.trim(),
+        hasPartner: !!studentProfile?.partnerId,
+        partnerName: studentProfile?.partnerName || undefined,
+        partnerEmail: studentProfile?.partnerEmail || undefined,
       });
 
       // Close modal on success (parent will handle success message)
