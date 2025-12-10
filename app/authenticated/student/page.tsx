@@ -90,8 +90,8 @@ export default function StudentAuthenticated() {
   const handleSubmitApplication = async (applicationData: ApplicationSubmitData) => {
     try {
       await applicationActions.submitApplication({
+        ...applicationData,
         supervisorId: selectedSupervisor?.id,
-        ...applicationData
       });
 
       // Close modal on success
