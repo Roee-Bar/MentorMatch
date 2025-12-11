@@ -3,6 +3,7 @@
 // app/authenticated/student/profile/page.tsx
 // Student Profile View - Read-only display of profile and match status
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudentAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
@@ -14,6 +15,8 @@ import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import ProfileField from '@/app/components/display/ProfileField';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
+import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -21,6 +24,11 @@ import SupervisorCard from '@/app/components/shared/SupervisorCard';
 export default function StudentProfilePage() {
   const router = useRouter();
   const { userId, isAuthLoading } = useStudentAuth();
+  
+  // Unpair confirmation state
+  const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
+  const [isUnpairing, setIsUnpairing] = useState(false);
+  const [unpairError, setUnpairError] = useState<string | null>(null);
   
   // Fetch student profile and related data using the new hook
   const { data: profileData, loading: dataLoading, error } = useAuthenticatedFetch(
@@ -89,6 +97,27 @@ export default function StudentProfilePage() {
   const partnerDetails = profileData?.partnerDetails || null;
   const supervisorDetails = profileData?.supervisorDetails || null;
 
+  // Handle unpair confirmation
+  const handleConfirmUnpair = async () => {
+    setIsUnpairing(true);
+    setUnpairError(null);
+    
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) throw new Error('Not authenticated');
+      
+      await apiClient.unpairFromPartner(token);
+      
+      // Refresh the page or refetch data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error unpairing:', error);
+      setUnpairError('Failed to unpair. Please try again.');
+      setShowUnpairConfirm(false);
+      setIsUnpairing(false);
+    }
+  };
+
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
     return <LoadingSpinner message="Loading profile..." />;
@@ -108,6 +137,15 @@ export default function StudentProfilePage() {
 
   return (
     <PageLayout variant="narrow">
+      {/* Error Message */}
+      {unpairError && (
+        <StatusMessage 
+          message={unpairError} 
+          type="error"
+          className="mb-4"
+        />
+      )}
+
       {/* Header */}
       <PageHeader
         title="Profile"
@@ -267,24 +305,7 @@ export default function StudentProfilePage() {
                         student={partnerDetails}
                         showRequestButton={false}
                         isCurrentPartner={true}
-                        onUnpair={async () => {
-                          try {
-                            const token = await auth.currentUser?.getIdToken();
-                            if (!token) throw new Error('Not authenticated');
-                            
-                            if (!confirm('Are you sure you want to unpair from your partner?')) {
-                              return;
-                            }
-                            
-                            await apiClient.unpairFromPartner(token);
-                            
-                            // Refresh the page or refetch data
-                            window.location.reload();
-                          } catch (error) {
-                            console.error('Error unpairing:', error);
-                            alert('Failed to unpair. Please try again.');
-                          }
-                        }}
+                        onUnpair={() => setShowUnpairConfirm(true)}
                       />
                     </>
                   ) : (
@@ -311,6 +332,18 @@ export default function StudentProfilePage() {
             </div>
           </div>
         </div>
+
+      {/* Unpair Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showUnpairConfirm}
+        title="Confirm Unpair"
+        message="Are you sure you want to unpair from your partner? This action cannot be undone."
+        confirmLabel="Yes, Unpair"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmUnpair}
+        onCancel={() => setShowUnpairConfirm(false)}
+        isLoading={isUnpairing}
+      />
     </PageLayout>
   );
 }

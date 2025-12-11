@@ -17,6 +17,7 @@ import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import FormCard from '@/app/components/display/FormCard';
+import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Application } from '@/types/database';
 
 export default function ApplicationEditPage() {
@@ -46,6 +47,7 @@ export default function ApplicationEditPage() {
   const [isResubmitting, setIsResubmitting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Fetch application data
   useEffect(() => {
@@ -199,15 +201,14 @@ export default function ApplicationEditPage() {
     }
   };
 
-  const handleResubmit = async () => {
+  const handleResubmitClick = () => {
     setSaveError(null);
     setSaveSuccess(false);
+    setShowConfirmModal(true);
+  };
 
-    // Confirm before resubmitting
-    if (!confirm('Are you sure you want to resubmit this application to the supervisor? This will move it back to pending status for review.')) {
-      return;
-    }
-
+  const handleConfirmResubmit = async () => {
+    setShowConfirmModal(false);
     setIsResubmitting(true);
 
     try {
@@ -218,8 +219,7 @@ export default function ApplicationEditPage() {
 
       await apiClient.resubmitApplication(applicationId, token);
       
-      // Show success and navigate back to dashboard
-      alert('Application resubmitted successfully! The supervisor will review your changes.');
+      // Navigate back to dashboard - success message will show there
       router.push(ROUTES.AUTHENTICATED.STUDENT);
     } catch (err: any) {
       console.error('Error resubmitting application:', err);
@@ -398,7 +398,7 @@ export default function ApplicationEditPage() {
           </button>
           <button
             type="button"
-            onClick={handleResubmit}
+            onClick={handleResubmitClick}
             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={isSaving || isResubmitting}
           >
@@ -406,6 +406,19 @@ export default function ApplicationEditPage() {
           </button>
         </div>
       </form>
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Confirm Resubmission"
+        message="Are you sure you want to resubmit this application to the supervisor? This will move it back to pending status for review."
+        confirmLabel="Yes, Resubmit"
+        cancelLabel="Cancel"
+        variant="success"
+        onConfirm={handleConfirmResubmit}
+        onCancel={() => setShowConfirmModal(false)}
+        isLoading={isResubmitting}
+      />
     </PageLayout>
   );
 }
