@@ -53,6 +53,24 @@ export const StudentService = {
     }
   },
 
+  // Get available partners (students without partners, excluding current user)
+  async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
+    try {
+      // Query for students without a partner
+      const querySnapshot = await adminDb.collection('students')
+        .where('partnerId', '==', null)
+        .get();
+      
+      // Filter out the current user and return
+      return querySnapshot.docs
+        .filter(doc => doc.id !== excludeStudentId)
+        .map((doc) => toStudent(doc.id, doc.data()));
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'getAvailablePartners', error, { excludeStudentId });
+      return [];
+    }
+  },
+
   // Update student
   async updateStudent(studentId: string, data: Partial<Student>): Promise<ServiceResult> {
     try {

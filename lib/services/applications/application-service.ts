@@ -90,8 +90,13 @@ export const ApplicationService = {
     updates: Partial<Application>
   ): Promise<ServiceResult> {
     try {
+      // Filter out undefined values to prevent Firestore errors
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      );
+      
       await adminDb.collection('applications').doc(applicationId).update({
-        ...updates,
+        ...cleanUpdates,
         lastUpdated: new Date(),
       });
       return ServiceResults.success(undefined, 'Application updated successfully');
@@ -112,8 +117,14 @@ export const ApplicationService = {
         studentId: applicationData.studentId 
       });
       
+      // Filter out undefined values to prevent Firestore errors
+      // Firestore rejects undefined but accepts null
+      const cleanData = Object.fromEntries(
+        Object.entries(applicationData).filter(([, value]) => value !== undefined)
+      );
+      
       const docRef = await adminDb.collection('applications').add({
-        ...applicationData,
+        ...cleanData,
         dateApplied: new Date(),
         lastUpdated: new Date(),
       });
