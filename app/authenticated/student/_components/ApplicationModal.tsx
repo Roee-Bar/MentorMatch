@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { SupervisorCardData } from '@/types/database';
 
 interface ApplicationModalProps {
@@ -144,8 +145,12 @@ export default function ApplicationModal({
 
         {/* Error Message */}
         {error && (
-          <div className="mx-6 mt-4 message-box-error">
-            <p className="message-text-error text-sm">{error}</p>
+          <div className="mx-6 mt-4">
+            <StatusMessage 
+              type="error" 
+              message={error}
+              onClose={() => setError(null)}
+            />
           </div>
         )}
 

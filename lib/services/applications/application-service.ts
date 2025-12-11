@@ -106,6 +106,12 @@ export const ApplicationService = {
   // Create new application
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
     try {
+      // Log incoming data for debugging
+      logger.service.operation(SERVICE_NAME, 'createApplication', { 
+        supervisorId: applicationData.supervisorId,
+        studentId: applicationData.studentId 
+      });
+      
       const docRef = await adminDb.collection('applications').add({
         ...applicationData,
         dateApplied: new Date(),
@@ -113,7 +119,12 @@ export const ApplicationService = {
       });
       return ServiceResults.success(docRef.id, 'Application created successfully');
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'createApplication', error);
+      // Enhanced error logging with context
+      logger.service.error(SERVICE_NAME, 'createApplication', error, {
+        studentId: applicationData.studentId,
+        supervisorId: applicationData.supervisorId,
+        errorType: error instanceof Error ? error.name : 'Unknown'
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to create application'
       );
