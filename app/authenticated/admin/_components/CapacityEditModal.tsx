@@ -20,7 +20,7 @@ export default function CapacityEditModal({
   onClose,
   onSuccess
 }: CapacityEditModalProps) {
-  const [maxCapacity, setMaxCapacity] = useState(supervisor.maxCapacity.toString());
+  const [maxCapacity, setMaxCapacity] = useState((supervisor?.maxCapacity ?? 0).toString());
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
