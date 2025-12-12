@@ -10,7 +10,7 @@ import { ApiResponse } from '@/lib/middleware/response';
 
 export const GET = withRoles<Record<string, string>>(['student'], async (request: NextRequest, context, user) => {
   // Get available partners excluding the current student
-  const students = await StudentService.getAvailablePartners(user.userId);
+  const students = await StudentService.getAvailablePartners(user.uid);
   return ApiResponse.successWithCount(students);
 });
 

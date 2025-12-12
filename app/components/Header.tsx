@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { onAuthChange, getUserProfile } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
+import MentorMatchLogo from './shared/MentorMatchLogo'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -54,7 +55,14 @@ export default function Header() {
       <nav className="max-w-container mx-auto flex-between" role="navigation" aria-label="Main navigation">
         {/* Logo Section */}
         <Link href="/" className="flex-gap-4 hover:opacity-90 transition-opacity">
-          <span className="text-xl-custom">INSERT IMAGE HERE</span>
+          <MentorMatchLogo 
+            className="text-white flex-shrink-0 hidden sm:block" 
+            size="md" 
+          />
+          <MentorMatchLogo 
+            className="text-white flex-shrink-0 sm:hidden" 
+            size="sm" 
+          />
           <div>
             <h1 className="m-0 text-2xl font-bold">MentorMatch</h1>
             <p className="m-0 text-xs opacity-90">Braude College of Engineering</p>
