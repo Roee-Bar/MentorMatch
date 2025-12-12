@@ -73,8 +73,13 @@ export const SupervisorService = {
   // Update supervisor
   async updateSupervisor(supervisorId: string, data: Partial<Supervisor>): Promise<ServiceResult> {
     try {
+      // Filter out undefined values to prevent Firestore errors
+      const cleanData = Object.fromEntries(
+        Object.entries(data).filter(([, value]) => value !== undefined)
+      );
+      
       await adminDb.collection('supervisors').doc(supervisorId).update({
-        ...data,
+        ...cleanData,
         updatedAt: new Date(),
       });
       return ServiceResults.success(undefined, 'Supervisor updated successfully');

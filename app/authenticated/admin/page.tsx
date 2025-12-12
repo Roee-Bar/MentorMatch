@@ -27,7 +27,7 @@ export default function AdminAuthenticated() {
     async (token) => {
       const [statsResponse, supervisorsResponse] = await Promise.all([
         apiClient.getAdminStats(token),
-        apiClient.getSupervisors(token, {}),
+        apiClient.getAdminSupervisors(token),
       ]);
 
       return {

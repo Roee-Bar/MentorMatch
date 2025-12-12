@@ -278,6 +278,11 @@ export const apiClient = {
     return apiFetch('/admin/stats', { token });
   },
 
+  // Get all supervisors for admin (full data including maxCapacity)
+  getAdminSupervisors: (token: string) => {
+    return apiFetch('/admin/supervisors', { token });
+  },
+
   // Admin capacity override endpoint
   updateSupervisorCapacity: async (
     supervisorId: string,

@@ -1,0 +1,36 @@
+interface MentorMatchLogoProps {
+  className?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export default function MentorMatchLogo({ className, size = 'md' }: MentorMatchLogoProps) {
+  // Responsive size mapping
+  const sizeMap = { sm: 32, md: 40, lg: 48 };
+  const dimension = sizeMap[size];
+  
+  return (
+    <svg 
+      width={dimension} 
+      height={dimension} 
+      viewBox="0 0 40 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Circle container */}
+      <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      
+      {/* Mentor (larger, behind) */}
+      <circle cx="15" cy="14" r="3.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M8 28 C8 22 12 19 15 19 C18 19 22 22 22 28" 
+            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      
+      {/* Student (smaller, in front) */}
+      <circle cx="25" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M19 28 C19 23 22 21 25 21 C28 21 31 23 31 28" 
+            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+}
+

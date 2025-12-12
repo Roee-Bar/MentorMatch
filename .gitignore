@@ -33,6 +33,9 @@ yarn-error.log*
 # testing documentation
 docs/testing/
 
+# playwright MCP screenshots
+.playwright-mcp/
+
 # local env files
 .env*.local
 .env

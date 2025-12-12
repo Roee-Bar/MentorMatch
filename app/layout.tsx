@@ -6,6 +6,13 @@ import Footer from "@/app/components/Footer";
 export const metadata: Metadata = {
   title: "MentorMatch - Braude College",
   description: "Find your perfect project supervisor",
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '48x48' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

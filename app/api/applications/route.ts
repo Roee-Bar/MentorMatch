@@ -84,7 +84,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     // Project Details
     projectTitle: validation.data.projectTitle,
     projectDescription: validation.data.projectDescription,
-    proposedTopicId: validation.data.proposedTopicId,
+    proposedTopicId: validation.data.proposedTopicId ?? undefined,
     isOwnTopic: true,
     // Student Information
     studentSkills: student.skills || '',
@@ -94,7 +94,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     partnerName: partnerInfo.partnerName || undefined,
     partnerEmail: partnerInfo.partnerEmail || undefined,
     // Capacity Tracking
-    linkedApplicationId,
+    linkedApplicationId: linkedApplicationId ?? undefined,
     isLeadApplication,
     // Status
     status: 'pending',

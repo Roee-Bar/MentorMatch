@@ -90,8 +90,13 @@ export const ApplicationService = {
     updates: Partial<Application>
   ): Promise<ServiceResult> {
     try {
+      // Filter out undefined values to prevent Firestore errors
+      const cleanUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      );
+      
       await adminDb.collection('applications').doc(applicationId).update({
-        ...updates,
+        ...cleanUpdates,
         lastUpdated: new Date(),
       });
       return ServiceResults.success(undefined, 'Application updated successfully');
@@ -106,14 +111,31 @@ export const ApplicationService = {
   // Create new application
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
     try {
+      // Log incoming data for debugging
+      logger.service.operation(SERVICE_NAME, 'createApplication', { 
+        supervisorId: applicationData.supervisorId,
+        studentId: applicationData.studentId 
+      });
+      
+      // Filter out undefined values to prevent Firestore errors
+      // Firestore rejects undefined but accepts null
+      const cleanData = Object.fromEntries(
+        Object.entries(applicationData).filter(([, value]) => value !== undefined)
+      );
+      
       const docRef = await adminDb.collection('applications').add({
-        ...applicationData,
+        ...cleanData,
         dateApplied: new Date(),
         lastUpdated: new Date(),
       });
       return ServiceResults.success(docRef.id, 'Application created successfully');
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'createApplication', error);
+      // Enhanced error logging with context
+      logger.service.error(SERVICE_NAME, 'createApplication', error, {
+        studentId: applicationData.studentId,
+        supervisorId: applicationData.supervisorId,
+        errorType: error instanceof Error ? error.name : 'Unknown'
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to create application'
       );
