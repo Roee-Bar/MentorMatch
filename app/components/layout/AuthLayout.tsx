@@ -1,5 +1,6 @@
 import React from 'react';
 import BackButton from '@/app/components/layout/BackButton';
+import { cardAuth } from '@/lib/styles/shared-styles';
 
 type AuthLayoutMaxWidth = 'sm' | 'md' | 'lg';
 
@@ -23,7 +24,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
   return (
     <div className={`py-10 px-5 ${maxWidthClasses[maxWidth]} mx-auto`}>
       <BackButton href={backHref} />
-      <div className="bg-white p-10 rounded-xl border border-gray-200 shadow-[0_4px_6px_rgba(0,0,0,0.05)]">
+      <div className={cardAuth}>
         {children}
       </div>
     </div>

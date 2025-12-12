@@ -11,7 +11,7 @@ import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
 import StudentCard from '@/app/components/shared/StudentCard';
-import PartnershipRequestCard from './_components/PartnershipRequestCard';
+import PartnershipRequestCard from '@/app/components/shared/PartnershipRequestCard';
 import ApplicationModal from './_components/ApplicationModal';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
@@ -20,6 +20,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
+import { btnPrimary } from '@/lib/styles/shared-styles';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -148,7 +149,7 @@ export default function StudentAuthenticated() {
       />
 
         {/* Stats Grid */}
-        <div className="grid-stats">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="My Applications"
             value={applications.length}
@@ -185,7 +186,7 @@ export default function StudentAuthenticated() {
               title="Partnership Requests"
               badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{incomingRequests.length} Pending</span>}
             />
-            <div className="grid-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {incomingRequests.map(request => (
                 <PartnershipRequestCard
                   key={request.id}
@@ -204,7 +205,7 @@ export default function StudentAuthenticated() {
         {currentPartner && (
           <div className="mb-8">
             <SectionHeader title="My Partner" />
-            <div className="grid-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               <StudentCard
                 student={currentPartner}
                 showRequestButton={false}
@@ -223,7 +224,7 @@ export default function StudentAuthenticated() {
               title="Pending Partnership Requests"
               badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{outgoingRequests.length} Sent</span>}
             />
-            <div className="grid-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {outgoingRequests.map(request => (
                 <PartnershipRequestCard
                   key={request.id}
@@ -255,7 +256,7 @@ export default function StudentAuthenticated() {
             {availableStudents.length === 0 ? (
               <EmptyState message="No available students at the moment." />
             ) : (
-              <div className="grid-cards">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
                   .map(student => (
                     <StudentCard
@@ -278,7 +279,7 @@ export default function StudentAuthenticated() {
             action={
               <button
                 onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS)}
-                className="btn-primary"
+                className={btnPrimary}
               >
                 + New Application
               </button>
@@ -294,7 +295,7 @@ export default function StudentAuthenticated() {
               }}
             />
           ) : (
-            <div className="grid-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {applications.map((application) => {
                 // Convert Firestore Timestamp to Date, then format as string
                 const dateAppliedStr = application.dateApplied instanceof Date
@@ -344,7 +345,7 @@ export default function StudentAuthenticated() {
           {supervisors.length === 0 ? (
             <EmptyState message="No supervisors available at the moment." />
           ) : (
-            <div className="grid-cards">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {supervisors.slice(0, 3).map((supervisor) => (
                 <SupervisorCard 
                   key={supervisor.id} 

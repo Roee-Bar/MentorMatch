@@ -101,7 +101,7 @@ export default function AdminAuthenticated() {
         />
 
         {/* Unified Metrics Grid */}
-        <div className="grid-stats mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <StatCard
             title="Total Students"
             value={stats?.totalStudents ?? '-'}
@@ -147,9 +147,9 @@ export default function AdminAuthenticated() {
 
         {/* Supervisor Capacity Management Section */}
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
+          <div className="bg-white p-6 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Manage Supervisor Capacity</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Manage Supervisor Capacity</h2>
             <button
               onClick={() => refetch()}
               className="text-blue-600 text-sm font-medium hover:underline"
@@ -164,7 +164,7 @@ export default function AdminAuthenticated() {
               <LoadingSpinner message="Loading supervisors..." />
             </div>
           ) : supervisors.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
               No supervisors found
             </div>
           ) : (

@@ -7,6 +7,7 @@ import { signIn } from '@/lib/auth'
 import FormInput from '@/app/components/form/FormInput'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
+import { btnPrimaryFullWidth, linkPrimary } from '@/lib/styles/shared-styles'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -37,10 +38,10 @@ export default function LoginPage() {
 
   return (
     <AuthLayout backHref="/">
-      <h1 className="text-gray-800 mb-2.5 text-2xl-custom font-bold">
+      <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-2xl-custom font-bold">
         Welcome Back
       </h1>
-      <p className="text-gray-500 mb-8 text-sm">
+      <p className="text-gray-500 dark:text-slate-400 mb-8 text-sm">
         Login to your MentorMatch account
       </p>
 
@@ -71,7 +72,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full py-3.5"
+          className={`${btnPrimaryFullWidth} py-3.5`}
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>
@@ -84,12 +85,12 @@ export default function LoginPage() {
         )}
       </form>
 
-      <div className="mt-6 text-center text-gray-500 text-sm">
+      <div className="mt-6 text-center text-gray-500 dark:text-slate-400 text-sm">
         <p>
           Dont have an account?{' '}
           <Link
             href="/register"
-            className="bg-transparent border-none text-blue-600 cursor-pointer font-bold underline text-sm hover:text-blue-700"
+            className={linkPrimary}
           >
             Sign up as Student
           </Link>

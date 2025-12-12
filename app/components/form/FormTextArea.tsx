@@ -1,4 +1,5 @@
 import React from 'react';
+import { labelStyles, textareaStyles, helperStyles, charCounterStyles } from '@/lib/styles/shared-styles';
 
 interface FormTextAreaProps {
   id?: string;
@@ -35,7 +36,7 @@ const FormTextArea: React.FC<FormTextAreaProps> = ({
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="label-base">
+      <label htmlFor={inputId} className={labelStyles}>
         {label} {required && '*'}
       </label>
       <textarea
@@ -48,14 +49,14 @@ const FormTextArea: React.FC<FormTextAreaProps> = ({
         rows={rows}
         maxLength={maxLength}
         disabled={disabled}
-        className="textarea-base"
+        className={textareaStyles}
       />
-      <div className="flex-between mt-1">
+      <div className="flex items-center justify-between mt-1">
         {helperText && (
-          <small className="helper-text-inline">{helperText}</small>
+          <small className={helperStyles}>{helperText}</small>
         )}
         {showCharCount && maxLength && (
-          <small className="char-counter">
+          <small className={charCounterStyles}>
             {value.length}/{maxLength}
           </small>
         )}
@@ -65,5 +66,3 @@ const FormTextArea: React.FC<FormTextAreaProps> = ({
 };
 
 export default FormTextArea;
-
-

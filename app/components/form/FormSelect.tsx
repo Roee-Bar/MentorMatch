@@ -1,4 +1,5 @@
 import React from 'react';
+import { labelStyles, inputStyles, helperStyles } from '@/lib/styles/shared-styles';
 
 interface SelectOption {
   value: string;
@@ -36,7 +37,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="label-base">
+      <label htmlFor={inputId} className={labelStyles}>
         {label} {required && '*'}
       </label>
       <select
@@ -46,7 +47,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
         onChange={onChange}
         required={required}
         disabled={disabled}
-        className="input-base"
+        className={inputStyles}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -56,12 +57,10 @@ const FormSelect: React.FC<FormSelectProps> = ({
         ))}
       </select>
       {helperText && (
-        <small className="helper-text">{helperText}</small>
+        <small className={helperStyles}>{helperText}</small>
       )}
     </div>
   );
 };
 
 export default FormSelect;
-
-

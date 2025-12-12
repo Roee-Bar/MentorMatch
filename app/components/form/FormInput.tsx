@@ -1,4 +1,5 @@
 import React from 'react';
+import { labelStyles, inputStyles, helperStyles } from '@/lib/styles/shared-styles';
 
 interface FormInputProps {
   id?: string;
@@ -41,7 +42,7 @@ const FormInput: React.FC<FormInputProps> = ({
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="label-base">
+      <label htmlFor={inputId} className={labelStyles}>
         {label} {required && '*'}
       </label>
       <input
@@ -58,15 +59,13 @@ const FormInput: React.FC<FormInputProps> = ({
         max={max}
         pattern={pattern}
         disabled={disabled}
-        className="input-base"
+        className={inputStyles}
       />
       {helperText && (
-        <small className="helper-text">{helperText}</small>
+        <small className={helperStyles}>{helperText}</small>
       )}
     </div>
   );
 };
 
 export default FormInput;
-
-

@@ -119,7 +119,7 @@ export default function SupervisorApplicationsPage() {
           }
         />
       ) : (
-        <div className="grid-cards">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredApplications.map((application) => {
             const dateAppliedStr = formatFirestoreDate(application.dateApplied);
             

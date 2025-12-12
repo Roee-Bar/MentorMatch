@@ -4,6 +4,8 @@
 // Reusable confirmation modal for destructive and confirmation actions
 // Replaces native browser confirm() dialogs for better UX and testability
 
+import { modalBackdrop, modalContainer, btnSecondary, btnDanger, btnSuccess } from '@/lib/styles/shared-styles';
+
 interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
@@ -29,18 +31,18 @@ export default function ConfirmModal({
 }: ConfirmModalProps) {
   if (!isOpen) return null;
 
-  const confirmButtonClass = variant === 'success' ? 'btn-success' : 'btn-danger';
+  const confirmButtonClass = variant === 'success' ? btnSuccess : btnDanger;
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-container">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-        <p className="text-gray-600 mb-6">{message}</p>
+    <div className={modalBackdrop}>
+      <div className={modalContainer}>
+        <h3 className="text-lg font-bold text-gray-900 mb-2 dark:text-slate-100">{title}</h3>
+        <p className="text-gray-600 mb-6 dark:text-slate-400">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="btn-secondary"
+            className={btnSecondary}
             disabled={isLoading}
           >
             {cancelLabel}
@@ -58,4 +60,3 @@ export default function ConfirmModal({
     </div>
   );
 }
-

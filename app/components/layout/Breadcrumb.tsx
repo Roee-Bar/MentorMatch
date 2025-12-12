@@ -17,7 +17,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 }) => {
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${className}`}>
-      <div className="flex-gap-2 text-sm text-gray-600">
+      <div className="flex gap-2 text-sm text-gray-600 dark:text-slate-400">
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (
@@ -31,11 +31,11 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
               </svg>
             )}
             {item.href ? (
-              <Link href={item.href} className="hover:text-blue-600 transition-colors">
+              <Link href={item.href} className="hover:text-blue-600 transition-colors dark:hover:text-blue-400">
                 {item.label}
               </Link>
             ) : (
-              <span className="text-gray-900 font-medium">{item.label}</span>
+              <span className="text-gray-900 font-medium dark:text-slate-100">{item.label}</span>
             )}
           </React.Fragment>
         ))}
@@ -45,5 +45,3 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 };
 
 export default Breadcrumb;
-
-

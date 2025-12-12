@@ -20,6 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
+import { btnPrimary, btnPrimaryFullWidth, cardBase } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -153,7 +154,7 @@ export default function StudentProfilePage() {
         action={
           <button
             onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_PROFILE_EDIT)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className={btnPrimary}
           >
             Edit Profile
           </button>
@@ -164,8 +165,8 @@ export default function StudentProfilePage() {
           {/* Main Profile Section */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
+            <div className={cardBase}>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Personal Information</h2>
               
               <div className="space-y-4">
                 <ProfileField label="Full Name" value={student.fullName} />
@@ -177,32 +178,32 @@ export default function StudentProfilePage() {
             </div>
 
             {/* Academic Information */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Academic Information</h2>
+            <div className={cardBase}>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Academic Information</h2>
               
               <div className="space-y-4">
                 {student.skills && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Skills</label>
-                    <p className="text-gray-800 mt-1 text-balance">{student.skills}</p>
+                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Skills</label>
+                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.skills}</p>
                   </div>
                 )}
                 {student.interests && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Interests</label>
-                    <p className="text-gray-800 mt-1 text-balance">{student.interests}</p>
+                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Interests</label>
+                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.interests}</p>
                   </div>
                 )}
                 {student.previousProjects && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Previous Projects</label>
-                    <p className="text-gray-800 mt-1 text-balance">{student.previousProjects}</p>
+                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Previous Projects</label>
+                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.previousProjects}</p>
                   </div>
                 )}
                 {student.preferredTopics && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Preferred Topics</label>
-                    <p className="text-gray-800 mt-1 text-balance">{student.preferredTopics}</p>
+                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Preferred Topics</label>
+                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.preferredTopics}</p>
                   </div>
                 )}
               </div>
@@ -210,8 +211,8 @@ export default function StudentProfilePage() {
 
             {/* Partner Information */}
             {student.hasPartner && (
-              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Partner Information</h2>
+              <div className={cardBase}>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Partner Information</h2>
                 
                 <div className="space-y-4">
                   {student.partnerName && <ProfileField label="Partner Name" value={student.partnerName} />}
@@ -224,27 +225,27 @@ export default function StudentProfilePage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Match Status */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Match Status</h2>
+            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+              <h2 className="text-lg font-bold text-gray-800 mb-4 dark:text-slate-100">Match Status</h2>
               
-              <div className="flex-center">
+              <div className="flex items-center justify-center">
                 <StatusBadge
                   status={student.matchStatus}
                   variant="custom"
                   customClassName={
-                    student.matchStatus === 'matched' ? 'badge-success' :
-                    student.matchStatus === 'pending' ? 'badge-warning' :
-                    'badge-gray'
+                    student.matchStatus === 'matched' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                    student.matchStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                    'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-200'
                   }
                   customLabel={student.matchStatus.charAt(0).toUpperCase() + student.matchStatus.slice(1)}
                 />
               </div>
               
               {student.matchStatus === 'matched' && student.assignedSupervisorId && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
                   {supervisorDetails ? (
                     <>
-                      <p className="text-sm text-gray-600 mb-3 text-center">
+                      <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
                         You have been matched with:
                       </p>
                       <SupervisorCard
@@ -261,21 +262,21 @@ export default function StudentProfilePage() {
               )}
               
               {student.matchStatus === 'pending' && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 text-center">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
                     Your application is being reviewed
                   </p>
                 </div>
               )}
               
               {student.matchStatus === 'unmatched' && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 text-center">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
                     Browse available supervisors and submit an application
                   </p>
                   <button
                     onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full mt-2"
+                    className={`${btnPrimaryFullWidth} mt-2`}
                   >
                     Browse Supervisors
                   </button>
@@ -284,8 +285,8 @@ export default function StudentProfilePage() {
             </div>
 
             {/* Partnership Status */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Partnership Status</h2>
+            <div className={cardBase}>
+              <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4">Partnership Status</h2>
               
               <div className="flex-center">
                 <StatusBadge
@@ -295,10 +296,10 @@ export default function StudentProfilePage() {
               </div>
               
               {student.partnerId && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
                   {partnerDetails ? (
                     <>
-                      <p className="text-sm text-gray-600 mb-3 text-center">
+                      <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
                         Paired with:
                       </p>
                       <StudentCard
@@ -317,13 +318,13 @@ export default function StudentProfilePage() {
               )}
               
               {!student.partnerId && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 text-center mb-2">
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center mb-2">
                     Find a project partner
                   </p>
                   <button
                     onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT)}
-                    className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full text-sm"
+                    className={btnPrimaryFullWidth}
                   >
                     Browse Students
                   </button>
