@@ -14,9 +14,9 @@ const PageLayout: React.FC<PageLayoutProps> = ({
   className = '',
 }) => {
   const containerClasses = {
-    default: 'min-h-screen bg-gray-50 p-8',
-    narrow: 'min-h-screen bg-gray-50 p-8',
-    simple: 'min-h-screen bg-gray-50',
+    default: 'min-h-screen bg-gray-50 dark:bg-slate-900 p-8',
+    narrow: 'min-h-screen bg-gray-50 dark:bg-slate-900 p-8',
+    simple: 'min-h-screen bg-gray-50 dark:bg-slate-900',
   };
 
   const contentClasses = {

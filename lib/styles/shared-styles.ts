@@ -1,0 +1,60 @@
+// lib/styles/shared-styles.ts
+// Centralized style constants for consistent theming across components
+
+// ============= BUTTONS =============
+export const btnBase = 'px-4 py-2 text-sm font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200 dark:focus:ring-offset-slate-800';
+
+export const btnPrimary = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
+export const btnSecondary = `${btnBase} text-gray-600 border border-gray-200 hover:bg-gray-50 focus:ring-gray-500 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700`;
+export const btnDanger = `${btnBase} text-red-600 border border-red-200 hover:bg-red-50 focus:ring-red-500 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950`;
+export const btnSuccess = `${btnBase} bg-green-600 text-white hover:bg-green-700 focus:ring-green-500`;
+
+// ============= CARDS =============
+export const cardBase = 'bg-white p-6 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700';
+export const cardHover = `${cardBase} hover:shadow-md transition-shadow duration-200`;
+
+// ============= BADGES =============
+export const badgeBase = 'px-3 py-1 rounded-full text-xs font-semibold';
+export const badgeSuccess = `${badgeBase} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`;
+export const badgeWarning = `${badgeBase} bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200`;
+export const badgeInfo = `${badgeBase} bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200`;
+export const badgeDanger = `${badgeBase} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200`;
+
+// ============= TAGS =============
+export const tagBase = 'px-2 py-1 text-xs rounded-md';
+export const tagBlue = `${tagBase} bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300`;
+export const tagPurple = `${tagBase} bg-purple-50 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300`;
+export const tagGray = `${tagBase} bg-gray-50 text-gray-500 dark:bg-slate-700 dark:text-slate-400`;
+
+// ============= MODALS =============
+export const modalBackdrop = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4';
+export const modalContainer = 'bg-white rounded-lg shadow-xl max-w-md w-full p-6 dark:bg-slate-800';
+
+// ============= TEXT UTILITIES =============
+export const textMuted = 'text-gray-500 dark:text-slate-400';
+export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
+export const textHeading = 'text-lg font-bold text-gray-800 dark:text-slate-100';
+export const textBody = 'text-sm text-gray-700 dark:text-slate-300';
+
+// ============= ICON CONTAINERS =============
+export const iconContainerBase = 'w-12 h-12 rounded-lg flex items-center justify-center';
+
+// ============= FORM ELEMENTS =============
+export const labelStyles = 'block mb-2 font-semibold text-gray-700 text-sm dark:text-slate-300';
+export const inputStyles = 'w-full p-3 rounded-md border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
+export const textareaStyles = 'w-full p-3 rounded-md border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none resize-y font-[inherit] transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
+export const helperStyles = 'text-gray-500 text-xs mt-1 block dark:text-slate-400';
+export const charCounterStyles = 'text-gray-400 text-xs ml-auto dark:text-slate-500';
+
+// ============= LINKS =============
+export const linkPrimary = 'text-blue-600 dark:text-blue-400 font-bold underline text-sm hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer';
+export const linkSubtle = 'text-blue-600 dark:text-blue-400 text-sm hover:underline';
+
+// ============= BUTTON VARIANTS =============
+export const btnPrimaryFullWidth = `${btnPrimary} w-full`;
+export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
+
+// ============= CARD VARIANTS =============
+export const cardAuth = 'bg-white dark:bg-slate-800 p-10 rounded-xl border border-gray-200 dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_6px_rgba(0,0,0,0.3)]';
+export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl border border-gray-200 dark:border-slate-700';
+

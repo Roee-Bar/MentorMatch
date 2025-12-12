@@ -1,8 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  // TODO: Re-enable dark mode once all components have dark: variants
-  // darkMode: 'media',
+  darkMode: 'media', // System preference dark mode enabled
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",

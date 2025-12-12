@@ -2,7 +2,6 @@
  * Table Component
  * 
  * A compound component for creating consistent, styled tables throughout the application.
- * Uses the table utility classes from globals.css.
  * 
  * @example
  * ```tsx
@@ -26,6 +25,16 @@
  * </Table.Container>
  * ```
  */
+
+// Table styles with dark mode support
+const tableWrapper = 'overflow-x-auto';
+const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
+const tableHeader = 'bg-gray-50 dark:bg-slate-800';
+const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
+const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
+const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
 
 interface TableContainerProps {
   children: React.ReactNode;
@@ -61,32 +70,32 @@ interface TableCellProps {
 
 function Container({ children, className = '' }: TableContainerProps) {
   return (
-    <div className={`table-wrapper ${className}`}>
-      <table className="table-base">{children}</table>
+    <div className={`${tableWrapper} ${className}`}>
+      <table className={tableBase}>{children}</table>
     </div>
   );
 }
 
 function Header({ children, className = '' }: TableHeaderProps) {
-  return <thead className={`table-header ${className}`}>{children}</thead>;
+  return <thead className={`${tableHeader} ${className}`}>{children}</thead>;
 }
 
 function HeaderCell({ children, align = 'left', className = '' }: TableHeaderCellProps) {
-  const alignClass = align === 'right' ? 'table-header-cell-right' : 'table-header-cell';
+  const alignClass = align === 'right' ? tableHeaderCellRight : tableHeaderCell;
   return <th className={`${alignClass} ${className}`}>{children}</th>;
 }
 
 function Body({ children, className = '' }: TableBodyProps) {
-  return <tbody className={`table-body ${className}`}>{children}</tbody>;
+  return <tbody className={`${tableBody} ${className}`}>{children}</tbody>;
 }
 
 function Row({ children, hover = true, className = '' }: TableRowProps) {
-  const hoverClass = hover ? 'table-row-hover' : '';
+  const hoverClass = hover ? tableRowHover : '';
   return <tr className={`${hoverClass} ${className}`}>{children}</tr>;
 }
 
 function Cell({ children, className = '' }: TableCellProps) {
-  return <td className={`table-cell ${className}`}>{children}</td>;
+  return <td className={`${tableCell} ${className}`}>{children}</td>;
 }
 
 // Export as compound component
@@ -100,4 +109,3 @@ const Table = {
 };
 
 export default Table;
-

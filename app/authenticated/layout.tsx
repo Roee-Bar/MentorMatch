@@ -39,6 +39,5 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     return <LoadingSpinner message="Loading..." />;
   }
 
-  return <div className="page-container-simple">{children}</div>;
+  return <div className="min-h-screen bg-gray-50 dark:bg-slate-900">{children}</div>;
 }
-

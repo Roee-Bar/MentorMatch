@@ -14,6 +14,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import ProfileField from '@/app/components/display/ProfileField';
 import { Supervisor } from '@/types/database';
+import { btnPrimary } from '@/lib/styles/shared-styles';
 
 export default function SupervisorProfilePage() {
   const router = useRouter();
@@ -55,7 +56,7 @@ export default function SupervisorProfilePage() {
         action={
           <button
             onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_PROFILE_EDIT)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className={btnPrimary}
           >
             Edit Profile
           </button>

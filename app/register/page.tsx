@@ -11,6 +11,7 @@ import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
+import { btnPrimaryFullWidth, linkPrimary, cardFormSection } from '@/lib/styles/shared-styles'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -95,15 +96,15 @@ export default function RegisterPage() {
       <AuthLayout backHref="/" maxWidth="lg">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-gray-800 mb-2.5 text-xl-custom font-bold">
+          <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-xl-custom font-bold">
             Create Account
           </h1>
-          <p className="text-gray-500 text-base m-0">
+          <p className="text-gray-500 dark:text-slate-400 text-base m-0">
             Create your MentorMatch account and complete your profile
           </p>
         </div>
 
-        <form onSubmit={handleRegistration} noValidate className="bg-gray-50 p-10 rounded-xl border border-gray-200">
+        <form onSubmit={handleRegistration} noValidate className={cardFormSection}>
         
         {/* Account Information Section */}
         <FormSection title="Account Information" />
@@ -120,7 +121,7 @@ export default function RegisterPage() {
           className="mb-5"
         />
 
-        <div className="grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <FormInput
             label="Password"
             type="password"
@@ -146,7 +147,7 @@ export default function RegisterPage() {
         {/* Personal Information Section */}
         <FormSection title="Personal Information" />
 
-        <div className="grid grid-cols-2 gap-5 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           <FormInput
             label="First Name"
             type="text"
@@ -167,7 +168,7 @@ export default function RegisterPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-5 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           <FormInput
             label="Student ID"
             type="text"
@@ -248,8 +249,8 @@ export default function RegisterPage() {
         {/* Partner Information Section */}
         <FormSection title="Partner Information" />
 
-        <div className="message-box-info">
-          <label className="flex-gap-3 cursor-pointer">
+        <div className="mb-6 p-4 rounded-lg border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
+          <label className="flex gap-3 cursor-pointer">
             <input
               type="checkbox"
               name="hasPartner"
@@ -257,13 +258,13 @@ export default function RegisterPage() {
               onChange={handleChange}
               className="w-[18px] h-[18px] cursor-pointer"
             />
-            <span className="font-semibold text-blue-900 text-sm">I have a project partner</span>
+            <span className="font-semibold text-blue-900 text-sm dark:text-blue-200">I have a project partner</span>
           </label>
         </div>
 
         {formData.hasPartner && (
-          <div className="p-5 bg-white rounded-lg border border-gray-300">
-            <div className="grid grid-cols-2 gap-5">
+          <div className="p-5 bg-white dark:bg-slate-800 rounded-lg border border-gray-300 dark:border-slate-600">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <FormInput
                 label="Partner Name"
                 type="text"
@@ -290,7 +291,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed w-full py-4"
+          className={`${btnPrimaryFullWidth} py-4`}
         >
           {loading ? 'Creating Account...' : 'Complete Registration'}
         </button>
@@ -305,12 +306,12 @@ export default function RegisterPage() {
       </form>
 
       {/* Already have account link */}
-      <div className="mt-8 text-center text-gray-500">
+      <div className="mt-8 text-center text-gray-500 dark:text-slate-400">
         <p className="text-sm">
           Already have an account?{' '}
           <Link
             href="/login"
-            className="bg-transparent border-none text-blue-600 cursor-pointer font-bold underline text-sm hover:text-blue-700"
+            className={linkPrimary}
           >
             Login here
           </Link>

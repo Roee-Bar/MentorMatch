@@ -15,7 +15,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   return (
     <div className={`flex items-center justify-between mb-4 ${className}`}>
-      <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">{title}</h2>
       {badge}
       {action}
     </div>

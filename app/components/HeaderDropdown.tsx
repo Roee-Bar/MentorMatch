@@ -25,20 +25,20 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
   return (
     <div 
-      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50"
+      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50 dark:bg-slate-800 dark:text-slate-200"
       role="menu"
       aria-label="User menu"
     >
-      <div className="px-4 py-2 border-b border-gray-200">
-        <p className="text-sm font-semibold">{userProfile.name}</p>
-        <p className="text-xs text-gray-500">{userProfile.email}</p>
+      <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-700">
+        <p className="text-sm font-semibold dark:text-slate-100">{userProfile.name}</p>
+        <p className="text-xs text-gray-500 dark:text-slate-400">{userProfile.email}</p>
       </div>
       
       {userProfile.role === 'supervisor' && (
         <Link
           href="/authenticated/supervisor/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
           role="menuitem"
           aria-label="View profile"
         >
@@ -53,7 +53,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/student/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 border-none bg-transparent cursor-pointer"
+          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
           role="menuitem"
           aria-label="View profile"
         >
@@ -66,7 +66,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
       <button
         onClick={handleLogout}
-        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex-gap-2 text-red-600 border-none bg-transparent cursor-pointer"
+        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 text-red-600 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700 dark:text-red-400"
         role="menuitem"
         aria-label="Logout"
       >
@@ -78,4 +78,3 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
     </div>
   )
 }
-

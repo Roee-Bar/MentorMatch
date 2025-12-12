@@ -6,6 +6,12 @@ import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import { modalBackdrop, modalContainer, btnPrimary, btnSecondary } from '@/lib/styles/shared-styles';
+
+// Component-specific styles
+const modalTitle = 'text-xl font-bold text-gray-800 mb-4 dark:text-slate-100';
+const infoBoxBlue = 'p-3 rounded bg-blue-50 dark:bg-blue-900/30 mb-4';
+const infoBoxGray = 'p-3 rounded bg-gray-50 dark:bg-slate-700 mb-4';
 
 interface CapacityEditModalProps {
   supervisor: Supervisor;
@@ -89,34 +95,34 @@ export default function CapacityEditModal({
 
   return (
     <div 
-      className="modal-backdrop"
+      className={modalBackdrop}
       onClick={handleBackdropClick}
     >
-      <div className="modal-container">
-        <h2 className="modal-title">
+      <div className={modalContainer}>
+        <h2 className={modalTitle}>
           Edit Supervisor Capacity
         </h2>
 
-        <div className="info-box-blue">
-          <p className="text-sm text-gray-700">
+        <div className={infoBoxBlue}>
+          <p className="text-sm text-gray-700 dark:text-slate-300">
             <span className="font-medium">Supervisor:</span> {supervisor.fullName}
           </p>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-700 dark:text-slate-300">
             <span className="font-medium">Department:</span> {supervisor.department}
           </p>
         </div>
 
         {/* Current vs New Capacity Comparison */}
-        <div className="info-box-gray">
+        <div className={infoBoxGray}>
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">Current Capacity:</span>
-            <span className="font-medium text-gray-800">
+            <span className="text-gray-600 dark:text-slate-400">Current Capacity:</span>
+            <span className="font-medium text-gray-800 dark:text-slate-200">
               {supervisor.currentCapacity} / {supervisor.maxCapacity}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">New Maximum:</span>
-            <span className="font-medium text-blue-600">
+            <span className="text-gray-600 dark:text-slate-400">New Maximum:</span>
+            <span className="font-medium text-blue-600 dark:text-blue-400">
               {supervisor.currentCapacity} / {maxCapacity || '0'}
             </span>
           </div>
@@ -154,8 +160,8 @@ export default function CapacityEditModal({
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded dark:bg-red-900/30 dark:border-red-800">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
 
@@ -164,14 +170,14 @@ export default function CapacityEditModal({
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary flex-1"
+              className={`${btnSecondary} flex-1`}
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary flex-1"
+              className={`${btnPrimary} flex-1`}
               disabled={loading}
             >
               {loading ? 'Updating...' : 'Update Capacity'}
@@ -182,5 +188,3 @@ export default function CapacityEditModal({
     </div>
   );
 }
-
-

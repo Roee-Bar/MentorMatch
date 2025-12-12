@@ -28,7 +28,7 @@ const FilterButtons: React.FC<FilterButtonsProps> = ({
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeFilter === filter.value
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+              : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700'
           }`}
         >
           {filter.label} ({filter.count})

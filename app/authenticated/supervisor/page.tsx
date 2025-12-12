@@ -90,7 +90,7 @@ export default function SupervisorAuthenticated() {
       />
 
       {/* Stats Grid */}
-      <div className="grid-stats">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Applications"
           value={applications.length}
@@ -138,7 +138,7 @@ export default function SupervisorAuthenticated() {
         {applications.length === 0 ? (
           <EmptyState message="No applications received yet." />
         ) : (
-          <div className="grid-cards">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {applications.slice(0, 6).map((application) => {
               const dateAppliedStr = formatFirestoreDate(application.dateApplied);
               

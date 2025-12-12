@@ -13,8 +13,8 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
 }) => {
   return (
     <div className={className}>
-      <label className="text-sm font-medium text-gray-600">{label}</label>
-      <p className="text-gray-800 mt-1">{value || '-'}</p>
+      <label className="text-sm font-medium text-gray-600 dark:text-slate-400">{label}</label>
+      <p className="text-gray-800 dark:text-slate-200 mt-1">{value || '-'}</p>
     </div>
   );
 };

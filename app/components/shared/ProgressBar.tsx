@@ -21,6 +21,17 @@
  * ```
  */
 
+// Progress bar styles with dark mode support
+const progressContainer = 'w-full bg-gray-200 rounded-full overflow-hidden dark:bg-slate-700';
+const progressBarBase = 'h-full transition-all duration-300';
+
+const progressBarColors = {
+  green: 'bg-green-600 dark:bg-green-500',
+  yellow: 'bg-yellow-600 dark:bg-yellow-500',
+  red: 'bg-red-600 dark:bg-red-500',
+  blue: 'bg-blue-600 dark:bg-blue-500',
+};
+
 interface ProgressBarProps {
   current: number;
   max: number;
@@ -48,38 +59,37 @@ export default function ProgressBar({
 
   const getColorClass = () => {
     if (colorScheme !== 'auto') {
-      return `progress-bar-${colorScheme}`;
+      return progressBarColors[colorScheme];
     }
 
     // Auto color based on percentage
     if (percentage >= 100) {
-      return 'progress-bar-red';
+      return progressBarColors.red;
     } else if (percentage > 80) {
-      return 'progress-bar-yellow';
+      return progressBarColors.yellow;
     } else {
-      return 'progress-bar-green';
+      return progressBarColors.green;
     }
   };
 
   return (
     <div className={className}>
       {showLabel && (
-        <div className="flex-between mb-1">
-          <span className="text-sm text-gray-600">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm text-gray-600 dark:text-slate-400">
             {current} / {max}
           </span>
-          <span className="text-sm font-medium text-gray-600">
+          <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
             {Math.round(percentage)}%
           </span>
         </div>
       )}
-      <div className={`progress-container ${sizeClasses[size]}`}>
+      <div className={`${progressContainer} ${sizeClasses[size]}`}>
         <div
-          className={`progress-bar ${getColorClass()}`}
+          className={`${progressBarBase} ${getColorClass()}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
     </div>
   );
 }
-

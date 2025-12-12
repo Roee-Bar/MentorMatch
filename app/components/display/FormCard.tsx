@@ -1,4 +1,5 @@
 import React from 'react';
+import { cardBase } from '@/lib/styles/shared-styles';
 
 interface FormCardProps {
   title: string;
@@ -12,8 +13,8 @@ const FormCard: React.FC<FormCardProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`bg-white p-6 rounded-lg shadow border border-gray-200 ${className}`}>
-      <h2 className="text-xl font-bold text-gray-800 mb-4">{title}</h2>
+    <div className={`${cardBase} ${className}`}>
+      <h2 className="text-xl font-bold text-gray-800 mb-4 dark:text-slate-100">{title}</h2>
       <div className="space-y-4">
         {children}
       </div>
@@ -22,4 +23,3 @@ const FormCard: React.FC<FormCardProps> = ({
 };
 
 export default FormCard;
-
