@@ -20,7 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import { btnPrimary, btnPrimaryFullWidth, cardBase } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, sectionTitleSm, dividerTop } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -161,12 +161,12 @@ export default function StudentProfilePage() {
         }
       />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid-profile">
           {/* Main Profile Section */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="grid-profile-main">
             {/* Personal Information */}
             <div className={cardBase}>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Personal Information</h2>
+              <h2 className={sectionTitle}>Personal Information</h2>
               
               <div className="space-y-4">
                 <ProfileField label="Full Name" value={student.fullName} />
@@ -179,7 +179,7 @@ export default function StudentProfilePage() {
 
             {/* Academic Information */}
             <div className={cardBase}>
-              <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Academic Information</h2>
+              <h2 className={sectionTitle}>Academic Information</h2>
               
               <div className="space-y-4">
                 {student.skills && (
@@ -212,7 +212,7 @@ export default function StudentProfilePage() {
             {/* Partner Information */}
             {student.hasPartner && (
               <div className={cardBase}>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Partner Information</h2>
+                <h2 className={sectionTitle}>Partner Information</h2>
                 
                 <div className="space-y-4">
                   {student.partnerName && <ProfileField label="Partner Name" value={student.partnerName} />}
@@ -223,10 +223,10 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="grid-profile-sidebar">
             {/* Match Status */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 dark:text-slate-100">Match Status</h2>
+            <div className={cardBase}>
+              <h2 className={sectionTitleSm}>Match Status</h2>
               
               <div className="flex items-center justify-center">
                 <StatusBadge
@@ -242,7 +242,7 @@ export default function StudentProfilePage() {
               </div>
               
               {student.matchStatus === 'matched' && student.assignedSupervisorId && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className={dividerTop}>
                   {supervisorDetails ? (
                     <>
                       <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
@@ -262,7 +262,7 @@ export default function StudentProfilePage() {
               )}
               
               {student.matchStatus === 'pending' && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className={dividerTop}>
                   <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
                     Your application is being reviewed
                   </p>
@@ -270,7 +270,7 @@ export default function StudentProfilePage() {
               )}
               
               {student.matchStatus === 'unmatched' && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className={dividerTop}>
                   <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
                     Browse available supervisors and submit an application
                   </p>
@@ -286,7 +286,7 @@ export default function StudentProfilePage() {
 
             {/* Partnership Status */}
             <div className={cardBase}>
-              <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4">Partnership Status</h2>
+              <h2 className={sectionTitleSm}>Partnership Status</h2>
               
               <div className="flex-center">
                 <StatusBadge
@@ -296,7 +296,7 @@ export default function StudentProfilePage() {
               </div>
               
               {student.partnerId && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className={dividerTop}>
                   {partnerDetails ? (
                     <>
                       <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
@@ -318,7 +318,7 @@ export default function StudentProfilePage() {
               )}
               
               {!student.partnerId && (
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                <div className={dividerTop}>
                   <p className="text-sm text-gray-600 dark:text-slate-400 text-center mb-2">
                     Find a project partner
                   </p>

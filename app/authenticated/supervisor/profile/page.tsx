@@ -14,7 +14,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import ProfileField from '@/app/components/display/ProfileField';
 import { Supervisor } from '@/types/database';
-import { btnPrimary } from '@/lib/styles/shared-styles';
+import { btnPrimary, cardBase, sectionTitle, pillBlue, pillGreen } from '@/lib/styles/shared-styles';
 
 export default function SupervisorProfilePage() {
   const router = useRouter();
@@ -63,12 +63,12 @@ export default function SupervisorProfilePage() {
         }
       />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid-profile">
           {/* Main Profile Section */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="grid-profile-main">
             {/* Personal Information */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Personal Information</h2>
+            <div className={cardBase}>
+              <h2 className={sectionTitle}>Personal Information</h2>
               
               <div className="space-y-4">
                 <ProfileField label="Full Name" value={supervisor.fullName} />
@@ -79,19 +79,19 @@ export default function SupervisorProfilePage() {
             </div>
 
             {/* Bio */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Bio</h2>
-              <p className="text-gray-700 leading-relaxed text-balance">{supervisor.bio}</p>
+            <div className={cardBase}>
+              <h2 className={sectionTitle}>Bio</h2>
+              <p className="text-gray-700 dark:text-slate-300 leading-relaxed text-balance">{supervisor.bio}</p>
             </div>
 
             {/* Research Interests */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Research Interests</h2>
+            <div className={cardBase}>
+              <h2 className={sectionTitle}>Research Interests</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.researchInterests.map((interest: string, index: number) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                    className={pillBlue}
                   >
                     {interest}
                   </span>
@@ -100,13 +100,13 @@ export default function SupervisorProfilePage() {
             </div>
 
             {/* Expertise Areas */}
-            <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Expertise Areas</h2>
+            <div className={cardBase}>
+              <h2 className={sectionTitle}>Expertise Areas</h2>
               <div className="flex flex-wrap gap-2">
                 {supervisor.expertiseAreas.map((area: string, index: number) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                    className={pillGreen}
                   >
                     {area}
                   </span>
@@ -116,8 +116,8 @@ export default function SupervisorProfilePage() {
 
             {/* Office Information */}
             {(supervisor.officeLocation || supervisor.officeHours) && (
-              <div className="bg-white p-6 rounded-lg shadow border border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Office Information</h2>
+              <div className={cardBase}>
+                <h2 className={sectionTitle}>Office Information</h2>
                 
                 <div className="space-y-4">
                   {supervisor.officeLocation && <ProfileField label="Location" value={supervisor.officeLocation} />}
@@ -128,7 +128,7 @@ export default function SupervisorProfilePage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="grid-profile-sidebar">
             {/* Capacity Indicator */}
             <CapacityIndicator
               current={supervisor.currentCapacity}

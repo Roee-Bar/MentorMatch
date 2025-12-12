@@ -14,6 +14,7 @@ import StatusBadge from '@/app/components/shared/StatusBadge';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import type { Supervisor } from '@/types/database';
+import { cardBase, linkAction } from '@/lib/styles/shared-styles';
 
 export default function AdminAuthenticated() {
   const { userId, isAuthLoading } = useAdminAuth();
@@ -147,12 +148,12 @@ export default function AdminAuthenticated() {
 
         {/* Supervisor Capacity Management Section */}
         <div className="mb-8">
-          <div className="bg-white p-6 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700">
+          <div className={cardBase}>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Manage Supervisor Capacity</h2>
             <button
               onClick={() => refetch()}
-              className="text-blue-600 text-sm font-medium hover:underline"
+              className={linkAction}
               disabled={dataLoading}
             >
               {dataLoading ? 'Refreshing...' : 'Refresh'}

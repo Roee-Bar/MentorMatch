@@ -19,6 +19,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import ApplicationStatusModal from './_components/ApplicationStatusModal';
 import type { Application } from '@/types/database';
 import { formatFirestoreDate } from '@/lib/utils/date';
+import { linkAction } from '@/lib/styles/shared-styles';
 
 export default function SupervisorAuthenticated() {
   const router = useRouter();
@@ -128,7 +129,7 @@ export default function SupervisorAuthenticated() {
           action={
             <button
               onClick={() => router.push(ROUTES.AUTHENTICATED.SUPERVISOR_APPLICATIONS)}
-              className="text-blue-600 text-sm font-medium hover:underline"
+              className={linkAction}
             >
               View All →
             </button>
@@ -138,7 +139,7 @@ export default function SupervisorAuthenticated() {
         {applications.length === 0 ? (
           <EmptyState message="No applications received yet." />
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid-cards-3col">
             {applications.slice(0, 6).map((application) => {
               const dateAppliedStr = formatFirestoreDate(application.dateApplied);
               
