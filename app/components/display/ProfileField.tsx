@@ -1,4 +1,5 @@
 import React from 'react';
+import { profileLabel, profileValue } from '@/lib/styles/shared-styles';
 
 interface ProfileFieldProps {
   label: string;
@@ -13,8 +14,8 @@ const ProfileField: React.FC<ProfileFieldProps> = ({
 }) => {
   return (
     <div className={className}>
-      <label className="text-sm font-medium text-gray-600 dark:text-slate-400">{label}</label>
-      <p className="text-gray-800 dark:text-slate-200 mt-1">{value || '-'}</p>
+      <label className={profileLabel}>{label}</label>
+      <p className={profileValue}>{value || '-'}</p>
     </div>
   );
 };

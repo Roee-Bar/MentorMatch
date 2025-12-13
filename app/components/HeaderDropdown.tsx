@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth'
-import { textMuted, dropdownItem, dropdownItemDanger } from '@/lib/styles/shared-styles'
+import { textMuted, dropdownItem, dropdownItemDanger, dropdownMenu, borderBottom } from '@/lib/styles/shared-styles'
 
 interface HeaderDropdownProps {
   userProfile: {
@@ -26,11 +26,11 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
   return (
     <div 
-      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50 dark:bg-slate-800 dark:text-slate-200"
+      className={dropdownMenu}
       role="menu"
       aria-label="User menu"
     >
-      <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-700">
+      <div className={`px-4 py-2 ${borderBottom}`}>
         <p className="text-sm font-semibold dark:text-slate-100">{userProfile.name}</p>
         <p className={`text-xs ${textMuted}`}>{userProfile.email}</p>
       </div>

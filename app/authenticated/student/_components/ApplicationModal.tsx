@@ -18,7 +18,9 @@ import {
   modalCloseBtn,
   errorText,
   charCountText,
-  heading2xl
+  heading2xl,
+  sectionDivider,
+  borderTop
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationModalProps {
@@ -211,7 +213,7 @@ export default function ApplicationModal({
           </div>
 
           {/* Partner Information - Display Only */}
-          <div className="border-t pt-6 dark:border-slate-700">
+          <div className={sectionDivider}>
             {studentProfile?.partnerId ? (
               <div className={`${infoBoxBlue} p-4`}>
                 <div className="flex items-center mb-2">
@@ -248,7 +250,7 @@ export default function ApplicationModal({
           </div>
 
           {/* Supervisor Info Preview */}
-          <div className="border-t pt-6 bg-gray-50 -mx-6 px-6 py-4 dark:bg-slate-900/50">
+          <div className={`${sectionDivider} bg-gray-50 -mx-6 px-6 py-4 dark:bg-slate-900/50`}>
             <h3 className="text-sm font-semibold text-gray-700 mb-2 dark:text-slate-300">Supervisor Details</h3>
             <div className="space-y-1 text-sm">
               <p><span className={textSecondary}>Name:</span> <span className="font-medium dark:text-slate-200">{supervisor.name}</span></p>
@@ -258,7 +260,7 @@ export default function ApplicationModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 border-t pt-6 -mx-6 px-6 pb-0 dark:border-slate-700">
+          <div className={`flex gap-3 ${sectionDivider} -mx-6 px-6 pb-0`}>
             <button
               type="button"
               onClick={onClose}

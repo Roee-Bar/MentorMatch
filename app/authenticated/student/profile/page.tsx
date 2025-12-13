@@ -20,7 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, sectionTitleSm, dividerTop, textSecondary, textValue } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -226,7 +226,7 @@ export default function StudentProfilePage() {
           <div className="grid-profile-sidebar">
             {/* Match Status */}
             <div className={cardBase}>
-              <h2 className={sectionTitleSm}>Match Status</h2>
+              <h2 className={`${headingLg} mb-4`}>Match Status</h2>
               
               <div className="flex items-center justify-center">
                 <StatusBadge
@@ -280,7 +280,7 @@ export default function StudentProfilePage() {
 
             {/* Partnership Status */}
             <div className={cardBase}>
-              <h2 className={sectionTitleSm}>Partnership Status</h2>
+              <h2 className={`${headingLg} mb-4`}>Partnership Status</h2>
               
               <div className="flex-center">
                 <StatusBadge

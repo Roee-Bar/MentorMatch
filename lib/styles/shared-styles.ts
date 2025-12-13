@@ -33,6 +33,7 @@ export const modalContainer = 'bg-white rounded-lg shadow-xl max-w-md w-full p-6
 // ============= TEXT UTILITIES =============
 export const textMuted = 'text-gray-500 dark:text-slate-400';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
+/** @deprecated Use headingLg instead */
 export const textHeading = 'text-lg font-bold text-gray-800 dark:text-slate-100';
 export const textBody = 'text-sm text-gray-700 dark:text-slate-300';
 
@@ -60,6 +61,7 @@ export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl bor
 
 // ============= SECTION HEADINGS =============
 export const sectionTitle = 'text-xl font-bold text-gray-800 dark:text-slate-100 mb-4';
+/** @deprecated Use headingLg with mb-4 class instead */
 export const sectionTitleSm = 'text-lg font-bold text-gray-800 dark:text-slate-100 mb-4';
 
 // ============= DIVIDERS =============
@@ -151,3 +153,40 @@ export const filterBtnInactive = `${filterBtnBase} bg-white dark:bg-slate-800 te
 // ============= TEXT UTILITIES (Blue Accent) =============
 export const textBlue = 'text-blue-600 dark:text-blue-400';
 export const textBlueAccent = 'font-medium text-blue-600 dark:text-blue-400';
+
+// ============= BORDERS & DIVIDERS (Extended) =============
+export const borderTop = 'border-t border-gray-200 dark:border-slate-700';
+export const borderBottom = 'border-b border-gray-200 dark:border-slate-700';
+export const sectionDivider = 'pt-6 border-t dark:border-slate-700';
+export const sectionDividerWithMargin = 'mt-4 pt-4 border-t dark:border-slate-700';
+
+// ============= DROPDOWN MENUS =============
+export const dropdownMenu = 'absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50 dark:bg-slate-800 dark:text-slate-200';
+
+// ============= TOUCH TARGET BUTTONS =============
+export const touchTargetBtn = 'p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors';
+export const touchTargetBtnLight = `${touchTargetBtn} hover:bg-gray-100 dark:hover:bg-slate-700`;
+
+// ============= SPECIAL BUTTONS =============
+export const logoutBtnFull = 'flex items-center justify-center gap-3 w-full p-3 min-h-[44px] rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors text-red-600 dark:text-red-400 font-medium';
+
+// ============= TABLE PATTERNS =============
+export const tableWrapper = 'overflow-x-auto';
+export const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
+export const tableHeader = 'bg-gray-50 dark:bg-slate-800';
+export const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+export const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
+export const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
+export const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
+
+// ============= ACTION SELECTION BUTTONS =============
+export const actionBtnBase = 'w-full p-4 rounded-lg border-2 text-left transition-all';
+export const actionBtnDefault = 'bg-white border-gray-200 hover:border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:hover:border-slate-500 dark:text-slate-200';
+export const actionBtnApprove = 'bg-green-100 border-green-500 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:border-green-600 dark:text-green-300 dark:hover:bg-green-900/70';
+export const actionBtnRevision = 'bg-orange-100 border-orange-500 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/50 dark:border-orange-600 dark:text-orange-300 dark:hover:bg-orange-900/70';
+export const actionBtnReject = 'bg-red-100 border-red-500 text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/70';
+
+// ============= PROFILE FIELDS =============
+export const profileLabel = 'text-sm font-medium text-gray-600 dark:text-slate-400';
+export const profileValue = 'text-gray-800 dark:text-slate-200 mt-1';

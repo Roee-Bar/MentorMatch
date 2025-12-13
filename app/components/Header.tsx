@@ -8,7 +8,7 @@ import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
-import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd } from '@/lib/styles/shared-styles'
+import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd, touchTargetBtnLight, headingLg, borderBottom, borderTop, logoutBtnFull } from '@/lib/styles/shared-styles'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -207,11 +207,11 @@ export default function Header() {
         aria-label="Mobile navigation menu"
       >
         {/* Close Button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
-          <span className="text-lg font-bold text-gray-800 dark:text-slate-100">Menu</span>
+        <div className={`flex items-center justify-between p-4 ${borderBottom}`}>
+          <span className={headingLg}>Menu</span>
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            className={touchTargetBtnLight}
             aria-label="Close menu"
           >
             <svg className="w-6 h-6 text-gray-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,7 +222,7 @@ export default function Header() {
 
         {/* User Info */}
         {userProfile && (
-          <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <div className={`p-4 ${borderBottom}`}>
             <div className="flex items-center gap-3">
               {userProfile.photoURL ? (
                 <Image
@@ -273,10 +273,10 @@ export default function Header() {
         </nav>
 
         {/* Logout Button */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
+        <div className={`absolute bottom-0 left-0 right-0 p-4 ${borderTop}`}>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center gap-3 w-full p-3 min-h-[44px] rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors text-red-600 dark:text-red-400 font-medium"
+            className={logoutBtnFull}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

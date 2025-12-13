@@ -13,7 +13,7 @@ import {
   textSecondary,
   textMuted,
   textValue,
-  textHeading,
+  headingLg,
   infoBoxBlue,
   linkEmail
 } from '@/lib/styles/shared-styles';
@@ -82,7 +82,7 @@ export default function PartnershipRequestCard({
       <div className={cardHeader}>
         <div className="flex-1">
           <div className="flex gap-2 mb-1">
-            <h3 className={textHeading}>
+            <h3 className={headingLg}>
               {displayName}
             </h3>
             <span className={badgeWarning}>
