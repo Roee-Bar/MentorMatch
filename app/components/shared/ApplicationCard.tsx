@@ -6,7 +6,28 @@
 import { useRouter } from 'next/navigation';
 import type { ApplicationCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
-import { cardBase, btnPrimary, btnDanger, btnSuccess, badgeInfo } from '@/lib/styles/shared-styles';
+import { 
+  cardBase, 
+  btnPrimary, 
+  btnDanger, 
+  btnSuccess, 
+  badgeInfo,
+  cardHeader,
+  cardTitle,
+  cardDetailsSection,
+  cardDetailRow,
+  cardActionsSection,
+  textSecondary,
+  textMuted,
+  textValue,
+  textDescription,
+  infoBoxBlue,
+  textInfoLight,
+  textInfoDark,
+  textGreen,
+  textRed,
+  textOrange
+} from '@/lib/styles/shared-styles';
 
 interface ApplicationCardProps {
   application: ApplicationCardData;
@@ -32,18 +53,18 @@ export default function ApplicationCard({
   return (
     <div className={cardBase}>
       {/* Header with Title and Status */}
-      <div className="flex items-start justify-between mb-4">
+      <div className={cardHeader}>
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-800 mb-1 dark:text-slate-100">
+          <h3 className={cardTitle}>
             {application.projectTitle}
           </h3>
           {/* Show supervisor name for students, student name for supervisors */}
           {isSupervisorView ? (
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className={`text-sm ${textSecondary}`}>
               Student: <span className="font-medium">{application.studentName}</span>
             </p>
           ) : (
-            <p className="text-sm text-gray-600 dark:text-slate-400">
+            <p className={`text-sm ${textSecondary}`}>
               Supervisor: {application.supervisorName}
             </p>
           )}
@@ -53,13 +74,13 @@ export default function ApplicationCard({
 
       {/* Partner Information Badge */}
       {application.hasPartner && application.partnerName && (
-        <div className="mb-4 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800">
+        <div className={`mb-4 flex items-center gap-2 ${infoBoxBlue}`}>
           <svg className="w-4 h-4 text-blue-600 flex-shrink-0 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
           </svg>
           <div className="flex-1">
-            <p className="text-sm text-blue-900 font-medium dark:text-blue-200">Team Project</p>
-            <p className="text-xs text-blue-700 dark:text-blue-300">Partner: {application.partnerName}</p>
+            <p className={`text-sm font-medium ${textInfoDark}`}>Team Project</p>
+            <p className={`text-xs ${textInfoLight}`}>Partner: {application.partnerName}</p>
           </div>
           {application.linkedApplicationId && (
             <span className={badgeInfo}>Linked</span>
@@ -69,32 +90,32 @@ export default function ApplicationCard({
 
       {/* Project Description */}
       <div className="mb-4">
-        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 dark:text-slate-300">
+        <p className={`${textDescription} line-clamp-3`}>
           {application.projectDescription}
         </p>
       </div>
 
       {/* Application Details */}
-      <div className="space-y-2 border-t pt-4 dark:border-slate-700">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-slate-400">Date Applied:</span>
-          <span className="text-gray-800 font-medium dark:text-slate-200">
+      <div className={cardDetailsSection}>
+        <div className={cardDetailRow}>
+          <span className={textMuted}>Date Applied:</span>
+          <span className={textValue}>
             {application.dateApplied}
           </span>
         </div>
         {!isSupervisorView && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-slate-400">Expected Response:</span>
-            <span className="text-gray-800 font-medium dark:text-slate-200">
+          <div className={cardDetailRow}>
+            <span className={textMuted}>Expected Response:</span>
+            <span className={textValue}>
               {application.responseTime}
             </span>
           </div>
         )}
         {/* Show student email for supervisor view */}
         {isSupervisorView && application.studentEmail && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-500 dark:text-slate-400">Email:</span>
-            <span className="text-gray-800 font-medium dark:text-slate-200">
+          <div className={cardDetailRow}>
+            <span className={textMuted}>Email:</span>
+            <span className={textValue}>
               {application.studentEmail}
             </span>
           </div>
@@ -111,7 +132,7 @@ export default function ApplicationCard({
           <p className={`text-xs font-semibold mb-1 ${
             application.status === 'revision_requested' 
               ? 'text-orange-700 dark:text-orange-400' 
-              : 'text-gray-500 dark:text-slate-400'
+              : textMuted
           }`}>
             {application.status === 'revision_requested' 
               ? 'Revision Requested' 
@@ -124,7 +145,7 @@ export default function ApplicationCard({
       )}
 
       {/* Action Buttons based on status and view mode */}
-      <div className="mt-4 pt-4 border-t flex gap-2 dark:border-slate-700">
+      <div className={cardActionsSection}>
         {/* Student Actions */}
         {!isSupervisorView && (
           <>
@@ -166,17 +187,17 @@ export default function ApplicationCard({
               </button>
             )}
             {application.status === 'revision_requested' && (
-              <div className="flex-1 text-center text-sm text-orange-600 py-2 dark:text-orange-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textOrange}`}>
                 Awaiting student revision
               </div>
             )}
             {application.status === 'approved' && (
-              <div className="flex-1 text-center text-sm text-green-600 py-2 dark:text-green-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textGreen}`}>
                 ✓ Approved
               </div>
             )}
             {application.status === 'rejected' && (
-              <div className="flex-1 text-center text-sm text-red-600 py-2 dark:text-red-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textRed}`}>
                 ✗ Rejected
               </div>
             )}

@@ -14,7 +14,7 @@ import StatusBadge from '@/app/components/shared/StatusBadge';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import type { Supervisor } from '@/types/database';
-import { cardBase, linkAction } from '@/lib/styles/shared-styles';
+import { cardBase, linkAction, textMuted } from '@/lib/styles/shared-styles';
 
 export default function AdminAuthenticated() {
   const { userId, isAuthLoading } = useAdminAuth();
@@ -165,7 +165,7 @@ export default function AdminAuthenticated() {
               <LoadingSpinner message="Loading supervisors..." />
             </div>
           ) : supervisors.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+            <div className={`text-center py-8 ${textMuted}`}>
               No supervisors found
             </div>
           ) : (

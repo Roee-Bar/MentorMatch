@@ -5,7 +5,7 @@
  * Automatically applies the correct badge styling based on variant and status value.
  * 
  * @param status - The status value to display
- * @param variant - The context type: 'application', 'availability', 'partnership', or 'custom'
+ * @param variant - The context type: 'application', 'availability', 'partnership', 'matchStatus', or 'custom'
  * @param customLabel - Optional custom display text (overrides default label)
  * @param customClassName - For variant='custom', provide your own badge class
  * 
@@ -14,12 +14,12 @@
  * <StatusBadge status="pending" variant="application" />
  * <StatusBadge status="available" variant="availability" />
  * <StatusBadge status="paired" variant="partnership" customLabel="Connected" />
+ * <StatusBadge status="matched" variant="matchStatus" />
  * <StatusBadge status="active" variant="custom" customClassName="bg-blue-100 text-blue-800" customLabel="Active" />
  * ```
  */
 
-// Base badge styles shared across all variants
-const badgeBase = 'px-3 py-1 rounded-full text-xs font-semibold';
+import { badgeBase } from '@/lib/styles/shared-styles';
 
 // Badge color variants with dark mode support
 const badgeStyles = {
@@ -33,7 +33,7 @@ const badgeStyles = {
 
 interface StatusBadgeProps {
   status: string;
-  variant?: 'application' | 'availability' | 'partnership' | 'custom';
+  variant?: 'application' | 'availability' | 'partnership' | 'matchStatus' | 'custom';
   customLabel?: string;
   customClassName?: string;
   className?: string;
@@ -69,6 +69,13 @@ export default function StatusBadge({
     paired: { style: badgeStyles.success, label: 'Paired' },
   };
 
+  // Match status mappings (for student-supervisor matching)
+  const matchStatusMappings = {
+    matched: { style: badgeStyles.success, label: 'Matched' },
+    pending: { style: badgeStyles.warning, label: 'Pending' },
+    unmatched: { style: badgeStyles.gray, label: 'Unmatched' },
+  };
+
   const getMappings = () => {
     switch (variant) {
       case 'application':
@@ -77,6 +84,8 @@ export default function StatusBadge({
         return availabilityMappings;
       case 'partnership':
         return partnershipMappings;
+      case 'matchStatus':
+        return matchStatusMappings;
       case 'custom':
         return {};
       default:

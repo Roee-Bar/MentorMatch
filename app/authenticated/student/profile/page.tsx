@@ -20,7 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, sectionTitleSm, dividerTop } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue, textErrorCentered } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -184,26 +184,26 @@ export default function StudentProfilePage() {
               <div className="space-y-4">
                 {student.skills && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Skills</label>
-                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.skills}</p>
+                    <label className={`text-sm font-medium ${textSecondary}`}>Skills</label>
+                    <p className={`${textValue} mt-1 text-balance`}>{student.skills}</p>
                   </div>
                 )}
                 {student.interests && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Interests</label>
-                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.interests}</p>
+                    <label className={`text-sm font-medium ${textSecondary}`}>Interests</label>
+                    <p className={`${textValue} mt-1 text-balance`}>{student.interests}</p>
                   </div>
                 )}
                 {student.previousProjects && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Previous Projects</label>
-                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.previousProjects}</p>
+                    <label className={`text-sm font-medium ${textSecondary}`}>Previous Projects</label>
+                    <p className={`${textValue} mt-1 text-balance`}>{student.previousProjects}</p>
                   </div>
                 )}
                 {student.preferredTopics && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600 dark:text-slate-400">Preferred Topics</label>
-                    <p className="text-gray-800 dark:text-slate-200 mt-1 text-balance">{student.preferredTopics}</p>
+                    <label className={`text-sm font-medium ${textSecondary}`}>Preferred Topics</label>
+                    <p className={`${textValue} mt-1 text-balance`}>{student.preferredTopics}</p>
                   </div>
                 )}
               </div>
@@ -226,18 +226,12 @@ export default function StudentProfilePage() {
           <div className="grid-profile-sidebar">
             {/* Match Status */}
             <div className={cardBase}>
-              <h2 className={sectionTitleSm}>Match Status</h2>
+              <h2 className={`${headingLg} mb-4`}>Match Status</h2>
               
               <div className="flex items-center justify-center">
                 <StatusBadge
                   status={student.matchStatus}
-                  variant="custom"
-                  customClassName={
-                    student.matchStatus === 'matched' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                    student.matchStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                    'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-200'
-                  }
-                  customLabel={student.matchStatus.charAt(0).toUpperCase() + student.matchStatus.slice(1)}
+                  variant="matchStatus"
                 />
               </div>
               
@@ -245,7 +239,7 @@ export default function StudentProfilePage() {
                 <div className={dividerTop}>
                   {supervisorDetails ? (
                     <>
-                      <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
+                      <p className={`text-sm ${textSecondary} mb-3 text-center`}>
                         You have been matched with:
                       </p>
                       <SupervisorCard
@@ -254,7 +248,7 @@ export default function StudentProfilePage() {
                       />
                     </>
                   ) : (
-                    <p className="text-sm text-red-600 text-center">
+                    <p className={textErrorCentered}>
                       Unable to load supervisor details. Please try again later.
                     </p>
                   )}
@@ -263,7 +257,7 @@ export default function StudentProfilePage() {
               
               {student.matchStatus === 'pending' && (
                 <div className={dividerTop}>
-                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
+                  <p className={`text-sm ${textSecondary} text-center`}>
                     Your application is being reviewed
                   </p>
                 </div>
@@ -271,7 +265,7 @@ export default function StudentProfilePage() {
               
               {student.matchStatus === 'unmatched' && (
                 <div className={dividerTop}>
-                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center">
+                  <p className={`text-sm ${textSecondary} text-center`}>
                     Browse available supervisors and submit an application
                   </p>
                   <button
@@ -286,7 +280,7 @@ export default function StudentProfilePage() {
 
             {/* Partnership Status */}
             <div className={cardBase}>
-              <h2 className={sectionTitleSm}>Partnership Status</h2>
+              <h2 className={`${headingLg} mb-4`}>Partnership Status</h2>
               
               <div className="flex-center">
                 <StatusBadge
@@ -299,7 +293,7 @@ export default function StudentProfilePage() {
                 <div className={dividerTop}>
                   {partnerDetails ? (
                     <>
-                      <p className="text-sm text-gray-600 dark:text-slate-400 mb-3 text-center">
+                      <p className={`text-sm ${textSecondary} mb-3 text-center`}>
                         Paired with:
                       </p>
                       <StudentCard
@@ -310,7 +304,7 @@ export default function StudentProfilePage() {
                       />
                     </>
                   ) : (
-                    <p className="text-sm text-red-600 text-center">
+                    <p className={textErrorCentered}>
                       Unable to load partner details. Please try again later.
                     </p>
                   )}
@@ -319,7 +313,7 @@ export default function StudentProfilePage() {
               
               {!student.partnerId && (
                 <div className={dividerTop}>
-                  <p className="text-sm text-gray-600 dark:text-slate-400 text-center mb-2">
+                  <p className={`text-sm ${textSecondary} text-center mb-2`}>
                     Find a project partner
                   </p>
                   <button

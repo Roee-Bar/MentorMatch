@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import FormInput from '@/app/components/form/FormInput';
 import FormSelect from '@/app/components/form/FormSelect';
 import { DEPARTMENTS, AVAILABILITY_FILTER_OPTIONS } from '@/lib/constants';
-import { btnSecondary, labelStyles, inputStyles } from '@/lib/styles/shared-styles';
+import { btnSecondary, labelStyles, inputStyles, iconMuted, cardBaseCompact, dividerLight } from '@/lib/styles/shared-styles';
 
 // Availability options without 'all' for FormSelect (uses placeholder for "all")
 const AVAILABILITY_OPTIONS = AVAILABILITY_FILTER_OPTIONS.filter(opt => opt.value !== 'all');
@@ -78,7 +78,7 @@ export default function SupervisorFilters({
     filters.interests;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow border border-gray-200 mb-6 dark:bg-slate-800 dark:border-slate-700">
+    <div className={`${cardBaseCompact} mb-6`}>
       {/* Main Filter Row */}
       <div className="flex flex-wrap gap-4 items-end">
         {/* Search Input - custom wrapper for search icon */}
@@ -97,7 +97,7 @@ export default function SupervisorFilters({
               className={`${inputStyles} pl-10`}
             />
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${iconMuted}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ export default function SupervisorFilters({
       </div>
 
       {/* Advanced Filters Row (Expertise & Interests) */}
-      <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+      <div className={`flex flex-wrap gap-4 ${dividerLight}`}>
         {/* Expertise Filter */}
         <FormInput
           label="Expertise Areas"
@@ -172,7 +172,7 @@ export default function SupervisorFilters({
 
       {/* Results Count */}
       {resultCount !== undefined && (
-        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+        <div className={dividerLight}>
           <p className="text-sm text-gray-600 dark:text-slate-400">
             Showing <span className="font-semibold text-gray-900 dark:text-slate-100">{resultCount}</span> supervisor{resultCount !== 1 ? 's' : ''}
             {hasActiveFilters && ' matching your filters'}

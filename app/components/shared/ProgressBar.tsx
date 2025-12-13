@@ -21,16 +21,11 @@
  * ```
  */
 
+import { textSecondary, bgColorMap } from '@/lib/styles/shared-styles';
+
 // Progress bar styles with dark mode support
 const progressContainer = 'w-full bg-gray-200 rounded-full overflow-hidden dark:bg-slate-700';
 const progressBarBase = 'h-full transition-all duration-300';
-
-const progressBarColors = {
-  green: 'bg-green-600 dark:bg-green-500',
-  yellow: 'bg-yellow-600 dark:bg-yellow-500',
-  red: 'bg-red-600 dark:bg-red-500',
-  blue: 'bg-blue-600 dark:bg-blue-500',
-};
 
 interface ProgressBarProps {
   current: number;
@@ -59,16 +54,16 @@ export default function ProgressBar({
 
   const getColorClass = () => {
     if (colorScheme !== 'auto') {
-      return progressBarColors[colorScheme];
+      return bgColorMap[colorScheme];
     }
 
     // Auto color based on percentage
     if (percentage >= 100) {
-      return progressBarColors.red;
+      return bgColorMap.red;
     } else if (percentage > 80) {
-      return progressBarColors.yellow;
+      return bgColorMap.yellow;
     } else {
-      return progressBarColors.green;
+      return bgColorMap.green;
     }
   };
 
@@ -76,10 +71,10 @@ export default function ProgressBar({
     <div className={className}>
       {showLabel && (
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm text-gray-600 dark:text-slate-400">
+          <span className={`text-sm ${textSecondary}`}>
             {current} / {max}
           </span>
-          <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+          <span className={`text-sm font-medium ${textSecondary}`}>
             {Math.round(percentage)}%
           </span>
         </div>

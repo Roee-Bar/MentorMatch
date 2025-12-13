@@ -11,7 +11,7 @@ import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary, cardFormSection } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted } from '@/lib/styles/shared-styles'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -99,7 +99,7 @@ export default function RegisterPage() {
           <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-xl-custom font-bold">
             Create Account
           </h1>
-          <p className="text-gray-500 dark:text-slate-400 text-base m-0">
+          <p className={`${textMuted} text-base m-0`}>
             Create your MentorMatch account and complete your profile
           </p>
         </div>
@@ -121,7 +121,7 @@ export default function RegisterPage() {
           className="mb-5"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid-form-2col">
           <FormInput
             label="Password"
             type="password"
@@ -264,7 +264,7 @@ export default function RegisterPage() {
 
         {formData.hasPartner && (
           <div className="p-5 bg-white dark:bg-slate-800 rounded-lg border border-gray-300 dark:border-slate-600">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid-form-2col">
               <FormInput
                 label="Partner Name"
                 type="text"
@@ -306,7 +306,7 @@ export default function RegisterPage() {
       </form>
 
       {/* Already have account link */}
-      <div className="mt-8 text-center text-gray-500 dark:text-slate-400">
+      <div className={`mt-8 text-center ${textMuted}`}>
         <p className="text-sm">
           Already have an account?{' '}
           <Link

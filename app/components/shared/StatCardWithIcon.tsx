@@ -21,7 +21,7 @@
  * ```
  */
 
-import { cardBase, iconContainerBase } from '@/lib/styles/shared-styles';
+import { cardBase, textMuted, iconContainerMap, textColorMap } from '@/lib/styles/shared-styles';
 
 interface StatCardWithIconProps {
   title: string;
@@ -38,33 +38,17 @@ export default function StatCardWithIcon({
   color,
   icon,
 }: StatCardWithIconProps) {
-  const iconContainerClasses = {
-    blue: `${iconContainerBase} bg-blue-100 dark:bg-blue-900/50`,
-    green: `${iconContainerBase} bg-green-100 dark:bg-green-900/50`,
-    purple: `${iconContainerBase} bg-purple-100 dark:bg-purple-900/50`,
-    yellow: `${iconContainerBase} bg-yellow-100 dark:bg-yellow-900/50`,
-    red: `${iconContainerBase} bg-red-100 dark:bg-red-900/50`,
-  };
-
-  const iconColorClasses = {
-    blue: 'text-blue-600 dark:text-blue-400',
-    green: 'text-green-600 dark:text-green-400',
-    purple: 'text-purple-600 dark:text-purple-400',
-    yellow: 'text-yellow-600 dark:text-yellow-400',
-    red: 'text-red-600 dark:text-red-400',
-  };
-
   return (
     <div className={cardBase}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-slate-400">{title}</p>
+          <p className={`text-sm ${textMuted}`}>{title}</p>
           <p className="text-2xl font-semibold text-gray-900 mt-1 dark:text-slate-100">
             {value}
           </p>
         </div>
-        <div className={iconContainerClasses[color]}>
-          <div className={`w-6 h-6 ${iconColorClasses[color]}`}>
+        <div className={iconContainerMap[color]}>
+          <div className={`w-6 h-6 ${textColorMap[color]}`}>
             {icon}
           </div>
         </div>

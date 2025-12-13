@@ -1,4 +1,5 @@
 import React from 'react';
+import { textSecondary, heading3xl } from '@/lib/styles/shared-styles';
 
 interface PageHeaderProps {
   title: string;
@@ -17,9 +18,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     return (
       <div className={`mb-8 flex justify-between items-start ${className}`}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance">{title}</h1>
+          <h1 className={heading3xl}>{title}</h1>
           {description && (
-            <p className="text-gray-600 dark:text-slate-400">{description}</p>
+            <p className={textSecondary}>{description}</p>
           )}
         </div>
         {action}
@@ -29,9 +30,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
 
   return (
     <div className={`mb-8 ${className}`}>
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance">{title}</h1>
+      <h1 className={heading3xl}>{title}</h1>
       {description && (
-        <p className="text-gray-600 dark:text-slate-400">{description}</p>
+        <p className={textSecondary}>{description}</p>
       )}
     </div>
   );

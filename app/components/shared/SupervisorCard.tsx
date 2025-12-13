@@ -3,7 +3,25 @@
 
 import type { SupervisorCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
-import { cardHover, btnPrimary, btnSecondary, tagBlue, tagPurple, tagGray } from '@/lib/styles/shared-styles';
+import { 
+  cardHover, 
+  btnPrimary, 
+  btnSecondary, 
+  tagBlue, 
+  tagPurple, 
+  tagGray,
+  cardHeader,
+  cardTitle,
+  cardDetailsSection,
+  cardDetailRow,
+  cardActionsSection,
+  textSecondary,
+  textMuted,
+  textValue,
+  textLabel,
+  textDescription,
+  linkEmail
+} from '@/lib/styles/shared-styles';
 
 interface SupervisorCardProps {
   supervisor: SupervisorCardData;
@@ -25,19 +43,19 @@ export default function SupervisorCard({
   return (
     <div className={cardHover}>
       {/* Header with Name and Availability */}
-      <div className="flex items-start justify-between mb-4">
+      <div className={cardHeader}>
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-gray-800 mb-1 dark:text-slate-100">
+          <h3 className={cardTitle}>
             {supervisor.name}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-slate-400">{supervisor.department}</p>
+          <p className={`text-sm ${textSecondary}`}>{supervisor.department}</p>
         </div>
         <StatusBadge status={supervisor.availabilityStatus} variant="availability" />
       </div>
 
       {/* Bio */}
       <div className="mb-4">
-        <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 dark:text-slate-300">
+        <p className={`${textDescription} line-clamp-3`}>
           {supervisor.bio}
         </p>
       </div>
@@ -45,7 +63,7 @@ export default function SupervisorCard({
       {/* Expertise Areas */}
       {supervisor.expertiseAreas && supervisor.expertiseAreas.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Expertise:</p>
+          <p className={`${textLabel} mb-2`}>Expertise:</p>
           <div className="flex flex-wrap gap-2">
             {supervisor.expertiseAreas.slice(0, 4).map((area, index) => (
               <span
@@ -67,7 +85,7 @@ export default function SupervisorCard({
       {/* Research Interests */}
       {supervisor.researchInterests && supervisor.researchInterests.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Research Interests:</p>
+          <p className={`${textLabel} mb-2`}>Research Interests:</p>
           <div className="flex flex-wrap gap-2">
             {supervisor.researchInterests.slice(0, 3).map((interest, index) => (
               <span
@@ -87,18 +105,18 @@ export default function SupervisorCard({
       )}
 
       {/* Details */}
-      <div className="space-y-2 border-t pt-4 dark:border-slate-700">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-slate-400">Capacity:</span>
-          <span className="text-gray-800 font-medium dark:text-slate-200">
+      <div className={cardDetailsSection}>
+        <div className={cardDetailRow}>
+          <span className={textMuted}>Capacity:</span>
+          <span className={textValue}>
             {supervisor.currentCapacity}
           </span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-slate-400">Contact:</span>
+        <div className={cardDetailRow}>
+          <span className={textMuted}>Contact:</span>
           <a 
             href={`mailto:${supervisor.contact}`}
-            className="text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400"
+            className={linkEmail}
           >
             {supervisor.contact}
           </a>
@@ -107,7 +125,7 @@ export default function SupervisorCard({
 
       {/* Action Buttons */}
       {showApplyButton && supervisor.availabilityStatus !== 'unavailable' && (
-        <div className="mt-4 pt-4 border-t flex gap-2 dark:border-slate-700">
+        <div className={cardActionsSection}>
           <button
             onClick={handleApply}
             className={`${btnPrimary} flex-1`}

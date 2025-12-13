@@ -3,7 +3,25 @@
 
 import type { StudentCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
-import { cardHover, btnPrimary, btnDanger, badgeSuccess, tagBlue, tagPurple, tagGray } from '@/lib/styles/shared-styles';
+import { 
+  cardHover, 
+  btnPrimary, 
+  btnDanger, 
+  badgeSuccess, 
+  tagBlue, 
+  tagPurple, 
+  tagGray,
+  cardHeader,
+  cardTitle,
+  cardDetailsSection,
+  cardDetailRow,
+  cardActionsSection,
+  textSecondary,
+  textMuted,
+  textLabel,
+  textBody,
+  linkEmail
+} from '@/lib/styles/shared-styles';
 
 interface StudentCardProps {
   student: StudentCardData;
@@ -41,10 +59,10 @@ export default function StudentCard({
   return (
     <div className={`${cardHover} ${isCurrentPartner ? 'ring-2 ring-green-400' : ''}`}>
       {/* Header with Name and Status */}
-      <div className="flex items-start justify-between mb-4">
+      <div className={cardHeader}>
         <div className="flex-1">
           <div className="flex gap-2 mb-1">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">
+            <h3 className={cardTitle}>
               {student.fullName}
             </h3>
             {isCurrentPartner && (
@@ -53,7 +71,7 @@ export default function StudentCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 dark:text-slate-400">{student.department}</p>
+          <p className={`text-sm ${textSecondary}`}>{student.department}</p>
         </div>
         {!isCurrentPartner && (
           <StatusBadge status={student.partnershipStatus} variant="partnership" />
@@ -63,7 +81,7 @@ export default function StudentCard({
       {/* Skills */}
       {skillsArray.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Skills:</p>
+          <p className={`${textLabel} mb-2`}>Skills:</p>
           <div className="flex flex-wrap gap-2">
             {skillsArray.slice(0, 5).map((skill, index) => (
               <span
@@ -85,7 +103,7 @@ export default function StudentCard({
       {/* Interests */}
       {interestsArray.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Interests:</p>
+          <p className={`${textLabel} mb-2`}>Interests:</p>
           <div className="flex flex-wrap gap-2">
             {interestsArray.slice(0, 4).map((interest, index) => (
               <span
@@ -107,8 +125,8 @@ export default function StudentCard({
       {/* Preferred Topics */}
       {student.preferredTopics && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-1 dark:text-slate-400">Preferred Topics:</p>
-          <p className="text-sm text-gray-700 line-clamp-2 dark:text-slate-300">
+          <p className={`${textLabel} mb-1`}>Preferred Topics:</p>
+          <p className={`${textBody} line-clamp-2`}>
             {student.preferredTopics}
           </p>
         </div>
@@ -117,20 +135,20 @@ export default function StudentCard({
       {/* Previous Projects */}
       {student.previousProjects && (
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-1 dark:text-slate-400">Previous Projects:</p>
-          <p className="text-sm text-gray-700 line-clamp-2 dark:text-slate-300">
+          <p className={`${textLabel} mb-1`}>Previous Projects:</p>
+          <p className={`${textBody} line-clamp-2`}>
             {student.previousProjects}
           </p>
         </div>
       )}
 
       {/* Details */}
-      <div className="space-y-2 border-t pt-4 dark:border-slate-700">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-slate-400">Contact:</span>
+      <div className={cardDetailsSection}>
+        <div className={cardDetailRow}>
+          <span className={textMuted}>Contact:</span>
           <a 
             href={`mailto:${student.email}`}
-            className="text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400"
+            className={linkEmail}
           >
             {student.email}
           </a>
@@ -139,7 +157,7 @@ export default function StudentCard({
 
       {/* Action Buttons */}
       {showRequestButton && !isCurrentPartner && student.partnershipStatus === 'none' && (
-        <div className="mt-4 pt-4 border-t dark:border-slate-700">
+        <div className={cardActionsSection}>
           <button
             onClick={handleRequestPartnership}
             className={`${btnPrimary} w-full`}
@@ -151,7 +169,7 @@ export default function StudentCard({
       )}
 
       {isCurrentPartner && onUnpair && (
-        <div className="mt-4 pt-4 border-t flex gap-2 dark:border-slate-700">
+        <div className={cardActionsSection}>
           <button
             onClick={handleUnpair}
             className={`${btnDanger} flex-1`}
@@ -163,8 +181,8 @@ export default function StudentCard({
       )}
 
       {showRequestButton && student.partnershipStatus === 'paired' && !isCurrentPartner && (
-        <div className="mt-4 pt-4 border-t dark:border-slate-700">
-          <div className="text-center text-sm text-gray-500 dark:text-slate-400">
+        <div className={cardActionsSection}>
+          <div className={`text-center text-sm ${textMuted}`}>
             Already paired with another student
           </div>
         </div>

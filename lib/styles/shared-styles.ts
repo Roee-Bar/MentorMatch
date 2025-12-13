@@ -33,6 +33,7 @@ export const modalContainer = 'bg-white rounded-lg shadow-xl max-w-md w-full p-6
 // ============= TEXT UTILITIES =============
 export const textMuted = 'text-gray-500 dark:text-slate-400';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
+/** @deprecated Use headingLg instead */
 export const textHeading = 'text-lg font-bold text-gray-800 dark:text-slate-100';
 export const textBody = 'text-sm text-gray-700 dark:text-slate-300';
 
@@ -60,6 +61,7 @@ export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl bor
 
 // ============= SECTION HEADINGS =============
 export const sectionTitle = 'text-xl font-bold text-gray-800 dark:text-slate-100 mb-4';
+/** @deprecated Use headingLg with mb-4 class instead */
 export const sectionTitleSm = 'text-lg font-bold text-gray-800 dark:text-slate-100 mb-4';
 
 // ============= DIVIDERS =============
@@ -73,3 +75,143 @@ export const pillPurple = `${pillBase} bg-purple-100 text-purple-800 dark:bg-pur
 
 // ============= LINK VARIANTS =============
 export const linkAction = 'text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline';
+
+// ============= TEXT UTILITIES (Extended) =============
+export const textSecondary = 'text-gray-600 dark:text-slate-400';
+export const textLabel = 'text-xs text-gray-500 dark:text-slate-400';
+export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-300';
+
+// ============= CARD STRUCTURE PATTERNS =============
+export const cardHeader = 'flex items-start justify-between mb-4';
+export const cardTitle = 'text-lg font-bold text-gray-800 mb-1 dark:text-slate-100';
+export const cardDetailsSection = 'space-y-2 border-t pt-4 dark:border-slate-700';
+export const cardDetailRow = 'flex justify-between text-sm';
+export const cardActionsSection = 'mt-4 pt-4 border-t flex gap-2 dark:border-slate-700';
+
+// ============= MODAL PATTERNS (Extended) =============
+export const modalContentBase = 'bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto dark:bg-slate-800';
+export const modalContentMd = `${modalContentBase} max-w-md`;
+export const modalContentLg = `${modalContentBase} max-w-2xl`;
+export const modalHeader = 'border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white z-10 dark:bg-slate-800 dark:border-slate-700';
+export const modalBody = 'p-6 space-y-6';
+
+// ============= INFO BOXES =============
+export const infoBoxBlue = 'bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800';
+export const infoBoxGray = 'bg-gray-50 p-4 rounded-lg border border-gray-200 dark:bg-slate-700 dark:border-slate-600';
+export const infoBoxOrange = 'bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800';
+
+// ============= MODAL UTILITIES =============
+export const modalCloseBtn = 'text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300';
+
+// ============= FORM VALIDATION =============
+export const errorText = 'text-red-600 text-xs mt-1 dark:text-red-400';
+export const charCountText = 'text-gray-400 text-xs mt-1 dark:text-slate-500';
+
+// ============= ICON UTILITIES =============
+export const iconMuted = 'text-gray-400 dark:text-slate-500';
+
+// ============= DISABLED INPUT =============
+export const inputDisabled = `${inputStyles} bg-gray-50 cursor-not-allowed dark:bg-slate-900`;
+
+// ============= NAVIGATION =============
+export const mobileNavItem = 'flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200';
+export const dropdownItem = 'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700';
+export const dropdownItemDanger = `${dropdownItem} text-red-600 dark:text-red-400`;
+
+// ============= AVATARS =============
+export const avatarBase = 'rounded-full object-cover';
+export const avatarSm = `${avatarBase} w-10 h-10 border-2 border-white`;
+export const avatarMd = `${avatarBase} w-12 h-12 border-2 border-blue-600`;
+export const avatarPlaceholderSm = 'w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-bold text-sm border-2 border-white dark:bg-blue-900';
+export const avatarPlaceholderMd = 'w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold';
+
+// ============= LINKS (Extended) =============
+export const linkEmail = 'text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400';
+
+// ============= CARD VARIANTS (Extended) =============
+export const cardBaseCompact = 'bg-white p-4 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700';
+
+// ============= DIVIDERS (Extended) =============
+export const dividerLight = 'mt-4 pt-4 border-t border-gray-100 dark:border-slate-700';
+
+// ============= ERROR/VALIDATION BOXES =============
+export const infoBoxRed = 'p-3 bg-red-50 border border-red-200 rounded dark:bg-red-900/30 dark:border-red-800';
+export const errorTextInline = 'text-sm text-red-600 dark:text-red-400';
+
+// ============= HEADING VARIANTS =============
+export const headingLg = 'text-lg font-bold text-gray-800 dark:text-slate-100';
+export const headingLgSemibold = 'text-lg font-semibold text-gray-800 dark:text-slate-100';
+export const headingXl = 'text-xl font-bold text-gray-800 dark:text-slate-100';
+export const heading2xl = 'text-2xl font-bold text-gray-800 dark:text-slate-100';
+export const heading3xl = 'text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance';
+
+// ============= FILTER/TOGGLE BUTTONS =============
+export const filterBtnBase = 'px-4 py-2 rounded-lg font-medium transition-colors';
+export const filterBtnActive = `${filterBtnBase} bg-blue-600 text-white`;
+export const filterBtnInactive = `${filterBtnBase} bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700`;
+
+// ============= TEXT UTILITIES (Blue Accent) =============
+export const textBlue = 'text-blue-600 dark:text-blue-400';
+export const textBlueAccent = 'font-medium text-blue-600 dark:text-blue-400';
+
+// ============= BORDERS & DIVIDERS (Extended) =============
+export const borderTop = 'border-t border-gray-200 dark:border-slate-700';
+export const borderBottom = 'border-b border-gray-200 dark:border-slate-700';
+export const sectionDivider = 'pt-6 border-t dark:border-slate-700';
+export const sectionDividerWithMargin = 'mt-4 pt-4 border-t dark:border-slate-700';
+
+// ============= DROPDOWN MENUS =============
+export const dropdownMenu = 'absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50 dark:bg-slate-800 dark:text-slate-200';
+
+// ============= TOUCH TARGET BUTTONS =============
+export const touchTargetBtn = 'p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-colors';
+export const touchTargetBtnLight = `${touchTargetBtn} hover:bg-gray-100 dark:hover:bg-slate-700`;
+
+// ============= SPECIAL BUTTONS =============
+export const logoutBtnFull = 'flex items-center justify-center gap-3 w-full p-3 min-h-[44px] rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors text-red-600 dark:text-red-400 font-medium';
+
+// ============= TABLE PATTERNS =============
+export const tableWrapper = 'overflow-x-auto';
+export const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
+export const tableHeader = 'bg-gray-50 dark:bg-slate-800';
+export const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+export const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
+export const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
+export const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
+
+// ============= ACTION SELECTION BUTTONS =============
+export const actionBtnBase = 'w-full p-4 rounded-lg border-2 text-left transition-all';
+export const actionBtnDefault = 'bg-white border-gray-200 hover:border-gray-300 dark:bg-slate-700 dark:border-slate-600 dark:hover:border-slate-500 dark:text-slate-200';
+export const actionBtnApprove = 'bg-green-100 border-green-500 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:border-green-600 dark:text-green-300 dark:hover:bg-green-900/70';
+export const actionBtnRevision = 'bg-orange-100 border-orange-500 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/50 dark:border-orange-600 dark:text-orange-300 dark:hover:bg-orange-900/70';
+export const actionBtnReject = 'bg-red-100 border-red-500 text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/70';
+
+// ============= PROFILE FIELDS =============
+export const profileLabel = 'text-sm font-medium text-gray-600 dark:text-slate-400';
+export const profileValue = 'text-gray-800 dark:text-slate-200 mt-1';
+
+// ============= RE-EXPORTS FROM COLOR UTILITIES =============
+export {
+  textGreen,
+  textRed,
+  textPurple,
+  textYellow,
+  textOrange,
+  textGray,
+  textInfoLight,
+  textInfoDark,
+  bgGreen,
+  bgYellow,
+  bgRed,
+  bgBlue,
+  iconContainerBlue,
+  iconContainerGreen,
+  iconContainerPurple,
+  iconContainerYellow,
+  iconContainerRed,
+  textErrorCentered,
+  textColorMap,
+  bgColorMap,
+  iconContainerMap,
+} from './color-utilities';

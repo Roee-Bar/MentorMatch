@@ -8,6 +8,7 @@ import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
+import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd, touchTargetBtnLight, headingLg, borderBottom, borderTop, logoutBtnFull } from '@/lib/styles/shared-styles'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -139,10 +140,10 @@ export default function Header() {
                   alt={userProfile.name}
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                  className={avatarSm}
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-bold text-sm border-2 border-white dark:bg-blue-900">
+                <div className={avatarPlaceholderSm}>
                   {getInitials(userProfile.name)}
                 </div>
               )}
@@ -206,11 +207,11 @@ export default function Header() {
         aria-label="Mobile navigation menu"
       >
         {/* Close Button */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
-          <span className="text-lg font-bold text-gray-800 dark:text-slate-100">Menu</span>
+        <div className={`flex items-center justify-between p-4 ${borderBottom}`}>
+          <span className={headingLg}>Menu</span>
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            className={touchTargetBtnLight}
             aria-label="Close menu"
           >
             <svg className="w-6 h-6 text-gray-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,7 +222,7 @@ export default function Header() {
 
         {/* User Info */}
         {userProfile && (
-          <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+          <div className={`p-4 ${borderBottom}`}>
             <div className="flex items-center gap-3">
               {userProfile.photoURL ? (
                 <Image
@@ -229,16 +230,16 @@ export default function Header() {
                   alt={userProfile.name}
                   width={48}
                   height={48}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-600"
+                  className={avatarMd}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                <div className={avatarPlaceholderMd}>
                   {getInitials(userProfile.name)}
                 </div>
               )}
               <div>
                 <p className="font-semibold text-gray-800 dark:text-slate-100">{userProfile.name}</p>
-                <p className="text-sm text-gray-500 dark:text-slate-400">{userProfile.email}</p>
+                <p className={`text-sm ${textMuted}`}>{userProfile.email}</p>
               </div>
             </div>
           </div>
@@ -249,7 +250,7 @@ export default function Header() {
           <Link
             href={getDashboardLink()}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200"
+            className={mobileNavItem}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -261,7 +262,7 @@ export default function Header() {
             <Link
               href={getProfileLink()}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200"
+              className={mobileNavItem}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -272,10 +273,10 @@ export default function Header() {
         </nav>
 
         {/* Logout Button */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-slate-700">
+        <div className={`absolute bottom-0 left-0 right-0 p-4 ${borderTop}`}>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center gap-3 w-full p-3 min-h-[44px] rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 transition-colors text-red-600 dark:text-red-400 font-medium"
+            className={logoutBtnFull}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

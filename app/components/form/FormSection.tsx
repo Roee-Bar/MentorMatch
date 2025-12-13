@@ -1,4 +1,5 @@
 import React from 'react';
+import { textSecondary } from '@/lib/styles/shared-styles';
 
 interface FormSectionProps {
   title: string;
@@ -17,7 +18,7 @@ const FormSection: React.FC<FormSectionProps> = ({
         {title}
       </h2>
       {subtitle && (
-        <p className="text-gray-600 dark:text-slate-400 text-sm mb-5">{subtitle}</p>
+        <p className={`${textSecondary} text-sm mb-5`}>{subtitle}</p>
       )}
     </div>
   );

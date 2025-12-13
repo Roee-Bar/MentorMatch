@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth'
+import { textMuted, dropdownItem, dropdownItemDanger, dropdownMenu, borderBottom } from '@/lib/styles/shared-styles'
 
 interface HeaderDropdownProps {
   userProfile: {
@@ -25,20 +26,20 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
   return (
     <div 
-      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50 dark:bg-slate-800 dark:text-slate-200"
+      className={dropdownMenu}
       role="menu"
       aria-label="User menu"
     >
-      <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-700">
+      <div className={`px-4 py-2 ${borderBottom}`}>
         <p className="text-sm font-semibold dark:text-slate-100">{userProfile.name}</p>
-        <p className="text-xs text-gray-500 dark:text-slate-400">{userProfile.email}</p>
+        <p className={`text-xs ${textMuted}`}>{userProfile.email}</p>
       </div>
       
       {userProfile.role === 'supervisor' && (
         <Link
           href="/authenticated/supervisor/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
+          className={dropdownItem}
           role="menuitem"
           aria-label="View profile"
         >
@@ -53,7 +54,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/student/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
+          className={dropdownItem}
           role="menuitem"
           aria-label="View profile"
         >
@@ -66,7 +67,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
       <button
         onClick={handleLogout}
-        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 text-red-600 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700 dark:text-red-400"
+        className={dropdownItemDanger}
         role="menuitem"
         aria-label="Logout"
       >

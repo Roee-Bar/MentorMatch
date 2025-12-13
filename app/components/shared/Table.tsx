@@ -26,15 +26,16 @@
  * ```
  */
 
-// Table styles with dark mode support
-const tableWrapper = 'overflow-x-auto';
-const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
-const tableHeader = 'bg-gray-50 dark:bg-slate-800';
-const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
-const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
-const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
-const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
-const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
+import {
+  tableWrapper,
+  tableBase,
+  tableHeader,
+  tableHeaderCell,
+  tableHeaderCellRight,
+  tableBody,
+  tableRowHover,
+  tableCell,
+} from '@/lib/styles/shared-styles';
 
 interface TableContainerProps {
   children: React.ReactNode;

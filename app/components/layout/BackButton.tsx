@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { textBlue } from '@/lib/styles/shared-styles';
 
 interface BackButtonProps {
   href: string;
@@ -15,7 +16,7 @@ const BackButton: React.FC<BackButtonProps> = ({
   return (
     <Link
       href={href}
-      className={`inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 text-sm mb-8 p-1 hover:underline ${className}`}
+      className={`inline-flex items-center gap-2 ${textBlue} text-sm mb-8 p-1 hover:underline ${className}`}
     >
       ← {label}
     </Link>
