@@ -138,7 +138,7 @@ export default function ApplicationCard({
               ? 'Revision Requested' 
               : 'Supervisor Feedback:'}
           </p>
-          <p className="text-sm text-gray-700 bg-white p-3 rounded border dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600">
+          <p className="text-sm text-gray-700 bg-white p-3 rounded-xl border dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600">
             {application.comments}
           </p>
         </div>

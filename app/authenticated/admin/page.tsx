@@ -176,7 +176,7 @@ export default function AdminAuthenticated() {
                   <Table.HeaderCell>Department</Table.HeaderCell>
                   <Table.HeaderCell>Capacity</Table.HeaderCell>
                   <Table.HeaderCell>Status</Table.HeaderCell>
-                  <Table.HeaderCell align="right">Actions</Table.HeaderCell>
+                  <Table.HeaderCell align="center">Actions</Table.HeaderCell>
                 </tr>
               </Table.Header>
               <Table.Body>
@@ -194,7 +194,7 @@ export default function AdminAuthenticated() {
                       <span className={`text-sm ${textSecondary}`}>{supervisor.department}</span>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className={`text-sm ${textPrimary} mb-1`}>
+                      <div className={`text-sm ${textPrimary} mb-1 text-center`}>
                         {supervisor.currentCapacity} / {supervisor.maxCapacity}
                       </div>
                       <ProgressBar
@@ -204,7 +204,7 @@ export default function AdminAuthenticated() {
                         size="sm"
                       />
                     </Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="text-center">
                       <StatusBadge
                         status={supervisor.availabilityStatus}
                         variant="availability"

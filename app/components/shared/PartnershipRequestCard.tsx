@@ -17,7 +17,8 @@ import {
   infoBoxBlue,
   linkEmail,
   textInfoDark,
-  textLabel
+  textLabel,
+  borderLeftAccentBlue
 } from '@/lib/styles/shared-styles';
 
 interface PartnershipRequestCardProps {
@@ -79,7 +80,7 @@ export default function PartnershipRequestCard({
   };
 
   return (
-    <div className={`${cardHover} border-l-4 border-blue-400`}>
+    <div className={`${cardHover} ${borderLeftAccentBlue}`}>
       {/* Header */}
       <div className={cardHeader}>
         <div className="flex-1">

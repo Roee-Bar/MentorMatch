@@ -2,7 +2,7 @@
 // Centralized color utilities for consistent theming
 
 // Base icon container style (duplicated here to avoid circular dependency)
-const iconContainerBaseLocal = 'w-12 h-12 rounded-lg flex items-center justify-center';
+const iconContainerBaseLocal = 'w-12 h-12 rounded-xl flex items-center justify-center';
 
 // ============= TEXT COLOR ACCENTS =============
 export const textGreen = 'text-green-600 dark:text-green-400';

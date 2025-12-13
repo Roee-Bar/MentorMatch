@@ -19,7 +19,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import FormCard from '@/app/components/display/FormCard';
 import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Application } from '@/types/database';
-import { btnPrimary, btnSecondary, btnSuccess, infoBoxOrangeRevision, textOrangeHeading, textOrangeBody, bgRevisionContent, textOrange, checkboxLabel } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnSecondary, btnSuccess, infoBoxOrangeRevision, textOrangeHeading, textOrangeBody, bgRevisionContent, textOrange, checkboxLabel, checkboxBase, borderLeftAccentBlueLight } from '@/lib/styles/shared-styles';
 
 export default function ApplicationEditPage() {
   const router = useRouter();
@@ -348,7 +348,7 @@ export default function ApplicationEditPage() {
                   name="hasPartner"
                   checked={formData.hasPartner}
                   onChange={handleInputChange}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className={checkboxBase}
                 />
                 <span className={checkboxLabel}>
                   This is a team project (with a partner)
@@ -356,7 +356,7 @@ export default function ApplicationEditPage() {
               </label>
 
               {formData.hasPartner && (
-                <div className="space-y-4 pl-6 border-l-2 border-blue-200">
+                <div className={`space-y-4 pl-6 ${borderLeftAccentBlueLight}`}
                   <FormInput
                     label="Partner Name"
                     name="partnerName"
