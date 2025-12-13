@@ -231,13 +231,7 @@ export default function StudentProfilePage() {
               <div className="flex items-center justify-center">
                 <StatusBadge
                   status={student.matchStatus}
-                  variant="custom"
-                  customClassName={
-                    student.matchStatus === 'matched' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                    student.matchStatus === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                    'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-200'
-                  }
-                  customLabel={student.matchStatus.charAt(0).toUpperCase() + student.matchStatus.slice(1)}
+                  variant="matchStatus"
                 />
               </div>
               

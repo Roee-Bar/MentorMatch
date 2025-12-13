@@ -1,4 +1,4 @@
-import { cardBase, textMuted } from '@/lib/styles/shared-styles';
+import { cardBase, textMuted, textBlue } from '@/lib/styles/shared-styles';
 
 interface StatCardProps {
   title: string;
@@ -16,7 +16,7 @@ export default function StatCard({
   icon,
 }: StatCardProps) {
   const colorClasses = {
-    blue: 'text-blue-600 dark:text-blue-400',
+    blue: textBlue,
     green: 'text-green-600 dark:text-green-400',
     gray: 'text-gray-600 dark:text-slate-400',
     red: 'text-red-600 dark:text-red-400',

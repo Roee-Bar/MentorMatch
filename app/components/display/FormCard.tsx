@@ -1,5 +1,5 @@
 import React from 'react';
-import { cardBase } from '@/lib/styles/shared-styles';
+import { cardBase, headingXl } from '@/lib/styles/shared-styles';
 
 interface FormCardProps {
   title: string;
@@ -14,7 +14,7 @@ const FormCard: React.FC<FormCardProps> = ({
 }) => {
   return (
     <div className={`${cardBase} ${className}`}>
-      <h2 className="text-xl font-bold text-gray-800 mb-4 dark:text-slate-100">{title}</h2>
+      <h2 className={`${headingXl} mb-4`}>{title}</h2>
       <div className="space-y-4">
         {children}
       </div>

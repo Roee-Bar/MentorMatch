@@ -17,7 +17,8 @@ import {
   infoBoxGray,
   modalCloseBtn,
   errorText,
-  charCountText
+  charCountText,
+  heading2xl
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationModalProps {
@@ -143,7 +144,7 @@ export default function ApplicationModal({
         {/* Header */}
         <div className={modalHeader}>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Apply for Supervision</h2>
+            <h2 className={heading2xl}>Apply for Supervision</h2>
             <p className={`text-sm mt-1 ${textSecondary}`}>
               Supervisor: <span className="font-medium">{supervisor.name}</span>
             </p>

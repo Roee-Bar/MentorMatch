@@ -13,14 +13,15 @@ import {
   btnSecondary,
   infoBoxBlue,
   infoBoxGray,
+  infoBoxRed,
+  errorTextInline,
   cardDetailRow,
   textSecondary,
   textValue,
-  textBody
+  textBody,
+  headingXl,
+  textBlueAccent
 } from '@/lib/styles/shared-styles';
-
-// Component-specific styles
-const modalTitle = 'text-xl font-bold text-gray-800 mb-4 dark:text-slate-100';
 
 interface CapacityEditModalProps {
   supervisor: Supervisor;
@@ -108,7 +109,7 @@ export default function CapacityEditModal({
       onClick={handleBackdropClick}
     >
       <div className={modalContainer}>
-        <h2 className={modalTitle}>
+        <h2 className={`${headingXl} mb-4`}>
           Edit Supervisor Capacity
         </h2>
 
@@ -131,7 +132,7 @@ export default function CapacityEditModal({
           </div>
           <div className={cardDetailRow}>
             <span className={textSecondary}>New Maximum:</span>
-            <span className="font-medium text-blue-600 dark:text-blue-400">
+            <span className={textBlueAccent}>
               {supervisor.currentCapacity} / {maxCapacity || '0'}
             </span>
           </div>
@@ -169,8 +170,8 @@ export default function CapacityEditModal({
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded dark:bg-red-900/30 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className={`mb-4 ${infoBoxRed}`}>
+              <p className={errorTextInline}>{error}</p>
             </div>
           )}
 

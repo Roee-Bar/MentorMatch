@@ -3,7 +3,7 @@
 
 import ProgressBar from './ProgressBar';
 import StatusBadge from './StatusBadge';
-import { cardBase, textSecondary } from '@/lib/styles/shared-styles';
+import { cardBase, textSecondary, headingLgSemibold, heading2xl } from '@/lib/styles/shared-styles';
 
 interface CapacityIndicatorProps {
   current: number;
@@ -18,14 +18,14 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
   return (
     <div className={cardBase}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-slate-100">Capacity Status</h3>
+        <h3 className={headingLgSemibold}>Capacity Status</h3>
         <StatusBadge status={status} variant="availability" />
       </div>
       
       <div className="space-y-3">
         {/* Capacity numbers */}
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-gray-800 dark:text-slate-100">
+          <span className={heading2xl}>
             {current} / {max}
           </span>
           <span className={`text-sm font-medium ${textSecondary}`}>

@@ -131,3 +131,23 @@ export const cardBaseCompact = 'bg-white p-4 rounded-lg shadow border border-gra
 
 // ============= DIVIDERS (Extended) =============
 export const dividerLight = 'mt-4 pt-4 border-t border-gray-100 dark:border-slate-700';
+
+// ============= ERROR/VALIDATION BOXES =============
+export const infoBoxRed = 'p-3 bg-red-50 border border-red-200 rounded dark:bg-red-900/30 dark:border-red-800';
+export const errorTextInline = 'text-sm text-red-600 dark:text-red-400';
+
+// ============= HEADING VARIANTS =============
+export const headingLg = 'text-lg font-bold text-gray-800 dark:text-slate-100';
+export const headingLgSemibold = 'text-lg font-semibold text-gray-800 dark:text-slate-100';
+export const headingXl = 'text-xl font-bold text-gray-800 dark:text-slate-100';
+export const heading2xl = 'text-2xl font-bold text-gray-800 dark:text-slate-100';
+export const heading3xl = 'text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance';
+
+// ============= FILTER/TOGGLE BUTTONS =============
+export const filterBtnBase = 'px-4 py-2 rounded-lg font-medium transition-colors';
+export const filterBtnActive = `${filterBtnBase} bg-blue-600 text-white`;
+export const filterBtnInactive = `${filterBtnBase} bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700`;
+
+// ============= TEXT UTILITIES (Blue Accent) =============
+export const textBlue = 'text-blue-600 dark:text-blue-400';
+export const textBlueAccent = 'font-medium text-blue-600 dark:text-blue-400';

@@ -19,7 +19,10 @@ import {
   textMuted,
   textLabel,
   textBody,
-  modalCloseBtn
+  modalCloseBtn,
+  headingXl,
+  infoBoxRed,
+  errorTextInline
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationStatusModalProps {
@@ -114,7 +117,7 @@ export default function ApplicationStatusModal({
         {/* Header */}
         <div className={`${modalHeader} items-start`}>
           <div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">Review Application</h2>
+            <h2 className={headingXl}>Review Application</h2>
             <p className={`text-sm mt-1 ${textSecondary}`}>
               Update the status of this application
             </p>
@@ -233,8 +236,8 @@ export default function ApplicationStatusModal({
 
           {/* Validation Error Message */}
           {validationError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded dark:bg-red-900/30 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>
+            <div className={`mb-4 ${infoBoxRed}`}>
+              <p className={errorTextInline}>{validationError}</p>
             </div>
           )}
 

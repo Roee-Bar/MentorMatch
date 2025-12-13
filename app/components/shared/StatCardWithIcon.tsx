@@ -21,7 +21,7 @@
  * ```
  */
 
-import { cardBase, iconContainerBase, textMuted } from '@/lib/styles/shared-styles';
+import { cardBase, iconContainerBase, textMuted, textBlue } from '@/lib/styles/shared-styles';
 
 interface StatCardWithIconProps {
   title: string;
@@ -47,7 +47,7 @@ export default function StatCardWithIcon({
   };
 
   const iconColorClasses = {
-    blue: 'text-blue-600 dark:text-blue-400',
+    blue: textBlue,
     green: 'text-green-600 dark:text-green-400',
     purple: 'text-purple-600 dark:text-purple-400',
     yellow: 'text-yellow-600 dark:text-yellow-400',
