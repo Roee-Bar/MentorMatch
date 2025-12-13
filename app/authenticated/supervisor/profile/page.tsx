@@ -14,7 +14,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import ProfileField from '@/app/components/display/ProfileField';
 import { Supervisor } from '@/types/database';
-import { btnPrimary, cardBase, sectionTitle, pillBlue, pillGreen } from '@/lib/styles/shared-styles';
+import { btnPrimary, cardBase, sectionTitle, pillBlue, pillGreen, textBody } from '@/lib/styles/shared-styles';
 
 export default function SupervisorProfilePage() {
   const router = useRouter();
@@ -81,7 +81,7 @@ export default function SupervisorProfilePage() {
             {/* Bio */}
             <div className={cardBase}>
               <h2 className={sectionTitle}>Bio</h2>
-              <p className="text-gray-700 dark:text-slate-300 leading-relaxed text-balance">{supervisor.bio}</p>
+              <p className={`${textBody} leading-relaxed text-balance`}>{supervisor.bio}</p>
             </div>
 
             {/* Research Interests */}

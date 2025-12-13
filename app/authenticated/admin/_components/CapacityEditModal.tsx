@@ -6,12 +6,21 @@ import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
-import { modalBackdrop, modalContainer, btnPrimary, btnSecondary } from '@/lib/styles/shared-styles';
+import { 
+  modalBackdrop, 
+  modalContainer, 
+  btnPrimary, 
+  btnSecondary,
+  infoBoxBlue,
+  infoBoxGray,
+  cardDetailRow,
+  textSecondary,
+  textValue,
+  textBody
+} from '@/lib/styles/shared-styles';
 
 // Component-specific styles
 const modalTitle = 'text-xl font-bold text-gray-800 mb-4 dark:text-slate-100';
-const infoBoxBlue = 'p-3 rounded bg-blue-50 dark:bg-blue-900/30 mb-4';
-const infoBoxGray = 'p-3 rounded bg-gray-50 dark:bg-slate-700 mb-4';
 
 interface CapacityEditModalProps {
   supervisor: Supervisor;
@@ -103,25 +112,25 @@ export default function CapacityEditModal({
           Edit Supervisor Capacity
         </h2>
 
-        <div className={infoBoxBlue}>
-          <p className="text-sm text-gray-700 dark:text-slate-300">
+        <div className={`${infoBoxBlue} mb-4`}>
+          <p className={textBody}>
             <span className="font-medium">Supervisor:</span> {supervisor.fullName}
           </p>
-          <p className="text-sm text-gray-700 dark:text-slate-300">
+          <p className={textBody}>
             <span className="font-medium">Department:</span> {supervisor.department}
           </p>
         </div>
 
         {/* Current vs New Capacity Comparison */}
-        <div className={infoBoxGray}>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600 dark:text-slate-400">Current Capacity:</span>
-            <span className="font-medium text-gray-800 dark:text-slate-200">
+        <div className={`${infoBoxGray} mb-4`}>
+          <div className={`${cardDetailRow} mb-2`}>
+            <span className={textSecondary}>Current Capacity:</span>
+            <span className={textValue}>
               {supervisor.currentCapacity} / {supervisor.maxCapacity}
             </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600 dark:text-slate-400">New Maximum:</span>
+          <div className={cardDetailRow}>
+            <span className={textSecondary}>New Maximum:</span>
             <span className="font-medium text-blue-600 dark:text-blue-400">
               {supervisor.currentCapacity} / {maxCapacity || '0'}
             </span>

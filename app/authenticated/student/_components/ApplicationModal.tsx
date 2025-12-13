@@ -5,7 +5,17 @@ import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import { SupervisorCardData } from '@/types/database';
-import { modalBackdrop, btnPrimary, btnSecondary } from '@/lib/styles/shared-styles';
+import { 
+  modalBackdrop, 
+  btnPrimary, 
+  btnSecondary,
+  modalContentLg,
+  modalHeader,
+  modalBody,
+  textSecondary,
+  infoBoxBlue,
+  infoBoxGray
+} from '@/lib/styles/shared-styles';
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -126,12 +136,12 @@ export default function ApplicationModal({
       className={modalBackdrop}
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+      <div className={modalContentLg}>
         {/* Header */}
-        <div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white z-10 dark:bg-slate-800 dark:border-slate-700">
+        <div className={modalHeader}>
           <div>
             <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Apply for Supervision</h2>
-            <p className="text-sm text-gray-600 mt-1 dark:text-slate-400">
+            <p className={`text-sm mt-1 ${textSecondary}`}>
               Supervisor: <span className="font-medium">{supervisor.name}</span>
             </p>
           </div>
@@ -156,7 +166,7 @@ export default function ApplicationModal({
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className={modalBody}>
           {/* Project Title */}
           <div>
             <FormInput
@@ -199,7 +209,7 @@ export default function ApplicationModal({
           {/* Partner Information - Display Only */}
           <div className="border-t pt-6 dark:border-slate-700">
             {studentProfile?.partnerId ? (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
+              <div className={`${infoBoxBlue} p-4`}>
                 <div className="flex items-center mb-2">
                   <svg className="w-5 h-5 text-blue-600 mr-2 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
@@ -218,8 +228,8 @@ export default function ApplicationModal({
                 </div>
               </div>
             ) : (
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 dark:bg-slate-700 dark:border-slate-600">
-                <p className="text-sm text-gray-600 dark:text-slate-400">
+              <div className={infoBoxGray}>
+                <p className={`text-sm ${textSecondary}`}>
                   This will be an individual project. Want to work with a partner? 
                   <button 
                     type="button"
@@ -237,9 +247,9 @@ export default function ApplicationModal({
           <div className="border-t pt-6 bg-gray-50 -mx-6 px-6 py-4 dark:bg-slate-900/50">
             <h3 className="text-sm font-semibold text-gray-700 mb-2 dark:text-slate-300">Supervisor Details</h3>
             <div className="space-y-1 text-sm">
-              <p><span className="text-gray-600 dark:text-slate-400">Name:</span> <span className="font-medium dark:text-slate-200">{supervisor.name}</span></p>
-              <p><span className="text-gray-600 dark:text-slate-400">Department:</span> <span className="dark:text-slate-300">{supervisor.department}</span></p>
-              <p><span className="text-gray-600 dark:text-slate-400">Contact:</span> <span className="dark:text-slate-300">{supervisor.contact}</span></p>
+              <p><span className={textSecondary}>Name:</span> <span className="font-medium dark:text-slate-200">{supervisor.name}</span></p>
+              <p><span className={textSecondary}>Department:</span> <span className="dark:text-slate-300">{supervisor.department}</span></p>
+              <p><span className={textSecondary}>Contact:</span> <span className="dark:text-slate-300">{supervisor.contact}</span></p>
             </div>
           </div>
 

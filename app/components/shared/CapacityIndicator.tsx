@@ -3,7 +3,7 @@
 
 import ProgressBar from './ProgressBar';
 import StatusBadge from './StatusBadge';
-import { cardBase } from '@/lib/styles/shared-styles';
+import { cardBase, textSecondary } from '@/lib/styles/shared-styles';
 
 interface CapacityIndicatorProps {
   current: number;
@@ -28,7 +28,7 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
           <span className="text-2xl font-bold text-gray-800 dark:text-slate-100">
             {current} / {max}
           </span>
-          <span className="text-sm font-medium text-gray-600 dark:text-slate-400">
+          <span className={`text-sm font-medium ${textSecondary}`}>
             {percentage}%
           </span>
         </div>
@@ -41,7 +41,7 @@ export default function CapacityIndicator({ current, max, status }: CapacityIndi
           size="md"
         />
         
-        <p className="text-sm text-gray-600 dark:text-slate-400">
+        <p className={`text-sm ${textSecondary}`}>
           Current supervisions
         </p>
       </div>

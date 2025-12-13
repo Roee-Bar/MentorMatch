@@ -6,7 +6,20 @@ import { useState } from 'react';
 import type { Application, ApplicationStatus } from '@/types/database';
 import FormTextArea from '@/app/components/form/FormTextArea';
 import StatusBadge from '@/app/components/shared/StatusBadge';
-import { modalBackdrop, btnPrimary, btnSecondary, btnSuccess, btnDanger, btnWarning } from '@/lib/styles/shared-styles';
+import { 
+  modalBackdrop, 
+  btnPrimary, 
+  btnSecondary, 
+  btnSuccess, 
+  btnDanger, 
+  btnWarning,
+  modalContentLg,
+  modalHeader,
+  textSecondary,
+  textMuted,
+  textLabel,
+  textBody
+} from '@/lib/styles/shared-styles';
 
 interface ApplicationStatusModalProps {
   application: Application;
@@ -96,12 +109,12 @@ export default function ApplicationStatusModal({
       className={modalBackdrop}
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
+      <div className={modalContentLg}>
         {/* Header */}
-        <div className="border-b px-6 py-4 flex items-start justify-between sticky top-0 bg-white z-10 dark:bg-slate-800 dark:border-slate-700">
+        <div className={`${modalHeader} items-start`}>
           <div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-slate-100">Review Application</h2>
-            <p className="text-sm text-gray-600 mt-1 dark:text-slate-400">
+            <p className={`text-sm mt-1 ${textSecondary}`}>
               Update the status of this application
             </p>
           </div>
@@ -124,19 +137,19 @@ export default function ApplicationStatusModal({
           </div>
           
           <div className="space-y-2 text-sm">
-            <p><span className="text-gray-500 dark:text-slate-400">Student:</span> <span className="font-medium dark:text-slate-200">{application.studentName}</span></p>
-            <p><span className="text-gray-500 dark:text-slate-400">Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
+            <p><span className={textMuted}>Student:</span> <span className="font-medium dark:text-slate-200">{application.studentName}</span></p>
+            <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
             {application.hasPartner && application.partnerName && (
               <p className="text-blue-600 dark:text-blue-400">
-                <span className="text-gray-500 dark:text-slate-400">Partner:</span> {application.partnerName} (Team Project)
+                <span className={textMuted}>Partner:</span> {application.partnerName} (Team Project)
               </p>
             )}
           </div>
 
           {/* Project Description Preview */}
           <div className="mt-3 pt-3 border-t dark:border-slate-700">
-            <p className="text-xs text-gray-500 mb-1 dark:text-slate-400">Project Description:</p>
-            <p className="text-sm text-gray-700 line-clamp-3 dark:text-slate-300">{application.projectDescription}</p>
+            <p className={`${textLabel} mb-1`}>Project Description:</p>
+            <p className={`${textBody} line-clamp-3`}>{application.projectDescription}</p>
           </div>
 
           {/* Student Info */}
@@ -144,14 +157,14 @@ export default function ApplicationStatusModal({
             <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-4 dark:border-slate-700">
               {application.studentSkills && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1 dark:text-slate-400">Skills:</p>
-                  <p className="text-sm text-gray-700 dark:text-slate-300">{application.studentSkills}</p>
+                  <p className={`${textLabel} mb-1`}>Skills:</p>
+                  <p className={textBody}>{application.studentSkills}</p>
                 </div>
               )}
               {application.studentInterests && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1 dark:text-slate-400">Interests:</p>
-                  <p className="text-sm text-gray-700 dark:text-slate-300">{application.studentInterests}</p>
+                  <p className={`${textLabel} mb-1`}>Interests:</p>
+                  <p className={textBody}>{application.studentInterests}</p>
                 </div>
               )}
             </div>

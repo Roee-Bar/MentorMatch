@@ -73,3 +73,27 @@ export const pillPurple = `${pillBase} bg-purple-100 text-purple-800 dark:bg-pur
 
 // ============= LINK VARIANTS =============
 export const linkAction = 'text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline';
+
+// ============= TEXT UTILITIES (Extended) =============
+export const textSecondary = 'text-gray-600 dark:text-slate-400';
+export const textLabel = 'text-xs text-gray-500 dark:text-slate-400';
+export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-300';
+
+// ============= CARD STRUCTURE PATTERNS =============
+export const cardHeader = 'flex items-start justify-between mb-4';
+export const cardTitle = 'text-lg font-bold text-gray-800 mb-1 dark:text-slate-100';
+export const cardDetailsSection = 'space-y-2 border-t pt-4 dark:border-slate-700';
+export const cardDetailRow = 'flex justify-between text-sm';
+export const cardActionsSection = 'mt-4 pt-4 border-t flex gap-2 dark:border-slate-700';
+
+// ============= MODAL PATTERNS (Extended) =============
+export const modalContentBase = 'bg-white rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto dark:bg-slate-800';
+export const modalContentMd = `${modalContentBase} max-w-md`;
+export const modalContentLg = `${modalContentBase} max-w-2xl`;
+export const modalHeader = 'border-b px-6 py-4 flex items-center justify-between sticky top-0 bg-white z-10 dark:bg-slate-800 dark:border-slate-700';
+export const modalBody = 'p-6 space-y-6';
+
+// ============= INFO BOXES =============
+export const infoBoxBlue = 'bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800';
+export const infoBoxGray = 'bg-gray-50 p-4 rounded-lg border border-gray-200 dark:bg-slate-700 dark:border-slate-600';
+export const infoBoxOrange = 'bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800';
