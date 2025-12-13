@@ -20,7 +20,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
-import { btnPrimary } from '@/lib/styles/shared-styles';
+import { btnPrimary, badgeWarning, linkAction } from '@/lib/styles/shared-styles';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -184,9 +184,9 @@ export default function StudentAuthenticated() {
           <div className="mb-8">
             <SectionHeader
               title="Partnership Requests"
-              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{incomingRequests.length} Pending</span>}
+              badge={<span className={badgeWarning}>{incomingRequests.length} Pending</span>}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards-3col">
               {incomingRequests.map(request => (
                 <PartnershipRequestCard
                   key={request.id}
@@ -205,7 +205,7 @@ export default function StudentAuthenticated() {
         {currentPartner && (
           <div className="mb-8">
             <SectionHeader title="My Partner" />
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards-3col">
               <StudentCard
                 student={currentPartner}
                 showRequestButton={false}
@@ -222,9 +222,9 @@ export default function StudentAuthenticated() {
           <div className="mb-8">
             <SectionHeader
               title="Pending Partnership Requests"
-              badge={<span className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">{outgoingRequests.length} Sent</span>}
+              badge={<span className={badgeWarning}>{outgoingRequests.length} Sent</span>}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards-3col">
               {outgoingRequests.map(request => (
                 <PartnershipRequestCard
                   key={request.id}
@@ -246,7 +246,7 @@ export default function StudentAuthenticated() {
               action={
                 <button
                   onClick={() => setShowAllStudents(!showAllStudents)}
-                  className="text-blue-600 text-sm font-medium hover:underline"
+                  className={linkAction}
                 >
                   {showAllStudents ? 'Show Less' : 'View All'} →
                 </button>
@@ -256,7 +256,7 @@ export default function StudentAuthenticated() {
             {availableStudents.length === 0 ? (
               <EmptyState message="No available students at the moment." />
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid-cards-3col">
                 {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
                   .map(student => (
                     <StudentCard
@@ -295,7 +295,7 @@ export default function StudentAuthenticated() {
               }}
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards-3col">
               {applications.map((application) => {
                 // Convert Firestore Timestamp to Date, then format as string
                 const dateAppliedStr = application.dateApplied instanceof Date
@@ -335,7 +335,7 @@ export default function StudentAuthenticated() {
             action={
               <button
                 onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS)}
-                className="text-blue-600 text-sm font-medium hover:underline"
+                className={linkAction}
               >
                 View All →
               </button>
@@ -345,7 +345,7 @@ export default function StudentAuthenticated() {
           {supervisors.length === 0 ? (
             <EmptyState message="No supervisors available at the moment." />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid-cards-3col">
               {supervisors.slice(0, 3).map((supervisor) => (
                 <SupervisorCard 
                   key={supervisor.id} 

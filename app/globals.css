@@ -145,4 +145,23 @@ body {
       @apply grid-cols-4 gap-4;
     }
   }
+
+
+  /* Card Grid - 3 Column Responsive */
+  .grid-cards-3col {
+    @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6;
+  }
+
+  /* Profile Layout - 2/3 + 1/3 Split */
+  .grid-profile {
+    @apply grid grid-cols-1 lg:grid-cols-3 gap-6;
+  }
+
+  .grid-profile-main {
+    @apply lg:col-span-2 space-y-6;
+  }
+
+  .grid-profile-sidebar {
+    @apply space-y-6;
+  }
 }

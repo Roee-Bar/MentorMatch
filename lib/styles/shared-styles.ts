@@ -58,3 +58,18 @@ export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-6
 export const cardAuth = 'bg-white dark:bg-slate-800 p-10 rounded-xl border border-gray-200 dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_6px_rgba(0,0,0,0.3)]';
 export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl border border-gray-200 dark:border-slate-700';
 
+// ============= SECTION HEADINGS =============
+export const sectionTitle = 'text-xl font-bold text-gray-800 dark:text-slate-100 mb-4';
+export const sectionTitleSm = 'text-lg font-bold text-gray-800 dark:text-slate-100 mb-4';
+
+// ============= DIVIDERS =============
+export const dividerTop = 'mt-4 pt-4 border-t border-gray-200 dark:border-slate-700';
+
+// ============= PILLS (Rounded Tags) =============
+export const pillBase = 'px-3 py-1 rounded-full text-sm font-medium';
+export const pillBlue = `${pillBase} bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200`;
+export const pillGreen = `${pillBase} bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200`;
+export const pillPurple = `${pillBase} bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200`;
+
+// ============= LINK VARIANTS =============
+export const linkAction = 'text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline';
