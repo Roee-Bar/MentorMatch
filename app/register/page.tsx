@@ -11,7 +11,7 @@ import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted, headingXl } from '@/lib/styles/shared-styles'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -96,7 +96,7 @@ export default function RegisterPage() {
       <AuthLayout backHref="/" maxWidth="lg">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-xl-custom font-bold">
+          <h1 className={`${headingXl} mb-2.5`}>
             Create Account
           </h1>
           <p className={`${textMuted} text-base m-0`}>

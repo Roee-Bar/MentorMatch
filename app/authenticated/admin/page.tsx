@@ -14,7 +14,7 @@ import StatusBadge from '@/app/components/shared/StatusBadge';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import type { Supervisor } from '@/types/database';
-import { cardBase, linkAction, textMuted } from '@/lib/styles/shared-styles';
+import { cardBase, linkAction, textMuted, textPrimary, textSecondary, linkEditAction, headingXl } from '@/lib/styles/shared-styles';
 
 export default function AdminAuthenticated() {
   const { userId, isAuthLoading } = useAdminAuth();
@@ -150,7 +150,7 @@ export default function AdminAuthenticated() {
         <div className="mb-8">
           <div className={cardBase}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100">Manage Supervisor Capacity</h2>
+            <h2 className={`${headingXl} font-semibold`}>Manage Supervisor Capacity</h2>
             <button
               onClick={() => refetch()}
               className={linkAction}
@@ -183,18 +183,18 @@ export default function AdminAuthenticated() {
                 {supervisors.map((supervisor: Supervisor) => (
                   <Table.Row key={supervisor.id}>
                     <Table.Cell>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className={`text-sm font-medium ${textPrimary}`}>
                         {supervisor.fullName}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className={`text-sm ${textMuted}`}>
                         {supervisor.email}
                       </div>
                     </Table.Cell>
                     <Table.Cell>
-                      <span className="text-sm text-gray-700">{supervisor.department}</span>
+                      <span className={`text-sm ${textSecondary}`}>{supervisor.department}</span>
                     </Table.Cell>
                     <Table.Cell>
-                      <div className="text-sm text-gray-900 mb-1">
+                      <div className={`text-sm ${textPrimary} mb-1`}>
                         {supervisor.currentCapacity} / {supervisor.maxCapacity}
                       </div>
                       <ProgressBar
@@ -214,7 +214,7 @@ export default function AdminAuthenticated() {
                       <div className="text-right">
                         <button
                           onClick={() => handleEditCapacity(supervisor)}
-                          className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                          className={linkEditAction}
                         >
                           Edit Capacity
                         </button>

@@ -19,7 +19,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import FormCard from '@/app/components/display/FormCard';
 import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Application } from '@/types/database';
-import { btnPrimary, btnSecondary, btnSuccess } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnSecondary, btnSuccess, infoBoxOrangeRevision, textOrangeHeading, textOrangeBody, bgRevisionContent, textOrange, checkboxLabel } from '@/lib/styles/shared-styles';
 
 export default function ApplicationEditPage() {
   const router = useRouter();
@@ -256,16 +256,16 @@ export default function ApplicationEditPage() {
 
       {/* Supervisor Feedback Box */}
       {application.supervisorFeedback && (
-        <div className="mb-6 bg-orange-50 border-2 border-orange-300 rounded-lg p-4">
+        <div className={`mb-6 ${infoBoxOrangeRevision} border-2`}>
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className={`w-6 h-6 ${textOrange}`} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-orange-900 mb-1">Revision Requested by Supervisor</h3>
-              <p className="text-sm text-orange-800 bg-white p-3 rounded border border-orange-200">
+              <h3 className={`${textOrangeHeading} mb-1`}>Revision Requested by Supervisor</h3>
+              <p className={`${textOrangeBody} ${bgRevisionContent}`}>
                 {application.supervisorFeedback}
               </p>
             </div>
@@ -350,7 +350,7 @@ export default function ApplicationEditPage() {
                   onChange={handleInputChange}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm font-medium text-gray-700">
+                <span className={checkboxLabel}>
                   This is a team project (with a partner)
                 </span>
               </label>

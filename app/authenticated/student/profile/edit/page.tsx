@@ -19,6 +19,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import FormCard from '@/app/components/display/FormCard';
 import FormActions from '@/app/components/display/FormActions';
 import { Student } from '@/types/database';
+import { checkboxLabel } from '@/lib/styles/shared-styles';
 
 export default function StudentProfileEditPage() {
   const router = useRouter();
@@ -335,7 +336,7 @@ export default function StudentProfileEditPage() {
                 onChange={handleInputChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="hasPartner" className="ml-2 text-sm font-medium text-gray-700">
+              <label htmlFor="hasPartner" className={`ml-2 ${checkboxLabel}`}>
                 I have a project partner
               </label>
             </div>

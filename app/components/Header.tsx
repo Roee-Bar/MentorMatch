@@ -8,7 +8,7 @@ import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
-import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd, touchTargetBtnLight, headingLg, borderBottom, borderTop, logoutBtnFull } from '@/lib/styles/shared-styles'
+import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd, touchTargetBtnLight, headingLg, borderBottom, borderTop, logoutBtnFull, textSecondary, textPrimary } from '@/lib/styles/shared-styles'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -214,7 +214,7 @@ export default function Header() {
             className={touchTargetBtnLight}
             aria-label="Close menu"
           >
-            <svg className="w-6 h-6 text-gray-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-6 h-6 ${textSecondary}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -238,7 +238,7 @@ export default function Header() {
                 </div>
               )}
               <div>
-                <p className="font-semibold text-gray-800 dark:text-slate-100">{userProfile.name}</p>
+                <p className={`font-semibold ${textPrimary}`}>{userProfile.name}</p>
                 <p className={`text-sm ${textMuted}`}>{userProfile.email}</p>
               </div>
             </div>

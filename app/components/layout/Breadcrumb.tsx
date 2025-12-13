@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { textSecondary, textPrimary } from '@/lib/styles/shared-styles';
 
 export interface BreadcrumbItem {
   label: string;
@@ -17,7 +18,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
 }) => {
   return (
     <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 ${className}`}>
-      <div className="flex gap-2 text-sm text-gray-600 dark:text-slate-400">
+      <div className={`flex gap-2 text-sm ${textSecondary}`}>
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (
@@ -35,7 +36,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({
                 {item.label}
               </Link>
             ) : (
-              <span className="text-gray-900 font-medium dark:text-slate-100">{item.label}</span>
+              <span className={`${textPrimary} font-medium`}>{item.label}</span>
             )}
           </React.Fragment>
         ))}

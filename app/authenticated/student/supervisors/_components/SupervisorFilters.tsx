@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import FormInput from '@/app/components/form/FormInput';
 import FormSelect from '@/app/components/form/FormSelect';
 import { DEPARTMENTS, AVAILABILITY_FILTER_OPTIONS } from '@/lib/constants';
-import { btnSecondary, labelStyles, inputStyles, iconMuted, cardBaseCompact, dividerLight } from '@/lib/styles/shared-styles';
+import { btnSecondary, labelStyles, inputStyles, iconMuted, cardBaseCompact, dividerLight, textSecondary, textPrimary } from '@/lib/styles/shared-styles';
 
 // Availability options without 'all' for FormSelect (uses placeholder for "all")
 const AVAILABILITY_OPTIONS = AVAILABILITY_FILTER_OPTIONS.filter(opt => opt.value !== 'all');
@@ -173,8 +173,8 @@ export default function SupervisorFilters({
       {/* Results Count */}
       {resultCount !== undefined && (
         <div className={dividerLight}>
-          <p className="text-sm text-gray-600 dark:text-slate-400">
-            Showing <span className="font-semibold text-gray-900 dark:text-slate-100">{resultCount}</span> supervisor{resultCount !== 1 ? 's' : ''}
+          <p className={`text-sm ${textSecondary}`}>
+            Showing <span className={`font-semibold ${textPrimary}`}>{resultCount}</span> supervisor{resultCount !== 1 ? 's' : ''}
             {hasActiveFilters && ' matching your filters'}
           </p>
         </div>

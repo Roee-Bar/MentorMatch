@@ -14,6 +14,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import SupervisorFilters, { FilterValues } from './SupervisorFilters';
 import type { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
+import { textTertiary, textMuted } from '@/lib/styles/shared-styles';
 
 const BATCH_SIZE = 9; // 3 rows of 3 cards
 
@@ -275,14 +276,14 @@ export default function BrowseSupervisorsClient() {
               {loadingMore ? (
                 <LoadingSpinner message="Loading more..." />
               ) : (
-                <span className="text-gray-400 text-sm">Scroll for more</span>
+                <span className={`${textTertiary} text-sm`}>Scroll for more</span>
               )}
             </div>
           )}
 
           {/* End of List */}
           {!hasMore && displayedSupervisors.length > 0 && (
-            <div className="text-center py-8 text-gray-500 text-sm">
+            <div className={`text-center py-8 ${textMuted} text-sm`}>
               Showing all {supervisors.length} supervisor{supervisors.length !== 1 ? 's' : ''}
             </div>
           )}

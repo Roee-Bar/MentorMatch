@@ -32,6 +32,8 @@ export const modalContainer = 'bg-white rounded-lg shadow-xl max-w-md w-full p-6
 
 // ============= TEXT UTILITIES =============
 export const textMuted = 'text-gray-500 dark:text-slate-400';
+export const textPrimary = 'text-gray-900 dark:text-slate-100';
+export const textTertiary = 'text-gray-400 dark:text-slate-500';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
 /** @deprecated Use headingLg instead */
 export const textHeading = 'text-lg font-bold text-gray-800 dark:text-slate-100';
@@ -42,6 +44,7 @@ export const iconContainerBase = 'w-12 h-12 rounded-lg flex items-center justify
 
 // ============= FORM ELEMENTS =============
 export const labelStyles = 'block mb-2 font-semibold text-gray-700 text-sm dark:text-slate-300';
+export const checkboxLabel = 'text-sm font-medium text-gray-700 dark:text-slate-300';
 export const inputStyles = 'w-full p-3 rounded-md border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
 export const textareaStyles = 'w-full p-3 rounded-md border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none resize-y font-[inherit] transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
 export const helperStyles = 'text-gray-500 text-xs mt-1 block dark:text-slate-400';
@@ -50,6 +53,7 @@ export const charCounterStyles = 'text-gray-400 text-xs ml-auto dark:text-slate-
 // ============= LINKS =============
 export const linkPrimary = 'text-blue-600 dark:text-blue-400 font-bold underline text-sm hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer';
 export const linkSubtle = 'text-blue-600 dark:text-blue-400 text-sm hover:underline';
+export const linkEditAction = 'text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium';
 
 // ============= BUTTON VARIANTS =============
 export const btnPrimaryFullWidth = `${btnPrimary} w-full`;
@@ -58,6 +62,11 @@ export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-6
 // ============= CARD VARIANTS =============
 export const cardAuth = 'bg-white dark:bg-slate-800 p-10 rounded-xl border border-gray-200 dark:border-slate-700 shadow-[0_4px_6px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_6px_rgba(0,0,0,0.3)]';
 export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl border border-gray-200 dark:border-slate-700';
+
+// ============= BACKGROUND UTILITIES =============
+export const bgMain = 'bg-white dark:bg-slate-800';
+export const bgPage = 'bg-white dark:bg-slate-900';
+export const bgFooter = 'bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700';
 
 // ============= SECTION HEADINGS =============
 export const sectionTitle = 'text-xl font-bold text-gray-800 dark:text-slate-100 mb-4';
@@ -99,6 +108,10 @@ export const modalBody = 'p-6 space-y-6';
 export const infoBoxBlue = 'bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800';
 export const infoBoxGray = 'bg-gray-50 p-4 rounded-lg border border-gray-200 dark:bg-slate-700 dark:border-slate-600';
 export const infoBoxOrange = 'bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800';
+export const infoBoxOrangeRevision = 'bg-orange-50 border border-orange-200 rounded-lg p-4 dark:bg-orange-900/20 dark:border-orange-800';
+export const textOrangeHeading = 'text-lg font-bold text-orange-900 dark:text-orange-200';
+export const textOrangeBody = 'text-sm text-orange-800 dark:text-orange-300';
+export const bgRevisionContent = 'bg-white p-3 rounded border border-orange-200 dark:bg-slate-800 dark:border-orange-800';
 
 // ============= MODAL UTILITIES =============
 export const modalCloseBtn = 'text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300';

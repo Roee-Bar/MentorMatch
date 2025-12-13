@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Header />
 
           {/* MAIN CONTENT - This changes based on what page you're on */}
-          <main className="flex-1 bg-white">
+          <main className="flex-1 bg-white dark:bg-slate-900">
             {children}
           </main>
 
