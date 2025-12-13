@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useStudentAuth } from '@/lib/hooks';
+import { useAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -25,7 +25,7 @@ export default function ApplicationEditPage() {
   const router = useRouter();
   const params = useParams();
   const applicationId = params.id as string;
-  const { userId, isAuthLoading } = useStudentAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'student' });
   
   const [dataLoading, setDataLoading] = useState(true);
   const [application, setApplication] = useState<Application | null>(null);

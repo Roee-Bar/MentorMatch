@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth } from '@/lib/hooks';
+import { useAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -23,7 +23,7 @@ import { checkboxLabel, checkboxBase } from '@/lib/styles/shared-styles';
 
 export default function StudentProfileEditPage() {
   const router = useRouter();
-  const { userId, isAuthLoading } = useStudentAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'student' });
   
   const [dataLoading, setDataLoading] = useState(true);
   const [student, setStudent] = useState<Student | null>(null);

@@ -61,24 +61,6 @@ export function getApplicationStudentRecipients(
   return { emails, names };
 }
 
-/**
- * Get supervisor recipient from an application object
- * 
- * @deprecated Applications don't store supervisor email.
- * Use getSupervisorRecipient(supervisorId) instead for email notifications.
- * 
- * @param application - The application object
- * @returns Recipients with supervisor name only (emails array is empty)
- */
-export function getApplicationSupervisorRecipient(
-  application: Application
-): NotificationRecipients {
-  return {
-    emails: [], // Cannot provide email - use getSupervisorRecipient(supervisorId) instead
-    names: [application.supervisorName],
-  };
-}
-
 // ============================================
 // DATABASE-FETCHED RECIPIENTS
 // ============================================

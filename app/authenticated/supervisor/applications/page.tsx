@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useSupervisorApplications, useApplicationStatusModal } from '@/lib/hooks';
+import { useAuth, useSupervisorApplications, useApplicationStatusModal } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
@@ -23,7 +23,7 @@ type FilterStatus = 'all' | ApplicationStatus;
 
 export default function SupervisorApplicationsPage() {
   const router = useRouter();
-  const { userId, isAuthLoading } = useSupervisorAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'supervisor' });
   
   // Fetch applications using custom hook
   const { data, loading: dataLoading, error: fetchError, refetch } = useSupervisorApplications(userId);

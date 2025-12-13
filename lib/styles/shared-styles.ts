@@ -35,8 +35,6 @@ export const textMuted = 'text-gray-500 dark:text-slate-400';
 export const textPrimary = 'text-gray-900 dark:text-slate-100';
 export const textTertiary = 'text-gray-400 dark:text-slate-500';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
-/** @deprecated Use headingLg instead */
-export const textHeading = 'text-lg font-bold text-gray-800 dark:text-slate-100';
 export const textBody = 'text-sm text-gray-700 dark:text-slate-300';
 
 // ============= ICON CONTAINERS =============
@@ -70,8 +68,6 @@ export const bgFooter = 'bg-white dark:bg-slate-800 border-t border-gray-200 dar
 
 // ============= SECTION HEADINGS =============
 export const sectionTitle = 'text-xl font-bold text-gray-800 dark:text-slate-100 mb-4';
-/** @deprecated Use headingLg with mb-4 class instead */
-export const sectionTitleSm = 'text-lg font-bold text-gray-800 dark:text-slate-100 mb-4';
 
 // ============= DIVIDERS =============
 export const dividerTop = 'mt-4 pt-4 border-t border-gray-200 dark:border-slate-700';

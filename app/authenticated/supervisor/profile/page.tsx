@@ -4,7 +4,7 @@
 // Supervisor Profile View - Read-only display of profile and capacity
 
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useAuthenticatedFetch } from '@/lib/hooks';
+import { useAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import CapacityIndicator from '@/app/components/shared/CapacityIndicator';
@@ -18,7 +18,7 @@ import { btnPrimary, cardBase, sectionTitle, pillBlue, pillGreen, textBody } fro
 
 export default function SupervisorProfilePage() {
   const router = useRouter();
-  const { userId, isAuthLoading } = useSupervisorAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'supervisor' });
   
   // Fetch supervisor profile using the new hook
   const { data: supervisor, loading: dataLoading, error } = useAuthenticatedFetch(

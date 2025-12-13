@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { apiClient } from '@/lib/api/client';
-import { useAdminAuth, useAuthenticatedFetch } from '@/lib/hooks';
+import { useAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import ErrorState from '@/app/components/feedback/ErrorState';
@@ -17,7 +17,7 @@ import type { Supervisor } from '@/types/database';
 import { cardBase, linkAction, textMuted, textPrimary, textSecondary, linkEditAction, headingXl } from '@/lib/styles/shared-styles';
 
 export default function AdminAuthenticated() {
-  const { userId, isAuthLoading } = useAdminAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'admin' });
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedSupervisor, setSelectedSupervisor] = useState<Supervisor | null>(null);
