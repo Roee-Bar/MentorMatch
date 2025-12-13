@@ -14,7 +14,8 @@ import {
   textMuted,
   textValue,
   textHeading,
-  infoBoxBlue
+  infoBoxBlue,
+  linkEmail
 } from '@/lib/styles/shared-styles';
 
 interface PartnershipRequestCardProps {
@@ -103,7 +104,7 @@ export default function PartnershipRequestCard({
           </span>
           <a 
             href={`mailto:${displayEmail}`}
-            className="text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400"
+            className={linkEmail}
           >
             {displayEmail}
           </a>

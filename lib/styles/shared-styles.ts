@@ -110,3 +110,24 @@ export const iconMuted = 'text-gray-400 dark:text-slate-500';
 
 // ============= DISABLED INPUT =============
 export const inputDisabled = `${inputStyles} bg-gray-50 cursor-not-allowed dark:bg-slate-900`;
+
+// ============= NAVIGATION =============
+export const mobileNavItem = 'flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200';
+export const dropdownItem = 'w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700';
+export const dropdownItemDanger = `${dropdownItem} text-red-600 dark:text-red-400`;
+
+// ============= AVATARS =============
+export const avatarBase = 'rounded-full object-cover';
+export const avatarSm = `${avatarBase} w-10 h-10 border-2 border-white`;
+export const avatarMd = `${avatarBase} w-12 h-12 border-2 border-blue-600`;
+export const avatarPlaceholderSm = 'w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-bold text-sm border-2 border-white dark:bg-blue-900';
+export const avatarPlaceholderMd = 'w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold';
+
+// ============= LINKS (Extended) =============
+export const linkEmail = 'text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400';
+
+// ============= CARD VARIANTS (Extended) =============
+export const cardBaseCompact = 'bg-white p-4 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700';
+
+// ============= DIVIDERS (Extended) =============
+export const dividerLight = 'mt-4 pt-4 border-t border-gray-100 dark:border-slate-700';

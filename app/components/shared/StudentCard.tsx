@@ -12,13 +12,15 @@ import {
   tagPurple, 
   tagGray,
   cardHeader,
+  cardTitle,
   cardDetailsSection,
   cardDetailRow,
   cardActionsSection,
   textSecondary,
   textMuted,
   textLabel,
-  textBody
+  textBody,
+  linkEmail
 } from '@/lib/styles/shared-styles';
 
 interface StudentCardProps {
@@ -60,7 +62,7 @@ export default function StudentCard({
       <div className={cardHeader}>
         <div className="flex-1">
           <div className="flex gap-2 mb-1">
-            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">
+            <h3 className={cardTitle}>
               {student.fullName}
             </h3>
             {isCurrentPartner && (
@@ -146,7 +148,7 @@ export default function StudentCard({
           <span className={textMuted}>Contact:</span>
           <a 
             href={`mailto:${student.email}`}
-            className="text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400"
+            className={linkEmail}
           >
             {student.email}
           </a>

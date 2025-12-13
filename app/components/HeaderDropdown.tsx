@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth'
-import { textMuted } from '@/lib/styles/shared-styles'
+import { textMuted, dropdownItem, dropdownItemDanger } from '@/lib/styles/shared-styles'
 
 interface HeaderDropdownProps {
   userProfile: {
@@ -39,7 +39,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/supervisor/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
+          className={dropdownItem}
           role="menuitem"
           aria-label="View profile"
         >
@@ -54,7 +54,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
         <Link
           href="/authenticated/student/profile"
           onClick={onClose}
-          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700"
+          className={dropdownItem}
           role="menuitem"
           aria-label="View profile"
         >
@@ -67,7 +67,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
 
       <button
         onClick={handleLogout}
-        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors flex gap-2 text-red-600 border-none bg-transparent cursor-pointer dark:hover:bg-slate-700 dark:text-red-400"
+        className={dropdownItemDanger}
         role="menuitem"
         aria-label="Logout"
       >

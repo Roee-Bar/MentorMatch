@@ -8,7 +8,7 @@ import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
-import { textMuted } from '@/lib/styles/shared-styles'
+import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd } from '@/lib/styles/shared-styles'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -140,10 +140,10 @@ export default function Header() {
                   alt={userProfile.name}
                   width={40}
                   height={40}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                  className={avatarSm}
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center text-white font-bold text-sm border-2 border-white dark:bg-blue-900">
+                <div className={avatarPlaceholderSm}>
                   {getInitials(userProfile.name)}
                 </div>
               )}
@@ -230,10 +230,10 @@ export default function Header() {
                   alt={userProfile.name}
                   width={48}
                   height={48}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-blue-600"
+                  className={avatarMd}
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+                <div className={avatarPlaceholderMd}>
                   {getInitials(userProfile.name)}
                 </div>
               )}
@@ -250,7 +250,7 @@ export default function Header() {
           <Link
             href={getDashboardLink()}
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200"
+            className={mobileNavItem}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -262,7 +262,7 @@ export default function Header() {
             <Link
               href={getProfileLink()}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 p-3 min-h-[44px] rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-gray-800 dark:text-slate-200"
+              className={mobileNavItem}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
