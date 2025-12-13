@@ -11,7 +11,7 @@ import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted, headingXl, checkboxLg } from '@/lib/styles/shared-styles'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -96,7 +96,7 @@ export default function RegisterPage() {
       <AuthLayout backHref="/" maxWidth="lg">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-xl-custom font-bold">
+          <h1 className={`${headingXl} mb-2.5`}>
             Create Account
           </h1>
           <p className={`${textMuted} text-base m-0`}>
@@ -249,21 +249,21 @@ export default function RegisterPage() {
         {/* Partner Information Section */}
         <FormSection title="Partner Information" />
 
-        <div className="mb-6 p-4 rounded-lg border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
+        <div className="mb-6 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
           <label className="flex gap-3 cursor-pointer">
             <input
               type="checkbox"
               name="hasPartner"
               checked={formData.hasPartner}
               onChange={handleChange}
-              className="w-[18px] h-[18px] cursor-pointer"
+              className={checkboxLg}
             />
             <span className="font-semibold text-blue-900 text-sm dark:text-blue-200">I have a project partner</span>
           </label>
         </div>
 
         {formData.hasPartner && (
-          <div className="p-5 bg-white dark:bg-slate-800 rounded-lg border border-gray-300 dark:border-slate-600">
+          <div className="p-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600">
             <div className="grid-form-2col">
               <FormInput
                 label="Partner Name"

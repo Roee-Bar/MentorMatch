@@ -31,6 +31,7 @@ import {
   tableBase,
   tableHeader,
   tableHeaderCell,
+  tableHeaderCellCenter,
   tableHeaderCellRight,
   tableBody,
   tableRowHover,
@@ -49,7 +50,7 @@ interface TableHeaderProps {
 
 interface TableHeaderCellProps {
   children: React.ReactNode;
-  align?: 'left' | 'right';
+  align?: 'left' | 'center' | 'right';
   className?: string;
 }
 
@@ -82,7 +83,11 @@ function Header({ children, className = '' }: TableHeaderProps) {
 }
 
 function HeaderCell({ children, align = 'left', className = '' }: TableHeaderCellProps) {
-  const alignClass = align === 'right' ? tableHeaderCellRight : tableHeaderCell;
+  const alignClass = align === 'right' 
+    ? tableHeaderCellRight 
+    : align === 'center' 
+      ? tableHeaderCellCenter 
+      : tableHeaderCell;
   return <th className={`${alignClass} ${className}`}>{children}</th>;
 }
 

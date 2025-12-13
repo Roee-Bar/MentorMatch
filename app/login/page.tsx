@@ -7,7 +7,7 @@ import { signIn } from '@/lib/auth'
 import FormInput from '@/app/components/form/FormInput'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary, textMuted } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, textMuted, heading2xl } from '@/lib/styles/shared-styles'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout backHref="/">
-      <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-2xl-custom font-bold">
+      <h1 className={`${heading2xl} mb-2.5`}>
         Welcome Back
       </h1>
       <p className={`${textMuted} mb-8 text-sm`}>

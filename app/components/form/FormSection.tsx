@@ -1,5 +1,5 @@
 import React from 'react';
-import { textSecondary } from '@/lib/styles/shared-styles';
+import { textSecondary, headingXl } from '@/lib/styles/shared-styles';
 
 interface FormSectionProps {
   title: string;
@@ -14,7 +14,7 @@ const FormSection: React.FC<FormSectionProps> = ({
 }) => {
   return (
     <div className={`mb-10 ${className}`}>
-      <h2 className="text-gray-800 dark:text-slate-100 mb-5 text-xl font-semibold border-b-2 border-blue-600 dark:border-blue-500 pb-2.5">
+      <h2 className={`${headingXl} font-semibold mb-5 border-b-2 border-blue-600 dark:border-blue-500 pb-2.5`}>
         {title}
       </h2>
       {subtitle && (

@@ -20,7 +20,8 @@ import {
   textMuted,
   textLabel,
   textBody,
-  linkEmail
+  linkEmail,
+  ringPartnerHighlight
 } from '@/lib/styles/shared-styles';
 
 interface StudentCardProps {
@@ -57,7 +58,7 @@ export default function StudentCard({
   const interestsArray = student.interests ? student.interests.split(',').map(i => i.trim()).filter(i => i) : [];
 
   return (
-    <div className={`${cardHover} ${isCurrentPartner ? 'ring-2 ring-green-400' : ''}`}>
+    <div className={`${cardHover} ${isCurrentPartner ? ringPartnerHighlight : ''}`}>
       {/* Header with Name and Status */}
       <div className={cardHeader}>
         <div className="flex-1">

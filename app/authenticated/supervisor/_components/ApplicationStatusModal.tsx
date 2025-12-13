@@ -19,6 +19,7 @@ import {
   textMuted,
   textLabel,
   textBody,
+  textPrimary,
   modalCloseBtn,
   headingXl,
   infoBoxRed,
@@ -28,6 +29,7 @@ import {
   actionBtnBase,
   actionBtnDefault,
   actionBtnApprove,
+  labelStyles,
   actionBtnRevision,
   actionBtnReject
 } from '@/lib/styles/shared-styles';
@@ -143,7 +145,7 @@ export default function ApplicationStatusModal({
         {/* Application Details */}
         <div className={`px-6 py-4 ${borderBottom} bg-gray-50 dark:bg-slate-900/50`}>
           <div className="flex items-start justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-slate-100">{application.projectTitle}</h3>
+            <h3 className={`font-semibold ${textPrimary}`}>{application.projectTitle}</h3>
             <StatusBadge status={application.status} variant="application" />
           </div>
           
@@ -186,7 +188,7 @@ export default function ApplicationStatusModal({
         <form onSubmit={handleSubmit} className="p-6">
           {/* Action Selection */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-3 dark:text-slate-300">
+            <label className={`${labelStyles} mb-3`}>
               Select Action
             </label>
             <div className="space-y-3">
