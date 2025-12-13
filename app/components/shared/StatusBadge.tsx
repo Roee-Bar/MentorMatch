@@ -18,8 +18,7 @@
  * ```
  */
 
-// Base badge styles shared across all variants
-const badgeBase = 'px-3 py-1 rounded-full text-xs font-semibold';
+import { badgeBase } from '@/lib/styles/shared-styles';
 
 // Badge color variants with dark mode support
 const badgeStyles = {

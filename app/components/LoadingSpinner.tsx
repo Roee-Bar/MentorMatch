@@ -1,3 +1,5 @@
+import { textMuted } from '@/lib/styles/shared-styles';
+
 // Loading spinner styles with dark mode support
 const loadingContainer = 'min-h-screen flex items-center justify-center dark:bg-slate-900';
 const loadingContent = 'text-center';
@@ -22,7 +24,7 @@ export default function LoadingSpinner({
     <div className={containerClass}>
       <div className={loadingContent}>
         <div className={spinnerClass}></div>
-        {message && <p className="text-gray-500 dark:text-slate-400">{message}</p>}
+        {message && <p className={textMuted}>{message}</p>}
       </div>
     </div>
   );

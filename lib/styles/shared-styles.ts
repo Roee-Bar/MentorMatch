@@ -97,3 +97,16 @@ export const modalBody = 'p-6 space-y-6';
 export const infoBoxBlue = 'bg-blue-50 border border-blue-200 rounded-lg p-3 dark:bg-blue-900/30 dark:border-blue-800';
 export const infoBoxGray = 'bg-gray-50 p-4 rounded-lg border border-gray-200 dark:bg-slate-700 dark:border-slate-600';
 export const infoBoxOrange = 'bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800';
+
+// ============= MODAL UTILITIES =============
+export const modalCloseBtn = 'text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300';
+
+// ============= FORM VALIDATION =============
+export const errorText = 'text-red-600 text-xs mt-1 dark:text-red-400';
+export const charCountText = 'text-gray-400 text-xs mt-1 dark:text-slate-500';
+
+// ============= ICON UTILITIES =============
+export const iconMuted = 'text-gray-400 dark:text-slate-500';
+
+// ============= DISABLED INPUT =============
+export const inputDisabled = `${inputStyles} bg-gray-50 cursor-not-allowed dark:bg-slate-900`;

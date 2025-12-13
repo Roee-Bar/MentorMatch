@@ -14,7 +14,10 @@ import {
   modalBody,
   textSecondary,
   infoBoxBlue,
-  infoBoxGray
+  infoBoxGray,
+  modalCloseBtn,
+  errorText,
+  charCountText
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationModalProps {
@@ -147,7 +150,7 @@ export default function ApplicationModal({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
+            className={modalCloseBtn}
             aria-label="Close"
           >
             ×
@@ -180,9 +183,9 @@ export default function ApplicationModal({
               disabled={loading}
             />
             {validationErrors.projectTitle && (
-              <p className="text-red-600 text-xs mt-1 dark:text-red-400">{validationErrors.projectTitle}</p>
+              <p className={errorText}>{validationErrors.projectTitle}</p>
             )}
-            <p className="text-gray-400 text-xs mt-1 dark:text-slate-500">
+            <p className={charCountText}>
               {formData.projectTitle.length}/200 characters
             </p>
           </div>
@@ -202,7 +205,7 @@ export default function ApplicationModal({
               disabled={loading}
             />
             {validationErrors.projectDescription && (
-              <p className="text-red-600 text-xs mt-1 dark:text-red-400">{validationErrors.projectDescription}</p>
+              <p className={errorText}>{validationErrors.projectDescription}</p>
             )}
           </div>
 

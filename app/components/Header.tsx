@@ -8,6 +8,7 @@ import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
 import { User } from 'firebase/auth'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
+import { textMuted } from '@/lib/styles/shared-styles'
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
@@ -238,7 +239,7 @@ export default function Header() {
               )}
               <div>
                 <p className="font-semibold text-gray-800 dark:text-slate-100">{userProfile.name}</p>
-                <p className="text-sm text-gray-500 dark:text-slate-400">{userProfile.email}</p>
+                <p className={`text-sm ${textMuted}`}>{userProfile.email}</p>
               </div>
             </div>
           </div>

@@ -19,6 +19,7 @@ import ErrorState from '@/app/components/feedback/ErrorState';
 import FormCard from '@/app/components/display/FormCard';
 import FormActions from '@/app/components/display/FormActions';
 import { Supervisor } from '@/types/database';
+import { labelStyles, inputStyles, helperStyles, inputDisabled } from '@/lib/styles/shared-styles';
 
 export default function SupervisorProfileEditPage() {
   const router = useRouter();
@@ -352,11 +353,11 @@ export default function SupervisorProfileEditPage() {
           <FormCard title="Supervision Capacity">
             {/* Current Capacity - Read Only */}
             <div>
-              <label className="block mb-2 font-semibold text-gray-700 text-sm">Current Capacity</label>
-              <div className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 bg-gray-50 cursor-not-allowed">
+              <label className={labelStyles}>Current Capacity</label>
+              <div className={inputDisabled}>
                 {supervisor?.currentCapacity || 0} projects currently supervised
               </div>
-              <small className="text-gray-500 text-xs mt-1 block">
+              <small className={helperStyles}>
                 This is automatically calculated based on your active projects
               </small>
             </div>
@@ -376,7 +377,7 @@ export default function SupervisorProfileEditPage() {
             
             {/* Availability Status */}
             <div>
-              <label htmlFor="availabilityStatus" className="block mb-2 font-semibold text-gray-700 text-sm">
+              <label htmlFor="availabilityStatus" className={labelStyles}>
                 Availability Status *
               </label>
               <select
@@ -384,14 +385,14 @@ export default function SupervisorProfileEditPage() {
                 name="availabilityStatus"
                 value={formData.availabilityStatus}
                 onChange={handleInputChange}
-                className="w-full p-3 rounded-md border border-gray-300 text-sm outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                className={inputStyles}
                 required
               >
                 <option value="available">Available - Accepting new students</option>
                 <option value="limited">Limited - Few spots remaining</option>
                 <option value="unavailable">Unavailable - Not accepting students</option>
               </select>
-              <small className="text-gray-500 text-xs mt-1 block">
+              <small className={helperStyles}>
                 This status will be shown to students browsing supervisors
               </small>
             </div>

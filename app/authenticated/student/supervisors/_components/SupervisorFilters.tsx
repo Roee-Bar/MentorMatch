@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import FormInput from '@/app/components/form/FormInput';
 import FormSelect from '@/app/components/form/FormSelect';
 import { DEPARTMENTS, AVAILABILITY_FILTER_OPTIONS } from '@/lib/constants';
-import { btnSecondary, labelStyles, inputStyles } from '@/lib/styles/shared-styles';
+import { btnSecondary, labelStyles, inputStyles, iconMuted } from '@/lib/styles/shared-styles';
 
 // Availability options without 'all' for FormSelect (uses placeholder for "all")
 const AVAILABILITY_OPTIONS = AVAILABILITY_FILTER_OPTIONS.filter(opt => opt.value !== 'all');
@@ -78,7 +78,7 @@ export default function SupervisorFilters({
     filters.interests;
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow border border-gray-200 mb-6 dark:bg-slate-800 dark:border-slate-700">
+    <div className="bg-white p-4 rounded-lg shadow border border-gray-200 dark:bg-slate-800 dark:border-slate-700 mb-6">
       {/* Main Filter Row */}
       <div className="flex flex-wrap gap-4 items-end">
         {/* Search Input - custom wrapper for search icon */}
@@ -97,7 +97,7 @@ export default function SupervisorFilters({
               className={`${inputStyles} pl-10`}
             />
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500"
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${iconMuted}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

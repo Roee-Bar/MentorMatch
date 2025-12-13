@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { signOut } from '@/lib/auth'
+import { textMuted } from '@/lib/styles/shared-styles'
 
 interface HeaderDropdownProps {
   userProfile: {
@@ -31,7 +32,7 @@ export default function HeaderDropdown({ userProfile, onClose }: HeaderDropdownP
     >
       <div className="px-4 py-2 border-b border-gray-200 dark:border-slate-700">
         <p className="text-sm font-semibold dark:text-slate-100">{userProfile.name}</p>
-        <p className="text-xs text-gray-500 dark:text-slate-400">{userProfile.email}</p>
+        <p className={`text-xs ${textMuted}`}>{userProfile.email}</p>
       </div>
       
       {userProfile.role === 'supervisor' && (

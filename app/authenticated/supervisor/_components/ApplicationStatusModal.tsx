@@ -18,7 +18,8 @@ import {
   textSecondary,
   textMuted,
   textLabel,
-  textBody
+  textBody,
+  modalCloseBtn
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationStatusModalProps {
@@ -121,7 +122,7 @@ export default function ApplicationStatusModal({
           <button
             type="button"
             onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300"
+            className={modalCloseBtn}
             aria-label="Close"
             disabled={isLoading}
           >

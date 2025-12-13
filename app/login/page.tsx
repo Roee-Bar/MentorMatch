@@ -7,7 +7,7 @@ import { signIn } from '@/lib/auth'
 import FormInput from '@/app/components/form/FormInput'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, textMuted } from '@/lib/styles/shared-styles'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -41,7 +41,7 @@ export default function LoginPage() {
       <h1 className="text-gray-800 dark:text-slate-100 mb-2.5 text-2xl-custom font-bold">
         Welcome Back
       </h1>
-      <p className="text-gray-500 dark:text-slate-400 mb-8 text-sm">
+      <p className={`${textMuted} mb-8 text-sm`}>
         Login to your MentorMatch account
       </p>
 
@@ -85,7 +85,7 @@ export default function LoginPage() {
         )}
       </form>
 
-      <div className="mt-6 text-center text-gray-500 dark:text-slate-400 text-sm">
+      <div className={`mt-6 text-center ${textMuted} text-sm`}>
         <p>
           Dont have an account?{' '}
           <Link

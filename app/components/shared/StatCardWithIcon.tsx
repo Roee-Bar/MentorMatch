@@ -21,7 +21,7 @@
  * ```
  */
 
-import { cardBase, iconContainerBase } from '@/lib/styles/shared-styles';
+import { cardBase, iconContainerBase, textMuted } from '@/lib/styles/shared-styles';
 
 interface StatCardWithIconProps {
   title: string;
@@ -58,7 +58,7 @@ export default function StatCardWithIcon({
     <div className={cardBase}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 dark:text-slate-400">{title}</p>
+          <p className={`text-sm ${textMuted}`}>{title}</p>
           <p className="text-2xl font-semibold text-gray-900 mt-1 dark:text-slate-100">
             {value}
           </p>
