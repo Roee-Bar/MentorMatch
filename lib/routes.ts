@@ -4,7 +4,6 @@
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  SUPERVISORS: '/supervisors', // Deprecated - use AUTHENTICATED.STUDENT_SUPERVISORS
   AUTHENTICATED: {
     STUDENT: '/authenticated/student',
     STUDENT_SUPERVISORS: '/authenticated/student/supervisors',

@@ -4,7 +4,7 @@
  * Complex authorization logic extracted for reusability and testing
  */
 
-import { StudentService } from '@/lib/services/firebase-services.server';
+import { StudentService } from '@/lib/services/students/student-service';
 import type { Student } from '@/types/database';
 
 /**
