@@ -4,7 +4,7 @@
 // Supervisor Dashboard - View and manage applications
 
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth, useSupervisorDashboard, useApplicationStatusModal } from '@/lib/hooks';
+import { useAuth, useSupervisorDashboard, useApplicationStatusModal } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
@@ -23,7 +23,7 @@ import { linkAction } from '@/lib/styles/shared-styles';
 
 export default function SupervisorAuthenticated() {
   const router = useRouter();
-  const { userId, userProfile, isAuthLoading } = useSupervisorAuth();
+  const { userId, userProfile, isAuthLoading } = useAuth({ expectedRole: 'supervisor' });
   
   // Fetch dashboard data using custom hook
   const { data, loading: dataLoading, error: fetchError, refetch } = useSupervisorDashboard(userId);

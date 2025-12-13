@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useStudentAuth, useStudentDashboard, useApplicationActions } from '@/lib/hooks';
+import { useAuth, useStudentDashboard, useApplicationActions } from '@/lib/hooks';
 import { apiClient } from '@/lib/api/client';
 import { ROUTES } from '@/lib/routes';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -23,7 +23,7 @@ export default function BrowseSupervisorsClient() {
   const searchParams = useSearchParams();
   
   // Authentication
-  const { userId, isAuthLoading, getToken } = useStudentAuth();
+  const { userId, isAuthLoading, getToken } = useAuth({ expectedRole: 'student' });
   
   // Get student profile for ApplicationModal
   const { data: dashboardData } = useStudentDashboard(userId);

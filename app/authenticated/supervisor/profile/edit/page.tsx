@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSupervisorAuth } from '@/lib/hooks';
+import { useAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -23,7 +23,7 @@ import { labelStyles, inputStyles, helperStyles, inputDisabled } from '@/lib/sty
 
 export default function SupervisorProfileEditPage() {
   const router = useRouter();
-  const { userId, isAuthLoading } = useSupervisorAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'supervisor' });
   
   const [dataLoading, setDataLoading] = useState(true);
   const [supervisor, setSupervisor] = useState<Supervisor | null>(null);

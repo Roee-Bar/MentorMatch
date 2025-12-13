@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth, useAuthenticatedFetch } from '@/lib/hooks';
+import { useAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
@@ -24,7 +24,7 @@ import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, div
 
 export default function StudentProfilePage() {
   const router = useRouter();
-  const { userId, isAuthLoading } = useStudentAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'student' });
   
   // Unpair confirmation state
   const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);

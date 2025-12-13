@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudentAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions } from '@/lib/hooks';
+import { useAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
@@ -26,7 +26,7 @@ export default function StudentAuthenticated() {
   const router = useRouter();
   
   // Authentication
-  const { userId, isAuthLoading } = useStudentAuth();
+  const { userId, isAuthLoading } = useAuth({ expectedRole: 'student' });
   
   // Data fetching hooks
   const { data: dashboardData, loading: dashboardLoading, error: dashboardError, refetch: refetchDashboard } = 
