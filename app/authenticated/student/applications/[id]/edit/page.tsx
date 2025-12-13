@@ -356,7 +356,7 @@ export default function ApplicationEditPage() {
               </label>
 
               {formData.hasPartner && (
-                <div className={`space-y-4 pl-6 ${borderLeftAccentBlueLight}`}
+                <div className={`space-y-4 pl-6 ${borderLeftAccentBlueLight}`}>
                   <FormInput
                     label="Partner Name"
                     name="partnerName"
