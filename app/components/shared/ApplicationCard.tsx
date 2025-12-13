@@ -21,7 +21,12 @@ import {
   textMuted,
   textValue,
   textDescription,
-  infoBoxBlue
+  infoBoxBlue,
+  textInfoLight,
+  textInfoDark,
+  textGreen,
+  textRed,
+  textOrange
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationCardProps {
@@ -74,8 +79,8 @@ export default function ApplicationCard({
             <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
           </svg>
           <div className="flex-1">
-            <p className="text-sm text-blue-900 font-medium dark:text-blue-200">Team Project</p>
-            <p className="text-xs text-blue-700 dark:text-blue-300">Partner: {application.partnerName}</p>
+            <p className={`text-sm font-medium ${textInfoDark}`}>Team Project</p>
+            <p className={`text-xs ${textInfoLight}`}>Partner: {application.partnerName}</p>
           </div>
           {application.linkedApplicationId && (
             <span className={badgeInfo}>Linked</span>
@@ -182,17 +187,17 @@ export default function ApplicationCard({
               </button>
             )}
             {application.status === 'revision_requested' && (
-              <div className="flex-1 text-center text-sm text-orange-600 py-2 dark:text-orange-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textOrange}`}>
                 Awaiting student revision
               </div>
             )}
             {application.status === 'approved' && (
-              <div className="flex-1 text-center text-sm text-green-600 py-2 dark:text-green-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textGreen}`}>
                 ✓ Approved
               </div>
             )}
             {application.status === 'rejected' && (
-              <div className="flex-1 text-center text-sm text-red-600 py-2 dark:text-red-400">
+              <div className={`flex-1 text-center text-sm py-2 ${textRed}`}>
                 ✗ Rejected
               </div>
             )}

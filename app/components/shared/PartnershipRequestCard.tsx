@@ -15,7 +15,9 @@ import {
   textValue,
   headingLg,
   infoBoxBlue,
-  linkEmail
+  linkEmail,
+  textInfoDark,
+  textLabel
 } from '@/lib/styles/shared-styles';
 
 interface PartnershipRequestCardProps {
@@ -91,7 +93,7 @@ export default function PartnershipRequestCard({
           </div>
           <p className={`text-sm ${textSecondary}`}>{displayDepartment}</p>
           {displayStudentId && (
-            <p className="text-xs text-gray-500 dark:text-slate-500">ID: {displayStudentId}</p>
+            <p className={textLabel}>ID: {displayStudentId}</p>
           )}
         </div>
       </div>
@@ -119,7 +121,7 @@ export default function PartnershipRequestCard({
 
       {/* Message */}
       <div className={`${infoBoxBlue} mb-4`}>
-        <p className="text-sm text-blue-900 dark:text-blue-200">
+        <p className={`text-sm ${textInfoDark}`}>
           {isIncoming 
             ? `${request.requesterName} wants to partner with you for your final project.`
             : `Waiting for ${request.targetStudentName} to respond to your partnership request.`

@@ -20,7 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue, textErrorCentered } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -248,7 +248,7 @@ export default function StudentProfilePage() {
                       />
                     </>
                   ) : (
-                    <p className="text-sm text-red-600 text-center">
+                    <p className={textErrorCentered}>
                       Unable to load supervisor details. Please try again later.
                     </p>
                   )}
@@ -304,7 +304,7 @@ export default function StudentProfilePage() {
                       />
                     </>
                   ) : (
-                    <p className="text-sm text-red-600 text-center">
+                    <p className={textErrorCentered}>
                       Unable to load partner details. Please try again later.
                     </p>
                   )}

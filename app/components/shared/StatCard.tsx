@@ -1,4 +1,4 @@
-import { cardBase, textMuted, textBlue } from '@/lib/styles/shared-styles';
+import { cardBase, textMuted, textColorMap, iconMuted } from '@/lib/styles/shared-styles';
 
 interface StatCardProps {
   title: string;
@@ -15,20 +15,13 @@ export default function StatCard({
   color,
   icon,
 }: StatCardProps) {
-  const colorClasses = {
-    blue: textBlue,
-    green: 'text-green-600 dark:text-green-400',
-    gray: 'text-gray-600 dark:text-slate-400',
-    red: 'text-red-600 dark:text-red-400',
-  };
-
   return (
     <div className={cardBase}>
       <div className="flex items-center justify-between mb-2">
         <h3 className={`text-sm font-semibold ${textMuted}`}>{title}</h3>
-        {icon && <div className="text-gray-400 dark:text-slate-500">{icon}</div>}
+        {icon && <div className={iconMuted}>{icon}</div>}
       </div>
-      <p className={`text-3xl font-bold ${colorClasses[color]}`}>{value}</p>
+      <p className={`text-3xl font-bold ${textColorMap[color]}`}>{value}</p>
       <p className={`text-xs mt-1 ${textMuted}`}>{description}</p>
     </div>
   );

@@ -190,3 +190,28 @@ export const actionBtnReject = 'bg-red-100 border-red-500 text-red-700 hover:bg-
 // ============= PROFILE FIELDS =============
 export const profileLabel = 'text-sm font-medium text-gray-600 dark:text-slate-400';
 export const profileValue = 'text-gray-800 dark:text-slate-200 mt-1';
+
+// ============= RE-EXPORTS FROM COLOR UTILITIES =============
+export {
+  textGreen,
+  textRed,
+  textPurple,
+  textYellow,
+  textOrange,
+  textGray,
+  textInfoLight,
+  textInfoDark,
+  bgGreen,
+  bgYellow,
+  bgRed,
+  bgBlue,
+  iconContainerBlue,
+  iconContainerGreen,
+  iconContainerPurple,
+  iconContainerYellow,
+  iconContainerRed,
+  textErrorCentered,
+  textColorMap,
+  bgColorMap,
+  iconContainerMap,
+} from './color-utilities';
