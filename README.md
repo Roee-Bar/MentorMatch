@@ -75,6 +75,12 @@ npm start            # Start production server
 # Code Quality
 npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
+
+# E2E Testing
+npm run test:e2e     # Run all E2E tests
+npm run test:e2e:ui  # Run with Playwright UI mode
+npm run test:e2e:debug # Run in debug mode
+npm run test:e2e:auth # Run only authentication tests
 ```
 
 ## Project Structure
@@ -89,6 +95,16 @@ npm run typecheck    # TypeScript errors
 │   ├── middleware/       # Auth, validation, errors
 │   ├── services/         # Firebase services
 │   └── hooks/            # React hooks
+├── tests/                # E2E tests
+│   ├── auth/             # Authentication tests
+│   ├── student/          # Student flow tests
+│   ├── supervisor/       # Supervisor flow tests
+│   ├── admin/            # Admin flow tests
+│   ├── flows/            # End-to-end flow tests
+│   ├── fixtures/         # Test data and user accounts
+│   ├── utils/            # Test helper functions
+│   ├── global-setup.ts   # Global test setup
+│   └── global-teardown.ts # Global test teardown
 ├── types/                # TypeScript types
 └── scripts/              # Utility scripts
 ```
@@ -112,6 +128,33 @@ FIREBASE_ADMIN_PROJECT_ID=...
 FIREBASE_ADMIN_CLIENT_EMAIL=...
 FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
+
+## E2E Testing
+
+The project uses Playwright for end-to-end testing. Tests are organized by subject and use real Firebase authentication and Firestore (no mocks).
+
+### Test Environment Setup
+
+1. Ensure Firebase environment variables are configured (see Environment Variables section)
+2. Verify test accounts exist in Firebase (see `docs/testing/TEST_DATA.md`)
+3. Run tests: `npm run test:e2e`
+
+### Test Structure
+
+- Tests are organized by subject: `auth/`, `student/`, `supervisor/`, `admin/`, `flows/`
+- Test fixtures and helpers are in `tests/fixtures/` and `tests/utils/`
+- Global setup/teardown handles test environment initialization
+
+### Running Tests
+
+- `npm run test:e2e` - Run all E2E tests
+- `npm run test:e2e:ui` - Run with Playwright UI mode (interactive)
+- `npm run test:e2e:debug` - Run in debug mode
+- `npm run test:e2e:auth` - Run only authentication tests
+
+### CI/CD Integration
+
+Tests run automatically on pull requests via GitHub Actions. Test reports and artifacts are uploaded for review.
 
 ## Security
 

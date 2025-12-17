@@ -11,17 +11,22 @@
     "migrate:partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/migrate-partnerships.ts",
     "migrate:under-review": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/migrate-under-review-status.ts",
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
-    "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix"
+    "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:auth": "playwright test --project=authentication"
   },
   "dependencies": {
     "firebase": "^12.6.0",
     "firebase-admin": "^13.6.0",
-    "next": "14.2.33",
+    "next": "^14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
