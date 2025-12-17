@@ -95,8 +95,13 @@ test.describe('Authentication', () => {
     
     // Step 8: Console Validation - Check for no JavaScript/React/Firebase errors
     if (consoleErrors.length > 0) {
-      console.warn('Console errors found:', consoleErrors);
+      console.error('Console errors detected during test execution:');
+      consoleErrors.forEach((error, index) => {
+        console.error(`  ${index + 1}. ${error}`);
+      });
       // For now, we'll log but not fail - adjust based on requirements
+      // To fail tests on console errors, uncomment the line below:
+      // throw new Error(`Console errors found: ${consoleErrors.join('; ')}`);
     }
     
     if (pageErrors.length > 0) {

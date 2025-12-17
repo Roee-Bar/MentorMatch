@@ -3,10 +3,19 @@
  */
 
 /**
- * Generate unique test identifier
+ * Generate unique test identifier with timestamp and random suffix
+ * This helps identify and clean up test data
  */
 export function generateTestId(prefix: string = 'test'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+
+/**
+ * Generate test session ID for tracking all data created in a test
+ * Use this to mark test data for cleanup
+ */
+export function generateTestSessionId(): string {
+  return `test-session-${Date.now()}`;
 }
 
 /**
