@@ -17,7 +17,10 @@ const missingEnvVars = requiredEnvVars.filter(
 );
 
 if (missingEnvVars.length > 0) {
-  console.error(
+  // In CI environments, only warn (not error) since placeholder values are used
+  // This prevents the error from appearing in CI logs when tests still pass
+  const logMethod = process.env.CI ? console.warn : console.error;
+  logMethod(
     `Missing required Firebase environment variables: ${missingEnvVars.join(', ')}\n` +
     `Please check your .env.local file.\n` +
     `Using placeholder values for development/testing.`
