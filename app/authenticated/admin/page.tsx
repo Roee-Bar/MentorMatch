@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { apiClient } from '@/lib/api/client';
 import { useAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
@@ -24,7 +24,7 @@ export default function AdminAuthenticated() {
   const [showCapacityModal, setShowCapacityModal] = useState(false);
 
   // Fetch admin data using the new hook
-  const { data: adminData, loading: dataLoading, error: fetchError, refetch } = useAuthenticatedFetch(
+  const { data: adminData, loading: dataLoading, error: fetchError, isRefetching, refetch } = useAuthenticatedFetch(
     async (token) => {
       const [statsResponse, supervisorsResponse] = await Promise.all([
         apiClient.getAdminStats(token),
@@ -41,6 +41,14 @@ export default function AdminAuthenticated() {
 
   const stats = adminData?.stats || null;
   const supervisors = adminData?.supervisors || [];
+  const previousCapacityRef = useRef<number | null>(null);
+
+  // Update ref when stats change
+  useEffect(() => {
+    if (stats?.totalAvailableCapacity !== undefined) {
+      previousCapacityRef.current = stats.totalAvailableCapacity;
+    }
+  }, [stats?.totalAvailableCapacity]);
 
   const handleEditCapacity = (supervisor: Supervisor) => {
     setSelectedSupervisor(supervisor);
@@ -50,9 +58,51 @@ export default function AdminAuthenticated() {
   const handleCapacityUpdateSuccess = async () => {
     setSuccessMessage('Supervisor capacity updated successfully!');
     setTimeout(() => setSuccessMessage(null), 5000);
+    setError(null); // Clear any previous errors
     
-    // Refresh admin data
-    await refetch();
+    // Store the current available capacity before update
+    const previousAvailableCapacity = stats?.totalAvailableCapacity ?? null;
+    
+    // Wait for Firestore propagation (150ms delay)
+    await new Promise(resolve => setTimeout(resolve, 150));
+    
+    // Retry logic with exponential backoff
+    let attempts = 0;
+    const maxAttempts = 3;
+    const delays = [300, 600, 900]; // ms - exponential backoff
+    
+    while (attempts < maxAttempts) {
+      try {
+        await refetch();
+        
+        // Wait a bit for state to update after refetch
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Check if the data has changed by comparing with previous value
+        // We'll check this in the next iteration or after a short delay
+        // For now, if refetch succeeded without error, assume it worked
+        // The retries will help with eventual consistency
+        
+        attempts++;
+        
+        // If this is the last attempt, break regardless
+        if (attempts >= maxAttempts) {
+          break;
+        }
+        
+        // Wait before retrying with exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delays[attempts - 1]));
+      } catch (err: any) {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          // All retry attempts failed
+          setError('Failed to refresh statistics. Please refresh the page manually or click Retry below.');
+          break;
+        }
+        // Wait before retrying
+        await new Promise(resolve => setTimeout(resolve, delays[attempts - 1] || 300));
+      }
+    }
   };
 
   if (isAuthLoading || dataLoading) {
@@ -81,10 +131,20 @@ export default function AdminAuthenticated() {
       <div className="py-8">
         {/* Error Banner */}
         {error && (
-          <StatusMessage 
-            message={error} 
-            type="error"
-          />
+          <div className="mb-6 p-4 rounded-xl border bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800">
+            <div className="flex items-center justify-between">
+              <span className="text-red-800 font-medium dark:text-red-200">{error}</span>
+              <button
+                onClick={async () => {
+                  setError(null);
+                  await refetch();
+                }}
+                className="ml-4 px-3 py-1 text-sm font-medium text-red-800 bg-red-100 hover:bg-red-200 rounded-md transition-colors dark:text-red-200 dark:bg-red-800/50 dark:hover:bg-red-800"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Success Message */}
@@ -129,6 +189,7 @@ export default function AdminAuthenticated() {
             value={stats?.totalAvailableCapacity ?? '-'}
             description="Open project slots across all supervisors"
             color="blue"
+            isLoading={isRefetching}
           />
 
           <StatCard

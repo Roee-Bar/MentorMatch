@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 import { apiFetch } from './api/client';
+import { getFirebaseErrorMessage } from './auth-errors';
 
 // Sign in existing user
 export const signIn = async (email: string, password: string) => {
@@ -17,7 +18,7 @@ export const signIn = async (email: string, password: string) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { success: true, user: userCredential.user };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: getFirebaseErrorMessage(error) };
   }
 };
 
@@ -27,7 +28,7 @@ export const signOut = async () => {
     await firebaseSignOut(auth);
     return { success: true };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: getFirebaseErrorMessage(error) };
   }
 };
 

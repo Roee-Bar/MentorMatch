@@ -21,9 +21,9 @@ export const badgeInfo = `${badgeBase} bg-blue-100 text-blue-800 dark:bg-blue-90
 export const badgeDanger = `${badgeBase} bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200`;
 
 // ============= TAGS =============
-export const tagBase = 'px-2 py-1 text-xs rounded-lg';
-export const tagBlue = `${tagBase} bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300`;
-export const tagPurple = `${tagBase} bg-purple-50 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300`;
+export const tagBase = 'px-4 py-1.5 text-xs rounded-full';
+export const tagBlue = `${tagBase} bg-blue-50 text-blue-700 dark:bg-blue-800 dark:text-blue-200`;
+export const tagPurple = `${tagBase} bg-purple-50 text-purple-700 dark:bg-purple-800 dark:text-purple-200`;
 export const tagGray = `${tagBase} bg-gray-50 text-gray-500 dark:bg-slate-700 dark:text-slate-400`;
 
 // ============= MODALS =============
