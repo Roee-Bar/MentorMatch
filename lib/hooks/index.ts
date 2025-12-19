@@ -18,3 +18,8 @@ export { useApplicationStatusModal } from './useApplicationStatusModal';
 // Supervisor dashboard hooks
 export { useSupervisorDashboard } from './useSupervisorDashboard';
 export { useSupervisorApplications } from './useSupervisorApplications';
+
+// Admin dashboard hooks
+export { useAdminDashboard } from './useAdminDashboard';
+export { useStatCardTables, type StatCardType } from './useStatCardTables';
+export { useCapacityUpdate } from './useCapacityUpdate';

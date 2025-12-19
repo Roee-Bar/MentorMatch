@@ -7,6 +7,8 @@ interface StatCardProps {
   color: 'blue' | 'green' | 'gray' | 'red';
   icon?: React.ReactNode;
   isLoading?: boolean;
+  onClick?: () => void;
+  isActive?: boolean;
 }
 
 export default function StatCard({
@@ -16,9 +18,30 @@ export default function StatCard({
   color,
   icon,
   isLoading = false,
+  onClick,
+  isActive = false,
 }: StatCardProps) {
+  const clickableClasses = onClick ? 'cursor-pointer transition-all duration-200' : '';
+  const activeBorderClasses = isActive 
+    ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
+    : '';
+  const activeBgClasses = isActive
+    ? 'bg-blue-50 dark:bg-blue-900/20'
+    : '';
+
   return (
-    <div className={cardBase}>
+    <div 
+      className={`${cardBase} ${clickableClasses} ${activeBorderClasses} ${activeBgClasses}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+    >
       <div className="flex items-center justify-between mb-2">
         <h3 className={`text-sm font-semibold ${textMuted}`}>{title}</h3>
         <div className="flex items-center gap-2">

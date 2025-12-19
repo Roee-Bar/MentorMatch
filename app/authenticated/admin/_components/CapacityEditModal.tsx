@@ -6,6 +6,7 @@ import { useState } from 'react';
 import type { Supervisor } from '@/types/database';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import { validateCapacityUpdate } from '../_utils/capacityValidation';
 import { 
   modalBackdrop, 
   modalContainer, 
@@ -49,24 +50,10 @@ export default function CapacityEditModal({
 
     const maxCapacityNum = parseInt(maxCapacity) || 0;
 
-    // Validation
-    if (maxCapacityNum < supervisor.currentCapacity) {
-      setError(`Maximum capacity cannot be less than current capacity (${supervisor.currentCapacity})`);
-      return;
-    }
-
-    if (maxCapacityNum > 50) {
-      setError('Maximum capacity cannot exceed 50');
-      return;
-    }
-
-    if (maxCapacityNum < 0) {
-      setError('Maximum capacity cannot be negative');
-      return;
-    }
-
-    if (!reason.trim()) {
-      setError('Please provide a reason for this change');
+    // Validation using utility function
+    const validation = validateCapacityUpdate(maxCapacityNum, supervisor, reason);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid capacity value');
       return;
     }
 
