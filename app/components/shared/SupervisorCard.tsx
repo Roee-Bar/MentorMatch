@@ -128,12 +128,9 @@ export default function SupervisorCard({
         <div className={cardActionsSection}>
           <button
             onClick={handleApply}
-            className={`${btnPrimary} flex-1`}
+            className={`${btnPrimary} w-full`}
           >
             Apply for Supervision
-          </button>
-          <button className={btnSecondary}>
-            View Details
           </button>
         </div>
       )}
