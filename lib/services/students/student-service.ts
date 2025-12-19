@@ -61,10 +61,20 @@ export const StudentService = {
         .where('partnerId', '==', null)
         .get();
       
-      // Filter out the current user and return
-      return querySnapshot.docs
+      // Filter out the current user, deduplicate by student ID, and return
+      const studentMap = new Map<string, Student>();
+      
+      querySnapshot.docs
         .filter(doc => doc.id !== excludeStudentId)
-        .map((doc) => toStudent(doc.id, doc.data()));
+        .forEach(doc => {
+          const student = toStudent(doc.id, doc.data());
+          // Use student ID as key to ensure uniqueness
+          if (!studentMap.has(student.id)) {
+            studentMap.set(student.id, student);
+          }
+        });
+      
+      return Array.from(studentMap.values());
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getAvailablePartners', error, { excludeStudentId });
       return [];

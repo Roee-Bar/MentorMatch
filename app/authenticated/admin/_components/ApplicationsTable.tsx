@@ -1,11 +1,11 @@
 'use client';
 
 import Table from '@/app/components/shared/Table';
-import StatusBadge from '@/app/components/shared/StatusBadge';
-import EmptyState from '@/app/components/feedback/EmptyState';
-import { SortIndicator, formatDate, calculateDaysPending, type SortConfig } from '../_utils/dataProcessing';
 import type { Application, Student } from '@/types/database';
-import { textPrimary, textSecondary } from '@/lib/styles/shared-styles';
+import type { SortConfig } from '../_utils/dataProcessing';
+import { formatFirestoreDate } from '@/lib/utils/date';
+import { calculateDaysPending } from '../_utils/dataProcessing';
+import StatusBadge from '@/app/components/shared/StatusBadge';
 
 interface ApplicationsTableProps {
   data: Application[];
@@ -16,20 +16,27 @@ interface ApplicationsTableProps {
   isLoading?: boolean;
 }
 
-export default function ApplicationsTable({ 
-  data, 
-  sortConfig, 
-  onSort, 
+export default function ApplicationsTable({
+  data,
+  sortConfig,
+  onSort,
   studentsCache,
   tableType,
-  isLoading 
+  isLoading = false,
 }: ApplicationsTableProps) {
+  const getSortIcon = (column: string) => {
+    if (sortConfig.column !== column) {
+      return '↕️';
+    }
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
+
   if (isLoading) {
-    return null; // Loading state handled by parent
+    return <div className="text-center py-8">Loading...</div>;
   }
 
   if (data.length === 0) {
-    return <EmptyState message="No applications found matching your criteria." />;
+    return <div className="text-center py-8 text-gray-500">No applications found</div>;
   }
 
   return (
@@ -37,95 +44,71 @@ export default function ApplicationsTable({
       <Table.Header>
         <tr>
           <Table.HeaderCell>
-            <button onClick={() => onSort('projectTitle')} className="flex items-center">
-              Project Title <SortIndicator column="projectTitle" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('projectTitle')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Project Title {getSortIcon('projectTitle')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('studentName')} className="flex items-center">
-              Student Name <SortIndicator column="studentName" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('studentName')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Student {getSortIcon('studentName')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('supervisorName')} className="flex items-center">
-              Supervisor Name <SortIndicator column="supervisorName" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('supervisorName')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Supervisor {getSortIcon('supervisorName')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell>Department</Table.HeaderCell>
-          <Table.HeaderCell>
-            <button onClick={() => onSort('status')} className="flex items-center">
-              Status <SortIndicator column="status" sortConfig={sortConfig} />
-            </button>
+          <Table.HeaderCell align="center">
+            Status
           </Table.HeaderCell>
-          <Table.HeaderCell>
-            <button onClick={() => onSort('dateApplied')} className="flex items-center">
-              Date Applied <SortIndicator column="dateApplied" sortConfig={sortConfig} />
-            </button>
-          </Table.HeaderCell>
-          {tableType === 'approved-projects' ? (
-            <Table.HeaderCell>
-              <button onClick={() => onSort('responseDate')} className="flex items-center">
-                Response Date <SortIndicator column="responseDate" sortConfig={sortConfig} />
-              </button>
-            </Table.HeaderCell>
-          ) : (
-            <Table.HeaderCell>
-              <button onClick={() => onSort('daysPending')} className="flex items-center">
-                Days Pending <SortIndicator column="daysPending" sortConfig={sortConfig} />
-              </button>
+          {tableType === 'pending-applications' && (
+            <Table.HeaderCell align="center">
+              Days Pending
             </Table.HeaderCell>
           )}
+          <Table.HeaderCell>
+            Submitted
+          </Table.HeaderCell>
         </tr>
       </Table.Header>
       <Table.Body>
-        {data.map((application: Application) => (
-          <Table.Row key={application.id}>
-            <Table.Cell>
-              <div className={`text-sm font-medium ${textPrimary}`}>
-                {application.projectTitle}
-              </div>
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>{application.studentName}</span>
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>{application.supervisorName}</span>
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>
-                {(() => {
-                  // Try to get department from student cache
-                  if (studentsCache) {
-                    const student = studentsCache.find(s => s.id === application.studentId);
-                    return student?.department || 'N/A';
-                  }
-                  return 'N/A';
-                })()}
-              </span>
-            </Table.Cell>
-            <Table.Cell>
-              <StatusBadge status={application.status} variant="application" />
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>
-                {formatDate(application.dateApplied)}
-              </span>
-            </Table.Cell>
-            {tableType === 'approved-projects' ? (
+        {data.map((application) => {
+          const daysPending = tableType === 'pending-applications' 
+            ? calculateDaysPending(application.dateApplied)
+            : null;
+
+          return (
+            <Table.Row key={application.id}>
+              <Table.Cell className="font-medium">{application.projectTitle}</Table.Cell>
+              <Table.Cell>{application.studentName}</Table.Cell>
+              <Table.Cell>{application.supervisorName}</Table.Cell>
               <Table.Cell>
-                <span className={`text-sm ${textSecondary}`}>
-                  {formatDate(application.responseDate)}
-                </span>
+                <div className="flex justify-center">
+                  <StatusBadge status={application.status} variant="application" />
+                </div>
               </Table.Cell>
-            ) : (
-              <Table.Cell>
-                <span className={`text-sm ${textSecondary}`}>
-                  {calculateDaysPending(application.dateApplied)} days
-                </span>
-              </Table.Cell>
-            )}
-          </Table.Row>
-        ))}
+              {tableType === 'pending-applications' && daysPending !== null && (
+                <Table.Cell>
+                  <div className="flex justify-center">
+                    <span className={daysPending > 7 ? 'text-orange-600 font-semibold' : ''}>
+                      {daysPending} day{daysPending !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </Table.Cell>
+              )}
+              <Table.Cell>{formatFirestoreDate(application.dateApplied)}</Table.Cell>
+            </Table.Row>
+          );
+        })}
       </Table.Body>
     </Table.Container>
   );

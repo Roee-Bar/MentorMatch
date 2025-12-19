@@ -1,11 +1,10 @@
 'use client';
 
 import Table from '@/app/components/shared/Table';
-import StatusBadge from '@/app/components/shared/StatusBadge';
-import EmptyState from '@/app/components/feedback/EmptyState';
-import { SortIndicator, formatDate, type SortConfig } from '../_utils/dataProcessing';
 import type { Student } from '@/types/database';
-import { textPrimary, textSecondary } from '@/lib/styles/shared-styles';
+import type { SortConfig } from '../_utils/dataProcessing';
+import { formatFirestoreDate } from '@/lib/utils/date';
+import StatusBadge from '@/app/components/shared/StatusBadge';
 
 interface StudentsTableProps {
   data: Student[];
@@ -14,13 +13,25 @@ interface StudentsTableProps {
   isLoading?: boolean;
 }
 
-export default function StudentsTable({ data, sortConfig, onSort, isLoading }: StudentsTableProps) {
+export default function StudentsTable({
+  data,
+  sortConfig,
+  onSort,
+  isLoading = false,
+}: StudentsTableProps) {
+  const getSortIcon = (column: string) => {
+    if (sortConfig.column !== column) {
+      return '↕️';
+    }
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  };
+
   if (isLoading) {
-    return null; // Loading state handled by parent
+    return <div className="text-center py-8">Loading...</div>;
   }
 
   if (data.length === 0) {
-    return <EmptyState message="No students found matching your criteria." />;
+    return <div className="text-center py-8 text-gray-500">No students found</div>;
   }
 
   return (
@@ -28,62 +39,70 @@ export default function StudentsTable({ data, sortConfig, onSort, isLoading }: S
       <Table.Header>
         <tr>
           <Table.HeaderCell>
-            <button onClick={() => onSort('name')} className="flex items-center">
-              Name <SortIndicator column="name" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('name')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Name {getSortIcon('name')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('studentId')} className="flex items-center">
-              Student ID <SortIndicator column="studentId" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('studentId')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Student ID {getSortIcon('studentId')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('email')} className="flex items-center">
-              Email <SortIndicator column="email" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('email')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Email {getSortIcon('email')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('department')} className="flex items-center">
-              Department <SortIndicator column="department" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('department')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Department {getSortIcon('department')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('matchStatus')} className="flex items-center">
-              Match Status <SortIndicator column="matchStatus" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('matchStatus')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Status {getSortIcon('matchStatus')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
-            <button onClick={() => onSort('registrationDate')} className="flex items-center">
-              Registration Date <SortIndicator column="registrationDate" sortConfig={sortConfig} />
+            <button
+              onClick={() => onSort('registrationDate')}
+              className="flex items-center gap-2 hover:text-blue-600"
+            >
+              Registered {getSortIcon('registrationDate')}
             </button>
           </Table.HeaderCell>
         </tr>
       </Table.Header>
       <Table.Body>
-        {data.map((student: Student) => (
+        {data.map((student) => (
           <Table.Row key={student.id}>
+            <Table.Cell>{student.fullName}</Table.Cell>
+            <Table.Cell>{student.studentId}</Table.Cell>
             <Table.Cell>
-              <div className={`text-sm font-medium ${textPrimary}`}>
-                {student.fullName}
-              </div>
+              <a href={`mailto:${student.email}`} className="text-blue-600 hover:underline">
+                {student.email}
+              </a>
             </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>{student.studentId}</span>
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>{student.email}</span>
-            </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>{student.department}</span>
-            </Table.Cell>
+            <Table.Cell>{student.department}</Table.Cell>
             <Table.Cell>
               <StatusBadge status={student.matchStatus} variant="matchStatus" />
             </Table.Cell>
-            <Table.Cell>
-              <span className={`text-sm ${textSecondary}`}>
-                {formatDate(student.registrationDate)}
-              </span>
-            </Table.Cell>
+            <Table.Cell>{formatFirestoreDate(student.registrationDate)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>
