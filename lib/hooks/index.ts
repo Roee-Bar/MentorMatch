@@ -23,3 +23,4 @@ export { useSupervisorApplications } from './useSupervisorApplications';
 export { useAdminDashboard } from './useAdminDashboard';
 export { useStatCardTables, type StatCardType } from './useStatCardTables';
 export { useCapacityUpdate } from './useCapacityUpdate';
+export { useModalScroll } from './useModalScroll';

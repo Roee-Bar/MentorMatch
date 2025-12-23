@@ -10,7 +10,7 @@ export const textRed = 'text-red-600 dark:text-red-400';
 export const textPurple = 'text-purple-600 dark:text-purple-400';
 export const textYellow = 'text-yellow-600 dark:text-yellow-400';
 export const textOrange = 'text-orange-600 dark:text-orange-400';
-export const textGray = 'text-gray-600 dark:text-slate-400';
+export const textGray = 'text-gray-600 dark:text-slate-300';
 
 // ============= INFO TEXT (Blue variants) =============
 export const textInfoLight = 'text-blue-700 dark:text-blue-300';

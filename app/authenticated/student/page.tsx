@@ -3,9 +3,9 @@
 // app/authenticated/student/page.tsx
 // Updated Student Authenticated - Uses real Firebase data
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions } from '@/lib/hooks';
+import { useAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions, useModalScroll } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import StatCard from '@/app/components/shared/StatCard';
 import ApplicationCard from '@/app/components/shared/ApplicationCard';
@@ -41,6 +41,7 @@ export default function StudentAuthenticated() {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
   const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [newlySubmittedAppId, setNewlySubmittedAppId] = useState<string | null>(null);
   
   // Action hooks with auto-refetch and message handling
   const partnershipActions = usePartnershipActions({
@@ -78,6 +79,61 @@ export default function StudentAuthenticated() {
   const outgoingRequests = partnershipData?.outgoingRequests || [];
   const currentPartner = partnershipData?.currentPartner || null;
 
+  // Ref to track previous application count for scroll detection
+  const previousAppCountRef = useRef(applications.length);
+
+  // Scroll to newly submitted application after data refresh
+  useEffect(() => {
+    const currentCount = applications.length;
+    const previousCount = previousAppCountRef.current;
+    
+    // If count increased and we have a newly submitted app ID
+    if (newlySubmittedAppId && currentCount > previousCount) {
+      // Find the newest pending application for this supervisor
+      const newApplication = applications
+        .filter(app => {
+          // Match by supervisorId if available, or find most recent pending
+          if (app.supervisorId) {
+            return app.supervisorId === newlySubmittedAppId && app.status === 'pending';
+          }
+          // Fallback: find most recent pending application
+          return app.status === 'pending';
+        })
+        .sort((a, b) => {
+          // Sort by dateApplied if available, otherwise by position in array
+          const dateA = a.dateApplied instanceof Date 
+            ? a.dateApplied.getTime() 
+            : (a.dateApplied as any)?.toDate?.()?.getTime() || 0;
+          const dateB = b.dateApplied instanceof Date 
+            ? b.dateApplied.getTime() 
+            : (b.dateApplied as any)?.toDate?.()?.getTime() || 0;
+          return dateB - dateA; // Most recent first
+        })[0];
+      
+      if (newApplication) {
+        // Use setTimeout to ensure DOM has updated after data refresh
+        setTimeout(() => {
+          const element = document.querySelector(`[data-application-id="${newApplication.id}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setNewlySubmittedAppId(null);
+          } else {
+            // If element not found, clear after timeout to prevent memory leaks
+            setTimeout(() => setNewlySubmittedAppId(null), 1000);
+          }
+        }, 100);
+      } else {
+        // If no matching application found, clear after timeout
+        setTimeout(() => setNewlySubmittedAppId(null), 1000);
+      }
+    }
+    
+    previousAppCountRef.current = currentCount;
+  }, [applications, newlySubmittedAppId]);
+
+  // Scroll to modal when it opens
+  useModalScroll({ isOpen: showApplicationModal });
+
   // Handle apply button click
   const handleApply = (supervisorId: string) => {
     const supervisor = supervisors.find(s => s.id === supervisorId);
@@ -97,6 +153,10 @@ export default function StudentAuthenticated() {
 
       // Close modal on success
       setShowApplicationModal(false);
+      
+      // Store the supervisor ID temporarily - we'll use it to identify the new application
+      // The application ID will be available after refetch
+      setNewlySubmittedAppId(selectedSupervisor?.id || null);
     } catch {
       // Error already handled by applicationActions hook
       // Modal stays open to show error
@@ -303,25 +363,26 @@ export default function StudentAuthenticated() {
                   : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
                 
                 return (
-                  <ApplicationCard 
-                    key={application.id} 
-                    application={{
-                      id: application.id,
-                      projectTitle: application.projectTitle,
-                      projectDescription: application.projectDescription,
-                      supervisorName: application.supervisorName,
-                      dateApplied: dateAppliedStr,
-                      status: application.status,
-                      responseTime: application.responseTime || '5-7 business days',
-                      comments: application.supervisorFeedback,
-                      hasPartner: application.hasPartner,
-                      partnerName: application.partnerName,
-                      linkedApplicationId: application.linkedApplicationId,
-                      isLeadApplication: application.isLeadApplication,
-                    }}
-                    onWithdraw={applicationActions.withdrawApplication}
-                    isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}
-                  />
+                  <div key={application.id} data-application-id={application.id}>
+                    <ApplicationCard 
+                      application={{
+                        id: application.id,
+                        projectTitle: application.projectTitle,
+                        projectDescription: application.projectDescription,
+                        supervisorName: application.supervisorName,
+                        dateApplied: dateAppliedStr,
+                        status: application.status,
+                        responseTime: application.responseTime || '5-7 business days',
+                        comments: application.supervisorFeedback,
+                        hasPartner: application.hasPartner,
+                        partnerName: application.partnerName,
+                        linkedApplicationId: application.linkedApplicationId,
+                        isLeadApplication: application.isLeadApplication,
+                      }}
+                      onWithdraw={applicationActions.withdrawApplication}
+                      isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}
+                    />
+                  </div>
                 );
               })}
             </div>

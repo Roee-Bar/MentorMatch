@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth, useStudentDashboard, useApplicationActions } from '@/lib/hooks';
+import { useAuth, useStudentDashboard, useApplicationActions, useModalScroll } from '@/lib/hooks';
 import { apiClient } from '@/lib/api/client';
 import { ROUTES } from '@/lib/routes';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
@@ -197,6 +197,9 @@ export default function BrowseSupervisorsClient() {
       // Error handled by applicationActions hook
     }
   };
+
+  // Scroll to modal when it opens
+  useModalScroll({ isOpen: showApplicationModal });
 
   if (isAuthLoading) {
     return <LoadingSpinner message="Loading..." />;
