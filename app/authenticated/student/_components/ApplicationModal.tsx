@@ -142,7 +142,7 @@ export default function ApplicationModal({
       className={modalBackdrop}
       onClick={handleBackdropClick}
     >
-      <div className={modalContentLg}>
+      <div className={modalContentLg} data-application-modal="true">
         {/* Header */}
         <div className={modalHeader}>
           <div>
