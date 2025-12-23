@@ -31,11 +31,11 @@ export const modalBackdrop = 'fixed inset-0 bg-black bg-opacity-50 flex items-ce
 export const modalContainer = 'bg-white rounded-xl shadow-xl max-w-md w-full p-6 dark:bg-slate-800';
 
 // ============= TEXT UTILITIES =============
-export const textMuted = 'text-gray-500 dark:text-slate-400';
+export const textMuted = 'text-gray-500 dark:text-slate-300';
 export const textPrimary = 'text-gray-900 dark:text-slate-100';
-export const textTertiary = 'text-gray-400 dark:text-slate-500';
+export const textTertiary = 'text-gray-400 dark:text-slate-300';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
-export const textBody = 'text-sm text-gray-700 dark:text-slate-300';
+export const textBody = 'text-sm text-gray-700 dark:text-slate-200';
 
 // ============= ICON CONTAINERS =============
 export const iconContainerBase = 'w-12 h-12 rounded-xl flex items-center justify-center';
@@ -45,8 +45,8 @@ export const labelStyles = 'block mb-2 font-semibold text-gray-700 text-sm dark:
 export const checkboxLabel = 'text-sm font-medium text-gray-700 dark:text-slate-300';
 export const inputStyles = 'w-full p-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
 export const textareaStyles = 'w-full p-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none resize-y font-[inherit] transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
-export const helperStyles = 'text-gray-500 text-xs mt-1 block dark:text-slate-400';
-export const charCounterStyles = 'text-gray-400 text-xs ml-auto dark:text-slate-500';
+export const helperStyles = 'text-gray-500 text-xs mt-1 block dark:text-slate-300';
+export const charCounterStyles = 'text-gray-400 text-xs ml-auto dark:text-slate-400';
 
 // ============= LINKS =============
 export const linkPrimary = 'text-blue-600 dark:text-blue-400 font-bold underline text-sm hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer';
@@ -82,9 +82,9 @@ export const pillPurple = `${pillBase} bg-purple-100 text-purple-800 dark:bg-pur
 export const linkAction = 'text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline';
 
 // ============= TEXT UTILITIES (Extended) =============
-export const textSecondary = 'text-gray-600 dark:text-slate-400';
-export const textLabel = 'text-xs text-gray-500 dark:text-slate-400';
-export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-300';
+export const textSecondary = 'text-gray-600 dark:text-slate-300';
+export const textLabel = 'text-xs text-gray-500 dark:text-slate-300';
+export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-200';
 
 // ============= CARD STRUCTURE PATTERNS =============
 export const cardHeader = 'flex items-start justify-between mb-4';
@@ -110,14 +110,14 @@ export const textOrangeBody = 'text-sm text-orange-800 dark:text-orange-300';
 export const bgRevisionContent = 'bg-white p-3 rounded-xl border border-orange-200 dark:bg-slate-800 dark:border-orange-800';
 
 // ============= MODAL UTILITIES =============
-export const modalCloseBtn = 'text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-500 dark:hover:text-slate-300';
+export const modalCloseBtn = 'text-gray-400 hover:text-gray-600 text-2xl leading-none dark:text-slate-400 dark:hover:text-slate-200';
 
 // ============= FORM VALIDATION =============
 export const errorText = 'text-red-600 text-xs mt-1 dark:text-red-400';
-export const charCountText = 'text-gray-400 text-xs mt-1 dark:text-slate-500';
+export const charCountText = 'text-gray-400 text-xs mt-1 dark:text-slate-400';
 
 // ============= ICON UTILITIES =============
-export const iconMuted = 'text-gray-400 dark:text-slate-500';
+export const iconMuted = 'text-gray-400 dark:text-slate-400';
 
 // ============= DISABLED INPUT =============
 export const inputDisabled = `${inputStyles} bg-gray-50 cursor-not-allowed dark:bg-slate-900`;
@@ -183,9 +183,9 @@ export const logoutBtnFull = 'flex items-center justify-center gap-3 w-full p-3 
 export const tableWrapper = 'overflow-x-auto';
 export const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
 export const tableHeader = 'bg-gray-50 dark:bg-slate-800';
-export const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
-export const tableHeaderCellCenter = 'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
-export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-400';
+export const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
+export const tableHeaderCellCenter = 'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
+export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
 export const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
 export const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
 export const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
@@ -198,7 +198,7 @@ export const actionBtnRevision = 'bg-orange-100 border-orange-500 text-orange-70
 export const actionBtnReject = 'bg-red-100 border-red-500 text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:border-red-600 dark:text-red-300 dark:hover:bg-red-900/70';
 
 // ============= PROFILE FIELDS =============
-export const profileLabel = 'text-sm font-medium text-gray-600 dark:text-slate-400';
+export const profileLabel = 'text-sm font-medium text-gray-600 dark:text-slate-300';
 export const profileValue = 'text-gray-800 dark:text-slate-200 mt-1';
 
 // ============= CHECKBOX INPUTS =============

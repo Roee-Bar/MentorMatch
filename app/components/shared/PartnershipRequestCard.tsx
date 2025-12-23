@@ -84,7 +84,7 @@ export default function PartnershipRequestCard({
       {/* Header */}
       <div className={cardHeader}>
         <div className="flex-1">
-          <div className="flex gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1">
             <h3 className={headingLg}>
               {displayName}
             </h3>

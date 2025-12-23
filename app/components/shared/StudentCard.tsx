@@ -62,7 +62,7 @@ export default function StudentCard({
       {/* Header with Name and Status */}
       <div className={cardHeader}>
         <div className="flex-1">
-          <div className="flex gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1">
             <h3 className={cardTitle}>
               {student.fullName}
             </h3>
