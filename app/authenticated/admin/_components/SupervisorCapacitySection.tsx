@@ -1,11 +1,11 @@
 'use client';
 
+import SectionHeader from '@/app/components/layout/SectionHeader';
 import Table from '@/app/components/shared/Table';
-import StatusBadge from '@/app/components/shared/StatusBadge';
-import ProgressBar from '@/app/components/shared/ProgressBar';
-import LoadingSpinner from '@/app/components/LoadingSpinner';
 import type { Supervisor } from '@/types/database';
-import { cardBase, linkAction, textMuted, textPrimary, textSecondary, linkEditAction, headingXl } from '@/lib/styles/shared-styles';
+import { btnPrimary } from '@/lib/styles/shared-styles';
+import LoadingSpinner from '@/app/components/LoadingSpinner';
+import EmptyState from '@/app/components/feedback/EmptyState';
 
 interface SupervisorCapacitySectionProps {
   supervisors: Supervisor[];
@@ -20,85 +20,88 @@ export default function SupervisorCapacitySection({
   onEdit,
   onRefresh,
 }: SupervisorCapacitySectionProps) {
+  if (loading) {
+    return (
+      <div className="mb-8">
+        <SectionHeader title="Supervisor Capacity Management" />
+        <div className="text-center py-8">
+          <LoadingSpinner message="Loading supervisors..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (supervisors.length === 0) {
+    return (
+      <div className="mb-8">
+        <SectionHeader title="Supervisor Capacity Management" />
+        <EmptyState message="No supervisors found." />
+      </div>
+    );
+  }
+
   return (
     <div className="mb-8">
-      <div className={cardBase}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={`${headingXl} font-semibold`}>Manage Supervisor Capacity</h2>
-          <button
-            onClick={onRefresh}
-            className={linkAction}
-            disabled={loading}
-          >
-            {loading ? 'Refreshing...' : 'Refresh'}
+      <SectionHeader 
+        title="Supervisor Capacity Management"
+        action={
+          <button onClick={onRefresh} className={btnPrimary}>
+            Refresh
           </button>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8">
-            <LoadingSpinner message="Loading supervisors..." />
-          </div>
-        ) : supervisors.length === 0 ? (
-          <div className={`text-center py-8 ${textMuted}`}>
-            No supervisors found
-          </div>
-        ) : (
-          <Table.Container>
-            <Table.Header>
-              <tr>
-                <Table.HeaderCell>Name</Table.HeaderCell>
-                <Table.HeaderCell>Department</Table.HeaderCell>
-                <Table.HeaderCell>Capacity</Table.HeaderCell>
-                <Table.HeaderCell>Status</Table.HeaderCell>
-                <Table.HeaderCell align="center">Actions</Table.HeaderCell>
-              </tr>
-            </Table.Header>
-            <Table.Body>
-              {supervisors.map((supervisor: Supervisor) => (
+        }
+      />
+      
+      <div className="overflow-x-auto">
+        <Table.Container>
+          <Table.Header>
+            <tr>
+              <Table.HeaderCell>Name</Table.HeaderCell>
+              <Table.HeaderCell>Email</Table.HeaderCell>
+              <Table.HeaderCell>Department</Table.HeaderCell>
+              <Table.HeaderCell align="center">Current / Max</Table.HeaderCell>
+              <Table.HeaderCell align="center">Available</Table.HeaderCell>
+              <Table.HeaderCell align="center">Actions</Table.HeaderCell>
+            </tr>
+          </Table.Header>
+          <Table.Body>
+            {supervisors.map((supervisor) => {
+              const available = supervisor.maxCapacity - supervisor.currentCapacity;
+              return (
                 <Table.Row key={supervisor.id}>
+                  <Table.Cell>{supervisor.fullName}</Table.Cell>
                   <Table.Cell>
-                    <div className={`text-sm font-medium ${textPrimary}`}>
-                      {supervisor.fullName}
-                    </div>
-                    <div className={`text-sm ${textMuted}`}>
+                    <a href={`mailto:${supervisor.email}`} className="text-blue-600 hover:underline">
                       {supervisor.email}
-                    </div>
+                    </a>
                   </Table.Cell>
+                  <Table.Cell>{supervisor.department}</Table.Cell>
                   <Table.Cell>
-                    <span className={`text-sm ${textSecondary}`}>{supervisor.department}</span>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <div className={`text-sm ${textPrimary} mb-1 text-center`}>
+                    <div className="text-center">
                       {supervisor.currentCapacity} / {supervisor.maxCapacity}
                     </div>
-                    <ProgressBar
-                      current={supervisor.currentCapacity}
-                      max={supervisor.maxCapacity}
-                      colorScheme="auto"
-                      size="sm"
-                    />
-                  </Table.Cell>
-                  <Table.Cell className="text-center">
-                    <StatusBadge
-                      status={supervisor.availabilityStatus}
-                      variant="availability"
-                    />
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="text-right">
+                    <div className="text-center">
+                      <span className={available > 0 ? 'text-green-600 font-semibold' : 'text-gray-500'}>
+                        {available}
+                      </span>
+                    </div>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <div className="flex justify-center">
                       <button
                         onClick={() => onEdit(supervisor)}
-                        className={linkEditAction}
+                        className={btnPrimary}
                       >
                         Edit Capacity
                       </button>
                     </div>
                   </Table.Cell>
                 </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Container>
-        )}
+              );
+            })}
+          </Table.Body>
+        </Table.Container>
       </div>
     </div>
   );

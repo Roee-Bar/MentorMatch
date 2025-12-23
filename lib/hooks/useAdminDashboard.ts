@@ -14,25 +14,28 @@ interface AdminDashboardData {
 
 /**
  * Hook for fetching admin dashboard data
- * Fetches stats and supervisors in parallel
+ * Fetches admin stats and supervisors list
  * 
  * @returns Dashboard data with loading and error states
  */
 export function useAdminDashboard() {
   return useAuthenticatedFetch<AdminDashboardData>(
     async (token) => {
-      // Fetch all dashboard data in parallel
+      // Fetch admin stats and supervisors in parallel
       const [statsResponse, supervisorsResponse] = await Promise.all([
         apiClient.getAdminStats(token),
         apiClient.getAdminSupervisors(token),
       ]);
 
       return {
-        stats: statsResponse.data,
+        stats: statsResponse.data || null,
         supervisors: supervisorsResponse.data || [],
       };
     },
     []
   );
 }
+
+
+
 
