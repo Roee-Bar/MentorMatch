@@ -5,14 +5,19 @@
  * Used by authentication functions to provide better UX
  */
 
+import { isFirebaseAuthError } from './types/firebase-errors';
+
 /**
  * Maps Firebase error codes to user-friendly messages
  * @param error - Firebase error object (may have code or message property)
  * @returns User-friendly error message string
  */
-export function getFirebaseErrorMessage(error: any): string {
+export function getFirebaseErrorMessage(error: unknown): string {
   // Firebase errors have a 'code' property (e.g., 'auth/wrong-password')
-  const errorCode = error?.code || '';
+  const errorCode = isFirebaseAuthError(error) ? error.code : 
+    (typeof error === 'object' && error !== null && 'code' in error) 
+      ? String((error as any).code) 
+      : '';
   
   // Map Firebase error codes to user-friendly messages
   const errorMessages: Record<string, string> = {
@@ -32,6 +37,9 @@ export function getFirebaseErrorMessage(error: any): string {
     'auth/invalid-credential': 'Invalid email or password. Please try again.',
     'auth/operation-not-allowed': 'This sign-in method is not enabled. Please contact support.',
     'auth/requires-recent-login': 'Please log out and log back in to complete this action.',
+    
+    // Email verification errors
+    'auth/email-already-verified': 'Email is already verified.',
   };
   
   // Check if we have a mapped message for this error code
@@ -40,10 +48,16 @@ export function getFirebaseErrorMessage(error: any): string {
   }
   
   // If error has a message but no code, try to extract useful info
-  if (error?.message) {
+  const errorMessage = isFirebaseAuthError(error) 
+    ? error.message 
+    : (typeof error === 'object' && error !== null && 'message' in error)
+      ? String((error as any).message)
+      : '';
+  
+  if (errorMessage) {
     // Check if the message contains any Firebase error codes
     for (const [code, message] of Object.entries(errorMessages)) {
-      if (error.message.includes(code)) {
+      if (errorMessage.includes(code)) {
         return message;
       }
     }

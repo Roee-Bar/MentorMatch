@@ -8,6 +8,7 @@ import FormInput from '@/app/components/form/FormInput'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
 import { btnPrimaryFullWidth, linkPrimary, textMuted, heading2xl } from '@/lib/styles/shared-styles'
+import { ROUTES } from '@/lib/routes'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -27,7 +28,13 @@ export default function LoginPage() {
         setMessage('Login successful!')
         router.push('/')
       } else {
-        setMessage(`${result.error}`)
+        const errorMessage = result.error || ''
+        // Check if error is about email verification
+        if (errorMessage.includes('verify your email')) {
+          setMessage('Please verify your email before logging in')
+        } else {
+          setMessage(errorMessage)
+        }
       }
     } catch (error: any) {
       setMessage(`Error: ${error.message}`)
@@ -80,9 +87,20 @@ export default function LoginPage() {
           {message && (
             <StatusMessage
               message={message}
-            type={message.includes('successful') ? 'success' : 'error'}
-          />
-        )}
+              type={message.includes('successful') ? 'success' : 'error'}
+            />
+          )}
+          
+          {message && message.includes('verify your email') && (
+            <div className="mt-4 text-center">
+              <Link
+                href={ROUTES.VERIFY_EMAIL}
+                className={linkPrimary}
+              >
+                Go to verification page
+              </Link>
+            </div>
+          )}
       </form>
 
       <div className={`mt-6 text-center ${textMuted} text-sm`}>

@@ -4,6 +4,9 @@
 export { useAuth } from './useAuth';
 export { useLoadingState } from './useLoadingState';
 export { useAuthenticatedFetch } from './useAuthenticatedFetch';
+export { useRateLimit } from './useRateLimit';
+export { useEmailVerification } from './useEmailVerification';
+export { useEmailVerificationResend } from './useEmailVerificationResend';
 
 // Student dashboard hooks
 export { useStudentDashboard } from './useStudentDashboard';

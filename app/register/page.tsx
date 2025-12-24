@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api/client'
 import { DEPARTMENTS } from '@/lib/constants'
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
+import { sendEmailVerification } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 import FormInput from '@/app/components/form/FormInput'
 import FormTextArea from '@/app/components/form/FormTextArea'
 import FormSelect from '@/app/components/form/FormSelect'
@@ -76,10 +80,39 @@ export default function RegisterPage() {
       const response = await apiClient.registerUser(formData)
 
       if (response.success) {
-        setMessage('Registration successful! Redirecting to login...')
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+        setMessage('Signing you in and sending verification email...')
+        
+        try {
+          // Sign in the user with the credentials they just registered
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            formData.email,
+            formData.password
+          )
+          
+          // Send verification email
+          const verificationResult = await sendEmailVerification()
+          
+          if (verificationResult.success) {
+            setMessage('Registration successful! Please check your email to verify your account.')
+            setTimeout(() => {
+              router.push(ROUTES.VERIFY_EMAIL)
+            }, 2000)
+          } else {
+            // Email send failed, but user is signed in - still redirect to verify page
+            setMessage(`Registration successful! ${verificationResult.error || 'Could not send verification email. You can resend it from the verification page.'}`)
+            setTimeout(() => {
+              router.push(ROUTES.VERIFY_EMAIL)
+            }, 3000)
+          }
+        } catch (signInError: any) {
+          // Sign-in failed - user can still log in manually
+          console.error('Sign-in error after registration:', signInError)
+          setMessage('Registration successful! Please log in to verify your email.')
+          setTimeout(() => {
+            router.push(ROUTES.LOGIN)
+          }, 2000)
+        }
       } else {
         setMessage(response.error || 'Registration failed. Please try again.')
         setLoading(false)
