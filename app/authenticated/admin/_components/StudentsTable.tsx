@@ -5,6 +5,7 @@ import type { Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
 import { formatFirestoreDate } from '@/lib/utils/date';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import { emptyStateContainer, sortableHeaderButton, linkEmail } from '@/lib/styles/shared-styles';
 
 interface StudentsTableProps {
   data: Student[];
@@ -31,7 +32,7 @@ export default function StudentsTable({
   }
 
   if (data.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No students found</div>;
+    return <div className={emptyStateContainer}>No students found</div>;
   }
 
   return (
@@ -41,7 +42,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('name')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Name {getSortIcon('name')}
             </button>
@@ -49,7 +50,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('studentId')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Student ID {getSortIcon('studentId')}
             </button>
@@ -57,7 +58,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('email')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Email {getSortIcon('email')}
             </button>
@@ -65,7 +66,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('department')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Department {getSortIcon('department')}
             </button>
@@ -73,7 +74,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('matchStatus')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Status {getSortIcon('matchStatus')}
             </button>
@@ -81,7 +82,7 @@ export default function StudentsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('registrationDate')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Registered {getSortIcon('registrationDate')}
             </button>
@@ -94,7 +95,7 @@ export default function StudentsTable({
             <Table.Cell>{student.fullName}</Table.Cell>
             <Table.Cell>{student.studentId}</Table.Cell>
             <Table.Cell>
-              <a href={`mailto:${student.email}`} className="text-blue-600 hover:underline">
+              <a href={`mailto:${student.email}`} className={linkEmail}>
                 {student.email}
               </a>
             </Table.Cell>

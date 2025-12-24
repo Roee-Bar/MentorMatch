@@ -15,7 +15,7 @@ import {
   textValue,
   headingLg,
   infoBoxBlue,
-  linkEmail,
+  linkEmailWithTruncate,
   textInfoDark,
   textLabel,
   borderLeftAccentBlue
@@ -107,7 +107,7 @@ export default function PartnershipRequestCard({
           </span>
           <a 
             href={`mailto:${displayEmail}`}
-            className={linkEmail}
+            className={linkEmailWithTruncate}
           >
             {displayEmail}
           </a>

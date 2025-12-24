@@ -6,6 +6,7 @@ import type { SortConfig } from '../_utils/dataProcessing';
 import { formatFirestoreDate } from '@/lib/utils/date';
 import { calculateDaysPending } from '../_utils/dataProcessing';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import { emptyStateContainer, sortableHeaderButton } from '@/lib/styles/shared-styles';
 
 interface ApplicationsTableProps {
   data: Application[];
@@ -36,7 +37,7 @@ export default function ApplicationsTable({
   }
 
   if (data.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No applications found</div>;
+    return <div className={emptyStateContainer}>No applications found</div>;
   }
 
   return (
@@ -46,7 +47,7 @@ export default function ApplicationsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('projectTitle')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Project Title {getSortIcon('projectTitle')}
             </button>
@@ -54,7 +55,7 @@ export default function ApplicationsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('studentName')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Student {getSortIcon('studentName')}
             </button>
@@ -62,7 +63,7 @@ export default function ApplicationsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('supervisorName')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Supervisor {getSortIcon('supervisorName')}
             </button>

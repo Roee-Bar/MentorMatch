@@ -26,7 +26,8 @@ import {
   textInfoDark,
   textGreen,
   textRed,
-  textOrange
+  textOrange,
+  commentBox
 } from '@/lib/styles/shared-styles';
 
 interface ApplicationCardProps {
@@ -138,7 +139,7 @@ export default function ApplicationCard({
               ? 'Revision Requested' 
               : 'Supervisor Feedback:'}
           </p>
-          <p className="text-sm text-gray-700 bg-white p-3 rounded-xl border dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600">
+          <p className={commentBox}>
             {application.comments}
           </p>
         </div>

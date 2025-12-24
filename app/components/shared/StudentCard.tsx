@@ -20,7 +20,7 @@ import {
   textMuted,
   textLabel,
   textBody,
-  linkEmail,
+  linkEmailWithTruncate,
   ringPartnerHighlight
 } from '@/lib/styles/shared-styles';
 
@@ -149,7 +149,7 @@ export default function StudentCard({
           <span className={textMuted}>Contact:</span>
           <a 
             href={`mailto:${student.email}`}
-            className={linkEmail}
+            className={linkEmailWithTruncate}
           >
             {student.email}
           </a>

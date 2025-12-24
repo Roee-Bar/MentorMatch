@@ -20,7 +20,7 @@ import {
   textValue,
   textLabel,
   textDescription,
-  linkEmail
+  linkEmailWithTruncate
 } from '@/lib/styles/shared-styles';
 
 interface SupervisorCardProps {
@@ -116,7 +116,7 @@ export default function SupervisorCard({
           <span className={textMuted}>Contact:</span>
           <a 
             href={`mailto:${supervisor.contact}`}
-            className={linkEmail}
+            className={linkEmailWithTruncate}
           >
             {supervisor.contact}
           </a>

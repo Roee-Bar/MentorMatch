@@ -4,6 +4,7 @@ import Table from '@/app/components/shared/Table';
 import type { Supervisor } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import { emptyStateContainer, sortableHeaderButton, linkEmail, capacityAvailable, capacityUnavailable } from '@/lib/styles/shared-styles';
 
 interface SupervisorsTableProps {
   data: Supervisor[];
@@ -32,7 +33,7 @@ export default function SupervisorsTable({
   }
 
   if (data.length === 0) {
-    return <div className="text-center py-8 text-gray-500">No supervisors found</div>;
+    return <div className={emptyStateContainer}>No supervisors found</div>;
   }
 
   return (
@@ -42,7 +43,7 @@ export default function SupervisorsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('name')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Name {getSortIcon('name')}
             </button>
@@ -50,7 +51,7 @@ export default function SupervisorsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('email')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Email {getSortIcon('email')}
             </button>
@@ -58,7 +59,7 @@ export default function SupervisorsTable({
           <Table.HeaderCell>
             <button
               onClick={() => onSort('department')}
-              className="flex items-center gap-2 hover:text-blue-600"
+              className={sortableHeaderButton}
             >
               Department {getSortIcon('department')}
             </button>
@@ -83,7 +84,7 @@ export default function SupervisorsTable({
             <Table.Row key={supervisor.id}>
               <Table.Cell>{supervisor.fullName}</Table.Cell>
               <Table.Cell>
-                <a href={`mailto:${supervisor.email}`} className="text-blue-600 hover:underline">
+                <a href={`mailto:${supervisor.email}`} className={linkEmail}>
                   {supervisor.email}
                 </a>
               </Table.Cell>
@@ -96,7 +97,7 @@ export default function SupervisorsTable({
               {showAvailableSlots && (
                 <Table.Cell>
                   <div className="text-center">
-                    <span className={availableSlots > 0 ? 'text-green-600 font-semibold' : 'text-gray-500'}>
+                    <span className={availableSlots > 0 ? capacityAvailable : capacityUnavailable}>
                       {availableSlots}
                     </span>
                   </div>
