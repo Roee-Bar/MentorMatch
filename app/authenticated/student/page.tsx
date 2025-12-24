@@ -21,6 +21,8 @@ import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
 import { btnPrimary, badgeWarning, linkAction } from '@/lib/styles/shared-styles';
+import StudentPartnershipFilters from './_components/StudentPartnershipFilters';
+import { useStudentPartnershipFilters } from '@/lib/hooks/useStudentPartnershipFilters';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -78,6 +80,19 @@ export default function StudentAuthenticated() {
   const incomingRequests = partnershipData?.incomingRequests || [];
   const outgoingRequests = partnershipData?.outgoingRequests || [];
   const currentPartner = partnershipData?.currentPartner || null;
+
+  // Student partnership filtering using hook
+  const {
+    filters,
+    filteredStudents,
+    uniqueDepartments,
+    uniqueSkills,
+    uniqueInterests,
+    updateFilters,
+    clearFilters,
+    hasActiveFilters,
+    getFilterCounts,
+  } = useStudentPartnershipFilters(availableStudents);
 
   // Ref to track previous application count for scroll detection
   const previousAppCountRef = useRef(applications.length);
@@ -313,11 +328,32 @@ export default function StudentAuthenticated() {
               }
             />
             
-            {availableStudents.length === 0 ? (
-              <EmptyState message="No available students at the moment." />
+            {/* Filter Component */}
+            {availableStudents.length > 0 && (
+              <StudentPartnershipFilters
+                filters={filters}
+                onFilterChange={updateFilters}
+                onClearFilters={clearFilters}
+                uniqueDepartments={uniqueDepartments}
+                uniqueSkills={uniqueSkills}
+                uniqueInterests={uniqueInterests}
+                totalCount={availableStudents.length}
+                filteredCount={filteredStudents.length}
+                getFilterCounts={getFilterCounts}
+              />
+            )}
+            
+            {filteredStudents.length === 0 ? (
+              <EmptyState 
+                message={
+                  hasActiveFilters 
+                    ? "No students match your filters. Try adjusting your search criteria."
+                    : "No available students at the moment."
+                }
+              />
             ) : (
               <div className="grid-cards-3col">
-                {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
+                {(showAllStudents ? filteredStudents : filteredStudents.slice(0, 3))
                   .map(student => (
                     <StudentCard
                       key={student.id}

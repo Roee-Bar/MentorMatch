@@ -27,3 +27,8 @@ export { useAdminDashboard } from './useAdminDashboard';
 export { useStatCardTables, type StatCardType } from './useStatCardTables';
 export { useCapacityUpdate } from './useCapacityUpdate';
 export { useModalScroll } from './useModalScroll';
+
+// Filter hooks
+export { useDebouncedValue } from './useDebouncedValue';
+export { useFilterState } from './useFilterState';
+export { useStudentPartnershipFilters, type StudentPartnershipFilters } from './useStudentPartnershipFilters';
