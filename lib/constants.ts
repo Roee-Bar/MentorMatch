@@ -47,3 +47,12 @@ export const UI_CONSTANTS = {
   MESSAGE_DISPLAY_DURATION: 5000, // ms - how long success/error messages show
 } as const;
 
+/**
+ * Email verification constants
+ */
+export const EMAIL_VERIFICATION = {
+  RESEND_COOLDOWN_MS: 60 * 60 * 1000, // 1 hour
+  MAX_RESENDS: 3,
+  STATUS_CHECK_INTERVAL: 5000, // 5 seconds
+} as const;
+

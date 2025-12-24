@@ -58,6 +58,12 @@ Cloud Firestore
 
 ### Key Features
 
+**Authentication & Security**
+- Email-based user registration
+- Email verification required before platform access
+- Secure password authentication
+- Role-based access control (Student, Supervisor, Admin)
+
 **Students**: Browse supervisors, submit applications, track status
 
 **Supervisors**: Manage capacity, review applications, track projects
@@ -117,6 +123,12 @@ FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE K
 
 - Firebase Authentication for client-side auth
 - Firebase Admin SDK for server-side token verification
+- **Email Verification**: Client-side email verification using Firebase Auth SDK
+  - Users must verify their email addresses before accessing the platform
+  - Implementation uses Firebase's native `sendEmailVerification()` method
+  - Cost-effective: Free tier (1,200 emails/month) sufficient for development
+  - No additional email service integration required
+  - Can be migrated to custom email service later if needed for higher volumes
 - Role-based access control (RBAC)
 - Request validation with Zod schemas
 - Environment variable protection

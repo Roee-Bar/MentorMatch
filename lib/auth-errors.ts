@@ -32,6 +32,10 @@ export function getFirebaseErrorMessage(error: any): string {
     'auth/invalid-credential': 'Invalid email or password. Please try again.',
     'auth/operation-not-allowed': 'This sign-in method is not enabled. Please contact support.',
     'auth/requires-recent-login': 'Please log out and log back in to complete this action.',
+    
+    // Email verification errors
+    'auth/email-already-verified': 'Email is already verified.',
+    'auth/too-many-requests': 'Too many requests. Please try again later.',
   };
   
   // Check if we have a mapped message for this error code
