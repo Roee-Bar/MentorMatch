@@ -4,7 +4,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { sendEmailVerification } from '@/lib/auth';
 import { useLoadingState } from './useLoadingState';
@@ -19,6 +19,11 @@ interface UseEmailVerificationResendReturn {
 /**
  * Custom hook for resending email verification
  * Handles rate limiting, loading states, and both signed-in/out cases
+ * 
+ * Security Note: When a signed-out user provides credentials to resend the verification email,
+ * the user remains signed in after successful email send for better UX (allows immediate
+ * verification without requiring another login). However, if the email send fails after
+ * temporary sign-in, the user is automatically signed out to prevent partial state.
  * 
  * @returns Object with resend function and isLoading state
  * 
@@ -84,31 +89,43 @@ export function useEmailVerificationResend(): UseEmailVerificationResendReturn {
           };
         }
 
-        // Sign in temporarily
+        // Sign in temporarily to send verification email
+        // Note: User remains signed in after successful email send for better UX
+        // This allows immediate verification without requiring another login
         try {
           await signInWithEmailAndPassword(auth, email, password);
           const result = await sendEmailVerification();
 
           if (result.success) {
             recordAttempt();
+            // User remains signed in for better UX (can verify immediately)
             return { success: true };
           } else {
+            // If email send fails, sign out to prevent partial state
+            await firebaseSignOut(auth);
             return {
               success: false,
               error: result.error || 'Failed to send verification email.',
             };
           }
-        } catch (signInError: any) {
+        } catch (signInError: unknown) {
+          // Sign-in failed - ensure user is not signed in
+          try {
+            await firebaseSignOut(auth);
+          } catch {
+            // Ignore sign-out errors
+          }
           return {
             success: false,
             error: 'Invalid email or password. Please try again.',
           };
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send verification email.';
       return {
         success: false,
-        error: error.message || 'Failed to send verification email.',
+        error: errorMessage,
       };
     } finally {
       stopLoading(loadingKey);

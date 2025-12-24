@@ -3,7 +3,7 @@
 // app/authenticated/student/page.tsx
 // Updated Student Authenticated - Uses real Firebase data
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions, useModalScroll } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
@@ -72,7 +72,7 @@ export default function StudentAuthenticated() {
   
   // Extract data from hooks (with defaults)
   const userProfile = dashboardData?.profile || null;
-  const applications = dashboardData?.applications || [];
+  const applications = useMemo(() => dashboardData?.applications || [], [dashboardData?.applications]);
   const supervisors = dashboardData?.supervisors || [];
   const availableStudents = partnershipData?.availableStudents || [];
   const incomingRequests = partnershipData?.incomingRequests || [];

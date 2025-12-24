@@ -12,6 +12,7 @@ import {
 import { auth } from './firebase';
 import { apiFetch } from './api/client';
 import { getFirebaseErrorMessage } from './auth-errors';
+import { logger } from './logger';
 
 // Sign in existing user
 export const signIn = async (email: string, password: string) => {
@@ -23,8 +24,19 @@ export const signIn = async (email: string, password: string) => {
     const token = await user.getIdToken();
     const profile = await getUserProfile(user.uid, token);
 
-    // If profile fetch fails, proceed with sign-in (backward compatibility)
-    if (profile.success && profile.data) {
+    // If profile fetch fails, log warning but proceed with sign-in (backward compatibility)
+    // This allows login to work even if the profile API is temporarily unavailable
+    if (!profile.success) {
+      logger.warn('Failed to fetch user profile during login', {
+        context: 'Auth',
+        data: { uid: user.uid, email: user.email }
+      });
+      // Proceed with login - backward compatibility
+      return { success: true, user };
+    }
+
+    // Profile fetch succeeded - check role and email verification
+    if (profile.data) {
       const userRole = profile.data.role;
 
       // Check email verification only for students
@@ -39,7 +51,7 @@ export const signIn = async (email: string, password: string) => {
     }
 
     return { success: true, user };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: getFirebaseErrorMessage(error) };
   }
 };
@@ -49,7 +61,7 @@ export const signOut = async () => {
   try {
     await firebaseSignOut(auth);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: getFirebaseErrorMessage(error) };
   }
 };
@@ -59,8 +71,9 @@ export const getUserProfile = async (uid: string, token: string) => {
   try {
     const response = await apiFetch(`/users/${uid}`, { token });
     return response;
-  } catch (error: any) {
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -79,7 +92,7 @@ export const sendEmailVerification = async () => {
 
     await firebaseSendEmailVerification(currentUser);
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { success: false, error: getFirebaseErrorMessage(error) };
   }
 };

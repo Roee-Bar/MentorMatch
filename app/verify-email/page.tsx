@@ -155,7 +155,7 @@ export default function VerifyEmailPage() {
               </div>
 
               <div className={`mt-6 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800 ${textMuted} text-sm`}>
-                <p className="font-semibold mb-2">Didn't receive the email?</p>
+                <p className="font-semibold mb-2">Didn&apos;t receive the email?</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Check your spam or junk folder</li>
                   <li>Make sure the email address is correct</li>
