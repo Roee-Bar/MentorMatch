@@ -18,6 +18,7 @@ import {
   modalCloseBtn,
   errorText,
   charCountText,
+  linkEmailWithMargin,
   heading2xl,
   sectionDivider,
   borderTop
@@ -240,7 +241,7 @@ export default function ApplicationModal({
                   <button 
                     type="button"
                     onClick={onClose}
-                    className="text-blue-600 hover:underline ml-1 dark:text-blue-400"
+                    className={linkEmailWithMargin}
                   >
                     Find a partner first
                   </button>

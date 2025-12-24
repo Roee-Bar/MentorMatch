@@ -38,7 +38,7 @@ export default function LoginPage() {
 
   return (
     <AuthLayout backHref="/">
-      <h1 className={`${heading2xl} mb-2.5`}>
+      <h1 className={`${heading2xl} mt-4 mb-2.5`}>
         Welcome Back
       </h1>
       <p className={`${textMuted} mb-8 text-sm`}>

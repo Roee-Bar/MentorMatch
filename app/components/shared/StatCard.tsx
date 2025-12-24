@@ -1,4 +1,4 @@
-import { cardBase, textMuted, textColorMap, iconMuted } from '@/lib/styles/shared-styles';
+import { cardBase, textMuted, textColorMap, iconMuted, spinnerSmall } from '@/lib/styles/shared-styles';
 
 interface StatCardProps {
   title: string;
@@ -46,7 +46,7 @@ export default function StatCard({
         <h3 className={`text-sm font-semibold ${textMuted}`}>{title}</h3>
         <div className="flex items-center gap-2">
           {isLoading && (
-            <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin dark:border-slate-600 dark:border-t-blue-500"></div>
+            <div className={spinnerSmall}></div>
           )}
           {icon && <div className={iconMuted}>{icon}</div>}
         </div>

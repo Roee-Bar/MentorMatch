@@ -58,7 +58,7 @@ export const btnPrimaryFullWidth = `${btnPrimary} w-full`;
 export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
 
 // ============= CARD VARIANTS =============
-export const cardAuth = 'bg-white dark:bg-slate-800 p-10 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700';
+export const cardAuth = 'bg-white dark:bg-slate-800 p-12 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700';
 export const cardFormSection = 'bg-gray-50 dark:bg-slate-900 p-10 rounded-xl border border-gray-200 dark:border-slate-700';
 
 // ============= BACKGROUND UTILITIES =============
@@ -135,7 +135,8 @@ export const avatarPlaceholderSm = 'w-10 h-10 rounded-full bg-blue-800 flex item
 export const avatarPlaceholderMd = 'w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold';
 
 // ============= LINKS (Extended) =============
-export const linkEmail = 'text-blue-600 font-medium hover:underline truncate ml-2 dark:text-blue-400';
+export const linkEmail = 'text-blue-600 hover:underline dark:text-blue-400';
+export const linkEmailWithTruncate = `${linkEmail} font-medium truncate ml-2`;
 
 // ============= CARD VARIANTS (Extended) =============
 export const cardBaseCompact = 'bg-white p-4 rounded-xl shadow-lg border border-gray-200 dark:bg-slate-800 dark:border-slate-700';
@@ -189,6 +190,43 @@ export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium te
 export const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
 export const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
 export const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
+
+// ============= EMAIL LINKS =============
+export const linkEmailWithMargin = `${linkEmail} ml-1`;
+
+// ============= EMPTY STATES =============
+export const emptyStateContainer = 'text-center py-8 text-gray-500 dark:text-slate-400';
+export const emptyStateLoading = 'text-center py-8';
+
+// ============= CAPACITY INDICATORS =============
+export const capacityAvailable = 'text-green-600 font-semibold dark:text-green-400';
+export const capacityUnavailable = 'text-gray-500 dark:text-slate-400';
+
+// ============= SPACING UTILITIES =============
+export const spacingSection = 'mb-8'; // Section spacing
+export const spacingFormField = 'mb-5'; // Form field spacing
+export const spacingFormGroup = 'mb-6'; // Form group spacing
+export const spacingTop = 'mt-4'; // Top spacing
+export const spacingTopLarge = 'mt-6'; // Large top spacing
+
+// ============= TABLE VARIANTS (Spacious) =============
+export const tableHeaderCellSpacious = 'px-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
+export const tableHeaderCellSpaciousCenter = 'px-8 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
+export const tableHeaderCellSpaciousRight = 'px-8 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
+export const tableCellSpacious = 'px-8 py-4 whitespace-nowrap dark:text-slate-200';
+
+// ============= SORTABLE TABLE HEADERS =============
+export const sortableHeaderButton = 'flex items-center gap-2 hover:text-blue-600';
+
+// ============= LOADING SPINNERS =============
+export const spinnerSmall = 'w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin dark:border-slate-600 dark:border-t-blue-500';
+
+// ============= COMMENT BOXES =============
+export const commentBox = 'text-sm text-gray-700 bg-white p-3 rounded-xl border dark:bg-slate-700 dark:text-slate-100 dark:border-slate-600';
+
+// ============= RESPONSIVE GRID UTILITIES =============
+export const responsiveGrid3Col = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+export const responsiveGrid2Col = 'grid grid-cols-1 sm:grid-cols-2 gap-5';
 
 // ============= ACTION SELECTION BUTTONS =============
 export const actionBtnBase = 'w-full p-4 rounded-xl border-2 text-left transition-all';
