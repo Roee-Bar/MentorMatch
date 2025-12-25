@@ -18,12 +18,18 @@ const SERVICE_NAME = 'PartnershipPairingService';
 export const PartnershipPairingService = {
   /**
    * Get available students for partnership (not paired, excluding current user)
+   * Uses partnerId filter to allow students with pending requests to appear
+   * 
+   * Data Model Assumption: partnerId is always null (not undefined) when unpaired.
+   * Firestore treats null and undefined differently in queries. This query explicitly
+   * checks for null, which matches our data model where unpaired students have
+   * partnerId: null (set explicitly, not omitted).
    */
   async getAvailableStudents(currentUserId: string): Promise<Student[]> {
     try {
       const studentsRef = adminDb.collection('students');
       const snapshot = await studentsRef
-        .where('partnershipStatus', '==', 'none')
+        .where('partnerId', '==', null)
         .get();
       
       return snapshot.docs

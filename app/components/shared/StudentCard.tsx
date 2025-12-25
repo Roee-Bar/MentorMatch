@@ -157,7 +157,7 @@ export default function StudentCard({
       </div>
 
       {/* Action Buttons */}
-      {showRequestButton && !isCurrentPartner && student.partnershipStatus === 'none' && (
+      {showRequestButton && !isCurrentPartner && !student.partnerId && (
         <div className={cardActionsSection}>
           <button
             onClick={handleRequestPartnership}
@@ -181,7 +181,7 @@ export default function StudentCard({
         </div>
       )}
 
-      {showRequestButton && student.partnershipStatus === 'paired' && !isCurrentPartner && (
+      {showRequestButton && student.partnerId && !isCurrentPartner && (
         <div className={cardActionsSection}>
           <div className={`text-center text-sm ${textMuted}`}>
             Already paired with another student
