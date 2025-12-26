@@ -162,7 +162,7 @@ export const updateStudentSchema = z.object({
   
   // New partnership fields
   partnerId: z.string().optional(),
-  partnershipStatus: z.enum(['none', 'pending_sent', 'pending_received', 'paired']).optional(),
+  partnershipStatus: z.enum(['none', 'paired']).optional(),
   
   // Deprecated partnership fields
   hasPartner: z.boolean().optional(),

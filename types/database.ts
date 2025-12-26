@@ -50,7 +50,7 @@ export interface Student {
   
   // Partner Information - NEW PARTNERSHIP SYSTEM
   partnerId?: string;  // Firebase UID of matched partner
-  partnershipStatus: 'none' | 'pending_sent' | 'pending_received' | 'paired';
+  partnershipStatus: 'none' | 'paired';
   
   // DEPRECATED - Keep for migration reference only
   hasPartner: boolean;
@@ -324,7 +324,7 @@ export interface StudentCardData {
   interests: string;
   preferredTopics?: string;
   previousProjects?: string;
-  partnershipStatus: 'none' | 'pending_sent' | 'pending_received' | 'paired';
+  partnershipStatus: 'none' | 'paired';
   partnerId?: string;
 }
 

@@ -8,6 +8,48 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    // Partnership Status Validation Rules (Defense in Depth)
+    // Note: Admin SDK bypasses these rules, but they serve as:
+    // 1. Documentation of data consistency requirements
+    // 2. Safety net if client-side access is ever enabled
+    // 3. Validation for any future client SDK usage
+    
+    match /students/{studentId} {
+      // Validate partnership status consistency
+      // Rule: partnershipStatus must be 'none' or 'paired'
+      // Rule: If partnerId exists, partnershipStatus must be 'paired'
+      // Rule: If partnershipStatus is 'paired', partnerId must exist
+      function isValidPartnershipStatus() {
+        let status = resource.data.partnershipStatus;
+        let partnerId = resource.data.partnerId;
+        
+        // Status must be one of the allowed values
+        return status == 'none' || status == 'paired';
+      }
+      
+      function isPartnershipStatusConsistent() {
+        let status = resource.data.partnershipStatus;
+        let partnerId = resource.data.partnerId;
+        
+        // If partnerId exists, status must be 'paired'
+        if (partnerId != null) {
+          return status == 'paired';
+        }
+        
+        // If status is 'paired', partnerId must exist
+        if (status == 'paired') {
+          return partnerId != null;
+        }
+        
+        // If status is 'none', partnerId should be null (but we allow it for migration)
+        return true;
+      }
+      
+      // These rules are commented out since client access is denied above
+      // They serve as documentation of the expected data model
+      // allow update: if isValidPartnershipStatus() && isPartnershipStatusConsistent();
+    }
   }
 }
 
