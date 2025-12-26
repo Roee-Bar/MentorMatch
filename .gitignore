@@ -37,17 +37,6 @@ docs/testing/
 # scripts folder (local development utilities)
 /scripts/
 
-# playwright MCP screenshots
-.playwright-mcp/
-
-# Playwright
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
-# Report Portal
-*.rp
-
 # local env files
 .env*.local
 .env
