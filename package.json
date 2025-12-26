@@ -24,7 +24,9 @@
     "test:pipeline-local": "node scripts/test-pipeline-local.js",
     "jenkins:start": "docker-compose -f docker-compose.jenkins.yml up -d",
     "jenkins:stop": "docker-compose -f docker-compose.jenkins.yml down",
-    "jenkins:setup": "bash scripts/setup-jenkins.sh"
+    "jenkins:setup": "bash scripts/setup-jenkins.sh",
+    "jenkins:test-mcp": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/test-jenkins-mcp-connection.ts",
+    "jenkins:setup-auth": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-jenkins-mcp-auth.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",
