@@ -1,5 +1,40 @@
 import { defineConfig, devices } from '@playwright/test';
 
+// Report Portal configuration (only in CI environment)
+let rpConfig: any = undefined;
+if (process.env.CI === 'true' && process.env.RP_ENDPOINT && process.env.RP_TOKEN) {
+  rpConfig = {
+    token: process.env.RP_TOKEN,
+    endpoint: process.env.RP_ENDPOINT,
+    project: process.env.RP_PROJECT || 'mentormatch',
+    launch: process.env.RP_LAUNCH || `E2E Tests - Build ${process.env.BUILD_NUMBER || 'local'} - ${new Date().toISOString()}`,
+    attributes: [
+      { key: 'environment', value: process.env.NODE_ENV || 'test' },
+      { key: 'branch', value: process.env.GIT_BRANCH || 'main' },
+      { key: 'build', value: process.env.BUILD_NUMBER || 'local' },
+      { key: 'commit', value: process.env.GIT_COMMIT || 'unknown' },
+      { key: 'job', value: process.env.JOB_NAME || 'local' },
+    ],
+  };
+}
+
+// Build reporter array
+const reporters: any[] = [
+  ['html', { outputFolder: 'playwright-report' }],
+  ['list'],
+];
+
+// Add Report Portal reporter if configured
+if (rpConfig) {
+  try {
+    // Dynamic import to avoid errors if package is not installed
+    require('@reportportal/agent-js-playwright');
+    reporters.push(['@reportportal/agent-js-playwright', rpConfig]);
+  } catch (error) {
+    console.warn('Report Portal reporter not available. Install @reportportal/agent-js-playwright to enable.');
+  }
+}
+
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch: /.*\.spec\.ts$/,
@@ -7,10 +42,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter: reporters,
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',

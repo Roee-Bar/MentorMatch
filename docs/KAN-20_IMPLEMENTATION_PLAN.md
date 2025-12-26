@@ -1,7 +1,7 @@
 # KAN-20: Supervisor Partnerships - Implementation Plan
 
 ## Overview
-Add supervisor partnership functionality for co-supervising projects together. **Partnerships are project-based** - supervisors form partnerships for specific projects during project creation/editing. Supervisors can have multiple active partnerships simultaneously (one per project). Partnerships automatically end when projects complete or are cancelled.
+Add supervisor partnership functionality for co-supervising projects together. **Partnerships are project-based** - supervisors form partnerships for specific projects during project creation/editing. Supervisors can have multiple active partnerships simultaneously (one per project). Partnerships automatically end when project status changes to 'completed' OR when projects are deleted.
 
 **Epic**: KAN-20  
 **Status**: Implemented  
@@ -15,7 +15,7 @@ Add supervisor partnership functionality for co-supervising projects together. *
 1. **Partnership Workflow**: Request → pending → accept/reject/cancel (project-based)
 2. **Multiple Partnerships**: Supervisors can have multiple active partnerships simultaneously (one per project)
 3. **Project-Based**: Partnerships are formed FOR specific projects during project creation/editing
-4. **Automatic End**: Partnerships end when project status changes to completed/cancelled
+4. **Automatic End**: Partnerships end when project status changes to 'completed' OR when projects are deleted
 5. **Project Integration**: Suggest supervisors with available capacity when creating/editing projects
 6. **Manual Removal**: Supervisors can manually remove co-supervisor from a project
 7. **Admin View**: Admins can see supervisor partnerships (counted via projects)
@@ -24,9 +24,9 @@ Add supervisor partnership functionality for co-supervising projects together. *
 - Partnerships are formed during project creation/editing (not beforehand)
 - `projectId` is REQUIRED when creating partnership requests
 - Supervisors can have multiple active partnerships (different projects)
-- Partnerships automatically end when project completes/cancels (coSupervisorId cleared)
+- Partnerships automatically end when project status changes to 'completed' OR when projects are deleted (coSupervisorId cleared)
 - Only show supervisors with available capacity when suggesting co-supervisors
-- Supervisors cannot be co-supervising with the same supervisor in multiple active projects
+- Co-supervising does NOT count toward supervisor capacity (separate from main supervisor capacity)
 
 ---
 
@@ -37,10 +37,13 @@ Add supervisor partnership functionality for co-supervising projects together. *
 #### 1. Supervisor Type (`types/database.ts`)
 **NO partnership fields on Supervisor** - partnerships are tracked via `Project.coSupervisorId`
 
+**Important**: The Supervisor interface has NO partnership-related fields. All partnerships are tracked through the `Project.coSupervisorId` field. This is a project-based model, not a supervisor-based model.
+
 ```typescript
 export interface Supervisor {
   // ... existing fields ...
   // NO partnership fields - partnerships are project-based
+  // Partnerships are tracked via Project.coSupervisorId only
 }
 ```
 
@@ -81,9 +84,9 @@ export interface SupervisorPartnershipRequest {
 
 #### Tasks:
 1. **Update Type Definitions**
-   - [ ] Add partnership fields to `Supervisor` interface in `types/database.ts`
+   - [ ] Verify NO partnership fields exist on `Supervisor` interface in `types/database.ts` (partnerships are project-based)
    - [ ] Create `SupervisorPartnershipRequest` interface in `types/database.ts`
-   - [ ] Update `CreateProjectData` to include partner suggestions helper type
+   - [ ] Update `CreateProjectData` to include partner suggestions helper type (if needed for UI)
 
 2. **Create Supervisor Partnership Services**
    - [ ] Create `lib/services/partnerships/supervisor-partnership-request-service.ts`
@@ -108,7 +111,7 @@ export interface SupervisorPartnershipRequest {
 
 3. **Update Firestore Converters**
    - [ ] Add `toSupervisorPartnershipRequest()` in `lib/services/shared/firestore-converters.ts`
-   - [ ] Update `toSupervisor()` to handle new partnership fields
+   - [ ] Verify `toSupervisor()` has NO partnership field handling (partnerships are project-based)
 
 4. **Update Firestore Rules** (`firestore.rules`)
    - [ ] Add validation rules for supervisor partnership status consistency
@@ -135,8 +138,12 @@ export interface SupervisorPartnershipRequest {
      - Get partnership request details
      - Cancel outgoing request
    - [ ] Create `app/api/supervisor-partnerships/unpair/route.ts` (POST)
-     - Unpair supervisors
+     - Remove co-supervisor from project
      - Handle project cleanup if needed
+   - [ ] Create `app/api/projects/[id]/status-change/route.ts` (POST)
+     - Handle project status changes
+     - Automatically clear coSupervisorId when status changes to 'completed'
+     - Handle project deletion scenario
 
 2. **Partnership Query Endpoints**
    - [ ] Create `app/api/supervisor-partnerships/requests/route.ts` (GET)
@@ -166,13 +173,13 @@ export interface SupervisorPartnershipRequest {
 
 #### Tasks:
 1. **API Client Methods** (`lib/api/client.ts`)
-   - [ ] `createSupervisorPartnershipRequest(targetSupervisorId, projectId?)`
+   - [ ] `createSupervisorPartnershipRequest(targetSupervisorId, projectId)` - projectId is REQUIRED
    - [ ] `getSupervisorPartnershipRequests(type)`
    - [ ] `respondToSupervisorPartnershipRequest(requestId, action)`
    - [ ] `cancelSupervisorPartnershipRequest(requestId)`
    - [ ] `getAvailableSupervisorPartners()`
    - [ ] `getSupervisorPartnerDetails(partnerId)`
-   - [ ] `unpairSupervisors()`
+   - [ ] `removeCoSupervisor(projectId)` - remove co-supervisor from specific project
    - [ ] `getSupervisorPartnersWithCapacity()`
 
 2. **React Hooks** (`lib/hooks/`)
@@ -180,7 +187,7 @@ export interface SupervisorPartnershipRequest {
      - Fetch available supervisors, requests, current partner
      - Similar structure to `useStudentPartnerships.ts`
    - [ ] Create `useSupervisorPartnershipActions.ts`
-     - Handle create, accept, reject, cancel, unpair actions
+     - Handle create, accept, reject, cancel, remove co-supervisor actions
      - Similar structure to `usePartnershipActions.ts`
 
 ---
@@ -211,9 +218,9 @@ export interface SupervisorPartnershipRequest {
 
 3. **Supervisor Profile Page**
    - [ ] Update `app/authenticated/supervisor/profile/page.tsx`
-     - Display partnership status
-     - Show current partner info
-     - Unpair button
+     - Display active partnerships (projects where supervisor is co-supervisor)
+     - Show current co-supervisor projects
+     - Remove co-supervisor button for each project
 
 ---
 
@@ -232,14 +239,43 @@ export interface SupervisorPartnershipRequest {
 
 2. **Project Service Updates**
    - [ ] Update `lib/services/projects/project-service.ts`
-     - When project created/updated with co-supervisor, update `activePartnershipProjectId` on both supervisors
-     - When project completed/cancelled, clear `activePartnershipProjectId` and optionally unpair
+     - When project created/updated with co-supervisor, set `coSupervisorId` and `coSupervisorName` on Project
+     - No supervisor document updates needed (partnerships are project-based)
+     - Co-supervising does NOT count toward supervisor capacity
 
 3. **Project Status Changes**
-   - [ ] Add logic to handle partnership cleanup when project status changes
-   - [ ] When project completes: clear `activePartnershipProjectId` (keep partnership for future projects)
-   - [ ] When project cancelled: clear `activePartnershipProjectId` (keep partnership for future projects)
-   - [ ] Optional: Add setting to auto-unpair when project ends (if needed)
+   - [ ] Create `app/api/projects/[id]/status-change/route.ts` endpoint for handling project status changes
+   - [ ] When project status changes to 'completed': automatically clear `coSupervisorId` and `coSupervisorName` from Project
+   - [ ] When project is deleted: automatically clear `coSupervisorId` and cancel all pending partnership requests for that project
+   - [ ] Use `ProjectService.handleProjectStatusChange()` method for status change handling
+   - [ ] Use `ProjectService.handleProjectDeletion()` method for deletion handling
+
+---
+
+### Phase 5.5: Error Handling & Edge Cases
+**Goal**: Handle edge cases and error scenarios gracefully
+
+#### Edge Case Handling:
+1. **Project Deletion with Pending Requests**
+   - When a project is deleted while partnership requests are pending, automatically cancel all pending requests for that project
+   - Implementation: `SupervisorPartnershipRequestService.cancelRequestsForProject(projectId)`
+   - Called from `ProjectService.handleProjectDeletion()`
+
+2. **Supervisor Deletion with Active Partnerships**
+   - When a supervisor is deleted while partnered in active projects, clear `coSupervisorId` from all affected projects
+   - Implementation: Clear `coSupervisorId` and `coSupervisorName` from all projects where supervisor is co-supervisor
+   - Called from supervisor deletion/deactivation methods
+
+3. **Capacity Validation at Acceptance Time**
+   - Re-validate supervisor capacity when accepting a partnership request (not just at request creation)
+   - Capacity may change between request creation and acceptance
+   - Implementation: Re-check `currentCapacity < maxCapacity` in `_acceptRequest()` method
+   - Return appropriate error if capacity is no longer available
+
+4. **Concurrent Requests for Same Project**
+   - Allow multiple pending requests for the same project
+   - When one request is accepted, automatically cancel all other pending requests for that project
+   - Implementation: `SupervisorPartnershipPairingService.cancelAllPendingRequestsForProject(projectId)`
 
 ---
 
@@ -282,11 +318,16 @@ export interface SupervisorPartnershipRequest {
    - [ ] Test project integration
 
 3. **Manual Testing**
-   - [ ] Test partnership request flow
-   - [ ] Test accept/reject/cancel
-   - [ ] Test unpairing
-   - [ ] Test project creation with partner
-   - [ ] Test capacity filtering
+   - [ ] Test partnership request flow (create request for specific project)
+   - [ ] Test accept/reject/cancel partnership requests
+   - [ ] Test removing co-supervisor from project
+   - [ ] Test project creation with co-supervisor
+   - [ ] Test capacity filtering (only show supervisors with available capacity)
+   - [ ] Test project deletion with pending requests (verify requests are auto-cancelled)
+   - [ ] Test supervisor deletion with active partnerships (verify coSupervisorId cleared from projects)
+   - [ ] Test capacity validation at acceptance time (capacity changes between request and acceptance)
+   - [ ] Test project status change endpoint (status to 'completed' clears coSupervisorId)
+   - [ ] Test multiple projects with same supervisor pair (should be allowed)
 
 4. **Documentation**
    - [ ] Update README with supervisor partnerships feature
@@ -316,7 +357,7 @@ app/api/supervisor-partnerships/
 ├── [id]/
 │   ├── route.ts                              (NEW)
 │   └── respond/route.ts                      (NEW)
-└── unpair/route.ts                           (NEW)
+└── unpair/route.ts                           (NEW - remove co-supervisor endpoint)
 
 lib/hooks/
 ├── useSupervisorPartnerships.ts              (NEW)
@@ -362,8 +403,15 @@ app/authenticated/supervisor/
 
 ### Data Migration
 - [x] Migration script created: `scripts/migrate-supervisor-partnerships.ts`
-- [ ] Run migration script after deployment to remove `partnerId`, `partnershipStatus`, `activePartnershipProjectId` from supervisor documents
-- [ ] Verify projects with `coSupervisorId` are correctly set
+- [ ] **Migration Steps**:
+  1. Run migration script after deployment, before enabling new partnership features
+  2. Remove old partnership fields from Supervisor documents:
+     - `partnerId` (if exists)
+     - `partnershipStatus` (if exists)
+     - `activePartnershipProjectId` (if exists)
+  3. Migration script should be idempotent (safe to run multiple times)
+  4. Verify existing projects with `coSupervisorId` are preserved and correctly set
+  5. Verify no Supervisor documents have partnership-related fields after migration
 
 ### Backward Compatibility
 - [x] Partnership fields removed from Supervisor (breaking change)

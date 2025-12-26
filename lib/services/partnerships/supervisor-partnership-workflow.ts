@@ -293,6 +293,8 @@ export const SupervisorPartnershipWorkflowService = {
       }
 
       // Verify target supervisor exists and has capacity
+      // IMPORTANT: Re-validate capacity at acceptance time (not just at request creation)
+      // Capacity may have changed between request creation and acceptance
       if (!targetSupervisorSnap.exists) {
         throw new Error('Target supervisor not found');
       }

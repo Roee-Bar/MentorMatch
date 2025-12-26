@@ -72,6 +72,9 @@ export interface Student {
 // ============================================
 // SUPERVISOR TYPE (stored in 'supervisors' collection)
 // ============================================
+// NOTE: Supervisor interface has NO partnership-related fields.
+// Partnerships are project-based and tracked via Project.coSupervisorId only.
+// This is a project-based partnership model, not a supervisor-based model.
 export interface Supervisor {
   id: string; // Document ID from Firestore
   

@@ -6,6 +6,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { toProject } from '@/lib/services/shared/firestore-converters';
 import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships/supervisor-partnership-request-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
@@ -172,6 +173,13 @@ export const ProjectService = {
               updatedAt: new Date()
             });
           });
+
+          logger.service.info(SERVICE_NAME, 'handleProjectStatusChange', {
+            projectId,
+            status: newStatus,
+            clearedCoSupervisor: project.coSupervisorId,
+            message: 'Partnership ended - coSupervisorId cleared'
+          });
         }
       }
 
@@ -180,6 +188,46 @@ export const ProjectService = {
       logger.service.error(SERVICE_NAME, 'handleProjectStatusChange', error, { projectId, newStatus });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to handle project status change'
+      );
+    }
+  },
+
+  // Handle project deletion - clear co-supervisor and cancel pending requests
+  async handleProjectDeletion(projectId: string): Promise<ServiceResult> {
+    try {
+      const project = await this.getProjectById(projectId);
+      if (!project) {
+        return ServiceResults.error('Project not found');
+      }
+
+      // Clear coSupervisorId and cancel all pending partnership requests for this project
+      await adminDb.runTransaction(async (transaction) => {
+        const projectRef = adminDb.collection('projects').doc(projectId);
+        
+        // Clear coSupervisorId if it exists
+        if (project.coSupervisorId) {
+          transaction.update(projectRef, {
+            coSupervisorId: null,
+            coSupervisorName: null,
+            updatedAt: new Date()
+          });
+        }
+      });
+
+      // Cancel all pending partnership requests for this project (outside transaction for batch operations)
+      await SupervisorPartnershipRequestService.cancelRequestsForProject(projectId);
+
+      logger.service.info(SERVICE_NAME, 'handleProjectDeletion', {
+        projectId,
+        clearedCoSupervisor: project.coSupervisorId || 'none',
+        message: 'Project deletion - partnership cleanup completed'
+      });
+
+      return ServiceResults.success(undefined, 'Project deletion handled successfully');
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'handleProjectDeletion', error, { projectId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to handle project deletion'
       );
     }
   },

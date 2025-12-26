@@ -5,9 +5,12 @@
  * 
  * Authorization: Supervisor role required
  * 
- * NOTE: This route is kept for backward compatibility but partnerships are now project-based.
- * Partnerships automatically end when projects complete/cancel. This route can be used
- * to manually remove co-supervisor from a project before it ends.
+ * NOTE: Partnerships are project-based. This endpoint removes the co-supervisor from
+ * a specific project. Partnerships automatically end when projects complete or are deleted.
+ * This route can be used to manually remove co-supervisor from a project before it ends.
+ * 
+ * Terminology: The endpoint path uses "unpair" for backward compatibility, but the
+ * operation is "remove co-supervisor" (project-specific, not a general unpairing).
  */
 
 import { NextRequest } from 'next/server';

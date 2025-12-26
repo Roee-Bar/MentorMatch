@@ -44,6 +44,9 @@ docs/testing/
 /playwright-report/
 /playwright/.cache/
 
+# Report Portal
+*.rp
+
 # local env files
 .env*.local
 .env

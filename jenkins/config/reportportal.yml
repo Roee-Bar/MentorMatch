@@ -1,0 +1,47 @@
+# Report Portal Configuration
+# This file documents the Report Portal setup for Jenkins pipeline
+# Actual configuration is done via environment variables in Jenkinsfile
+
+reportportal:
+  # Report Portal server endpoint
+  # Example: https://your-reportportal-instance.com
+  endpoint: ${RP_ENDPOINT}
+  
+  # Authentication token (stored as Jenkins secret credential)
+  token: ${RP_TOKEN}
+  
+  # Project name in Report Portal
+  project: ${RP_PROJECT}
+  
+  # Launch configuration
+  launch:
+    # Launch name - will include build number and timestamp
+    name: "E2E Tests - Build ${BUILD_NUMBER}"
+    
+    # Launch description
+    description: "Automated E2E tests from Jenkins CI/CD pipeline"
+    
+    # Launch attributes for filtering and organization
+    attributes:
+      - key: "environment"
+        value: "${NODE_ENV}"
+      - key: "branch"
+        value: "${GIT_BRANCH}"
+      - key: "build"
+        value: "${BUILD_NUMBER}"
+      - key: "commit"
+        value: "${GIT_COMMIT}"
+      - key: "job"
+        value: "${JOB_NAME}"
+  
+  # Test execution settings
+  settings:
+    # Enable screenshot attachment on failure
+    attachScreenshots: true
+    
+    # Enable video attachment on failure
+    attachVideos: true
+    
+    # Enable trace attachment on failure
+    attachTraces: true
+

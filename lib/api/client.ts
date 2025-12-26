@@ -255,7 +255,7 @@ export const apiClient = {
   // ========================================
   
   getAvailableSupervisorPartners: (token: string) => {
-    return apiFetch('/supervisors/available-partners', { token });
+    return apiFetch('/supervisor-partnerships/available', { token });
   },
 
   createSupervisorPartnershipRequest: (data: { targetSupervisorId: string; projectId: string }, token: string) => {
@@ -266,8 +266,9 @@ export const apiClient = {
     });
   },
 
-  getSupervisorPartnershipRequests: (supervisorId: string, type: string, token: string) => {
-    return apiFetch(`/supervisors/${supervisorId}/partnership-requests?type=${type}`, { token });
+  getSupervisorPartnershipRequests: (type: 'incoming' | 'outgoing' | 'all', token: string) => {
+    const queryParam = type ? `?type=${type}` : '';
+    return apiFetch(`/supervisor-partnerships/requests${queryParam}`, { token });
   },
 
   respondToSupervisorPartnershipRequest: (requestId: string, action: string, token: string) => {

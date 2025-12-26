@@ -59,7 +59,7 @@ const METRICS_CONFIG = [
     title: 'Supervisor Partnerships',
     valueKey: 'activeSupervisorPartnerships' as const,
     description: 'Active supervisor partnerships for co-supervision',
-    color: 'purple' as const,
+    color: 'blue' as const,
   },
 ] as const;
 

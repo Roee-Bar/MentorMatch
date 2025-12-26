@@ -36,8 +36,8 @@ export function useSupervisorPartnerships(userId: string | null) {
       // Fetch partnership requests and available supervisors in parallel
       const [availableResponse, incomingResponse, outgoingResponse, partnershipsResponse] = await Promise.all([
         apiClient.getAvailableSupervisorPartners(token),
-        apiClient.getSupervisorPartnershipRequests(userId, 'incoming', token),
-        apiClient.getSupervisorPartnershipRequests(userId, 'outgoing', token),
+        apiClient.getSupervisorPartnershipRequests('incoming', token),
+        apiClient.getSupervisorPartnershipRequests('outgoing', token),
         apiClient.getSupervisorPartnerships(token), // Get active partnerships
       ]);
 

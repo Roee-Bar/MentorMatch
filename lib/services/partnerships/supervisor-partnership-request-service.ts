@@ -133,5 +133,43 @@ export const SupervisorPartnershipRequestService = {
       respondedAt: new Date()
     });
   },
+
+  /**
+   * Cancel all pending requests for a specific project
+   * Used when project is deleted or when a partnership is accepted for that project
+   */
+  async cancelRequestsForProject(projectId: string): Promise<void> {
+    try {
+      const pendingRequests = await adminDb.collection('supervisor_partnership_requests')
+        .where('projectId', '==', projectId)
+        .where('status', '==', 'pending')
+        .get();
+
+      if (pendingRequests.empty) {
+        return;
+      }
+
+      // Use batch to update all requests atomically
+      const batch = adminDb.batch();
+      const now = new Date();
+
+      pendingRequests.docs.forEach((doc) => {
+        batch.update(doc.ref, {
+          status: 'cancelled',
+          respondedAt: now
+        });
+      });
+
+      await batch.commit();
+
+      logger.service.info(SERVICE_NAME, 'cancelRequestsForProject', {
+        projectId,
+        cancelledCount: pendingRequests.size
+      });
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'cancelRequestsForProject', error, { projectId });
+      throw error;
+    }
+  },
 };
 
