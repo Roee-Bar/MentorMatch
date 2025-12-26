@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "jenkins": {
+      "autoApprove": [],
+      "disabled": false,
+      "timeout": 60,
+      "type": "streamableHttp",
+      "url": "http://localhost:8080/mcp-server/mcp",
+      "headers": {
+        "Authorization": "Basic YOUR_BASE64_ENCODED_USERNAME_TOKEN"
+      }
+    }
+  }
+}
+

@@ -15,8 +15,44 @@ import { ServiceResults } from '@/lib/services/shared/types';
 import { executeBatchUpdates } from './utils/batch-utils';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, Project } from '@/types/database';
+import type { DocumentReference } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'SupervisorPartnershipPairingService';
+
+// ============================================
+// PRIVATE HELPER METHODS
+// ============================================
+
+/**
+ * Helper method to cancel requests by their document references
+ * Shared logic for canceling pending partnership requests
+ */
+async function _cancelRequestsByRefs(
+  refs: DocumentReference[],
+  context: string
+): Promise<ServiceResult> {
+  if (refs.length === 0) {
+    return ServiceResults.success(undefined, 'No pending requests to cancel');
+  }
+
+  try {
+    const result = await executeBatchUpdates(
+      refs,
+      { status: 'cancelled', respondedAt: new Date() },
+      context
+    );
+
+    if (!result.success) {
+      return ServiceResults.error(`Failed to cancel pending requests`);
+    }
+
+    return ServiceResults.success(undefined, `Cancelled ${result.totalUpdated} pending request(s)`);
+  } catch (error) {
+    logger.service.error(SERVICE_NAME, context, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return ServiceResults.error(`Failed to cancel pending requests: ${errorMessage}`);
+  }
+}
 
 // ============================================
 // SUPERVISOR PAIRING OPERATIONS
@@ -72,19 +108,7 @@ export const SupervisorPartnershipPairingService = {
       });
 
       // Filter out supervisors already partnered with in active projects
-      let filteredSupervisors = allSupervisors.filter(supervisor => !alreadyPartneredIds.has(supervisor.id));
-
-      // Apply pagination if options provided
-      if (options) {
-        const offset = options.offset || 0;
-        const limit = options.limit;
-        
-        if (limit !== undefined) {
-          filteredSupervisors = filteredSupervisors.slice(offset, offset + limit);
-        } else if (offset > 0) {
-          filteredSupervisors = filteredSupervisors.slice(offset);
-        }
-      }
+      const filteredSupervisors = allSupervisors.filter(supervisor => !alreadyPartneredIds.has(supervisor.id));
 
       return filteredSupervisors;
     } catch (error) {
@@ -158,13 +182,7 @@ export const SupervisorPartnershipPairingService = {
         ...requestsAsTarget.docs.map(doc => doc.ref)
       ];
       
-      const result = await executeBatchUpdates(
-        allRefs,
-        { status: 'cancelled', respondedAt: new Date() },
-        'cancelAllPendingRequests'
-      );
-
-      return ServiceResults.success(undefined, `Cancelled ${result.totalUpdated} pending request(s)`);
+      return await _cancelRequestsByRefs(allRefs, 'cancelAllPendingRequests');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'cancelAllPendingRequests', error, { supervisorId });
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -188,13 +206,7 @@ export const SupervisorPartnershipPairingService = {
 
       const allRefs = requestsSnapshot.docs.map(doc => doc.ref);
       
-      const result = await executeBatchUpdates(
-        allRefs,
-        { status: 'cancelled', respondedAt: new Date() },
-        'cancelAllPendingRequestsForProject'
-      );
-
-      return ServiceResults.success(undefined, `Cancelled ${result.totalUpdated} pending request(s) for project`);
+      return await _cancelRequestsByRefs(allRefs, 'cancelAllPendingRequestsForProject');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'cancelAllPendingRequestsForProject', error, { projectId });
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';

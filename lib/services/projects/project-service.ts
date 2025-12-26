@@ -201,25 +201,30 @@ export const ProjectService = {
         );
       }
 
-      // Clear coSupervisorId when project is completed (partnership ends)
-      if (newStatus === 'completed') {
-        if (project.coSupervisorId) {
-          await adminDb.runTransaction(async (transaction) => {
-            const projectRef = adminDb.collection('projects').doc(projectId);
-            transaction.update(projectRef, {
-              coSupervisorId: null,
-              coSupervisorName: null,
-              updatedAt: new Date()
-            });
-          });
-
-          logger.service.info(SERVICE_NAME, 'handleProjectStatusChange', {
-            projectId,
-            status: newStatus,
-            clearedCoSupervisor: project.coSupervisorId,
-            message: 'Partnership ended - coSupervisorId cleared'
-          });
+      // Update project status and clear coSupervisorId when project is completed (partnership ends)
+      await adminDb.runTransaction(async (transaction) => {
+        const projectRef = adminDb.collection('projects').doc(projectId);
+        const updates: Partial<Project> = {
+          status: newStatus,
+          updatedAt: new Date()
+        };
+        
+        // Clear coSupervisorId when project is completed
+        if (newStatus === 'completed' && project.coSupervisorId) {
+          updates.coSupervisorId = null;
+          updates.coSupervisorName = null;
         }
+        
+        transaction.update(projectRef, updates);
+      });
+
+      if (newStatus === 'completed' && project.coSupervisorId) {
+        logger.service.info(SERVICE_NAME, 'handleProjectStatusChange', {
+          projectId,
+          status: newStatus,
+          clearedCoSupervisor: project.coSupervisorId,
+          message: 'Partnership ended - coSupervisorId cleared'
+        });
       }
 
       return ServiceResults.success(undefined, 'Project status updated successfully');

@@ -25,6 +25,7 @@ import { SupervisorService } from '@/lib/services/supervisors/supervisor-service
 import { ProjectService } from '@/lib/services/projects/project-service';
 import { SupervisorPartnershipRequestService } from './supervisor-partnership-request-service';
 import { SupervisorPartnershipPairingService } from './supervisor-partnership-pairing';
+import { NotificationService } from '@/lib/services/notifications/notification-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { SupervisorPartnershipRequest } from '@/types/database';
@@ -53,39 +54,16 @@ export const SupervisorPartnershipWorkflowService = {
     projectId: string // REQUIRED - partnership is for specific project
   ): Promise<ServiceResult<string>> {
     try {
-      // Validate project exists and requester is project supervisor
+      // Lightweight early validation checks (for better UX)
+      // Validate project exists
       const project = await ProjectService.getProjectById(projectId);
       if (!project) {
         return ServiceResults.error('Project not found');
       }
 
-      if (project.supervisorId !== requesterId) {
-        return ServiceResults.error('Only the project supervisor can request a co-supervisor partnership');
-      }
-
-      // Check if project already has a co-supervisor
-      if (project.coSupervisorId) {
-        return ServiceResults.error('This project already has a co-supervisor');
-      }
-
-      // Get both supervisor profiles
-      const [requester, target] = await Promise.all([
-        SupervisorService.getSupervisorById(requesterId),
-        SupervisorService.getSupervisorById(targetSupervisorId)
-      ]);
-
-      if (!requester || !target) {
-        return ServiceResults.error('One or both supervisors not found');
-      }
-
-      // Prevent self-partnership
+      // Prevent self-partnership (no DB call needed)
       if (requesterId === targetSupervisorId) {
         return ServiceResults.error('You cannot send a partnership request to yourself');
-      }
-
-      // Validate target supervisor has available capacity
-      if (target.currentCapacity >= target.maxCapacity) {
-        return ServiceResults.error('Target supervisor has no available capacity');
       }
 
       // Check for duplicate requests for this project
@@ -123,19 +101,36 @@ export const SupervisorPartnershipWorkflowService = {
           throw new Error('Only the project supervisor can request a co-supervisor partnership');
         }
 
+        // Get both supervisor profiles (inside transaction for data integrity)
+        const requesterRef = adminDb.collection('supervisors').doc(requesterId);
+        const targetRef = adminDb.collection('supervisors').doc(targetSupervisorId);
+        const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
+
+        if (!requesterSnap.exists || !targetSnap.exists) {
+          throw new Error('One or both supervisors not found');
+        }
+
+        const requester = requesterSnap.data();
+        const target = targetSnap.data();
+
+        // Validate target supervisor has available capacity
+        if (target && target.currentCapacity >= target.maxCapacity) {
+          throw new Error('Target supervisor has no available capacity');
+        }
+
         // Create request document with expiration (30 days from now)
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + REQUEST_EXPIRATION_DAYS);
 
         const requestData = {
           requesterId,
-          requesterName: requester.fullName,
-          requesterEmail: requester.email,
-          requesterDepartment: requester.department,
+          requesterName: requester?.fullName || '',
+          requesterEmail: requester?.email || '',
+          requesterDepartment: requester?.department || '',
           targetSupervisorId,
-          targetSupervisorName: target.fullName,
-          targetSupervisorEmail: target.email,
-          targetDepartment: target.department,
+          targetSupervisorName: target?.fullName || '',
+          targetSupervisorEmail: target?.email || '',
+          targetDepartment: target?.department || '',
           projectId, // REQUIRED
           status: 'pending',
           createdAt: new Date(),
