@@ -21,8 +21,6 @@ export { useApplicationStatusModal } from './useApplicationStatusModal';
 // Supervisor dashboard hooks
 export { useSupervisorDashboard } from './useSupervisorDashboard';
 export { useSupervisorApplications } from './useSupervisorApplications';
-export { useSupervisorPartnerships } from './useSupervisorPartnerships';
-export { useSupervisorPartnershipActions } from './useSupervisorPartnershipActions';
 
 // Admin dashboard hooks
 export { useAdminDashboard } from './useAdminDashboard';

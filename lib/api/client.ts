@@ -251,58 +251,6 @@ export const apiClient = {
   },
 
   // ========================================
-  // Supervisor Partnerships API
-  // ========================================
-  
-  getAvailableSupervisorPartners: (token: string) => {
-    return apiFetch('/supervisor-partnerships/available', { token });
-  },
-
-  createSupervisorPartnershipRequest: (data: { targetSupervisorId: string; projectId: string }, token: string) => {
-    return apiFetch('/supervisor-partnerships/request', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      token,
-    });
-  },
-
-  getSupervisorPartnershipRequests: (type: 'incoming' | 'outgoing' | 'all', token: string) => {
-    const queryParam = type ? `?type=${type}` : '';
-    return apiFetch(`/supervisor-partnerships/requests${queryParam}`, { token });
-  },
-
-  respondToSupervisorPartnershipRequest: (requestId: string, action: string, token: string) => {
-    return apiFetch(`/supervisor-partnerships/${requestId}/respond`, {
-      method: 'POST',
-      body: JSON.stringify({ action }),
-      token,
-    });
-  },
-
-  cancelSupervisorPartnershipRequest: (requestId: string, token: string) => {
-    return apiFetch(`/supervisor-partnerships/${requestId}`, {
-      method: 'DELETE',
-      token,
-    });
-  },
-
-  removeCoSupervisor: (projectId: string, token: string) => {
-    return apiFetch('/supervisor-partnerships/unpair', {
-      method: 'POST',
-      body: JSON.stringify({ projectId }),
-      token,
-    });
-  },
-
-  getSupervisorPartnerships: (token: string) => {
-    return apiFetch('/supervisor-partnerships/partner', { token });
-  },
-
-  getSupervisorPartnersWithCapacity: (token: string) => {
-    return apiFetch('/supervisor-partnerships/partners-with-capacity', { token });
-  },
-
-  // ========================================
   // Projects API
   // ========================================
   

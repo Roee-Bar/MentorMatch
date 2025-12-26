@@ -95,13 +95,6 @@ export const AdminService = {
         ...inProgressProjects.docs
       ];
       
-      const projectsWithCoSupervisor = allActiveProjects.filter(
-        doc => doc.data().coSupervisorId != null
-      );
-      
-      // Each project with coSupervisorId represents one partnership
-      const activeSupervisorPartnerships = projectsWithCoSupervisor.length;
-
       return {
         totalStudents: students.length,
         matchedStudents,
@@ -112,7 +105,6 @@ export const AdminService = {
         pendingApplications,
         studentsWithoutApprovedApp,
         totalAvailableCapacity,
-        activeSupervisorPartnerships: Math.floor(activeSupervisorPartnerships),
       };
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getDashboardStats', error);
@@ -126,7 +118,6 @@ export const AdminService = {
         pendingApplications: 0,
         studentsWithoutApprovedApp: 0,
         totalAvailableCapacity: 0,
-        activeSupervisorPartnerships: 0,
       };
     }
   },

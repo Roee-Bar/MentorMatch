@@ -16,7 +16,6 @@ export type StatCardType =
   | 'available-capacity' 
   | 'approved-projects' 
   | 'pending-applications'
-  | 'supervisor-partnerships'
   | null;
 
 interface UseStatCardTablesParams {

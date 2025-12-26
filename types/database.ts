@@ -229,8 +229,6 @@ export interface Project {
   studentNames: string[];
   supervisorId: string;
   supervisorName: string;
-  coSupervisorId?: string;
-  coSupervisorName?: string;
   
   // Project Details
   title: string;
@@ -293,7 +291,6 @@ export interface DashboardStats {
   pendingApplications: number;           // Pending project applications
   studentsWithoutApprovedApp: number;    // Students without any approved application
   totalAvailableCapacity: number;        // Sum of available supervisor slots
-  activeSupervisorPartnerships: number;  // Active supervisor partnerships (paired supervisors)
 }
 
 // ============================================
@@ -330,28 +327,6 @@ export interface StudentCardData {
   previousProjects?: string;
   partnershipStatus: 'none' | 'paired';
   partnerId?: string;
-}
-
-// ============================================
-// SUPERVISOR PARTNERSHIP TYPES
-// ============================================
-
-// Supervisor Partnership Request Type (stored in 'supervisor_partnership_requests' collection)
-export interface SupervisorPartnershipRequest {
-  id: string;
-  requesterId: string;
-  requesterName: string;
-  requesterEmail: string;
-  requesterDepartment: string;
-  targetSupervisorId: string;
-  targetSupervisorName: string;
-  targetSupervisorEmail: string;
-  targetDepartment: string;
-  projectId: string; // REQUIRED - partnership is for specific project
-  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
-  createdAt: Date;
-  respondedAt?: Date;
-  expiresAt?: Date; // Optional expiration date (default: 30 days from creation)
 }
 
 // ============================================
@@ -420,30 +395,4 @@ export interface CreateProjectData {
   description: string;
   studentIds: string[];
   supervisorId: string;
-  coSupervisorId?: string;
-}
-
-// ============================================
-// NOTIFICATION TYPE
-// ============================================
-export interface Notification {
-  id: string; // Document ID from Firestore
-  userId: string; // ID of the user to notify
-  type: 'partnership_request_received' | 'partnership_request_accepted' | 'partnership_request_rejected' | 'co_supervisor_removed';
-  title: string;
-  message: string;
-  metadata?: Record<string, any>; // Additional data for the notification
-  read: boolean;
-  createdAt: Date;
-}
-
-// ============================================
-// AUDIT LOG TYPE
-// ============================================
-export interface PartnershipAuditLog {
-  id: string; // Document ID from Firestore
-  eventType: 'request_created' | 'request_accepted' | 'request_rejected' | 'request_cancelled' | 'co_supervisor_added' | 'co_supervisor_removed' | 'project_status_changed';
-  userId: string; // ID of the user who performed the action
-  details: Record<string, any>; // Event-specific details
-  timestamp: Date;
 }
