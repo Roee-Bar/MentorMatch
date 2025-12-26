@@ -15,7 +15,7 @@
 
 import { NextRequest } from 'next/server';
 import { ProjectService } from '@/lib/services/projects/project-service';
-import { withAuth } from '@/lib/middleware/apiHandler';
+import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest } from '@/lib/middleware/validation';
 import { z } from 'zod';
@@ -25,13 +25,9 @@ const removeCoSupervisorSchema = z.object({
   projectId: z.string().min(1, 'Project ID is required'),
 }).strict();
 
-export const POST = withAuth<Record<string, string>>(
+export const POST = withRoles<Record<string, string>>(
+  ['supervisor'],
   async (request: NextRequest, context, user) => {
-    // Validate supervisor role
-    if (user.role !== 'supervisor') {
-      return ApiResponse.forbidden('Only supervisors can access this endpoint');
-    }
-
     // Validate request body
     const validation = await validateRequest(request, removeCoSupervisorSchema);
     if (!validation.valid) {

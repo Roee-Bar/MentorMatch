@@ -52,6 +52,24 @@ pipeline {
             }
         }
         
+        stage('Health Check') {
+            steps {
+                script {
+                    // Check if build artifacts exist
+                    def buildExists = sh(
+                        script: 'test -d .next && echo "exists" || echo "missing"',
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (buildExists != 'exists') {
+                        error('Build artifacts not found. Build may have failed.')
+                    }
+                    
+                    echo "Health check passed: Build artifacts verified"
+                }
+            }
+        }
+        
         stage('Run E2E Tests') {
             environment {
                 CI = 'true'
@@ -60,7 +78,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Running E2E tests..."
-                    npm run test:e2e || true
+                    npm run test:e2e
                 '''
             }
             post {

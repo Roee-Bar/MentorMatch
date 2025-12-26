@@ -30,6 +30,7 @@ export const SupervisorPartnershipRequestService = {
 
   /**
    * Get supervisor partnership requests for a supervisor
+   * Filters out expired requests automatically
    * @param supervisorId - The supervisor's ID
    * @param type - 'incoming' for requests received, 'outgoing' for sent, 'all' for both
    */
@@ -38,6 +39,8 @@ export const SupervisorPartnershipRequestService = {
     type: 'incoming' | 'outgoing' | 'all'
   ): Promise<SupervisorPartnershipRequest[]> {
     try {
+      const now = new Date();
+      
       // For 'all', execute two parallel queries and merge results
       if (type === 'all') {
         const [incomingSnapshot, outgoingSnapshot] = await Promise.all([
@@ -58,8 +61,9 @@ export const SupervisorPartnershipRequestService = {
           toSupervisorPartnershipRequest(doc.id, doc.data())
         );
 
-        // Merge and return combined results
-        return [...incomingRequests, ...outgoingRequests];
+        // Merge and filter out expired requests
+        const allRequests = [...incomingRequests, ...outgoingRequests];
+        return allRequests.filter(req => !req.expiresAt || req.expiresAt > now);
       }
 
       // For 'incoming' or 'outgoing', execute single query
@@ -73,7 +77,10 @@ export const SupervisorPartnershipRequestService = {
       }
       
       const snapshot = await query.get();
-      return snapshot.docs.map(doc => toSupervisorPartnershipRequest(doc.id, doc.data()));
+      const requests = snapshot.docs.map(doc => toSupervisorPartnershipRequest(doc.id, doc.data()));
+      
+      // Filter out expired requests
+      return requests.filter(req => !req.expiresAt || req.expiresAt > now);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getBySupervisor', error, { supervisorId, type });
       return [];

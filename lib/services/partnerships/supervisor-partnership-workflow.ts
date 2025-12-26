@@ -31,6 +31,9 @@ import type { SupervisorPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipWorkflowService';
 
+// Request expiration: 30 days from creation
+const REQUEST_EXPIRATION_DAYS = 30;
+
 // ============================================
 // SUPERVISOR PARTNERSHIP WORKFLOW OPERATIONS
 // ============================================
@@ -120,7 +123,10 @@ export const SupervisorPartnershipWorkflowService = {
           throw new Error('Only the project supervisor can request a co-supervisor partnership');
         }
 
-        // Create request document
+        // Create request document with expiration (30 days from now)
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + REQUEST_EXPIRATION_DAYS);
+
         const requestData = {
           requesterId,
           requesterName: requester.fullName,
@@ -133,6 +139,7 @@ export const SupervisorPartnershipWorkflowService = {
           projectId, // REQUIRED
           status: 'pending',
           createdAt: new Date(),
+          expiresAt,
         };
 
         const requestRef = adminDb.collection('supervisor_partnership_requests').doc();
@@ -143,14 +150,21 @@ export const SupervisorPartnershipWorkflowService = {
       return ServiceResults.success(requestId, 'Partnership request created successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'createRequest', error, { requesterId, targetSupervisorId, projectId });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to create partnership request'
+        `Failed to create partnership request: ${errorMessage}`
       );
     }
   },
 
   /**
    * Accept or reject a supervisor partnership request
+   * 
+   * @param requestId - ID of the partnership request to respond to
+   * @param targetSupervisorId - ID of the supervisor responding (must match request target)
+   * @param action - 'accept' to accept the request, 'reject' to reject it
+   * @returns ServiceResult indicating success or failure
+   * @throws Error if request not found, unauthorized, already processed, or invalid action
    */
   async respondToRequest(
     requestId: string,
@@ -178,11 +192,12 @@ export const SupervisorPartnershipWorkflowService = {
         return this._rejectRequest(request, requestId, targetSupervisorId);
       }
 
-      return ServiceResults.error('Invalid action');
+      return ServiceResults.error(`Invalid action: ${action}. Must be 'accept' or 'reject'`);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'respondToRequest', error, { requestId, targetSupervisorId, action });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to respond to partnership request'
+        `Failed to respond to partnership request: ${errorMessage}`
       );
     }
   },
@@ -190,6 +205,11 @@ export const SupervisorPartnershipWorkflowService = {
   /**
    * Cancel an outgoing supervisor partnership request (by requester)
    * Uses transaction to atomically verify request state and update status
+   * 
+   * @param requestId - ID of the partnership request to cancel
+   * @param requesterId - ID of the supervisor cancelling (must match request requester)
+   * @returns ServiceResult indicating success or failure
+   * @throws Error if request not found, unauthorized, or request is not pending
    */
   async cancelRequest(
     requestId: string,
@@ -235,8 +255,9 @@ export const SupervisorPartnershipWorkflowService = {
       return ServiceResults.success(undefined, 'Partnership request cancelled');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'cancelRequest', error, { requestId, requesterId });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to cancel partnership request'
+        `Failed to cancel partnership request: ${errorMessage}`
       );
     }
   },
@@ -320,7 +341,20 @@ export const SupervisorPartnershipWorkflowService = {
 
     // Cancel all other pending requests for this project (cleanup outside transaction)
     // Note: These are marked as "cancelled" (automatic cleanup), not "rejected" (user action)
-    await SupervisorPartnershipPairingService.cancelAllPendingRequestsForProject(request.projectId);
+    // Use try-catch to handle errors gracefully - partnership is already established
+    try {
+      await SupervisorPartnershipPairingService.cancelAllPendingRequestsForProject(request.projectId);
+    } catch (error) {
+      // Log but don't fail - partnership is already established
+      logger.service.warn(SERVICE_NAME, '_acceptRequest', 
+        'Failed to cancel other pending requests, but partnership was established', 
+        { 
+          projectId: request.projectId, 
+          requestId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      );
+    }
 
     return ServiceResults.success(undefined, 'Partnership accepted successfully');
   },
@@ -359,6 +393,18 @@ export const SupervisorPartnershipWorkflowService = {
         respondedAt: new Date()
       });
     });
+
+    // Send notification to requester (non-blocking)
+    const project = await ProjectService.getProjectById(request.projectId);
+    if (project) {
+      NotificationService.notifyPartnershipRequestRejected(
+        request.requesterId,
+        request.targetSupervisorName,
+        project.title
+      ).catch(err => {
+        logger.service.warn(SERVICE_NAME, '_rejectRequest', 'Failed to send notification', { error: err });
+      });
+    }
 
     return ServiceResults.success(undefined, 'Partnership request rejected');
   },

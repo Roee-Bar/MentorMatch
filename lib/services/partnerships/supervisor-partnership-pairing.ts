@@ -27,6 +27,9 @@ export const SupervisorPartnershipPairingService = {
    * 
    * Filters out supervisors who are already co-supervising with the requester in active projects
    * to prevent duplicate partnerships for the same pair of supervisors.
+   * 
+   * @param currentSupervisorId - ID of the supervisor looking for partners
+   * @returns Array of available supervisors (excludes current user and existing partners)
    */
   async getAvailableSupervisors(currentSupervisorId: string): Promise<Supervisor[]> {
     try {
@@ -69,7 +72,21 @@ export const SupervisorPartnershipPairingService = {
       });
 
       // Filter out supervisors already partnered with in active projects
-      return allSupervisors.filter(supervisor => !alreadyPartneredIds.has(supervisor.id));
+      let filteredSupervisors = allSupervisors.filter(supervisor => !alreadyPartneredIds.has(supervisor.id));
+
+      // Apply pagination if options provided
+      if (options) {
+        const offset = options.offset || 0;
+        const limit = options.limit;
+        
+        if (limit !== undefined) {
+          filteredSupervisors = filteredSupervisors.slice(offset, offset + limit);
+        } else if (offset > 0) {
+          filteredSupervisors = filteredSupervisors.slice(offset);
+        }
+      }
+
+      return filteredSupervisors;
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getAvailableSupervisors', error, { currentSupervisorId });
       return [];
@@ -150,8 +167,9 @@ export const SupervisorPartnershipPairingService = {
       return ServiceResults.success(undefined, `Cancelled ${result.totalUpdated} pending request(s)`);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'cancelAllPendingRequests', error, { supervisorId });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to cancel pending requests'
+        `Failed to cancel pending requests for supervisor: ${errorMessage}`
       );
     }
   },
@@ -179,8 +197,9 @@ export const SupervisorPartnershipPairingService = {
       return ServiceResults.success(undefined, `Cancelled ${result.totalUpdated} pending request(s) for project`);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'cancelAllPendingRequestsForProject', error, { projectId });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to cancel pending requests for project'
+        `Failed to cancel pending requests for project ${projectId}: ${errorMessage}`
       );
     }
   },

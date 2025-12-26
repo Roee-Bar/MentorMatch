@@ -12,6 +12,7 @@ import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, supervisorPartnershipResponseSchema } from '@/lib/middleware/validation';
+import { rateLimiters } from '@/lib/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 import type { SupervisorPartnershipRequest } from '@/types/database';
 
@@ -21,11 +22,11 @@ interface SupervisorPartnershipIdParams {
 
 export const POST = withAuth<SupervisorPartnershipIdParams, SupervisorPartnershipRequest>(
   async (request: NextRequest, { params, cachedResource }, user) => {
-    // Validate supervisor role
-    if (user.role !== 'supervisor') {
-      return ApiResponse.forbidden('Only supervisors can access this endpoint');
+    // Apply rate limiting
+    const rateLimitResponse = rateLimiters.partnershipResponse(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
     }
-
     const partnershipRequest = cachedResource;
     
     if (!partnershipRequest) {
@@ -72,6 +73,7 @@ export const POST = withAuth<SupervisorPartnershipIdParams, SupervisorPartnershi
   },
   {
     resourceName: 'Supervisor partnership request',
+    allowedRoles: ['supervisor'],
     resourceLoader: async (params) => {
       return await SupervisorPartnershipRequestService.getById(params.id);
     },

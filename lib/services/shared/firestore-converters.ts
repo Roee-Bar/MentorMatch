@@ -261,6 +261,7 @@ export function toSupervisorPartnershipRequest(id: string, data: DocumentData): 
     status: data.status ?? 'pending',
     createdAt: toDateRequired(data.createdAt),
     respondedAt: toDate(data.respondedAt),
+    expiresAt: toDate(data.expiresAt),
   };
 }
 

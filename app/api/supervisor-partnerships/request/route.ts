@@ -8,15 +8,17 @@
 
 import { NextRequest } from 'next/server';
 import { SupervisorPartnershipWorkflowService } from '@/lib/services/partnerships/supervisor-partnership-workflow';
-import { withAuth } from '@/lib/middleware/apiHandler';
+import { withRoles } from '@/lib/middleware/apiHandler';
 import { validateRequest, supervisorPartnershipRequestSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
+import { rateLimiters } from '@/lib/middleware/rateLimiter';
 import { logger } from '@/lib/logger';
 
-export const POST = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
-  // Validate supervisor role
-  if (user.role !== 'supervisor') {
-    return ApiResponse.forbidden('Only supervisors can access this endpoint');
+export const POST = withRoles<Record<string, string>>(['supervisor'], async (request: NextRequest, context, user) => {
+  // Apply rate limiting
+  const rateLimitResponse = rateLimiters.partnershipRequest(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   // Validate request body

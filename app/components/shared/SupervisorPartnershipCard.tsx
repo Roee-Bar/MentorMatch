@@ -26,7 +26,8 @@ import {
 
 interface SupervisorPartnershipCardProps {
   supervisor: Supervisor;
-  onRequestPartnership?: (supervisorId: string) => void;
+  projectId?: string; // Project ID for which partnership is being requested
+  onRequestPartnership?: (supervisorId: string, projectId: string) => void;
   showRequestButton?: boolean;
   isCurrentPartner?: boolean;
   onUnpair?: () => void;
@@ -35,6 +36,7 @@ interface SupervisorPartnershipCardProps {
 
 export default function SupervisorPartnershipCard({ 
   supervisor, 
+  projectId,
   onRequestPartnership, 
   showRequestButton = true,
   isCurrentPartner = false,
@@ -42,8 +44,8 @@ export default function SupervisorPartnershipCard({
   isLoading = false
 }: SupervisorPartnershipCardProps) {
   const handleRequestPartnership = () => {
-    if (onRequestPartnership) {
-      onRequestPartnership(supervisor.id);
+    if (onRequestPartnership && projectId) {
+      onRequestPartnership(supervisor.id, projectId);
     }
   };
 

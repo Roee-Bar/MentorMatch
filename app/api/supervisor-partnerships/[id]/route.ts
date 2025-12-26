@@ -21,11 +21,6 @@ interface SupervisorPartnershipIdParams {
 
 export const GET = withAuth<SupervisorPartnershipIdParams, SupervisorPartnershipRequest>(
   async (request: NextRequest, { params, cachedResource }, user) => {
-    // Validate supervisor role
-    if (user.role !== 'supervisor') {
-      return ApiResponse.forbidden('Only supervisors can access this endpoint');
-    }
-
     const partnershipRequest = cachedResource;
     
     if (!partnershipRequest) {
@@ -36,6 +31,7 @@ export const GET = withAuth<SupervisorPartnershipIdParams, SupervisorPartnership
   },
   {
     resourceName: 'Supervisor partnership request',
+    allowedRoles: ['supervisor'],
     resourceLoader: async (params) => {
       return await SupervisorPartnershipRequestService.getById(params.id);
     },
@@ -49,11 +45,6 @@ export const GET = withAuth<SupervisorPartnershipIdParams, SupervisorPartnership
 
 export const DELETE = withAuth<SupervisorPartnershipIdParams, SupervisorPartnershipRequest>(
   async (request: NextRequest, { params, cachedResource }, user) => {
-    // Validate supervisor role
-    if (user.role !== 'supervisor') {
-      return ApiResponse.forbidden('Only supervisors can access this endpoint');
-    }
-
     const partnershipRequest = cachedResource;
     
     if (!partnershipRequest) {
@@ -79,6 +70,7 @@ export const DELETE = withAuth<SupervisorPartnershipIdParams, SupervisorPartners
   },
   {
     resourceName: 'Supervisor partnership request',
+    allowedRoles: ['supervisor'],
     resourceLoader: async (params) => {
       return await SupervisorPartnershipRequestService.getById(params.id);
     },

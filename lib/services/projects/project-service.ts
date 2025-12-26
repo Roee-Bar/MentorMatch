@@ -14,6 +14,37 @@ import type { Project } from '@/types/database';
 const SERVICE_NAME = 'ProjectService';
 
 // ============================================
+// STATUS TRANSITION VALIDATION
+// ============================================
+
+/**
+ * Valid status transitions for projects
+ * Defines which status changes are allowed from each current status
+ */
+const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
+  'pending_approval': ['approved'],
+  'approved': ['in_progress', 'completed'],
+  'in_progress': ['completed'],
+  'completed': [], // Terminal state - no transitions allowed
+};
+
+/**
+ * Check if a status transition is valid
+ * @param currentStatus - Current project status
+ * @param newStatus - Desired new status
+ * @returns true if transition is valid, false otherwise
+ */
+function isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
+  // Same status is always valid (idempotent)
+  if (currentStatus === newStatus) {
+    return true;
+  }
+  
+  const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus] || [];
+  return allowedTransitions.includes(newStatus);
+}
+
+// ============================================
 // PROJECT SERVICES
 // ============================================
 export const ProjectService = {
@@ -162,6 +193,14 @@ export const ProjectService = {
         return ServiceResults.error('Project not found');
       }
 
+      // Validate status transition
+      if (!isValidStatusTransition(project.status, newStatus)) {
+        return ServiceResults.error(
+          `Invalid status transition from ${project.status} to ${newStatus}. ` +
+          `Allowed transitions from ${project.status}: ${VALID_STATUS_TRANSITIONS[project.status]?.join(', ') || 'none'}`
+        );
+      }
+
       // Clear coSupervisorId when project is completed (partnership ends)
       if (newStatus === 'completed') {
         if (project.coSupervisorId) {
@@ -192,7 +231,14 @@ export const ProjectService = {
     }
   },
 
-  // Handle project deletion - clear co-supervisor and cancel pending requests
+  /**
+   * Handle project deletion - clear co-supervisor and cancel pending requests
+   * Automatically cleans up all partnership-related data for the project
+   * 
+   * @param projectId - ID of the project being deleted
+   * @returns ServiceResult indicating success or failure
+   * @throws Error if project not found
+   */
   async handleProjectDeletion(projectId: string): Promise<ServiceResult> {
     try {
       const project = await this.getProjectById(projectId);
@@ -232,7 +278,16 @@ export const ProjectService = {
     }
   },
 
-  // Validate co-supervisor can be added to project
+  /**
+   * Validate co-supervisor can be added to project
+   * Checks project exists, supervisor is project owner, project has no co-supervisor, and co-supervisor has capacity
+   * 
+   * @param projectId - ID of the project
+   * @param supervisorId - ID of the project supervisor (must match project supervisor)
+   * @param coSupervisorId - ID of the potential co-supervisor
+   * @returns ServiceResult indicating validation result
+   * @throws Error if validation fails (project not found, unauthorized, already has co-supervisor, or no capacity)
+   */
   async validateCoSupervisor(projectId: string, supervisorId: string, coSupervisorId: string): Promise<ServiceResult> {
     try {
       const project = await this.getProjectById(projectId);
