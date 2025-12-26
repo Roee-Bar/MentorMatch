@@ -148,6 +148,14 @@ export const PartnershipPairingService = {
 
   /**
    * Cancel all pending requests for a student (cleanup after pairing)
+   * 
+   * Status Terminology:
+   * - "Cancelled" is used for requests automatically cancelled when a partnership is accepted.
+   *   This is automatic cleanup, not a user action.
+   * - "Rejected" is used when a student explicitly rejects a request (see _rejectRequest in
+   *   partnership-workflow.ts).
+   * 
+   * This distinction helps differentiate between automatic cleanup and user actions.
    */
   async cancelAllPendingRequests(studentId: string): Promise<ServiceResult> {
     try {
