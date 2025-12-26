@@ -30,7 +30,6 @@ export default function SupervisorProfilePage() {
     [userId]
   );
 
-
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {
     return <LoadingSpinner message="Loading profile..." />;
