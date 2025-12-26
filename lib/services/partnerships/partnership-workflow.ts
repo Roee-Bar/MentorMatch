@@ -29,7 +29,6 @@ import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { StudentPartnershipRequest } from '@/types/database';
-import type { WriteResult } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'PartnershipWorkflowService';
 
@@ -170,11 +169,8 @@ export const PartnershipWorkflowService = {
    * Uses transaction to atomically verify request state and update status
    * 
    * Design: Students can have multiple pending requests. Status remains 'none' until paired.
-   * When cancelling, we only reset status to 'none' if no other pending requests exist.
-   * 
-   * Race Condition Prevention: All queries for other pending requests are executed inside
-   * the transaction to ensure atomicity and prevent new requests from being created between
-   * the query and transaction commit.
+   * When cancelling, we always reset status to 'none' since status stays 'none' while
+   * requests are pending (even multiple requests).
    */
   async cancelRequest(
     requestId: string,
@@ -197,9 +193,8 @@ export const PartnershipWorkflowService = {
 
       // Use transaction to atomically:
       // 1. Verify request is still pending (prevents double-cancellation)
-      // 2. Query for other pending requests (inside transaction for atomicity)
-      // 3. Update request status to cancelled
-      // 4. Conditionally reset student partnership status based on query results
+      // 2. Update request status to cancelled
+      // 3. Reset both students' partnership status to 'none'
       await adminDb.runTransaction(async (transaction) => {
         const requestRef = adminDb.collection('partnership_requests').doc(requestId);
         const requesterRef = adminDb.collection('students').doc(requesterId);
@@ -216,54 +211,22 @@ export const PartnershipWorkflowService = {
           throw new Error('Request is no longer pending');
         }
 
-        // Query for other pending requests inside transaction to ensure atomicity
-        // This prevents race conditions where new requests could be created between
-        // query and transaction commit
-        const [otherOutgoingSnapshot, otherIncomingSnapshot] = await Promise.all([
-          adminDb.collection('partnership_requests')
-            .where('requesterId', '==', requesterId)
-            .where('status', '==', 'pending')
-            .get(),
-          adminDb.collection('partnership_requests')
-            .where('targetStudentId', '==', request.targetStudentId)
-            .where('status', '==', 'pending')
-            .get()
-        ]);
-
-        // Filter out the current request being cancelled
-        const hasOtherOutgoing = otherOutgoingSnapshot.docs.some(doc => doc.id !== requestId);
-        const hasOtherIncoming = otherIncomingSnapshot.docs.some(doc => doc.id !== requestId);
-
-        // Check transaction size limits (Firestore has 500 document read limit)
-        const totalReads = 1 + otherOutgoingSnapshot.docs.length + otherIncomingSnapshot.docs.length;
-        if (totalReads > 450) {
-          logger.service.warn(SERVICE_NAME, 'cancelRequest', 'Transaction approaching read limit', {
-            requestId,
-            requesterId,
-            totalReads
-          });
-        }
-
         // Update request status within transaction
         transaction.update(requestRef, {
           status: 'cancelled',
           respondedAt: new Date()
         });
 
-        // Conditionally reset student partnership status only if no other pending requests
-        if (!hasOtherOutgoing) {
-          transaction.update(requesterRef, {
-            partnershipStatus: 'none',
-            updatedAt: new Date()
-          });
-        }
+        // Always reset to 'none' - status stays 'none' while requests are pending
+        transaction.update(requesterRef, {
+          partnershipStatus: 'none',
+          updatedAt: new Date()
+        });
 
-        if (!hasOtherIncoming) {
-          transaction.update(targetRef, {
-            partnershipStatus: 'none',
-            updatedAt: new Date()
-          });
-        }
+        transaction.update(targetRef, {
+          partnershipStatus: 'none',
+          updatedAt: new Date()
+        });
       });
 
       return ServiceResults.success(undefined, 'Partnership request cancelled');
@@ -390,11 +353,8 @@ export const PartnershipWorkflowService = {
    * Uses transaction to atomically verify request state and update status
    * 
    * Design: Students can have multiple pending requests. Status remains 'none' until paired.
-   * When rejecting, we only reset status to 'none' if no other pending requests exist.
-   * 
-   * Race Condition Prevention: All queries for other pending requests are executed inside
-   * the transaction to ensure atomicity and prevent new requests from being created between
-   * the query and transaction commit.
+   * When rejecting, we always reset status to 'none' since status stays 'none' while
+   * requests are pending (even multiple requests).
    * 
    * Status Terminology: "Rejected" is used when a student explicitly rejects a request.
    * This differs from "Cancelled" which is used for requests automatically cancelled when
@@ -407,9 +367,8 @@ export const PartnershipWorkflowService = {
   ): Promise<ServiceResult> {
     // Use transaction to atomically:
     // 1. Verify request is still pending (prevents double-processing)
-    // 2. Query for other pending requests (inside transaction for atomicity)
-    // 3. Update request status to rejected
-    // 4. Conditionally reset student partnership status based on query results
+    // 2. Update request status to rejected
+    // 3. Reset both students' partnership status to 'none'
     await adminDb.runTransaction(async (transaction) => {
       const requestRef = adminDb.collection('partnership_requests').doc(requestId);
       const requesterRef = adminDb.collection('students').doc(request.requesterId);
@@ -426,54 +385,22 @@ export const PartnershipWorkflowService = {
         throw new Error('Request is no longer pending');
       }
 
-      // Query for other pending requests inside transaction to ensure atomicity
-      // This prevents race conditions where new requests could be created between
-      // query and transaction commit
-      const [otherOutgoingSnapshot, otherIncomingSnapshot] = await Promise.all([
-        adminDb.collection('partnership_requests')
-          .where('requesterId', '==', request.requesterId)
-          .where('status', '==', 'pending')
-          .get(),
-        adminDb.collection('partnership_requests')
-          .where('targetStudentId', '==', targetStudentId)
-          .where('status', '==', 'pending')
-          .get()
-      ]);
-
-      // Filter out the current request being rejected
-      const hasOtherOutgoing = otherOutgoingSnapshot.docs.some(doc => doc.id !== requestId);
-      const hasOtherIncoming = otherIncomingSnapshot.docs.some(doc => doc.id !== requestId);
-
-      // Check transaction size limits (Firestore has 500 document read limit)
-      const totalReads = 1 + otherOutgoingSnapshot.docs.length + otherIncomingSnapshot.docs.length;
-      if (totalReads > 450) {
-        logger.service.warn(SERVICE_NAME, '_rejectRequest', 'Transaction approaching read limit', {
-          requestId,
-          targetStudentId,
-          totalReads
-        });
-      }
-
       // Update request status within transaction
       transaction.update(requestRef, {
         status: 'rejected',
         respondedAt: new Date()
       });
 
-      // Conditionally reset student partnership status only if no other pending requests
-      if (!hasOtherOutgoing) {
-        transaction.update(requesterRef, {
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        });
-      }
+      // Always reset to 'none' - status stays 'none' while requests are pending
+      transaction.update(requesterRef, {
+        partnershipStatus: 'none',
+        updatedAt: new Date()
+      });
 
-      if (!hasOtherIncoming) {
-        transaction.update(targetRef, {
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        });
-      }
+      transaction.update(targetRef, {
+        partnershipStatus: 'none',
+        updatedAt: new Date()
+      });
     });
 
     return ServiceResults.success(undefined, 'Partnership request rejected');
