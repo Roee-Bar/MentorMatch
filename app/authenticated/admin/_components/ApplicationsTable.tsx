@@ -44,7 +44,7 @@ export default function ApplicationsTable({
     <Table.Container>
       <Table.Header>
         <tr>
-          <Table.HeaderCell>
+          <Table.HeaderCell className={tableType === 'approved-projects' ? 'w-[32%]' : 'w-[28%]'}>
             <button
               onClick={() => onSort('projectTitle')}
               className={sortableHeaderButton}
@@ -52,7 +52,7 @@ export default function ApplicationsTable({
               Project Title {getSortIcon('projectTitle')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell>
+          <Table.HeaderCell className={tableType === 'approved-projects' ? 'w-[22%]' : 'w-[18%]'}>
             <button
               onClick={() => onSort('studentName')}
               className={sortableHeaderButton}
@@ -60,7 +60,7 @@ export default function ApplicationsTable({
               Student {getSortIcon('studentName')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell>
+          <Table.HeaderCell className={tableType === 'approved-projects' ? 'w-[22%]' : 'w-[18%]'}>
             <button
               onClick={() => onSort('supervisorName')}
               className={sortableHeaderButton}
@@ -68,15 +68,15 @@ export default function ApplicationsTable({
               Supervisor {getSortIcon('supervisorName')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell align="center">
+          <Table.HeaderCell align="center" className={tableType === 'approved-projects' ? 'w-[12%]' : 'w-[10%]'}>
             Status
           </Table.HeaderCell>
           {tableType === 'pending-applications' && (
-            <Table.HeaderCell align="center">
+            <Table.HeaderCell align="center" className="w-[12%]">
               Days Pending
             </Table.HeaderCell>
           )}
-          <Table.HeaderCell>
+          <Table.HeaderCell className={tableType === 'approved-projects' ? 'w-[12%]' : 'w-[14%]'}>
             Submitted
           </Table.HeaderCell>
         </tr>
@@ -89,16 +89,16 @@ export default function ApplicationsTable({
 
           return (
             <Table.Row key={application.id}>
-              <Table.Cell className="font-medium">{application.projectTitle}</Table.Cell>
-              <Table.Cell>{application.studentName}</Table.Cell>
-              <Table.Cell>{application.supervisorName}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell className={`font-medium ${tableType === 'approved-projects' ? 'w-[32%]' : 'w-[28%]'}`}>{application.projectTitle}</Table.Cell>
+              <Table.Cell className={tableType === 'approved-projects' ? 'w-[22%]' : 'w-[18%]'}>{application.studentName}</Table.Cell>
+              <Table.Cell className={tableType === 'approved-projects' ? 'w-[22%]' : 'w-[18%]'}>{application.supervisorName}</Table.Cell>
+              <Table.Cell className={tableType === 'approved-projects' ? 'w-[12%]' : 'w-[10%]'}>
                 <div className="flex justify-center">
                   <StatusBadge status={application.status} variant="application" />
                 </div>
               </Table.Cell>
               {tableType === 'pending-applications' && daysPending !== null && (
-                <Table.Cell>
+                <Table.Cell className="w-[12%]">
                   <div className="flex justify-center">
                     <span className={daysPending > 7 ? 'text-orange-600 font-semibold' : ''}>
                       {daysPending} day{daysPending !== 1 ? 's' : ''}
@@ -106,7 +106,7 @@ export default function ApplicationsTable({
                   </div>
                 </Table.Cell>
               )}
-              <Table.Cell>{formatFirestoreDate(application.dateApplied)}</Table.Cell>
+              <Table.Cell className={tableType === 'approved-projects' ? 'w-[12%]' : 'w-[14%]'}>{formatFirestoreDate(application.dateApplied)}</Table.Cell>
             </Table.Row>
           );
         })}
