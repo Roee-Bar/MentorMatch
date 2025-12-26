@@ -186,7 +186,7 @@ export const ProjectService = {
   },
 
   // Handle project status changes - clear co-supervisor when project ends
-  async handleProjectStatusChange(projectId: string, newStatus: string): Promise<ServiceResult> {
+  async handleProjectStatusChange(projectId: string, newStatus: 'pending_approval' | 'approved' | 'in_progress' | 'completed'): Promise<ServiceResult> {
     try {
       const project = await this.getProjectById(projectId);
       if (!project) {
@@ -211,15 +211,15 @@ export const ProjectService = {
         
         // Clear coSupervisorId when project is completed
         if (newStatus === 'completed' && project.coSupervisorId) {
-          updates.coSupervisorId = null;
-          updates.coSupervisorName = null;
+          updates.coSupervisorId = undefined;
+          updates.coSupervisorName = undefined;
         }
         
         transaction.update(projectRef, updates);
       });
 
       if (newStatus === 'completed' && project.coSupervisorId) {
-        logger.service.info(SERVICE_NAME, 'handleProjectStatusChange', {
+        logger.service.success(SERVICE_NAME, 'handleProjectStatusChange', {
           projectId,
           status: newStatus,
           clearedCoSupervisor: project.coSupervisorId,
@@ -268,7 +268,7 @@ export const ProjectService = {
       // Cancel all pending partnership requests for this project (outside transaction for batch operations)
       await SupervisorPartnershipRequestService.cancelRequestsForProject(projectId);
 
-      logger.service.info(SERVICE_NAME, 'handleProjectDeletion', {
+      logger.service.success(SERVICE_NAME, 'handleProjectDeletion', {
         projectId,
         clearedCoSupervisor: project.coSupervisorId || 'none',
         message: 'Project deletion - partnership cleanup completed'

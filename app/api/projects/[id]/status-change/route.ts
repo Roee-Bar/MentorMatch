@@ -17,7 +17,7 @@ import type { ProjectIdParams } from '@/types/api';
 
 const projectStatusChangeSchema = z.object({
   status: z.enum(['pending_approval', 'approved', 'in_progress', 'completed'], {
-    errorMap: () => ({ message: 'Invalid project status' })
+    message: 'Invalid project status'
   }),
 }).strict();
 

@@ -42,7 +42,7 @@ export const NotificationService = {
 
       await notificationRef.set(notificationData);
       
-      logger.service.info(SERVICE_NAME, 'createNotification', {
+      logger.service.success(SERVICE_NAME, 'createNotification', {
         notificationId: notificationRef.id,
         userId,
         type

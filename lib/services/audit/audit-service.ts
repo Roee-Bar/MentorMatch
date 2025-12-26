@@ -44,7 +44,7 @@ export const AuditService = {
 
       await auditLogRef.set(auditLogData);
       
-      logger.service.info(SERVICE_NAME, 'logPartnershipEvent', {
+      logger.service.success(SERVICE_NAME, 'logPartnershipEvent', {
         auditLogId: auditLogRef.id,
         eventType,
         userId

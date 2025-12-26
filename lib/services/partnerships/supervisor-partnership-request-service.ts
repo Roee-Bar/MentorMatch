@@ -169,7 +169,7 @@ export const SupervisorPartnershipRequestService = {
 
       await batch.commit();
 
-      logger.service.info(SERVICE_NAME, 'cancelRequestsForProject', {
+      logger.service.success(SERVICE_NAME, 'cancelRequestsForProject', {
         projectId,
         cancelledCount: pendingRequests.size
       });

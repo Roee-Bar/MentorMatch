@@ -149,7 +149,7 @@ export const SupervisorService = {
 
       await batch.commit();
 
-      logger.service.info(SERVICE_NAME, 'clearCoSupervisorFromProjects', {
+      logger.service.success(SERVICE_NAME, 'clearCoSupervisorFromProjects', {
         supervisorId,
         clearedFromProjects: projectsSnapshot.size
       });
