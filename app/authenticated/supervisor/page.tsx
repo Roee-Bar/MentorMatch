@@ -4,6 +4,7 @@
 // Supervisor Dashboard - View and manage applications
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useAuth, useSupervisorDashboard, useApplicationStatusModal } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import StatCard from '@/app/components/shared/StatCard';

@@ -14,7 +14,12 @@
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
     "test:setup-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-test-partnerships.ts",
-    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts"
+    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report"
   },
   "dependencies": {
     "firebase": "^12.6.0",
@@ -25,6 +30,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

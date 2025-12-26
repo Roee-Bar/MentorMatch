@@ -251,6 +251,57 @@ export const apiClient = {
   },
 
   // ========================================
+  // Supervisor Partnerships API
+  // ========================================
+  
+  getAvailableSupervisorPartners: (token: string) => {
+    return apiFetch('/supervisors/available-partners', { token });
+  },
+
+  createSupervisorPartnershipRequest: (data: { targetSupervisorId: string; projectId: string }, token: string) => {
+    return apiFetch('/supervisor-partnerships/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  getSupervisorPartnershipRequests: (supervisorId: string, type: string, token: string) => {
+    return apiFetch(`/supervisors/${supervisorId}/partnership-requests?type=${type}`, { token });
+  },
+
+  respondToSupervisorPartnershipRequest: (requestId: string, action: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/${requestId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+      token,
+    });
+  },
+
+  cancelSupervisorPartnershipRequest: (requestId: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/${requestId}`, {
+      method: 'DELETE',
+      token,
+    });
+  },
+
+  removeCoSupervisor: (projectId: string, token: string) => {
+    return apiFetch('/supervisor-partnerships/unpair', {
+      method: 'POST',
+      body: JSON.stringify({ projectId }),
+      token,
+    });
+  },
+
+  getSupervisorPartnerships: (token: string) => {
+    return apiFetch('/supervisor-partnerships/partner', { token });
+  },
+
+  getSupervisorPartnersWithCapacity: (token: string) => {
+    return apiFetch('/supervisor-partnerships/partners-with-capacity', { token });
+  },
+
+  // ========================================
   // Projects API
   // ========================================
   

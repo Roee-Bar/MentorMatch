@@ -4,6 +4,7 @@
 // Supervisor Profile View - Read-only display of profile and capacity
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { useAuth, useAuthenticatedFetch } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
@@ -29,6 +30,7 @@ export default function SupervisorProfilePage() {
     },
     [userId]
   );
+
 
   // Show loading while auth is checking or data is loading
   if (isAuthLoading || dataLoading) {

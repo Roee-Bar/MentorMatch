@@ -290,6 +290,7 @@ export interface DashboardStats {
   pendingApplications: number;           // Pending project applications
   studentsWithoutApprovedApp: number;    // Students without any approved application
   totalAvailableCapacity: number;        // Sum of available supervisor slots
+  activeSupervisorPartnerships: number;  // Active supervisor partnerships (paired supervisors)
 }
 
 // ============================================
@@ -326,6 +327,27 @@ export interface StudentCardData {
   previousProjects?: string;
   partnershipStatus: 'none' | 'paired';
   partnerId?: string;
+}
+
+// ============================================
+// SUPERVISOR PARTNERSHIP TYPES
+// ============================================
+
+// Supervisor Partnership Request Type (stored in 'supervisor_partnership_requests' collection)
+export interface SupervisorPartnershipRequest {
+  id: string;
+  requesterId: string;
+  requesterName: string;
+  requesterEmail: string;
+  requesterDepartment: string;
+  targetSupervisorId: string;
+  targetSupervisorName: string;
+  targetSupervisorEmail: string;
+  targetDepartment: string;
+  projectId: string; // REQUIRED - partnership is for specific project
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  createdAt: Date;
+  respondedAt?: Date;
 }
 
 // ============================================

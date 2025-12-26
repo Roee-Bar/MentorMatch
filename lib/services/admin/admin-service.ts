@@ -74,6 +74,34 @@ export const AdminService = {
         return total + (available > 0 ? available : 0);
       }, 0);
 
+      // 6. Active supervisor partnerships (count projects with coSupervisorId)
+      // Query projects with active status, then filter for those with coSupervisorId
+      const [pendingProjects, approvedProjects, inProgressProjects] = await Promise.all([
+        adminDb.collection('projects')
+          .where('status', '==', 'pending_approval')
+          .get(),
+        adminDb.collection('projects')
+          .where('status', '==', 'approved')
+          .get(),
+        adminDb.collection('projects')
+          .where('status', '==', 'in_progress')
+          .get(),
+      ]);
+      
+      // Combine and filter for projects with coSupervisorId
+      const allActiveProjects = [
+        ...pendingProjects.docs,
+        ...approvedProjects.docs,
+        ...inProgressProjects.docs
+      ];
+      
+      const projectsWithCoSupervisor = allActiveProjects.filter(
+        doc => doc.data().coSupervisorId != null
+      );
+      
+      // Each project with coSupervisorId represents one partnership
+      const activeSupervisorPartnerships = projectsWithCoSupervisor.length;
+
       return {
         totalStudents: students.length,
         matchedStudents,
@@ -84,6 +112,7 @@ export const AdminService = {
         pendingApplications,
         studentsWithoutApprovedApp,
         totalAvailableCapacity,
+        activeSupervisorPartnerships: Math.floor(activeSupervisorPartnerships),
       };
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getDashboardStats', error);
@@ -97,6 +126,7 @@ export const AdminService = {
         pendingApplications: 0,
         studentsWithoutApprovedApp: 0,
         totalAvailableCapacity: 0,
+        activeSupervisorPartnerships: 0,
       };
     }
   },

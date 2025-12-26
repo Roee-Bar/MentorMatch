@@ -1,0 +1,65 @@
+/**
+ * POST /api/supervisor-partnerships/unpair
+ * 
+ * Remove co-supervisor from a specific project (partnership ends for that project)
+ * 
+ * Authorization: Supervisor role required
+ * 
+ * NOTE: This route is kept for backward compatibility but partnerships are now project-based.
+ * Partnerships automatically end when projects complete/cancel. This route can be used
+ * to manually remove co-supervisor from a project before it ends.
+ */
+
+import { NextRequest } from 'next/server';
+import { ProjectService } from '@/lib/services/projects/project-service';
+import { withAuth } from '@/lib/middleware/apiHandler';
+import { ApiResponse } from '@/lib/middleware/response';
+import { validateRequest } from '@/lib/middleware/validation';
+import { z } from 'zod';
+import { logger } from '@/lib/logger';
+
+const removeCoSupervisorSchema = z.object({
+  projectId: z.string().min(1, 'Project ID is required'),
+}).strict();
+
+export const POST = withAuth<Record<string, string>>(
+  async (request: NextRequest, context, user) => {
+    // Validate supervisor role
+    if (user.role !== 'supervisor') {
+      return ApiResponse.forbidden('Only supervisors can access this endpoint');
+    }
+
+    // Validate request body
+    const validation = await validateRequest(request, removeCoSupervisorSchema);
+    if (!validation.valid) {
+      return ApiResponse.validationError(validation.error || 'Invalid request data');
+    }
+
+    const { projectId } = validation.data!;
+
+    // Get project to verify supervisor has permission
+    const project = await ProjectService.getProjectById(projectId);
+    
+    if (!project) {
+      return ApiResponse.notFound('Project');
+    }
+
+    // Verify user is the project supervisor or co-supervisor
+    if (project.supervisorId !== user.uid && project.coSupervisorId !== user.uid) {
+      return ApiResponse.forbidden('You can only remove co-supervisor from your own projects');
+    }
+
+    // Remove co-supervisor from project
+    const result = await ProjectService.updateProject(projectId, {
+      coSupervisorId: undefined,
+      coSupervisorName: undefined
+    });
+
+    if (!result.success) {
+      return ApiResponse.error(result.error || 'Failed to remove co-supervisor', 400);
+    }
+
+    return ApiResponse.successMessage('Co-supervisor removed successfully');
+  }
+);
+
