@@ -24,4 +24,3 @@ export type ProjectStatus = typeof PROJECT_STATUSES[number];
  */
 export const SUPERVISOR_PARTNERSHIP_REQUEST_STATUSES = ['pending', 'accepted', 'rejected', 'cancelled'] as const;
 export type SupervisorPartnershipRequestStatus = typeof SUPERVISOR_PARTNERSHIP_REQUEST_STATUSES[number];
-

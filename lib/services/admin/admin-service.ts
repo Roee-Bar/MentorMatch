@@ -74,34 +74,39 @@ export const AdminService = {
         return total + (available > 0 ? available : 0);
       }, 0);
 
-      // 6. Active supervisor partnerships (count projects with coSupervisorId)
+      // TODO: 6. Active supervisor partnerships (count projects with coSupervisorId)
+      // This feature is planned for future implementation. The coSupervisorId field
+      // was removed from the Project type, so this code is commented out until
+      // partnership functionality is re-implemented.
       // Query projects with active status, then filter for those with coSupervisorId
-      const [pendingProjects, approvedProjects, inProgressProjects] = await Promise.all([
-        adminDb.collection('projects')
-          .where('status', '==', 'pending_approval')
-          .get(),
-        adminDb.collection('projects')
-          .where('status', '==', 'approved')
-          .get(),
-        adminDb.collection('projects')
-          .where('status', '==', 'in_progress')
-          .get(),
-      ]);
+      // const [pendingProjects, approvedProjects, inProgressProjects] = await Promise.all([
+      //   adminDb.collection('projects')
+      //     .where('status', '==', 'pending_approval')
+      //     .get(),
+      //   adminDb.collection('projects')
+      //     .where('status', '==', 'approved')
+      //     .get(),
+      //   adminDb.collection('projects')
+      //     .where('status', '==', 'in_progress')
+      //     .get(),
+      // ]);
+      // 
+      // // Combine and filter for projects with coSupervisorId
+      // const allActiveProjects = [
+      //   ...pendingProjects.docs,
+      //   ...approvedProjects.docs,
+      //   ...inProgressProjects.docs
+      // ];
+      // 
+      // const projectsWithCoSupervisor = allActiveProjects.filter(
+      //   doc => doc.data().coSupervisorId != null
+      // );
+      // 
+      // // Each project with coSupervisorId represents one partnership
+      // const activeSupervisorPartnerships = projectsWithCoSupervisor.length;
       
-      // Combine and filter for projects with coSupervisorId
-      const allActiveProjects = [
-        ...pendingProjects.docs,
-        ...approvedProjects.docs,
-        ...inProgressProjects.docs
-      ];
-      
-      const projectsWithCoSupervisor = allActiveProjects.filter(
-        doc => doc.data().coSupervisorId != null
-      );
-      
-      // Each project with coSupervisorId represents one partnership
-      const activeSupervisorPartnerships = projectsWithCoSupervisor.length;
-
+      // Temporary: Set to 0 until partnership functionality is re-implemented
+      const activeSupervisorPartnerships = 0;
       return {
         totalStudents: students.length,
         matchedStudents,

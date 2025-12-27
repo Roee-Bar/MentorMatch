@@ -5,11 +5,11 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { toProject } from '@/lib/services/shared/firestore-converters';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
-import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships/supervisor-partnership-request-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
+import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships/supervisor-partnership-request-service';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 
 const SERVICE_NAME = 'ProjectService';
 
@@ -90,38 +90,13 @@ export const ProjectService = {
   // Create new project
   async createProject(projectData: Omit<Project, 'id'>): Promise<ServiceResult<string>> {
     try {
-      let projectId = '';
-      
-      // Use transaction to create project and validate co-supervisor if provided
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc();
-        projectId = projectRef.id;
-        
-        // If coSupervisorId is provided, validate supervisor exists and has capacity
-        if (projectData.coSupervisorId) {
-          const supervisorRef = adminDb.collection('supervisors').doc(projectData.supervisorId);
-          const coSupervisorRef = adminDb.collection('supervisors').doc(projectData.coSupervisorId);
-          
-          const [supervisorSnap, coSupervisorSnap] = await transaction.getAll(supervisorRef, coSupervisorRef);
-          
-          if (!supervisorSnap.exists || !coSupervisorSnap.exists) {
-            throw new Error('One or both supervisors not found');
-          }
-
-          const coSupervisorData = coSupervisorSnap.data();
-          if (coSupervisorData && coSupervisorData.currentCapacity >= coSupervisorData.maxCapacity) {
-            throw new Error('Co-supervisor has no available capacity');
-          }
-        }
-        
-        transaction.set(projectRef, {
-          ...projectData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+      const projectRef = await adminDb.collection('projects').add({
+        ...projectData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
-      return ServiceResults.success(projectId, 'Project created successfully');
+      return ServiceResults.success(projectRef.id, 'Project created successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'createProject', error);
       return ServiceResults.error(
@@ -141,34 +116,6 @@ export const ProjectService = {
       await adminDb.runTransaction(async (transaction) => {
         const projectRef = adminDb.collection('projects').doc(projectId);
         
-        // Handle coSupervisorId changes
-        const oldCoSupervisorId = existingProject.coSupervisorId;
-        const newCoSupervisorId = projectData.coSupervisorId;
-
-        // If coSupervisorId is being added or changed, validate supervisor exists and has capacity
-        if (newCoSupervisorId && newCoSupervisorId !== oldCoSupervisorId) {
-          const coSupervisorRef = adminDb.collection('supervisors').doc(newCoSupervisorId);
-          const coSupervisorSnap = await transaction.get(coSupervisorRef);
-          
-          if (!coSupervisorSnap.exists) {
-            throw new Error('Co-supervisor not found');
-          }
-
-          const coSupervisorData = coSupervisorSnap.data();
-          if (coSupervisorData && coSupervisorData.currentCapacity >= coSupervisorData.maxCapacity) {
-            throw new Error('Co-supervisor has no available capacity');
-          }
-
-          // Get co-supervisor name if not provided
-          if (!projectData.coSupervisorName && coSupervisorData) {
-            projectData.coSupervisorName = coSupervisorData.fullName || '';
-          }
-        }
-        // If coSupervisorId is being removed, clear coSupervisorName
-        else if (oldCoSupervisorId && !newCoSupervisorId) {
-          projectData.coSupervisorName = undefined;
-        }
-        
         // Update project
         transaction.update(projectRef, {
           ...projectData,
@@ -185,7 +132,7 @@ export const ProjectService = {
     }
   },
 
-  // Handle project status changes - clear co-supervisor when project ends
+  // Handle project status changes
   async handleProjectStatusChange(projectId: string, newStatus: 'pending_approval' | 'approved' | 'in_progress' | 'completed'): Promise<ServiceResult> {
     try {
       const project = await this.getProjectById(projectId);
@@ -201,32 +148,14 @@ export const ProjectService = {
         );
       }
 
-      // Update project status and clear coSupervisorId when project is completed (partnership ends)
+      // Update project status
       await adminDb.runTransaction(async (transaction) => {
         const projectRef = adminDb.collection('projects').doc(projectId);
-        const updates: Partial<Project> = {
+        transaction.update(projectRef, {
           status: newStatus,
           updatedAt: new Date()
-        };
-        
-        // Clear coSupervisorId when project is completed
-        if (newStatus === 'completed' && project.coSupervisorId) {
-          updates.coSupervisorId = undefined;
-          updates.coSupervisorName = undefined;
-        }
-        
-        transaction.update(projectRef, updates);
-      });
-
-      if (newStatus === 'completed' && project.coSupervisorId) {
-        logger.service.success(SERVICE_NAME, 'handleProjectStatusChange', {
-          projectId,
-          status: newStatus,
-          clearedCoSupervisor: project.coSupervisorId,
-          message: 'Partnership ended - coSupervisorId cleared'
         });
-      }
-
+      });
       return ServiceResults.success(undefined, 'Project status updated successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'handleProjectStatusChange', error, { projectId, newStatus });
@@ -237,8 +166,7 @@ export const ProjectService = {
   },
 
   /**
-   * Handle project deletion - clear co-supervisor and cancel pending requests
-   * Automatically cleans up all partnership-related data for the project
+   * Handle project deletion
    * 
    * @param projectId - ID of the project being deleted
    * @returns ServiceResult indicating success or failure

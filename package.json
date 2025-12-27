@@ -14,7 +14,19 @@
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
     "test:setup-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-test-partnerships.ts",
-    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts"
+    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:validate-setup": "node scripts/validate-setup.js",
+    "test:pipeline-local": "node scripts/test-pipeline-local.js",
+    "jenkins:start": "docker-compose -f docker-compose.jenkins.yml up -d",
+    "jenkins:stop": "docker-compose -f docker-compose.jenkins.yml down",
+    "jenkins:setup": "bash scripts/setup-jenkins.sh",
+    "jenkins:test-mcp": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/test-jenkins-mcp-connection.ts",
+    "jenkins:setup-auth": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-jenkins-mcp-auth.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",
@@ -25,6 +37,9 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "@reportportal/agent-js-playwright": "^5.3.2",
+    "@reportportal/client-javascript": "^5.5.8",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

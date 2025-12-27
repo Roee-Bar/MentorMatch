@@ -202,8 +202,6 @@ export function toProject(id: string, data: DocumentData): Project {
     studentNames: Array.isArray(data.studentNames) ? data.studentNames : [],
     supervisorId: data.supervisorId ?? '',
     supervisorName: data.supervisorName ?? '',
-    coSupervisorId: data.coSupervisorId,
-    coSupervisorName: data.coSupervisorName,
     // Project Details
     title: data.title ?? '',
     description: data.description ?? '',
