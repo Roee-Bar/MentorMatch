@@ -5,7 +5,6 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { toProject } from '@/lib/services/shared/firestore-converters';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
@@ -89,21 +88,13 @@ export const ProjectService = {
   // Create new project
   async createProject(projectData: Omit<Project, 'id'>): Promise<ServiceResult<string>> {
     try {
-      let projectId = '';
-      
-      // Use transaction to create project
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc();
-        projectId = projectRef.id;
-        
-        transaction.set(projectRef, {
-          ...projectData,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+      const projectRef = await adminDb.collection('projects').add({
+        ...projectData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
-      return ServiceResults.success(projectId, 'Project created successfully');
+      return ServiceResults.success(projectRef.id, 'Project created successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'createProject', error);
       return ServiceResults.error(

@@ -1,7 +1,16 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type ReporterDescription } from '@playwright/test';
+
+// Report Portal configuration interface
+interface ReportPortalConfig {
+  token: string;
+  endpoint: string;
+  project: string;
+  launch: string;
+  attributes: Array<{ key: string; value: string }>;
+}
 
 // Report Portal configuration (only in CI environment)
-let rpConfig: any = undefined;
+let rpConfig: ReportPortalConfig | undefined = undefined;
 if (process.env.CI === 'true' && process.env.RP_ENDPOINT && process.env.RP_TOKEN) {
   rpConfig = {
     token: process.env.RP_TOKEN,
@@ -19,7 +28,7 @@ if (process.env.CI === 'true' && process.env.RP_ENDPOINT && process.env.RP_TOKEN
 }
 
 // Build reporter array
-const reporters: any[] = [
+const reporters: ReporterDescription[] = [
   ['html', { outputFolder: 'playwright-report' }],
   ['list'],
 ];
@@ -31,6 +40,14 @@ if (rpConfig) {
     require('@reportportal/agent-js-playwright');
     reporters.push(['@reportportal/agent-js-playwright', rpConfig]);
   } catch (error) {
+    // In CI environment, fail fast if Report Portal is configured but unavailable
+    if (process.env.CI === 'true') {
+      throw new Error(
+        'Report Portal is configured (RP_ENDPOINT and RP_TOKEN set) but @reportportal/agent-js-playwright is not installed. ' +
+        'Install the package or remove Report Portal environment variables.'
+      );
+    }
+    // In local development, just warn
     console.warn('Report Portal reporter not available. Install @reportportal/agent-js-playwright to enable.');
   }
 }
