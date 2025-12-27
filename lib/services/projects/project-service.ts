@@ -154,7 +154,6 @@ export const ProjectService = {
           updatedAt: new Date()
         });
       });
-
       return ServiceResults.success(undefined, 'Project status updated successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'handleProjectStatusChange', error, { projectId, newStatus });
@@ -178,9 +177,33 @@ export const ProjectService = {
         return ServiceResults.error('Project not found');
       }
 
+<<<<<<< HEAD
       logger.service.success(SERVICE_NAME, 'handleProjectDeletion', {
         projectId,
         message: 'Project deletion handled successfully'
+=======
+      // Clear coSupervisorId and cancel all pending partnership requests for this project
+      await adminDb.runTransaction(async (transaction) => {
+        const projectRef = adminDb.collection('projects').doc(projectId);
+        
+        // Clear coSupervisorId if it exists
+        if (project.coSupervisorId) {
+          transaction.update(projectRef, {
+            coSupervisorId: null,
+            coSupervisorName: null,
+            updatedAt: new Date()
+          });
+        }
+      });
+
+      // Cancel all pending partnership requests for this project (outside transaction for batch operations)
+      await SupervisorPartnershipRequestService.cancelRequestsForProject(projectId);
+
+      logger.service.success(SERVICE_NAME, 'handleProjectDeletion', {
+        projectId,
+        clearedCoSupervisor: project.coSupervisorId || 'none',
+        message: 'Project deletion - partnership cleanup completed'
+>>>>>>> origin/main
       });
 
       return ServiceResults.success(undefined, 'Project deletion handled successfully');
@@ -192,6 +215,52 @@ export const ProjectService = {
     }
   },
 
+<<<<<<< HEAD
+=======
+  /**
+   * Validate co-supervisor can be added to project
+   * Checks project exists, supervisor is project owner, project has no co-supervisor, and co-supervisor has capacity
+   * 
+   * @param projectId - ID of the project
+   * @param supervisorId - ID of the project supervisor (must match project supervisor)
+   * @param coSupervisorId - ID of the potential co-supervisor
+   * @returns ServiceResult indicating validation result
+   * @throws Error if validation fails (project not found, unauthorized, already has co-supervisor, or no capacity)
+   */
+  async validateCoSupervisor(projectId: string, supervisorId: string, coSupervisorId: string): Promise<ServiceResult> {
+    try {
+      const project = await this.getProjectById(projectId);
+      if (!project) {
+        return ServiceResults.error('Project not found');
+      }
+
+      if (project.supervisorId !== supervisorId) {
+        return ServiceResults.error('Only the project supervisor can add a co-supervisor');
+      }
+
+      if (project.coSupervisorId) {
+        return ServiceResults.error('This project already has a co-supervisor');
+      }
+
+      const coSupervisor = await SupervisorService.getSupervisorById(coSupervisorId);
+      if (!coSupervisor) {
+        return ServiceResults.error('Co-supervisor not found');
+      }
+
+      if (coSupervisor.currentCapacity >= coSupervisor.maxCapacity) {
+        return ServiceResults.error('Co-supervisor has no available capacity');
+      }
+
+      return ServiceResults.success(undefined, 'Co-supervisor validation passed');
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'validateCoSupervisor', error, { projectId, supervisorId, coSupervisorId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to validate co-supervisor'
+      );
+    }
+  },
+
+>>>>>>> origin/main
   // Generate project code
   generateProjectCode(year: number, semester: number, department: string, number: number): string {
     const deptCode = department.charAt(0).toUpperCase();

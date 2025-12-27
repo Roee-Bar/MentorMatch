@@ -19,3 +19,8 @@ export type PartnershipAction = typeof PARTNERSHIP_ACTIONS[number];
 export const PROJECT_STATUSES = ['pending_approval', 'approved', 'in_progress', 'completed'] as const;
 export type ProjectStatus = typeof PROJECT_STATUSES[number];
 
+/**
+ * Valid supervisor partnership request statuses
+ */
+export const SUPERVISOR_PARTNERSHIP_REQUEST_STATUSES = ['pending', 'accepted', 'rejected', 'cancelled'] as const;
+export type SupervisorPartnershipRequestStatus = typeof SUPERVISOR_PARTNERSHIP_REQUEST_STATUSES[number];

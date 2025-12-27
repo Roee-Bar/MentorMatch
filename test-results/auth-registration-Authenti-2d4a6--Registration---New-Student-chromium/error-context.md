@@ -1,0 +1,135 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation "Main navigation" [ref=e4]:
+        - link "MentorMatch Braude College of Engineering" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img [ref=e6]
+          - generic [ref=e12]:
+            - heading "MentorMatch" [level=1] [ref=e13]
+            - paragraph [ref=e14]: Braude College of Engineering
+        - button "User menu" [ref=e16] [cursor=pointer]:
+          - generic [ref=e17]: TS
+          - generic [ref=e18]: Test Student
+          - img [ref=e19]
+      - dialog "Mobile navigation menu" [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: Menu
+          - button "Close menu" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+        - generic [ref=e28]:
+          - generic [ref=e29]: TS
+          - generic [ref=e30]:
+            - paragraph [ref=e31]: Test Student
+            - paragraph [ref=e32]: test.student.1766756268126@e.braude.ac.il
+        - navigation [ref=e33]:
+          - link "Dashboard" [ref=e34] [cursor=pointer]:
+            - /url: /authenticated/student
+            - img [ref=e35]
+            - text: Dashboard
+          - link "Profile" [ref=e37] [cursor=pointer]:
+            - /url: /authenticated/student/profile
+            - img [ref=e38]
+            - text: Profile
+        - button "Logout" [ref=e41] [cursor=pointer]:
+          - img [ref=e42]
+          - text: Logout
+    - main [ref=e44]:
+      - generic [ref=e46]:
+        - link "← Back to Home" [ref=e47] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - heading "Create Account" [level=1] [ref=e50]
+            - paragraph [ref=e51]: Create your MentorMatch account and complete your profile
+          - generic [ref=e52]:
+            - heading "Account Information" [level=2] [ref=e54]
+            - generic [ref=e55]:
+              - generic [ref=e56]: Email Address *
+              - textbox "Email Address *" [ref=e57]:
+                - /placeholder: student@braude.ac.il
+                - text: test.student.1766756268126@e.braude.ac.il
+              - generic [ref=e58]: Use your Braude email address
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]: Password *
+                - textbox "Password *" [ref=e62]:
+                  - /placeholder: Minimum 6 characters
+                  - text: Test123!
+              - generic [ref=e63]:
+                - generic [ref=e64]: Confirm Password *
+                - textbox "Confirm Password *" [ref=e65]:
+                  - /placeholder: Re-enter password
+                  - text: Test123!
+            - heading "Personal Information" [level=2] [ref=e67]
+            - generic [ref=e68]:
+              - generic [ref=e69]:
+                - generic [ref=e70]: First Name *
+                - textbox "First Name *" [ref=e71]:
+                  - /placeholder: John
+                  - text: Test
+              - generic [ref=e72]:
+                - generic [ref=e73]: Last Name *
+                - textbox "Last Name *" [ref=e74]:
+                  - /placeholder: Doe
+                  - text: Student
+            - generic [ref=e75]:
+              - generic [ref=e76]:
+                - generic [ref=e77]: Student ID *
+                - textbox "Student ID *" [ref=e78]:
+                  - /placeholder: e.g., 312345678
+                  - text: "312268126"
+              - generic [ref=e79]:
+                - generic [ref=e80]: Phone Number *
+                - textbox "Phone Number *" [ref=e81]:
+                  - /placeholder: 050-1234567
+                  - text: 050-1234567
+            - generic [ref=e82]:
+              - generic [ref=e83]: Department *
+              - combobox "Department *" [ref=e84]:
+                - option "Select Department"
+                - option "Computer Science"
+                - option "Software Engineering" [selected]
+                - option "Electrical Engineering"
+                - option "Mechanical Engineering"
+                - option "Industrial Engineering"
+                - option "Biotechnology"
+            - heading "Academic Information" [level=2] [ref=e86]
+            - generic [ref=e87]:
+              - generic [ref=e88]: Technical Skills *
+              - textbox "Technical Skills *" [ref=e89]:
+                - /placeholder: e.g., React, Python, Machine Learning, SQL
+                - text: React, TypeScript, Node.js
+              - generic [ref=e90]: Separate skills with commas
+            - generic [ref=e91]:
+              - generic [ref=e92]: Research Interests *
+              - textbox "Research Interests *" [ref=e93]:
+                - /placeholder: Describe your research interests and what kind of projects you're interested in...
+                - text: Web development and full-stack applications
+            - generic [ref=e94]:
+              - generic [ref=e95]: Previous Projects (Optional)
+              - textbox "Previous Projects (Optional)" [ref=e96]:
+                - /placeholder: Describe any relevant projects you've worked on...
+                - text: E-commerce platform
+            - generic [ref=e97]:
+              - generic [ref=e98]: Preferred Project Topics (Optional)
+              - textbox "Preferred Project Topics (Optional)" [ref=e99]:
+                - /placeholder: e.g., Web Development, AI, Mobile Apps, IoT
+                - text: Web Development, AI
+            - heading "Partner Information" [level=2] [ref=e101]
+            - generic [ref=e103] [cursor=pointer]:
+              - checkbox "I have a project partner" [ref=e104]
+              - generic [ref=e105]: I have a project partner
+            - button "Creating Account..." [disabled] [ref=e106]
+            - generic [ref=e109]: Registration successful! Please check your email to verify your account.
+          - paragraph [ref=e111]:
+            - text: Already have an account?
+            - link "Login here" [ref=e112] [cursor=pointer]:
+              - /url: /login
+    - contentinfo [ref=e113]:
+      - paragraph [ref=e116]: © MentorMatch - Eldar Gafarov & Roee Bar. All rights reserved.
+  - alert [ref=e117]
+```
