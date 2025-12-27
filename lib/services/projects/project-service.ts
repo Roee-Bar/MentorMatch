@@ -8,6 +8,8 @@ import { toProject } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
+import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships/supervisor-partnership-request-service';
+import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 
 const SERVICE_NAME = 'ProjectService';
 
@@ -177,11 +179,6 @@ export const ProjectService = {
         return ServiceResults.error('Project not found');
       }
 
-<<<<<<< HEAD
-      logger.service.success(SERVICE_NAME, 'handleProjectDeletion', {
-        projectId,
-        message: 'Project deletion handled successfully'
-=======
       // Clear coSupervisorId and cancel all pending partnership requests for this project
       await adminDb.runTransaction(async (transaction) => {
         const projectRef = adminDb.collection('projects').doc(projectId);
@@ -203,7 +200,6 @@ export const ProjectService = {
         projectId,
         clearedCoSupervisor: project.coSupervisorId || 'none',
         message: 'Project deletion - partnership cleanup completed'
->>>>>>> origin/main
       });
 
       return ServiceResults.success(undefined, 'Project deletion handled successfully');
@@ -215,8 +211,6 @@ export const ProjectService = {
     }
   },
 
-<<<<<<< HEAD
-=======
   /**
    * Validate co-supervisor can be added to project
    * Checks project exists, supervisor is project owner, project has no co-supervisor, and co-supervisor has capacity
@@ -260,7 +254,6 @@ export const ProjectService = {
     }
   },
 
->>>>>>> origin/main
   // Generate project code
   generateProjectCode(year: number, semester: number, department: string, number: number): string {
     const deptCode = department.charAt(0).toUpperCase();

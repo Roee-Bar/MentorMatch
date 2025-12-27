@@ -229,6 +229,8 @@ export interface Project {
   studentNames: string[];
   supervisorId: string;
   supervisorName: string;
+  coSupervisorId?: string; // Optional co-supervisor for supervisor partnerships
+  coSupervisorName?: string; // Name of co-supervisor
   
   // Project Details
   title: string;
