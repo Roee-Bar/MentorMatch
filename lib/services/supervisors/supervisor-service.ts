@@ -122,10 +122,56 @@ export const SupervisorService = {
     }
   },
 
+  // Clear coSupervisorId from all projects where supervisor is co-supervisor
+  // Called when supervisor is deleted or deactivated
+  async clearCoSupervisorFromProjects(supervisorId: string): Promise<ServiceResult> {
+    try {
+      // Find all projects where this supervisor is the co-supervisor
+      const projectsSnapshot = await adminDb.collection('projects')
+        .where('coSupervisorId', '==', supervisorId)
+        .get();
+
+      if (projectsSnapshot.empty) {
+        return ServiceResults.success(undefined, 'No projects to update');
+      }
+
+      // Use batch to update all projects atomically
+      const batch = adminDb.batch();
+      const now = new Date();
+
+      projectsSnapshot.docs.forEach((doc) => {
+        batch.update(doc.ref, {
+          coSupervisorId: null,
+          coSupervisorName: null,
+          updatedAt: now
+        });
+      });
+
+      await batch.commit();
+
+      logger.service.success(SERVICE_NAME, 'clearCoSupervisorFromProjects', {
+        supervisorId,
+        clearedFromProjects: projectsSnapshot.size
+      });
+
+      return ServiceResults.success(undefined, `Cleared co-supervisor from ${projectsSnapshot.size} project(s)`);
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'clearCoSupervisorFromProjects', error, { supervisorId });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to clear co-supervisor from projects'
+      );
+    }
+  },
+
   // Delete supervisor
   async deleteSupervisor(supervisorId: string): Promise<ServiceResult> {
     try {
+      // Clear coSupervisorId from all projects where supervisor is co-supervisor
+      await this.clearCoSupervisorFromProjects(supervisorId);
+
+      // Delete supervisor document
       await adminDb.collection('supervisors').doc(supervisorId).delete();
+      
       return ServiceResults.success(undefined, 'Supervisor deleted successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'deleteSupervisor', error, { supervisorId });

@@ -20,6 +20,7 @@
 # cursor
 .cursor/rules/language.mdc
 .cursorrules
+.cursor/debug.log
 
 # VSCode / Cursor workspace settings (local only)
 .vscode/settings.json
@@ -35,9 +36,6 @@ docs/testing/
 
 # scripts folder (local development utilities)
 /scripts/
-
-# playwright MCP screenshots
-.playwright-mcp/
 
 # local env files
 .env*.local

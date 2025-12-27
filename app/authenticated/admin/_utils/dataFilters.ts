@@ -39,6 +39,12 @@ export function filterSupervisorsByStatCard(
   if (statCard === 'available-capacity') {
     return supervisors.filter(s => s.currentCapacity < s.maxCapacity);
   }
+  // Note: supervisor-partnerships stat card shows all supervisors
+  // Partnerships are project-based, so we can't filter supervisors by partnership status
+  // The stat card count comes from projects with coSupervisorId
+  if (statCard === 'supervisor-partnerships') {
+    return supervisors; // Show all supervisors (partnerships tracked via projects)
+  }
   return supervisors;
 }
 

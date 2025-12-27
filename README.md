@@ -105,8 +105,9 @@ Automatic deployment via Vercel on push to main branch.
 
 ### Environment Variables
 
-Add to Vercel project settings and `.env.local` for local development:
+Add to Vercel project settings and `.env.local` for local development. See `.env.example` for complete list:
 
+**Required (Firebase):**
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...

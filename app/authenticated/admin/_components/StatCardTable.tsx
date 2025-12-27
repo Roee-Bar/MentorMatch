@@ -58,6 +58,7 @@ export default function StatCardTable({
       case 'available-capacity': return 'Supervisors with Available Capacity';
       case 'approved-projects': return 'Approved Projects';
       case 'pending-applications': return 'Pending Applications';
+      case 'supervisor-partnerships': return 'Supervisor Partnerships';
       default: return '';
     }
   };
@@ -65,7 +66,7 @@ export default function StatCardTable({
   const getResultCount = () => {
     const total = activeStatCard === 'total-students' || activeStatCard === 'students-without-projects' 
       ? studentsData.length 
-      : activeStatCard === 'total-supervisors' || activeStatCard === 'available-capacity'
+      : activeStatCard === 'total-supervisors' || activeStatCard === 'available-capacity' || activeStatCard === 'supervisor-partnerships'
       ? supervisorsData.length
       : applicationsData.length;
     return total;
@@ -132,7 +133,7 @@ export default function StatCardTable({
         )}
 
         {/* Supervisors Tables */}
-        {!studentsLoading && !studentsError && (activeStatCard === 'total-supervisors' || activeStatCard === 'available-capacity') && (
+        {!studentsLoading && !studentsError && (activeStatCard === 'total-supervisors' || activeStatCard === 'available-capacity' || activeStatCard === 'supervisor-partnerships') && (
           <SupervisorsTable
             data={supervisorsData}
             sortConfig={sortConfig}

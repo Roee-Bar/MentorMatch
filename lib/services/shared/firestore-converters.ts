@@ -15,6 +15,7 @@ import type {
   Application,
   Project,
   StudentPartnershipRequest,
+  SupervisorPartnershipRequest,
 } from '@/types/database';
 
 // ============================================
@@ -237,6 +238,30 @@ export function toPartnershipRequest(id: string, data: DocumentData): StudentPar
     status: data.status ?? 'pending',
     createdAt: toDateRequired(data.createdAt),
     respondedAt: toDate(data.respondedAt),
+  };
+}
+
+/**
+ * Convert Firestore document to SupervisorPartnershipRequest
+ * @param id - Document ID
+ * @param data - Document data from Firestore
+ */
+export function toSupervisorPartnershipRequest(id: string, data: DocumentData): SupervisorPartnershipRequest {
+  return {
+    id,
+    requesterId: data.requesterId ?? '',
+    requesterName: data.requesterName ?? '',
+    requesterEmail: data.requesterEmail ?? '',
+    requesterDepartment: data.requesterDepartment ?? '',
+    targetSupervisorId: data.targetSupervisorId ?? '',
+    targetSupervisorName: data.targetSupervisorName ?? '',
+    targetSupervisorEmail: data.targetSupervisorEmail ?? '',
+    targetDepartment: data.targetDepartment ?? '',
+    projectId: data.projectId ?? '', // REQUIRED - partnership is for specific project
+    status: data.status ?? 'pending',
+    createdAt: toDateRequired(data.createdAt),
+    respondedAt: toDate(data.respondedAt),
+    expiresAt: toDate(data.expiresAt),
   };
 }
 

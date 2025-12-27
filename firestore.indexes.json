@@ -46,6 +46,55 @@
       "fields": [
         { "fieldPath": "partnershipStatus", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "supervisor_partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "targetSupervisorId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "supervisor_partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "requesterId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "supervisor_partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "requesterId", "order": "ASCENDING" },
+        { "fieldPath": "targetSupervisorId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "supervisor_partnership_requests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "projectId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coSupervisorId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "projects",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "supervisorId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

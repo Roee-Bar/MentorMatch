@@ -50,6 +50,7 @@ service cloud.firestore {
       // They serve as documentation of the expected data model
       // allow update: if isValidPartnershipStatus() && isPartnershipStatusConsistent();
     }
+
   }
 }
 
