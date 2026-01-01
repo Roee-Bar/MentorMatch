@@ -162,7 +162,7 @@ export const updateStudentSchema = z.object({
   
   // New partnership fields
   partnerId: z.string().optional(),
-  partnershipStatus: z.enum(['none', 'paired']).optional(),
+  partnershipStatus: z.enum(['none', 'pending_sent', 'pending_received', 'paired']).optional(),
   
   // Deprecated partnership fields
   hasPartner: z.boolean().optional(),
@@ -202,20 +202,5 @@ export const partnershipRequestSchema = z.object({
  * Schema for responding to partnership request
  */
 export const partnershipResponseSchema = z.object({
-  action: z.enum(['accept', 'reject']),
-}).strict();
-
-/**
- * Schema for creating supervisor partnership request
- */
-export const supervisorPartnershipRequestSchema = z.object({
-  targetSupervisorId: z.string().min(1, 'Target supervisor ID is required'),
-  projectId: z.string().min(1, 'Project ID is required'), // REQUIRED - partnership is for specific project
-}).strict();
-
-/**
- * Schema for responding to supervisor partnership request
- */
-export const supervisorPartnershipResponseSchema = z.object({
   action: z.enum(['accept', 'reject']),
 }).strict();

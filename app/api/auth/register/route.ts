@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 
-    return ApiResponse.created({ userId: userRecord.uid, email: data.email }, 'Registration successful');
+    return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
 
   } catch (error: any) {
     console.error('Registration error:', error);

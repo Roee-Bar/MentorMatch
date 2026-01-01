@@ -40,7 +40,7 @@ export default function SupervisorsTable({
     <Table.Container>
       <Table.Header>
         <tr>
-          <Table.HeaderCell className={showAvailableSlots ? 'w-[20%]' : 'w-[22%]'}>
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('name')}
               className={sortableHeaderButton}
@@ -48,7 +48,7 @@ export default function SupervisorsTable({
               Name {getSortIcon('name')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className={showAvailableSlots ? 'w-[23%]' : 'w-[25%]'}>
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('email')}
               className={sortableHeaderButton}
@@ -56,7 +56,7 @@ export default function SupervisorsTable({
               Email {getSortIcon('email')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className={showAvailableSlots ? 'w-[16%]' : 'w-[18%]'}>
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('department')}
               className={sortableHeaderButton}
@@ -64,15 +64,15 @@ export default function SupervisorsTable({
               Department {getSortIcon('department')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell align="center" className={showAvailableSlots ? 'w-[12%]' : 'w-[15%]'}>
+          <Table.HeaderCell align="center">
             Capacity
           </Table.HeaderCell>
           {showAvailableSlots && (
-            <Table.HeaderCell align="center" className="w-[12%]">
+            <Table.HeaderCell align="center">
               Available Slots
             </Table.HeaderCell>
           )}
-          <Table.HeaderCell align="center" className={showAvailableSlots ? 'w-[17%]' : 'w-[20%]'}>
+          <Table.HeaderCell align="center">
             Status
           </Table.HeaderCell>
         </tr>
@@ -82,20 +82,20 @@ export default function SupervisorsTable({
           const availableSlots = supervisor.maxCapacity - supervisor.currentCapacity;
           return (
             <Table.Row key={supervisor.id}>
-              <Table.Cell className={showAvailableSlots ? 'w-[20%]' : 'w-[22%]'}>{supervisor.fullName}</Table.Cell>
-              <Table.Cell className={showAvailableSlots ? 'w-[23%]' : 'w-[25%]'}>
+              <Table.Cell>{supervisor.fullName}</Table.Cell>
+              <Table.Cell>
                 <a href={`mailto:${supervisor.email}`} className={linkEmail}>
                   {supervisor.email}
                 </a>
               </Table.Cell>
-              <Table.Cell className={showAvailableSlots ? 'w-[16%]' : 'w-[18%]'}>{supervisor.department}</Table.Cell>
-              <Table.Cell className={showAvailableSlots ? 'w-[12%]' : 'w-[15%]'}>
+              <Table.Cell>{supervisor.department}</Table.Cell>
+              <Table.Cell>
                 <div className="text-center">
                   {supervisor.currentCapacity} / {supervisor.maxCapacity}
                 </div>
               </Table.Cell>
               {showAvailableSlots && (
-                <Table.Cell className="w-[12%]">
+                <Table.Cell>
                   <div className="text-center">
                     <span className={availableSlots > 0 ? capacityAvailable : capacityUnavailable}>
                       {availableSlots}
@@ -103,7 +103,7 @@ export default function SupervisorsTable({
                   </div>
                 </Table.Cell>
               )}
-              <Table.Cell className={showAvailableSlots ? 'w-[17%]' : 'w-[20%]'}>
+              <Table.Cell>
                 <div className="flex justify-center">
                   <StatusBadge 
                     status={supervisor.availabilityStatus} 

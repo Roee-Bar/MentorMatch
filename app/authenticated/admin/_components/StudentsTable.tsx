@@ -39,7 +39,7 @@ export default function StudentsTable({
     <Table.Container>
       <Table.Header>
         <tr>
-          <Table.HeaderCell className="w-[20%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('name')}
               className={sortableHeaderButton}
@@ -47,7 +47,7 @@ export default function StudentsTable({
               Name {getSortIcon('name')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[12%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('studentId')}
               className={sortableHeaderButton}
@@ -55,7 +55,7 @@ export default function StudentsTable({
               Student ID {getSortIcon('studentId')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[25%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('email')}
               className={sortableHeaderButton}
@@ -63,7 +63,7 @@ export default function StudentsTable({
               Email {getSortIcon('email')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[18%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('department')}
               className={sortableHeaderButton}
@@ -71,7 +71,7 @@ export default function StudentsTable({
               Department {getSortIcon('department')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[12%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('matchStatus')}
               className={sortableHeaderButton}
@@ -79,7 +79,7 @@ export default function StudentsTable({
               Status {getSortIcon('matchStatus')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[13%]">
+          <Table.HeaderCell>
             <button
               onClick={() => onSort('registrationDate')}
               className={sortableHeaderButton}
@@ -92,18 +92,18 @@ export default function StudentsTable({
       <Table.Body>
         {data.map((student) => (
           <Table.Row key={student.id}>
-            <Table.Cell className="w-[20%]">{student.fullName}</Table.Cell>
-            <Table.Cell className="w-[12%]">{student.studentId}</Table.Cell>
-            <Table.Cell className="w-[25%]">
+            <Table.Cell>{student.fullName}</Table.Cell>
+            <Table.Cell>{student.studentId}</Table.Cell>
+            <Table.Cell>
               <a href={`mailto:${student.email}`} className={linkEmail}>
                 {student.email}
               </a>
             </Table.Cell>
-            <Table.Cell className="w-[18%]">{student.department}</Table.Cell>
-            <Table.Cell className="w-[12%]">
+            <Table.Cell>{student.department}</Table.Cell>
+            <Table.Cell>
               <StatusBadge status={student.matchStatus} variant="matchStatus" />
             </Table.Cell>
-            <Table.Cell className="w-[13%]">{formatFirestoreDate(student.registrationDate)}</Table.Cell>
+            <Table.Cell>{formatFirestoreDate(student.registrationDate)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

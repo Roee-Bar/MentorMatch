@@ -4,7 +4,6 @@
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
-  VERIFY_EMAIL: '/verify-email',
   AUTHENTICATED: {
     STUDENT: '/authenticated/student',
     STUDENT_SUPERVISORS: '/authenticated/student/supervisors',

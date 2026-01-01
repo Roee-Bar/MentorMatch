@@ -3,7 +3,7 @@
 // app/authenticated/student/page.tsx
 // Updated Student Authenticated - Uses real Firebase data
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useStudentDashboard, useStudentPartnerships, usePartnershipActions, useApplicationActions, useModalScroll } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
@@ -21,8 +21,6 @@ import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
 import { btnPrimary, badgeWarning, linkAction } from '@/lib/styles/shared-styles';
-import StudentPartnershipFilters from './_components/StudentPartnershipFilters';
-import { useStudentPartnershipFilters } from '@/lib/hooks/useStudentPartnershipFilters';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -74,25 +72,12 @@ export default function StudentAuthenticated() {
   
   // Extract data from hooks (with defaults)
   const userProfile = dashboardData?.profile || null;
-  const applications = useMemo(() => dashboardData?.applications || [], [dashboardData?.applications]);
+  const applications = dashboardData?.applications || [];
   const supervisors = dashboardData?.supervisors || [];
   const availableStudents = partnershipData?.availableStudents || [];
   const incomingRequests = partnershipData?.incomingRequests || [];
   const outgoingRequests = partnershipData?.outgoingRequests || [];
   const currentPartner = partnershipData?.currentPartner || null;
-
-  // Student partnership filtering using hook
-  const {
-    filters,
-    filteredStudents,
-    uniqueDepartments,
-    uniqueSkills,
-    uniqueInterests,
-    updateFilters,
-    clearFilters,
-    hasActiveFilters,
-    getFilterCounts,
-  } = useStudentPartnershipFilters(availableStudents);
 
   // Ref to track previous application count for scroll detection
   const previousAppCountRef = useRef(applications.length);
@@ -328,32 +313,11 @@ export default function StudentAuthenticated() {
               }
             />
             
-            {/* Filter Component */}
-            {availableStudents.length > 0 && (
-              <StudentPartnershipFilters
-                filters={filters}
-                onFilterChange={updateFilters}
-                onClearFilters={clearFilters}
-                uniqueDepartments={uniqueDepartments}
-                uniqueSkills={uniqueSkills}
-                uniqueInterests={uniqueInterests}
-                totalCount={availableStudents.length}
-                filteredCount={filteredStudents.length}
-                getFilterCounts={getFilterCounts}
-              />
-            )}
-            
-            {filteredStudents.length === 0 ? (
-              <EmptyState 
-                message={
-                  hasActiveFilters 
-                    ? "No students match your filters. Try adjusting your search criteria."
-                    : "No available students at the moment."
-                }
-              />
+            {availableStudents.length === 0 ? (
+              <EmptyState message="No available students at the moment." />
             ) : (
               <div className="grid-cards-3col">
-                {(showAllStudents ? filteredStudents : filteredStudents.slice(0, 3))
+                {(showAllStudents ? availableStudents : availableStudents.slice(0, 3))
                   .map(student => (
                     <StudentCard
                       key={student.id}

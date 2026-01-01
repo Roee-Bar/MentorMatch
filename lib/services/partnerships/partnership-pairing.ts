@@ -18,18 +18,12 @@ const SERVICE_NAME = 'PartnershipPairingService';
 export const PartnershipPairingService = {
   /**
    * Get available students for partnership (not paired, excluding current user)
-   * Uses partnerId filter to allow students with pending requests to appear
-   * 
-   * Data Model Assumption: partnerId is always null (not undefined) when unpaired.
-   * Firestore treats null and undefined differently in queries. This query explicitly
-   * checks for null, which matches our data model where unpaired students have
-   * partnerId: null (set explicitly, not omitted).
    */
   async getAvailableStudents(currentUserId: string): Promise<Student[]> {
     try {
       const studentsRef = adminDb.collection('students');
       const snapshot = await studentsRef
-        .where('partnerId', '==', null)
+        .where('partnershipStatus', '==', 'none')
         .get();
       
       return snapshot.docs
@@ -148,14 +142,6 @@ export const PartnershipPairingService = {
 
   /**
    * Cancel all pending requests for a student (cleanup after pairing)
-   * 
-   * Status Terminology:
-   * - "Cancelled" is used for requests automatically cancelled when a partnership is accepted.
-   *   This is automatic cleanup, not a user action.
-   * - "Rejected" is used when a student explicitly rejects a request (see _rejectRequest in
-   *   partnership-workflow.ts).
-   * 
-   * This distinction helps differentiate between automatic cleanup and user actions.
    */
   async cancelAllPendingRequests(studentId: string): Promise<ServiceResult> {
     try {

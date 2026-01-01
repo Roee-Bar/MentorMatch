@@ -1,25 +1,6 @@
 // lib/services/partnerships/partnership-workflow.ts
 // SERVER-ONLY: Partnership workflow business logic
 // Handles create/accept/reject/cancel operations with validation
-//
-// PARTNERSHIP SYSTEM DESIGN:
-// =========================
-// - Students can have multiple pending partnership requests simultaneously
-// - partnershipStatus field values: 'none' (default) or 'paired'
-// - partnerId field: null when unpaired, contains partner's UID when paired
-// - partnerId is the single source of truth for pairing status
-// - Status remains 'none' while requests are pending (even multiple requests)
-// - Status becomes 'paired' only when a request is accepted
-// - The partnership_requests collection tracks all pending requests
-//
-// DATA CONSISTENCY:
-// - If partnerId exists, partnershipStatus must be 'paired'
-// - If partnershipStatus is 'paired', partnerId must exist
-// - Students with pending requests have partnershipStatus: 'none'
-//
-// TRANSACTION SAFETY:
-// - Critical operations use Firestore transactions to prevent race conditions
-// - Status updates are atomic with request state changes
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
@@ -38,12 +19,6 @@ const SERVICE_NAME = 'PartnershipWorkflowService';
 export const PartnershipWorkflowService = {
   /**
    * Create a new partnership request with validation
-   * 
-   * Design Notes:
-   * - Students can send multiple requests (status remains 'none')
-   * - No status update is performed when creating a request
-   * - Status only changes to 'paired' when a request is accepted
-   * - Uses transaction to atomically validate and create request
    */
   async createRequest(
     requesterId: string, 
@@ -113,8 +88,16 @@ export const PartnershipWorkflowService = {
         requestId = requestRef.id;
         transaction.set(requestRef, requestData);
 
-        // Note: No status update needed - students can have multiple requests
-        // Status remains 'none' until a request is accepted (then becomes 'paired')
+        // Update both students' partnership status
+        transaction.update(requesterRef, {
+          partnershipStatus: 'pending_sent',
+          updatedAt: new Date()
+        });
+
+        transaction.update(targetRef, {
+          partnershipStatus: 'pending_received',
+          updatedAt: new Date()
+        });
       });
 
       return ServiceResults.success(requestId, 'Partnership request created successfully');
@@ -166,11 +149,6 @@ export const PartnershipWorkflowService = {
 
   /**
    * Cancel an outgoing partnership request (by requester)
-   * Uses transaction to atomically verify request state and update status
-   * 
-   * Design: Students can have multiple pending requests. Status remains 'none' until paired.
-   * When cancelling, we always reset status to 'none' since status stays 'none' while
-   * requests are pending (even multiple requests).
    */
   async cancelRequest(
     requestId: string,
@@ -191,43 +169,20 @@ export const PartnershipWorkflowService = {
         return ServiceResults.error('Can only cancel pending requests');
       }
 
-      // Use transaction to atomically:
-      // 1. Verify request is still pending (prevents double-cancellation)
-      // 2. Update request status to cancelled
-      // 3. Reset both students' partnership status to 'none'
-      await adminDb.runTransaction(async (transaction) => {
-        const requestRef = adminDb.collection('partnership_requests').doc(requestId);
-        const requesterRef = adminDb.collection('students').doc(requesterId);
-        const targetRef = adminDb.collection('students').doc(request.targetStudentId);
+      // Update request status
+      await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
-        // Read request document to verify it's still pending (atomic check)
-        const requestSnap = await transaction.get(requestRef);
-        if (!requestSnap.exists) {
-          throw new Error('Partnership request not found');
-        }
-
-        const requestData = requestSnap.data();
-        if (requestData?.status !== 'pending') {
-          throw new Error('Request is no longer pending');
-        }
-
-        // Update request status within transaction
-        transaction.update(requestRef, {
-          status: 'cancelled',
-          respondedAt: new Date()
-        });
-
-        // Always reset to 'none' - status stays 'none' while requests are pending
-        transaction.update(requesterRef, {
+      // Reset both students' partnership status
+      await Promise.all([
+        adminDb.collection('students').doc(requesterId).update({
           partnershipStatus: 'none',
           updatedAt: new Date()
-        });
-
-        transaction.update(targetRef, {
+        }),
+        adminDb.collection('students').doc(request.targetStudentId).update({
           partnershipStatus: 'none',
           updatedAt: new Date()
-        });
-      });
+        })
+      ]);
 
       return ServiceResults.success(undefined, 'Partnership request cancelled');
     } catch (error) {
@@ -244,50 +199,34 @@ export const PartnershipWorkflowService = {
 
   /**
    * Validate that student has correct partnership status for operation
-   * 
-   * Design: partnerId is the single source of truth for pairing status.
-   * If partnerId exists, student is paired. Status field is secondary.
-   * Students with status 'none' (or no status) can send/receive multiple requests.
    */
   _validatePartnershipStatus(
     studentData: FirebaseFirestore.DocumentData | undefined, 
     role: 'requester' | 'target'
   ): void {
-    const partnerId = studentData?.partnerId;
     const status = studentData?.partnershipStatus;
     
-    // partnerId is definitive - if it exists, student is paired
-    if (partnerId) {
-      if (role === 'requester') {
+    if (status === 'none') return;
+    
+    if (role === 'requester') {
+      if (status === 'paired') {
         throw new Error('You are already paired with another student');
+      } else if (status === 'pending_sent') {
+        throw new Error('You already have a pending outgoing request. Cancel it before sending another.');
       } else {
+        throw new Error('You cannot send a request at this time');
+      }
+    } else {
+      if (status === 'paired') {
         throw new Error('Target student is already paired');
+      } else {
+        throw new Error('Target student cannot receive requests at this time');
       }
     }
-    
-    // Defensive check for unexpected status values (data consistency validation)
-    if (status && status !== 'none' && status !== 'paired') {
-      throw new Error(`Invalid partnership status: ${status}. Expected 'none' or 'paired'.`);
-    }
-    
-    // Allow sending/receiving requests if status is 'none' or undefined
-    // Students can have multiple pending requests with status 'none'
-    return;
   },
 
   /**
    * Handle accepting a partnership request
-   * 
-   * Design Notes:
-   * - Updates both students to 'paired' status within transaction
-   * - Sets partnerId for both students (bidirectional relationship)
-   * - Cancels all other pending requests for both students (cleanup)
-   * - Uses transaction to prevent race conditions
-   * 
-   * Status Terminology: When a partnership is accepted, all other pending requests are
-   * automatically "cancelled" (not "rejected"). This distinction helps differentiate between:
-   * - "Cancelled": Automatic cleanup when a partnership is accepted
-   * - "Rejected": Explicit user action when a student rejects a request
    */
   async _acceptRequest(
     request: StudentPartnershipRequest,
@@ -311,13 +250,14 @@ export const PartnershipWorkflowService = {
       const requesterData = requesterSnap.data();
       const targetData = targetSnap.data();
 
-      // Verify neither student is already paired (partnerId is single source of truth)
-      if (requesterData?.partnerId) {
-        throw new Error('Requester is already paired with another student');
+      // Verify requester has correct status
+      if (requesterData?.partnershipStatus !== 'pending_sent') {
+        throw new Error('Requester is no longer in pending state');
       }
 
-      if (targetData?.partnerId) {
-        throw new Error('You are already paired with another student');
+      // Verify target has correct status
+      if (targetData?.partnershipStatus !== 'pending_received') {
+        throw new Error('You are no longer in pending state');
       }
 
       // Update both students to paired
@@ -341,7 +281,6 @@ export const PartnershipWorkflowService = {
     });
 
     // Cancel all other pending requests for both students (cleanup outside transaction)
-    // Note: These are marked as "cancelled" (automatic cleanup), not "rejected" (user action)
     await PartnershipPairingService.cancelAllPendingRequests(request.requesterId);
     await PartnershipPairingService.cancelAllPendingRequests(targetStudentId);
 
@@ -350,48 +289,25 @@ export const PartnershipWorkflowService = {
 
   /**
    * Handle rejecting a partnership request
-   * Uses transaction to atomically verify request state and update status
-   * 
-   * Design: Students can have multiple pending requests. Status remains 'none' until paired.
-   * When rejecting, we always reset status to 'none' since status stays 'none' while
-   * requests are pending (even multiple requests).
-   * 
-   * Status Terminology: "Rejected" is used when a student explicitly rejects a request.
-   * This differs from "Cancelled" which is used for requests automatically cancelled when
-   * a partnership is accepted (see cancelAllPendingRequests in partnership-pairing.ts).
    */
   async _rejectRequest(
     request: StudentPartnershipRequest,
     requestId: string,
     targetStudentId: string
   ): Promise<ServiceResult> {
-    // Use transaction to atomically:
-    // 1. Verify request is still pending (prevents double-processing)
-    // 2. Update request status to rejected
-    // 3. Reset both students' partnership status to 'none'
+    // Use transaction to ensure atomic rejection
     await adminDb.runTransaction(async (transaction) => {
       const requestRef = adminDb.collection('partnership_requests').doc(requestId);
       const requesterRef = adminDb.collection('students').doc(request.requesterId);
       const targetRef = adminDb.collection('students').doc(targetStudentId);
 
-      // Read request document to verify it's still pending (atomic check)
-      const requestSnap = await transaction.get(requestRef);
-      if (!requestSnap.exists) {
-        throw new Error('Partnership request not found');
-      }
-
-      const requestData = requestSnap.data();
-      if (requestData?.status !== 'pending') {
-        throw new Error('Request is no longer pending');
-      }
-
-      // Update request status within transaction
+      // Update request status
       transaction.update(requestRef, {
         status: 'rejected',
         respondedAt: new Date()
       });
 
-      // Always reset to 'none' - status stays 'none' while requests are pending
+      // Reset both students' partnership status
       transaction.update(requesterRef, {
         partnershipStatus: 'none',
         updatedAt: new Date()
@@ -405,5 +321,5 @@ export const PartnershipWorkflowService = {
 
     return ServiceResults.success(undefined, 'Partnership request rejected');
   },
-
 };
+
