@@ -54,13 +54,6 @@ const METRICS_CONFIG = [
     description: 'Applications currently awaiting supervisor review',
     color: 'gray' as const,
   },
-  {
-    key: 'supervisor-partnerships' as const,
-    title: 'Supervisor Partnerships',
-    valueKey: 'activeSupervisorPartnerships' as const,
-    description: 'Active supervisor partnerships for co-supervision',
-    color: 'blue' as const,
-  },
 ] as const;
 
 export default function AdminMetricsGrid({

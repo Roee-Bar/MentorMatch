@@ -8,41 +8,8 @@ import { toProject } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
-import { SupervisorPartnershipRequestService } from '@/lib/services/partnerships/supervisor-partnership-request-service';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 
 const SERVICE_NAME = 'ProjectService';
-
-// ============================================
-// STATUS TRANSITION VALIDATION
-// ============================================
-
-/**
- * Valid status transitions for projects
- * Defines which status changes are allowed from each current status
- */
-const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
-  'pending_approval': ['approved'],
-  'approved': ['in_progress', 'completed'],
-  'in_progress': ['completed'],
-  'completed': [], // Terminal state - no transitions allowed
-};
-
-/**
- * Check if a status transition is valid
- * @param currentStatus - Current project status
- * @param newStatus - Desired new status
- * @returns true if transition is valid, false otherwise
- */
-function isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
-  // Same status is always valid (idempotent)
-  if (currentStatus === newStatus) {
-    return true;
-  }
-  
-  const allowedTransitions = VALID_STATUS_TRANSITIONS[currentStatus] || [];
-  return allowedTransitions.includes(newStatus);
-}
 
 // ============================================
 // PROJECT SERVICES
@@ -90,166 +57,16 @@ export const ProjectService = {
   // Create new project
   async createProject(projectData: Omit<Project, 'id'>): Promise<ServiceResult<string>> {
     try {
-      const projectRef = await adminDb.collection('projects').add({
+      const docRef = await adminDb.collection('projects').add({
         ...projectData,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
-      return ServiceResults.success(projectRef.id, 'Project created successfully');
+      return ServiceResults.success(docRef.id, 'Project created successfully');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'createProject', error);
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to create project'
-      );
-    }
-  },
-
-  // Update project
-  async updateProject(projectId: string, projectData: Partial<Project>): Promise<ServiceResult> {
-    try {
-      const existingProject = await this.getProjectById(projectId);
-      if (!existingProject) {
-        return ServiceResults.error('Project not found');
-      }
-
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(projectId);
-        
-        // Update project
-        transaction.update(projectRef, {
-          ...projectData,
-          updatedAt: new Date(),
-        });
-      });
-
-      return ServiceResults.success(undefined, 'Project updated successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'updateProject', error, { projectId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to update project'
-      );
-    }
-  },
-
-  // Handle project status changes
-  async handleProjectStatusChange(projectId: string, newStatus: 'pending_approval' | 'approved' | 'in_progress' | 'completed'): Promise<ServiceResult> {
-    try {
-      const project = await this.getProjectById(projectId);
-      if (!project) {
-        return ServiceResults.error('Project not found');
-      }
-
-      // Validate status transition
-      if (!isValidStatusTransition(project.status, newStatus)) {
-        return ServiceResults.error(
-          `Invalid status transition from ${project.status} to ${newStatus}. ` +
-          `Allowed transitions from ${project.status}: ${VALID_STATUS_TRANSITIONS[project.status]?.join(', ') || 'none'}`
-        );
-      }
-
-      // Update project status
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(projectId);
-        transaction.update(projectRef, {
-          status: newStatus,
-          updatedAt: new Date()
-        });
-      });
-      return ServiceResults.success(undefined, 'Project status updated successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'handleProjectStatusChange', error, { projectId, newStatus });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to handle project status change'
-      );
-    }
-  },
-
-  /**
-   * Handle project deletion
-   * 
-   * @param projectId - ID of the project being deleted
-   * @returns ServiceResult indicating success or failure
-   * @throws Error if project not found
-   */
-  async handleProjectDeletion(projectId: string): Promise<ServiceResult> {
-    try {
-      const project = await this.getProjectById(projectId);
-      if (!project) {
-        return ServiceResults.error('Project not found');
-      }
-
-      // Clear coSupervisorId and cancel all pending partnership requests for this project
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(projectId);
-        
-        // Clear coSupervisorId if it exists
-        if (project.coSupervisorId) {
-          transaction.update(projectRef, {
-            coSupervisorId: null,
-            coSupervisorName: null,
-            updatedAt: new Date()
-          });
-        }
-      });
-
-      // Cancel all pending partnership requests for this project (outside transaction for batch operations)
-      await SupervisorPartnershipRequestService.cancelRequestsForProject(projectId);
-
-      logger.service.success(SERVICE_NAME, 'handleProjectDeletion', {
-        projectId,
-        clearedCoSupervisor: project.coSupervisorId || 'none',
-        message: 'Project deletion - partnership cleanup completed'
-      });
-
-      return ServiceResults.success(undefined, 'Project deletion handled successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'handleProjectDeletion', error, { projectId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to handle project deletion'
-      );
-    }
-  },
-
-  /**
-   * Validate co-supervisor can be added to project
-   * Checks project exists, supervisor is project owner, project has no co-supervisor, and co-supervisor has capacity
-   * 
-   * @param projectId - ID of the project
-   * @param supervisorId - ID of the project supervisor (must match project supervisor)
-   * @param coSupervisorId - ID of the potential co-supervisor
-   * @returns ServiceResult indicating validation result
-   * @throws Error if validation fails (project not found, unauthorized, already has co-supervisor, or no capacity)
-   */
-  async validateCoSupervisor(projectId: string, supervisorId: string, coSupervisorId: string): Promise<ServiceResult> {
-    try {
-      const project = await this.getProjectById(projectId);
-      if (!project) {
-        return ServiceResults.error('Project not found');
-      }
-
-      if (project.supervisorId !== supervisorId) {
-        return ServiceResults.error('Only the project supervisor can add a co-supervisor');
-      }
-
-      if (project.coSupervisorId) {
-        return ServiceResults.error('This project already has a co-supervisor');
-      }
-
-      const coSupervisor = await SupervisorService.getSupervisorById(coSupervisorId);
-      if (!coSupervisor) {
-        return ServiceResults.error('Co-supervisor not found');
-      }
-
-      if (coSupervisor.currentCapacity >= coSupervisor.maxCapacity) {
-        return ServiceResults.error('Co-supervisor has no available capacity');
-      }
-
-      return ServiceResults.success(undefined, 'Co-supervisor validation passed');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'validateCoSupervisor', error, { projectId, supervisorId, coSupervisorId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to validate co-supervisor'
       );
     }
   },

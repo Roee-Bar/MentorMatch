@@ -58,12 +58,6 @@ Cloud Firestore
 
 ### Key Features
 
-**Authentication & Security**
-- Email-based user registration
-- Email verification required before platform access
-- Secure password authentication
-- Role-based access control (Student, Supervisor, Admin)
-
 **Students**: Browse supervisors, submit applications, track status
 
 **Supervisors**: Manage capacity, review applications, track projects
@@ -81,54 +75,7 @@ npm start            # Start production server
 # Code Quality
 npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
-
-# E2E Testing
-npm run test:e2e           # Run all E2E tests
-npm run test:e2e:ui        # Run tests with UI mode
-npm run test:e2e:headed    # Run tests in headed mode (visible browser)
-npm run test:e2e:debug     # Run tests in debug mode
-npm run test:e2e:report    # Show HTML test report
 ```
-
-## E2E Testing
-
-MentorMatch uses Playwright for end-to-end testing. See [E2E Testing Guide](docs/testing/E2E_TESTING_GUIDE.md) for detailed information.
-
-### Quick Start
-
-1. Install dependencies: `npm install`
-2. Install Playwright browsers: `npx playwright install --with-deps`
-3. Ensure dev server is running: `npm run dev`
-4. Run tests: `npm run test:e2e`
-
-### CI/CD
-
-Tests run automatically in Jenkins CI/CD pipeline. 
-
-**Quick Setup Options:**
-
-**Option 1: Automated Setup (Recommended)**
-```bash
-# Start Jenkins with Docker
-npm run jenkins:start
-
-# Setup Jenkins job (after Jenkins is configured)
-npm run jenkins:setup
-
-# Or use manual setup scripts
-bash scripts/setup-jenkins.sh
-```
-
-**Option 2: Manual Setup**
-1. Validate setup: `npm run test:validate-setup`
-2. Test locally: `npm run test:pipeline-local`
-3. Follow [Jenkins Quick Start Guide](docs/jenkins/QUICK_START.md)
-
-**Documentation:**
-- [Automated Setup Guide](docs/jenkins/AUTOMATED_SETUP.md) - Docker and automation scripts
-- [Quick Start Guide](docs/jenkins/QUICK_START.md) - 5-minute manual setup
-- [Complete Setup Guide](docs/jenkins/JENKINS_SETUP.md) - Detailed configuration
-- [Setup Checklist](docs/jenkins/SETUP_CHECKLIST.md) - Verification checklist
 
 ## Project Structure
 
@@ -152,9 +99,8 @@ Automatic deployment via Vercel on push to main branch.
 
 ### Environment Variables
 
-Add to Vercel project settings and `.env.local` for local development. See `.env.example` for complete list:
+Add to Vercel project settings and `.env.local` for local development:
 
-**Required (Firebase):**
 ```
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
@@ -167,28 +113,10 @@ FIREBASE_ADMIN_CLIENT_EMAIL=...
 FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 ```
 
-**Optional (E2E Testing):**
-```
-E2E_BASE_URL=http://localhost:3000
-```
-
-**Optional (CI/CD - Report Portal):**
-```
-RP_ENDPOINT=https://your-reportportal-instance.com
-RP_TOKEN=your-reportportal-token
-RP_PROJECT=mentormatch
-```
-
 ## Security
 
 - Firebase Authentication for client-side auth
 - Firebase Admin SDK for server-side token verification
-- **Email Verification**: Client-side email verification using Firebase Auth SDK
-  - Users must verify their email addresses before accessing the platform
-  - Implementation uses Firebase's native `sendEmailVerification()` method
-  - Cost-effective: Free tier (1,200 emails/month) sufficient for development
-  - No additional email service integration required
-  - Can be migrated to custom email service later if needed for higher volumes
 - Role-based access control (RBAC)
 - Request validation with Zod schemas
 - Environment variable protection

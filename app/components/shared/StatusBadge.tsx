@@ -64,6 +64,8 @@ export default function StatusBadge({
   // Partnership status mappings
   const partnershipMappings = {
     none: { style: badgeStyles.gray, label: 'Available' },
+    pending_sent: { style: badgeStyles.warning, label: 'Request Sent' },
+    pending_received: { style: badgeStyles.warning, label: 'Has Request' },
     paired: { style: badgeStyles.success, label: 'Paired' },
   };
 
