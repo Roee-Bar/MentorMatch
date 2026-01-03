@@ -29,7 +29,8 @@ test.describe('Admin - Dashboard', () => {
     await dashboard.goto();
 
     // Should see students table
-    await expect(dashboard.studentsTable).toBeVisible({ timeout: 10000 });
+    const studentsTable = page.locator('[data-testid="students-table"]');
+    await expect(studentsTable).toBeVisible({ timeout: 10000 });
   });
 
   test('should display supervisors table', async ({ page, authenticatedAdmin }) => {
@@ -38,7 +39,8 @@ test.describe('Admin - Dashboard', () => {
     await dashboard.goto();
 
     // Should see supervisors table
-    await expect(dashboard.supervisorsTable).toBeVisible({ timeout: 10000 });
+    const supervisorsTable = page.locator('[data-testid="supervisors-table"]');
+    await expect(supervisorsTable).toBeVisible({ timeout: 10000 });
   });
 
   test('should display applications table', async ({ page, authenticatedAdmin }) => {
@@ -47,7 +49,8 @@ test.describe('Admin - Dashboard', () => {
     await dashboard.goto();
 
     // Should see applications table
-    await expect(dashboard.applicationsTable).toBeVisible({ timeout: 10000 });
+    const applicationsTable = page.locator('[data-testid="applications-table"]');
+    await expect(applicationsTable).toBeVisible({ timeout: 10000 });
   });
 });
 
