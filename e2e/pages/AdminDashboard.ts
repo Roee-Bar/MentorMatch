@@ -2,31 +2,36 @@
  * Admin Dashboard Page Object Model
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
+import { BasePage } from '../components/BasePage';
+import { Table } from '../components/Table';
+import { Modal } from '../components/Modal';
+import { Form } from '../components/Form';
+import { Selectors } from '../utils/selectors';
+import { waitForURL, waitForStable } from '../utils/wait-strategies';
 
-export class AdminDashboard {
-  readonly page: Page;
-  readonly studentsTable: Locator;
-  readonly supervisorsTable: Locator;
-  readonly applicationsTable: Locator;
+export class AdminDashboard extends BasePage {
+  readonly studentsTable: Table;
+  readonly supervisorsTable: Table;
+  readonly applicationsTable: Table;
 
   constructor(page: Page) {
-    this.page = page;
-    this.studentsTable = page.locator('[data-testid="students-table"], table').first();
-    this.supervisorsTable = page.locator('[data-testid="supervisors-table"], table').first();
-    this.applicationsTable = page.locator('[data-testid="applications-table"], table').first();
+    super(page);
+    this.studentsTable = new Table(page, '[data-testid="students-table"]');
+    this.supervisorsTable = new Table(page, '[data-testid="supervisors-table"]');
+    this.applicationsTable = new Table(page, '[data-testid="applications-table"]');
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/admin');
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.waitForPageReady();
     // Wait for dashboard to be ready
-    await this.page.waitForURL(/\/authenticated\/admin/, { timeout: 10000 });
+    await this.waitForURLPattern(/\/authenticated\/admin/);
   }
 
   async getStats(): Promise<{ [key: string]: number }> {
     const stats: { [key: string]: number } = {};
-    const statCards = this.page.locator('[data-testid="stat-card"]');
+    const statCards = this.page.locator(Selectors.statCard);
     const count = await statCards.count();
     
     for (let i = 0; i < count; i++) {
@@ -44,54 +49,44 @@ export class AdminDashboard {
   async navigateToSupervisorDetails(supervisorId: string): Promise<void> {
     // Navigate to supervisors section
     const supervisorsTab = this.page.getByRole('tab', { name: /supervisors/i });
-    if (await supervisorsTab.isVisible()) {
+    if (await supervisorsTab.isVisible({ timeout: 1000 })) {
       await supervisorsTab.click();
-      await this.page.waitForTimeout(500);
+      await waitForStable(supervisorsTab);
     }
 
     // Find and click on the supervisor row
-    const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"], table tbody tr`).first();
-    if (await supervisorRow.isVisible()) {
+    const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`).or(
+      this.supervisorsTable.getRow(0)
+    );
+    if (await supervisorRow.isVisible({ timeout: 1000 })) {
       await supervisorRow.click();
-      await this.page.waitForTimeout(1000);
+      await waitForStable(supervisorRow);
     }
   }
 
   async overrideSupervisorCapacity(supervisorId: string, newCapacity: number, reason: string): Promise<void> {
-    // Find the supervisor row in the SupervisorCapacitySection table
+    // Find the supervisor row
     const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`);
     await expect(supervisorRow).toBeVisible({ timeout: 10000 });
 
-    // Click the "Edit Capacity" button for this supervisor
+    // Click the "Edit Capacity" button
     const editButton = this.page.locator(`[data-testid="edit-capacity-${supervisorId}"]`);
     await expect(editButton).toBeVisible({ timeout: 5000 });
     await editButton.click();
 
-    // Wait for the modal to appear
-    await this.page.waitForTimeout(500);
-
-    // Fill in the capacity override form in the modal
-    const capacityInput = this.page.getByLabel(/maximum capacity/i);
-    await expect(capacityInput).toBeVisible({ timeout: 5000 });
-    await capacityInput.clear();
-    await capacityInput.fill(newCapacity.toString());
-
-    const reasonInput = this.page.getByLabel(/reason for change/i);
-    await expect(reasonInput).toBeVisible({ timeout: 5000 });
-    await reasonInput.fill(reason);
-
-    // Submit the form
-    const submitButton = this.page.getByRole('button', { name: /update capacity/i });
-    await expect(submitButton).toBeVisible({ timeout: 5000 });
-    await submitButton.click();
-
-    // Wait for the update to complete and modal to close
-    await this.page.waitForTimeout(2000);
+    // Wait for modal and fill form
+    const modal = new Modal(this.page);
+    await modal.waitForOpen();
     
-    // Wait for success message or modal to disappear
-    await this.page.waitForSelector('[data-testid="edit-capacity-modal"]', { state: 'hidden' }).catch(() => {
-      // Modal might not have testid, so just wait a bit more
-    });
+    const form = new Form(this.page);
+    await form.fillField('Maximum Capacity', newCapacity.toString());
+    await form.fillField('Reason for Change', reason);
+    
+    // Submit the form
+    await form.submitWithButton('Update Capacity');
+    
+    // Wait for modal to close
+    await modal.waitForClosed();
   }
 }
 

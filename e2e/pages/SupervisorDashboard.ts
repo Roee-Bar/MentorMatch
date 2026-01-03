@@ -2,48 +2,47 @@
  * Supervisor Dashboard Page Object Model
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 import type { Project } from '@/types/database';
+import { BasePage } from '../components/BasePage';
+import { Modal } from '../components/Modal';
+import { Form } from '../components/Form';
+import { waitForURL, waitForStable } from '../utils/wait-strategies';
 
-export class SupervisorDashboard {
-  readonly page: Page;
-  readonly applicationsLink: Locator;
-  readonly profileLink: Locator;
-  readonly projectsLink: Locator;
-
+export class SupervisorDashboard extends BasePage {
   constructor(page: Page) {
-    this.page = page;
-    this.applicationsLink = page.getByRole('link', { name: /applications/i });
-    this.profileLink = page.getByRole('link', { name: /profile/i });
-    this.projectsLink = page.getByRole('link', { name: /projects/i });
+    super(page);
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/supervisor');
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.waitForPageReady();
     // Wait for navigation links to be ready
-    await this.page.waitForURL(/\/authenticated\/supervisor/, { timeout: 10000 });
+    await this.waitForURLPattern(/\/authenticated\/supervisor/);
   }
 
   async navigateToApplications(): Promise<void> {
-    await this.applicationsLink.click();
-    await this.page.waitForURL(/\/authenticated\/supervisor\/applications/);
+    const link = this.page.getByRole('link', { name: /applications/i });
+    await link.click();
+    await waitForURL(this.page, /\/authenticated\/supervisor\/applications/);
   }
 
   async navigateToProfile(): Promise<void> {
-    await this.profileLink.click();
-    await this.page.waitForURL(/\/authenticated\/supervisor\/profile/);
+    const link = this.page.getByRole('link', { name: /profile/i });
+    await link.click();
+    await waitForURL(this.page, /\/authenticated\/supervisor\/profile/);
   }
 
   async navigateToProjects(): Promise<void> {
-    if (await this.projectsLink.isVisible()) {
-      await this.projectsLink.click();
-      await this.page.waitForURL(/\/authenticated\/supervisor\/projects/);
+    const link = this.page.getByRole('link', { name: /projects/i });
+    if (await link.isVisible({ timeout: 1000 })) {
+      await link.click();
+      await waitForURL(this.page, /\/authenticated\/supervisor\/projects/);
     } else {
       // Fallback: try navigating via URL
       await this.page.goto('/authenticated/supervisor/projects');
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForURL(/\/authenticated\/supervisor\/projects/, { timeout: 10000 });
+      await this.waitForPageReady();
+      await this.waitForURLPattern(/\/authenticated\/supervisor\/projects/);
     }
   }
 
@@ -56,28 +55,28 @@ export class SupervisorDashboard {
       `[data-testid="project-${projectId}"], [data-project-id="${projectId}"]`
     ).or(this.page.locator('[data-testid="project-card"], .project-card, table tbody tr').first());
 
-    if (await projectCard.isVisible()) {
+    if (await projectCard.isVisible({ timeout: 1000 })) {
       // Look for status change button or dropdown
       const statusButton = projectCard.getByRole('button', { name: /change status|update status|status/i });
-      if (await statusButton.isVisible()) {
+      if (await statusButton.isVisible({ timeout: 1000 })) {
         await statusButton.click();
-        await this.page.waitForTimeout(500);
+        await waitForStable(statusButton);
       }
 
       // Select the new status from dropdown or button
       const statusOption = this.page.getByRole('button', { name: new RegExp(newStatus, 'i') })
         .or(this.page.getByRole('option', { name: new RegExp(newStatus, 'i') }));
       
-      if (await statusOption.isVisible()) {
+      if (await statusOption.isVisible({ timeout: 1000 })) {
         await statusOption.click();
-        await this.page.waitForTimeout(500);
+        await waitForStable(statusOption);
       }
 
       // Submit the change if there's a submit button
       const submitButton = this.page.getByRole('button', { name: /save|update|confirm|submit/i });
-      if (await submitButton.isVisible()) {
+      if (await submitButton.isVisible({ timeout: 1000 })) {
         await submitButton.click();
-        await this.page.waitForTimeout(2000);
+        await waitForStable(submitButton);
       }
     }
   }
@@ -85,13 +84,13 @@ export class SupervisorDashboard {
   async navigateToPartnerships(): Promise<void> {
     // Try to find partnerships link in navigation
     const partnershipsLink = this.page.getByRole('link', { name: /partnerships/i });
-    if (await partnershipsLink.isVisible()) {
+    if (await partnershipsLink.isVisible({ timeout: 1000 })) {
       await partnershipsLink.click();
-      await this.page.waitForURL(/\/authenticated\/supervisor\/partnerships/);
+      await waitForURL(this.page, /\/authenticated\/supervisor\/partnerships/);
     } else {
       // Fallback: try navigating via URL if UI doesn't exist yet
       await this.page.goto('/authenticated/supervisor/partnerships');
-      await this.page.waitForLoadState('domcontentloaded');
+      await this.waitForPageReady();
     }
   }
 
@@ -101,25 +100,18 @@ export class SupervisorDashboard {
 
     // Look for create request button or form
     const createButton = this.page.getByRole('button', { name: /create|request|send partnership/i });
-    if (await createButton.isVisible()) {
+    if (await createButton.isVisible({ timeout: 1000 })) {
       await createButton.click();
-      await this.page.waitForTimeout(500);
+      await waitForStable(createButton);
 
       // Fill form if modal opens
-      const projectSelect = this.page.getByLabel(/project/i).or(this.page.locator('select[name="projectId"]'));
-      const supervisorSelect = this.page.getByLabel(/supervisor|target/i).or(this.page.locator('select[name="targetSupervisorId"]'));
-
-      if (await projectSelect.isVisible()) {
-        await projectSelect.selectOption(projectId);
-      }
-      if (await supervisorSelect.isVisible()) {
-        await supervisorSelect.selectOption(targetSupervisorId);
-      }
-
-      const submitButton = this.page.getByRole('button', { name: /submit|create|send/i });
-      if (await submitButton.isVisible()) {
-        await submitButton.click();
-        await this.page.waitForTimeout(2000);
+      const modal = new Modal(this.page);
+      if (await modal.isOpen()) {
+        const form = new Form(this.page);
+        await form.selectOption('Project', projectId);
+        await form.selectOption('Target Supervisor', targetSupervisorId);
+        await form.submit();
+        await modal.waitForClosed();
       }
     } else {
       // If UI doesn't exist, use API directly
@@ -143,11 +135,11 @@ export class SupervisorDashboard {
       `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
     ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
 
-    if (await requestCard.isVisible()) {
+    if (await requestCard.isVisible({ timeout: 1000 })) {
       const acceptButton = requestCard.getByRole('button', { name: /accept|approve/i });
-      if (await acceptButton.isVisible()) {
+      if (await acceptButton.isVisible({ timeout: 1000 })) {
         await acceptButton.click();
-        await this.page.waitForTimeout(2000);
+        await waitForStable(acceptButton);
       }
     } else {
       // If UI doesn't exist, use API directly
@@ -166,11 +158,11 @@ export class SupervisorDashboard {
       `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
     ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
 
-    if (await requestCard.isVisible()) {
+    if (await requestCard.isVisible({ timeout: 1000 })) {
       const rejectButton = requestCard.getByRole('button', { name: /reject|decline/i });
-      if (await rejectButton.isVisible()) {
+      if (await rejectButton.isVisible({ timeout: 1000 })) {
         await rejectButton.click();
-        await this.page.waitForTimeout(2000);
+        await waitForStable(rejectButton);
       }
     } else {
       // If UI doesn't exist, use API directly
@@ -189,11 +181,11 @@ export class SupervisorDashboard {
       `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
     ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
 
-    if (await requestCard.isVisible()) {
+    if (await requestCard.isVisible({ timeout: 1000 })) {
       const cancelButton = requestCard.getByRole('button', { name: /cancel/i });
-      if (await cancelButton.isVisible()) {
+      if (await cancelButton.isVisible({ timeout: 1000 })) {
         await cancelButton.click();
-        await this.page.waitForTimeout(2000);
+        await waitForStable(cancelButton);
       }
     } else {
       // If UI doesn't exist, use API directly

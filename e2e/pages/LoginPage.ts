@@ -2,49 +2,43 @@
  * Login Page Object Model
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
+import { BasePage } from '../components/BasePage';
+import { Form } from '../components/Form';
+import { Selectors } from '../utils/selectors';
+import { waitForURL } from '../utils/wait-strategies';
 
-export class LoginPage {
-  readonly page: Page;
-  readonly emailInput: Locator;
-  readonly passwordInput: Locator;
-  readonly loginButton: Locator;
-  readonly registerLink: Locator;
-  readonly message: Locator;
+export class LoginPage extends BasePage {
+  private readonly form: Form;
 
   constructor(page: Page) {
-    this.page = page;
-    this.emailInput = page.getByLabel('Email Address');
-    this.passwordInput = page.getByLabel('Password');
-    this.loginButton = page.getByRole('button', { name: /login/i });
-    this.registerLink = page.getByRole('link', { name: /sign up/i });
-    this.message = page.locator('[role="status"], .error, .success').first();
+    super(page);
+    this.form = new Form(page, Selectors.loginForm);
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/login');
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.waitForPageReady();
     // Wait for form to be ready
-    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.waitForElement(Selectors.loginEmailInput);
   }
 
   async login(email: string, password: string): Promise<void> {
     // Only fill fields if they have values (for testing empty field validation)
     if (email) {
-      await this.emailInput.fill(email);
+      await this.form.fillField('Email Address', email);
     }
     if (password) {
-      await this.passwordInput.fill(password);
+      await this.form.fillField('Password', password);
     }
     
-    await this.loginButton.click();
+    await this.page.locator(Selectors.loginButton).click();
     
     // Wait for navigation or message with better error handling
-    // Use Promise.race with shorter timeouts to avoid hanging
     try {
       await Promise.race([
-        this.page.waitForURL(/\/(authenticated|$)/, { timeout: 8000 }),
-        this.message.waitFor({ state: 'visible', timeout: 5000 }),
+        waitForURL(this.page, /\/(authenticated|$)/, 8000),
+        this.page.locator(Selectors.errorMessage).first().waitFor({ state: 'visible', timeout: 5000 }),
       ]);
     } catch (error) {
       // If neither navigation nor message appears within timeout,
@@ -60,11 +54,11 @@ export class LoginPage {
   }
 
   async getMessage(): Promise<string> {
-    return await this.message.textContent() || '';
+    return await this.getText(Selectors.errorMessage);
   }
 
   async isMessageVisible(): Promise<boolean> {
-    return await this.message.isVisible();
+    return await this.elementExists(Selectors.errorMessage);
   }
 }
 

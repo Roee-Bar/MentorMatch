@@ -5,10 +5,14 @@
 import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedSupervisor, seedApplication, cleanupApplication, cleanupUser } from '../../fixtures/db-helpers';
+import { createApplicationScenario } from '../../fixtures/scenarios';
+import { Selectors } from '../../utils/selectors';
+import { waitForStable, waitForLoadingComplete } from '../../utils/wait-strategies';
+import { expectElementCount } from '../../utils/assertions';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor } from '@/types/database';
 
-test.describe('Student - Applications', () => {
+test.describe('Student - Applications @student @regression', () => {
   let sharedSupervisor: { uid: string; supervisor: Supervisor } | undefined;
 
   test.beforeAll(async () => {
@@ -33,7 +37,7 @@ test.describe('Student - Applications', () => {
     }
   });
 
-  test('should display student applications', async ({ page, authenticatedStudent }) => {
+  test('should display student applications @smoke @student', async ({ page, authenticatedStudent }) => {
     if (!sharedSupervisor) {
       throw new Error('sharedSupervisor was not initialized in beforeAll');
     }
@@ -50,11 +54,11 @@ test.describe('Student - Applications', () => {
 
     // Should see applications list
     await expect(page).toHaveURL(/\/authenticated\/student\/applications/);
-    const applicationsList = page.locator('[data-testid="application-card"], .application-card, table tbody tr');
+    const applicationsList = page.locator(Selectors.applicationCard);
     await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('should submit a new application', async ({ page, authenticatedStudent }) => {
+  test('should submit a new application @regression @student', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Use shared supervisor
@@ -62,8 +66,9 @@ test.describe('Student - Applications', () => {
     await dashboard.navigateToSupervisors();
 
     // Find and click on a supervisor
-    const supervisorCard = page.locator('[data-testid="supervisor-card"], .supervisor-card').first();
+    const supervisorCard = page.locator(Selectors.supervisorCard).first();
     await supervisorCard.click();
+    await waitForStable(supervisorCard);
 
     // Look for apply button
     const applyButton = page.getByRole('button', { name: /apply|submit application/i });
@@ -82,12 +87,12 @@ test.describe('Student - Applications', () => {
         await submitButton.click();
 
         // Should see success message or redirect
-        await page.waitForTimeout(2000);
+        await waitForLoadingComplete(page);
       }
     }
   });
 
-  test('should delete a pending application', async ({ page, authenticatedStudent }) => {
+  test('should delete a pending application @regression @student', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create a supervisor with capacity for this specific test
@@ -105,14 +110,14 @@ test.describe('Student - Applications', () => {
     await dashboard.navigateToApplications();
 
     // Verify application is visible
-    const applicationsList = page.locator('[data-testid="application-card"], .application-card, table tbody tr');
+    const applicationsList = page.locator(Selectors.applicationCard);
     await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
 
     // Delete the application
     await dashboard.deleteApplication(application.id);
 
     // Verify success message
-    const successMessage = page.locator('[role="status"], .success, [data-testid="success-message"]');
+    const successMessage = page.locator(Selectors.successMessage);
     if (await successMessage.isVisible({ timeout: 5000 })) {
       await expect(successMessage).toBeVisible();
     }
@@ -125,7 +130,7 @@ test.describe('Student - Applications', () => {
     await cleanupUser(supervisor.id);
   });
 
-  test('should decrease supervisor capacity when deleting approved application', async ({ page, authenticatedStudent }) => {
+  test('should decrease supervisor capacity when deleting approved application @regression @student @api', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create a supervisor with capacity
@@ -150,7 +155,7 @@ test.describe('Student - Applications', () => {
     await dashboard.deleteApplication(application.id);
 
     // Wait for capacity update
-    await page.waitForTimeout(2000);
+    await waitForLoadingComplete(page);
 
     // Verify supervisor capacity decreased
     const supervisorAfter = await adminDb.collection('supervisors').doc(supervisor.id).get();

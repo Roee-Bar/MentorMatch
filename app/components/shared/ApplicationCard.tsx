@@ -53,7 +53,7 @@ export default function ApplicationCard({
   const isSupervisorView = viewMode === 'supervisor';
 
   return (
-    <div className={cardBase}>
+    <div className={cardBase} data-testid={`application-card-${application.id}`}>
       {/* Header with Title and Status */}
       <div className={cardHeader}>
         <div className="flex-1">

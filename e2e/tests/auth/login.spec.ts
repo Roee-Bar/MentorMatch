@@ -7,8 +7,8 @@ import { LoginPage } from '../../pages/LoginPage';
 import { expectErrorMessage, expectAuthenticatedDashboard } from '../../utils/assertions';
 import { seedStudent } from '../../fixtures/db-helpers';
 
-test.describe('User Login', () => {
-  test('should successfully login with valid credentials', async ({ page }) => {
+test.describe('User Login @auth @smoke', () => {
+  test('should successfully login with valid credentials @smoke @regression', async ({ page }) => {
     const loginPage = new LoginPage(page);
     
     // Create test user
@@ -23,7 +23,7 @@ test.describe('User Login', () => {
     await expect(page).toHaveURL(/\/(authenticated|$)/);
   });
 
-  test('should show error with invalid email', async ({ page }) => {
+  test('should show error with invalid email @regression', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goto();
@@ -35,7 +35,7 @@ test.describe('User Login', () => {
     expect(message.toLowerCase()).toMatch(/invalid|incorrect|error/i);
   });
 
-  test('should show error with invalid password', async ({ page }) => {
+  test('should show error with invalid password @regression', async ({ page }) => {
     const loginPage = new LoginPage(page);
     
     // Create test user
@@ -52,20 +52,21 @@ test.describe('User Login', () => {
     expect(message.toLowerCase()).toMatch(/invalid|incorrect|error|password/i);
   });
 
-  test('should show error when email is empty', async ({ page }) => {
+  test('should show error when email is empty @regression @ui', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goto();
     
     // Try to submit with empty email - browser validation may prevent this
-    await loginPage.passwordInput.fill('TestPassword123!');
+    await page.getByLabel('Password').fill('TestPassword123!');
     
     // Check if email field has required attribute (browser validation)
-    const emailRequired = await loginPage.emailInput.getAttribute('required');
+    const emailInput = page.getByLabel('Email Address');
+    const emailRequired = await emailInput.getAttribute('required');
     
     if (emailRequired !== null) {
       // Browser validation will prevent submission
-      await loginPage.loginButton.click();
+      await page.locator('[data-testid="login-button"]').click();
       
       // Wait for browser validation message or check that form didn't submit
       await page.waitForTimeout(500);
@@ -74,7 +75,7 @@ test.describe('User Login', () => {
       await expect(page).toHaveURL(/\/login/);
     } else {
       // If no browser validation, try to submit and check for error
-      await loginPage.loginButton.click();
+      await page.locator('[data-testid="login-button"]').click();
       
       // Wait for either error message or stay on login page
       try {
@@ -86,7 +87,7 @@ test.describe('User Login', () => {
     }
   });
 
-  test('should show error when password is empty', async ({ page }) => {
+  test('should show error when password is empty @regression @ui', async ({ page }) => {
     const loginPage = new LoginPage(page);
     
     // Create test user
@@ -96,14 +97,15 @@ test.describe('User Login', () => {
     await loginPage.goto();
     
     // Try to submit with empty password - browser validation may prevent this
-    await loginPage.emailInput.fill(email);
+    await page.getByLabel('Email Address').fill(email);
     
     // Check if password field has required attribute (browser validation)
-    const passwordRequired = await loginPage.passwordInput.getAttribute('required');
+    const passwordInput = page.getByLabel('Password');
+    const passwordRequired = await passwordInput.getAttribute('required');
     
     if (passwordRequired !== null) {
       // Browser validation will prevent submission
-      await loginPage.loginButton.click();
+      await page.locator('[data-testid="login-button"]').click();
       
       // Wait for browser validation message or check that form didn't submit
       await page.waitForTimeout(500);
@@ -112,7 +114,7 @@ test.describe('User Login', () => {
       await expect(page).toHaveURL(/\/login/);
     } else {
       // If no browser validation, try to submit and check for error
-      await loginPage.loginButton.click();
+      await page.locator('[data-testid="login-button"]').click();
       
       // Wait for either error message or stay on login page
       try {

@@ -2,64 +2,62 @@
  * Student Dashboard Page Object Model
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
+import { BasePage } from '../components/BasePage';
+import { Modal } from '../components/Modal';
+import { Selectors } from '../utils/selectors';
+import { waitForURL, waitForStable } from '../utils/wait-strategies';
 
-export class StudentDashboard {
-  readonly page: Page;
-  readonly supervisorsLink: Locator;
-  readonly applicationsLink: Locator;
-  readonly profileLink: Locator;
-
+export class StudentDashboard extends BasePage {
   constructor(page: Page) {
-    this.page = page;
-    this.supervisorsLink = page.getByRole('link', { name: /browse supervisors|supervisors/i });
-    this.applicationsLink = page.getByRole('link', { name: /applications/i });
-    this.profileLink = page.getByRole('link', { name: /profile/i });
+    super(page);
   }
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/student');
-    await this.page.waitForLoadState('domcontentloaded');
+    await this.waitForPageReady();
     // Wait for navigation links to be ready
-    await this.page.waitForURL(/\/authenticated\/student/, { timeout: 10000 });
+    await this.waitForURLPattern(/\/authenticated\/student/);
   }
 
   async navigateToSupervisors(): Promise<void> {
-    await this.supervisorsLink.click();
-    await this.page.waitForURL(/\/authenticated\/student\/supervisors/);
+    const link = this.page.getByRole('link', { name: /browse supervisors|supervisors/i });
+    await link.click();
+    await waitForURL(this.page, /\/authenticated\/student\/supervisors/);
   }
 
   async navigateToApplications(): Promise<void> {
-    await this.applicationsLink.click();
-    await this.page.waitForURL(/\/authenticated\/student\/applications/);
+    const link = this.page.getByRole('link', { name: /applications/i });
+    await link.click();
+    await waitForURL(this.page, /\/authenticated\/student\/applications/);
   }
 
   async navigateToProfile(): Promise<void> {
-    await this.profileLink.click();
-    await this.page.waitForURL(/\/authenticated\/student\/profile/);
+    const link = this.page.getByRole('link', { name: /profile/i });
+    await link.click();
+    await waitForURL(this.page, /\/authenticated\/student\/profile/);
   }
 
   async deleteApplication(applicationId: string): Promise<void> {
     // Navigate to applications page first
     await this.navigateToApplications();
 
-    // Find the application in the list (could be by ID, title, or position)
+    // Find the application in the list
     const applicationCard = this.page.locator(
-      `[data-testid="application-${applicationId}"], [data-application-id="${applicationId}"]`
-    ).or(this.page.locator('[data-testid="application-card"], .application-card, table tbody tr').first());
+      Selectors.applicationCardById(applicationId)
+    ).or(this.page.locator(Selectors.applicationCard).first());
 
     if (await applicationCard.isVisible()) {
       // Look for delete button within the application card
-      const deleteButton = applicationCard.getByRole('button', { name: /delete|remove/i });
-      if (await deleteButton.isVisible()) {
+      const deleteButton = applicationCard.locator(Selectors.deleteButton).first();
+      if (await deleteButton.isVisible({ timeout: 1000 })) {
         await deleteButton.click();
-        await this.page.waitForTimeout(500);
+        await waitForStable(deleteButton);
 
         // Handle confirmation dialog if it appears
-        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|delete/i });
-        if (await confirmButton.isVisible()) {
-          await confirmButton.click();
-          await this.page.waitForTimeout(2000);
+        const modal = new Modal(this.page);
+        if (await modal.isOpen()) {
+          await modal.confirm();
         }
       }
     }
