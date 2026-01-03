@@ -157,10 +157,15 @@ jobs:
           echo "Starting tests with paths: ${TEST_PATHS_ARRAY[*]}"
           set -o pipefail
           # Use array expansion to pass paths correctly to Playwright
-          npx playwright test "${TEST_PATHS_ARRAY[@]}" 2>&1 | tee test-output.log || {
+          # Capture both stdout and stderr, and save exit code
+          npx playwright test "${TEST_PATHS_ARRAY[@]}" 2>&1 | tee test-output.log
+          TEST_EXIT_CODE=${PIPESTATUS[0]}
+          
+          if [ $TEST_EXIT_CODE -ne 0 ]; then
             echo ""
             echo "=========================================="
-            echo "Tests failed. Full output:"
+            echo "Tests failed with exit code: $TEST_EXIT_CODE"
+            echo "Full output:"
             echo "=========================================="
             cat test-output.log || true
             echo ""
@@ -169,14 +174,31 @@ jobs:
             echo ""
             echo "Checking if emulators are running:"
             curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ Emulator UI is running" || echo "✗ Emulator UI is NOT running"
-            exit 1
-          }
+            echo ""
+            echo "Checking Playwright report:"
+            if [ -d "playwright-report" ]; then
+              echo "✓ Playwright report directory exists"
+              ls -la playwright-report/ | head -10
+            else
+              echo "✗ Playwright report directory not found"
+            fi
+            exit $TEST_EXIT_CODE
+          fi
 
       - name: Stop Firebase Emulators
         if: always()
         uses: ./.github/actions/firebase-emulators
         with:
           action: stop
+
+      - name: Upload test output logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ matrix.artifact_name }}
+          path: test-output.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload test artifacts
         uses: ./.github/actions/upload-test-artifacts
