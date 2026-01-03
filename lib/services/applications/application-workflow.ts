@@ -136,6 +136,7 @@ export const ApplicationWorkflowService = {
         hasPartner: application.hasPartner,
         partnerName: application.partnerName,
         partnerEmail: application.partnerEmail,
+        triggeredByUserId: currentUserId,
       });
 
       return { success: true };

@@ -58,6 +58,7 @@ export interface ApplicationStatusChangedEvent {
   hasPartner: boolean;
   partnerName?: string;
   partnerEmail?: string;
+  triggeredByUserId?: string;
 }
 
 /**
@@ -249,22 +250,14 @@ export const serviceEvents = new EventDispatcher();
 // ============================================
 
 /**
- * TODO: Register event handlers for email notifications
- * 
- * Future implementation phases:
- * 1. Create email service in lib/services/email/email-service.ts
- * 2. Register handlers for:
- *    - application:created -> notify supervisor of new application
- *    - application:status_changed -> notify student of decision
- *    - application:resubmitted -> notify supervisor of resubmission
- * 
- * Example:
- * ```typescript
- * import { EmailService } from '@/lib/services/email/email-service';
- * 
- * serviceEvents.on('application:created', async (event) => {
- *   await EmailService.sendNewApplicationNotification(event);
- * });
- * ```
+ * Register event handlers for email notifications
  */
+import { EmailService } from '@/lib/services/email/email-service';
+
+// Register email notification handler for status changes
+serviceEvents.on('application:status_changed', async (event: ApplicationStatusChangedEvent) => {
+  if (event.triggeredByUserId) {
+    await EmailService.sendStatusChangeNotification(event, event.triggeredByUserId);
+  }
+});
 
