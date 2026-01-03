@@ -7,24 +7,14 @@ on:
 
 # Configuration constants - Update these values for easy maintenance
 # These values are used throughout the workflow and passed to composite actions
-vars:
-  NODE_VERSION: '20'
-  JAVA_VERSION: '17'
-  JAVA_DISTRIBUTION: 'temurin'
-  FIREBASE_PROJECT_ID: 'demo-test'
-  E2E_BASE_URL: 'http://localhost:3000'
-  EMULATOR_UI_PORT: '4000'
-  EMULATOR_MAX_ATTEMPTS: '30'
-  SETUP_TIMEOUT: '10'
-  TEST_TIMEOUT: '15'
-  AGGREGATE_TIMEOUT: '5'
+# Note: GitHub Actions doesn't support workflow-level variables, so values are used directly
 
 jobs:
   # Setup job: Install dependencies and cache artifacts for reuse by test jobs
   setup:
     name: Setup and Cache
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ vars.SETUP_TIMEOUT }}
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -33,9 +23,9 @@ jobs:
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ vars.NODE_VERSION }}
-          java-version: ${{ vars.JAVA_VERSION }}
-          java-distribution: ${{ vars.JAVA_DISTRIBUTION }}
+          node-version: '20'
+          java-version: '17'
+          java-distribution: 'temurin'
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
@@ -58,7 +48,7 @@ jobs:
     name: Test ${{ matrix.suite }}
     needs: setup
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ vars.TEST_TIMEOUT }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -80,9 +70,9 @@ jobs:
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ vars.NODE_VERSION }}
-          java-version: ${{ vars.JAVA_VERSION }}
-          java-distribution: ${{ vars.JAVA_DISTRIBUTION }}
+          node-version: '20'
+          java-version: '17'
+          java-distribution: 'temurin'
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
@@ -90,16 +80,16 @@ jobs:
       - name: Set test environment variables
         uses: ./.github/actions/test-env-vars
         with:
-          project-id: ${{ vars.FIREBASE_PROJECT_ID }}
-          base-url: ${{ vars.E2E_BASE_URL }}
+          project-id: 'demo-test'
+          base-url: 'http://localhost:3000'
 
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
         with:
           action: start
-          project-id: ${{ vars.FIREBASE_PROJECT_ID }}
-          max-attempts: ${{ vars.EMULATOR_MAX_ATTEMPTS }}
-          emulator-ui-port: ${{ vars.EMULATOR_UI_PORT }}
+          project-id: 'demo-test'
+          max-attempts: '30'
+          emulator-ui-port: '4000'
 
       - name: Run Tests
         shell: bash
@@ -122,7 +112,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: always()
-    timeout-minutes: ${{ vars.AGGREGATE_TIMEOUT }}
+    timeout-minutes: 5
 
     steps:
       - name: Download all test results
