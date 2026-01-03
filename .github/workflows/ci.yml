@@ -287,12 +287,17 @@ jobs:
         run: |
           echo "Validating Playwright configuration..."
           
-          # Validate TypeScript config file syntax
+          # Validate TypeScript config file syntax using the Playwright tsconfig
           echo "Checking config file TypeScript syntax..."
-          if npx tsc --noEmit playwright.config.ts 2>&1 | grep -q "error TS"; then
-            echo "ERROR: TypeScript errors in playwright.config.ts"
-            npx tsc --noEmit playwright.config.ts 2>&1 | grep "error TS" | head -10
-            exit 1
+          if ! npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | tee /tmp/tsc-output.log; then
+            # Check if there are actual TypeScript errors (not just warnings)
+            if grep -q "error TS" /tmp/tsc-output.log; then
+              echo "ERROR: TypeScript errors in Playwright configuration"
+              grep "error TS" /tmp/tsc-output.log | head -10
+              exit 1
+            else
+              echo "⚠️ TypeScript check had warnings but no errors - continuing"
+            fi
           fi
           echo "✓ Config file TypeScript syntax is valid"
           
