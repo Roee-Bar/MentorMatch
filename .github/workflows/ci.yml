@@ -180,7 +180,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(readFileContents('.github/workflows/test-matrix.json')) }}
+        include:
+          - suite: Auth + Student
+            test_paths: e2e/tests/auth/ e2e/tests/student/
+            artifact_name: auth-student
+          - suite: Supervisor
+            test_paths: e2e/tests/supervisor/
+            artifact_name: supervisor
+          - suite: Admin
+            test_paths: e2e/tests/admin/
+            artifact_name: admin
 
     steps:
       - name: Setup test environment
