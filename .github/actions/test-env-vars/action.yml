@@ -22,9 +22,9 @@ runs:
         echo "CI=true" >> $GITHUB_ENV
         echo "E2E_BASE_URL=${{ inputs.base-url }}" >> $GITHUB_ENV
         echo "FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
-        echo "FIRESTORE_EMULATOR_HOST=localhost:8080" >> $GITHUB_ENV
+        echo "FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
         echo "NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
-        echo "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8080" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
         echo "NEXT_PUBLIC_FIREBASE_API_KEY=test-api-key" >> $GITHUB_ENV
         echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=localhost" >> $GITHUB_ENV
         echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ inputs.project-id }}" >> $GITHUB_ENV

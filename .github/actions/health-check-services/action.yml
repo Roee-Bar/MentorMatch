@@ -17,7 +17,7 @@ inputs:
   firestore-emulator-port:
     description: 'Firestore emulator port'
     required: false
-    default: '8080'
+    default: '8081'
 
 runs:
   using: 'composite'

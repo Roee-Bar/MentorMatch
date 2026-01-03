@@ -137,6 +137,7 @@ jobs:
           fail-on-severity: moderate
         # Note: This step requires Dependency Graph to be enabled in repository settings
         # If it fails, enable it at: https://github.com/Roee-Bar/MentorMatch/settings/security_analysis
+        # The step is set to continue-on-error so the workflow doesn't fail if Dependency Graph is not enabled
 
       - name: Run npm audit (moderate and above)
         continue-on-error: true
