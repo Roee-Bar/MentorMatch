@@ -7,7 +7,7 @@
  * Authorization: Supervisor only
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { SupervisorPartnershipRequestService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-request-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
@@ -25,7 +25,7 @@ export const GET = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
     const params = await extractQueryParams(request, requestTypeSchema);
     
-    if (params instanceof Response) {
+    if (params instanceof NextResponse) {
       return params;
     }
 

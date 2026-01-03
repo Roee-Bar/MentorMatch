@@ -34,51 +34,6 @@ function validateTableWidths(widths: Record<string, string>): boolean {
 type WidthClass = `w-[${number}%]`;
 
 /**
- * Validates table width configurations at module load (development only)
- * Throws error if widths don't sum to 100%
- */
-if (process.env.NODE_ENV === 'development') {
-  // Validate ApplicationsTable widths
-  Object.values(APPLICATIONS_TABLE_WIDTHS).forEach((widths, index) => {
-    if (!validateTableWidths(widths)) {
-      const tableType = Object.keys(APPLICATIONS_TABLE_WIDTHS)[index];
-      console.warn(
-        `ApplicationsTable widths for '${tableType}' do not sum to 100%. ` +
-        `Current sum: ${Object.values(widths).reduce((sum, w) => {
-          const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
-          return sum + (match ? parseFloat(match[1]) : 0);
-        }, 0)}%`
-      );
-    }
-  });
-  
-  // Validate StudentsTable widths
-  if (!validateTableWidths(STUDENTS_TABLE_WIDTHS)) {
-    console.warn(
-      `StudentsTable widths do not sum to 100%. ` +
-      `Current sum: ${Object.values(STUDENTS_TABLE_WIDTHS).reduce((sum, w) => {
-        const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
-        return sum + (match ? parseFloat(match[1]) : 0);
-      }, 0)}%`
-    );
-  }
-  
-  // Validate SupervisorsTable widths
-  Object.values(SUPERVISORS_TABLE_WIDTHS).forEach((widths, index) => {
-    if (!validateTableWidths(widths)) {
-      const tableType = Object.keys(SUPERVISORS_TABLE_WIDTHS)[index];
-      console.warn(
-        `SupervisorsTable widths for '${tableType}' do not sum to 100%. ` +
-        `Current sum: ${Object.values(widths).reduce((sum, w) => {
-          const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
-          return sum + (match ? parseFloat(match[1]) : 0);
-        }, 0)}%`
-      );
-    }
-  });
-}
-
-/**
  * Column width configuration for ApplicationsTable
  * Different widths based on table type (approved-projects vs pending-applications)
  */
@@ -133,4 +88,49 @@ export const SUPERVISORS_TABLE_WIDTHS = {
     status: 'w-[20%]',
   },
 } as const;
+
+/**
+ * Validates table width configurations at module load (development only)
+ * Throws error if widths don't sum to 100%
+ */
+if (process.env.NODE_ENV === 'development') {
+  // Validate ApplicationsTable widths
+  Object.values(APPLICATIONS_TABLE_WIDTHS).forEach((widths, index) => {
+    if (!validateTableWidths(widths)) {
+      const tableType = Object.keys(APPLICATIONS_TABLE_WIDTHS)[index];
+      console.warn(
+        `ApplicationsTable widths for '${tableType}' do not sum to 100%. ` +
+        `Current sum: ${Object.values(widths).reduce((sum, w) => {
+          const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
+          return sum + (match ? parseFloat(match[1]) : 0);
+        }, 0)}%`
+      );
+    }
+  });
+  
+  // Validate StudentsTable widths
+  if (!validateTableWidths(STUDENTS_TABLE_WIDTHS)) {
+    console.warn(
+      `StudentsTable widths do not sum to 100%. ` +
+      `Current sum: ${Object.values(STUDENTS_TABLE_WIDTHS).reduce((sum, w) => {
+        const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
+        return sum + (match ? parseFloat(match[1]) : 0);
+      }, 0)}%`
+    );
+  }
+  
+  // Validate SupervisorsTable widths
+  Object.values(SUPERVISORS_TABLE_WIDTHS).forEach((widths, index) => {
+    if (!validateTableWidths(widths)) {
+      const tableType = Object.keys(SUPERVISORS_TABLE_WIDTHS)[index];
+      console.warn(
+        `SupervisorsTable widths for '${tableType}' do not sum to 100%. ` +
+        `Current sum: ${Object.values(widths).reduce((sum, w) => {
+          const match = w.match(/w-\[(\d+(?:\.\d+)?)%\]/);
+          return sum + (match ? parseFloat(match[1]) : 0);
+        }, 0)}%`
+      );
+    }
+  });
+}
 

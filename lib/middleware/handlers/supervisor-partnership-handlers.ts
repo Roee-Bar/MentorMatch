@@ -28,7 +28,7 @@ export async function handleGetPartnersWithCapacity(
 
   if (requireProjectId) {
     const projectIdParam = getRequiredQueryParamFromRequest(request, 'projectId', ERROR_MESSAGES.PROJECT_ID_REQUIRED);
-    if (projectIdParam instanceof Response) {
+    if (projectIdParam instanceof NextResponse) {
       return projectIdParam;
     }
     projectId = projectIdParam;
