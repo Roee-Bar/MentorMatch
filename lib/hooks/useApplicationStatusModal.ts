@@ -82,7 +82,7 @@ export function useApplicationStatusModal({
     status: ApplicationStatus,
     feedback?: string
   ) => {
-    await applicationActions.updateApplicationStatus(applicationId, status, feedback);
+    await applicationActions.updateApplicationStatus({ applicationId, status, feedback });
     setShowStatusModal(false);
     setSelectedApplication(null);
   };
