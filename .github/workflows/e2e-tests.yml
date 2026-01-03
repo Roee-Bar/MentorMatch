@@ -128,8 +128,16 @@ jobs:
           echo "Verifying Playwright installation:"
           npx playwright --version || echo "Playwright not found"
           echo ""
+          echo "Checking test files exist:"
+          ls -la ${{ matrix.test_paths }} || echo "Test paths not found"
+          echo ""
           echo "Starting tests..."
-          npx playwright test ${{ matrix.test_paths }}
+          set -o pipefail
+          npx playwright test ${{ matrix.test_paths }} 2>&1 | tee test-output.log || {
+            echo "Tests failed. Full output:"
+            cat test-output.log || true
+            exit 1
+          }
 
       - name: Stop Firebase Emulators
         if: always()
