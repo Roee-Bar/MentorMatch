@@ -4,8 +4,8 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
-import { ProjectService } from '@/lib/services/projects/project-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { projectService } from '@/lib/services/projects/project-service';
 import { toProject } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
@@ -87,7 +87,7 @@ export const SupervisorPartnershipPairingService = {
     try {
       if (projectId) {
         // If projectId is provided, get that specific project
-        const project = await ProjectService.getProjectById(projectId);
+        const project = await projectService.getProjectById(projectId);
         if (project && project.coSupervisorId === supervisorId && project.status !== 'completed') {
           return [project];
         }
@@ -117,7 +117,7 @@ export const SupervisorPartnershipPairingService = {
   ): Promise<Supervisor[]> {
     try {
       // Get all active supervisors
-      const allSupervisors = await SupervisorService.getAllSupervisors();
+      const allSupervisors = await supervisorService.getAllSupervisors();
 
       // Use shared filtering logic
       return _filterSupervisorsByCapacity(allSupervisors, requestingSupervisorId);
@@ -135,7 +135,7 @@ export const SupervisorPartnershipPairingService = {
     supervisorId: string
   ): Promise<ServiceResult> {
     try {
-      const project = await ProjectService.getProjectById(projectId);
+      const project = await projectService.getProjectById(projectId);
       
       if (!project) {
         return ServiceResults.error('Project not found');
@@ -175,7 +175,7 @@ export const SupervisorPartnershipPairingService = {
    */
   async cleanupPartnershipsOnProjectCompletion(projectId: string): Promise<ServiceResult> {
     try {
-      const project = await ProjectService.getProjectById(projectId);
+      const project = await projectService.getProjectById(projectId);
       
       if (!project) {
         return ServiceResults.error('Project not found');

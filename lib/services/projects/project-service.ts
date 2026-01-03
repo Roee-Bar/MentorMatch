@@ -2,78 +2,45 @@
 // SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 // Project management services
 
-import { adminDb } from '@/lib/firebase-admin';
-import { logger } from '@/lib/logger';
+import { BaseService } from '@/lib/services/shared/base-service';
 import { toProject } from '@/lib/services/shared/firestore-converters';
-import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
 
-const SERVICE_NAME = 'ProjectService';
+// ============================================
+// PROJECT SERVICE CLASS
+// ============================================
+class ProjectServiceClass extends BaseService<Project> {
+  protected collectionName = 'projects';
+  protected serviceName = 'ProjectService';
+  
+  protected toEntity(id: string, data: any): Project {
+    return toProject(id, data);
+  }
 
-// ============================================
-// PROJECT SERVICES
-// ============================================
-export const ProjectService = {
-  // Get project by ID
   async getProjectById(projectId: string): Promise<Project | null> {
-    try {
-      const projectDoc = await adminDb.collection('projects').doc(projectId).get();
-      if (projectDoc.exists) {
-        return toProject(projectDoc.id, projectDoc.data()!);
-      }
-      return null;
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getProjectById', error, { projectId });
-      return null;
-    }
-  },
+    return this.getById(projectId);
+  }
 
-  // Get all projects
   async getAllProjects(): Promise<Project[]> {
-    try {
-      const querySnapshot = await adminDb.collection('projects').get();
-      return querySnapshot.docs.map((doc) => toProject(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getAllProjects', error);
-      return [];
-    }
-  },
+    return this.getAll();
+  }
 
-  // Get projects for a supervisor
   async getSupervisorProjects(supervisorId: string): Promise<Project[]> {
-    try {
-      const querySnapshot = await adminDb.collection('projects')
-        .where('supervisorId', '==', supervisorId)
-        .get();
-      
-      return querySnapshot.docs.map((doc) => toProject(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getSupervisorProjects', error, { supervisorId });
-      return [];
-    }
-  },
+    return this.query([
+      { field: 'supervisorId', operator: '==', value: supervisorId }
+    ]);
+  }
 
-  // Create new project
   async createProject(projectData: Omit<Project, 'id'>): Promise<ServiceResult<string>> {
-    try {
-      const docRef = await adminDb.collection('projects').add({
-        ...projectData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      return ServiceResults.success(docRef.id, 'Project created successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'createProject', error);
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to create project'
-      );
-    }
-  },
+    return this.create(projectData);
+  }
 
-  // Generate project code
   generateProjectCode(year: number, semester: number, department: string, number: number): string {
     const deptCode = department.charAt(0).toUpperCase();
     return `${year}-${semester}-${deptCode}-${number.toString().padStart(2, '0')}`;
-  },
-};
+  }
+}
+
+// Create singleton instance and export
+export const projectService = new ProjectServiceClass();

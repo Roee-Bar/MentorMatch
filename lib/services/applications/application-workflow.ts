@@ -7,8 +7,8 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
-import { ApplicationService } from '@/lib/services/applications/application-service';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { applicationService } from '@/lib/services/applications/application-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { serviceEvents } from '@/lib/services/shared/events';
 import type { Application, ApplicationStatus } from '@/types/database';
 
@@ -28,7 +28,7 @@ export const ApplicationWorkflowService = {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Fetch application
-      const application = await ApplicationService.getApplicationById(applicationId);
+      const application = await applicationService.getApplicationById(applicationId);
       
       if (!application) {
         return { success: false, error: 'Application not found. It may have been deleted.' };
@@ -109,7 +109,7 @@ export const ApplicationWorkflowService = {
 
       } else {
         // No capacity change needed - update normally
-        const result = await ApplicationService.updateApplicationStatus(
+        const result = await applicationService.updateApplicationStatus(
           applicationId,
           newStatus,
           feedback
@@ -157,7 +157,7 @@ export const ApplicationWorkflowService = {
     studentId: string
   ): Promise<{ success: boolean; error?: string; message?: string }> {
     try {
-      const application = await ApplicationService.getApplicationById(applicationId);
+      const application = await applicationService.getApplicationById(applicationId);
       
       if (!application) {
         return { success: false, error: 'Application not found. It may have been deleted.' };
@@ -188,7 +188,7 @@ export const ApplicationWorkflowService = {
       await applicationRef.update(updateData);
 
       // Get supervisor email for event
-      const supervisor = await SupervisorService.getSupervisorById(application.supervisorId);
+      const supervisor = await supervisorService.getSupervisorById(application.supervisorId);
 
       // Emit resubmitted event for side effects (e.g., email notifications)
       await serviceEvents.emit({

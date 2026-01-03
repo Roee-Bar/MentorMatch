@@ -4,30 +4,25 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { BaseService } from '@/lib/services/shared/base-service';
 import { toAdmin, toStudent, toApplication } from '@/lib/services/shared/firestore-converters';
 import type { Admin, DashboardStats, Student } from '@/types/database';
 
-const SERVICE_NAME = 'AdminService';
+// ============================================
+// ADMIN SERVICE CLASS
+// ============================================
+class AdminServiceClass extends BaseService<Admin> {
+  protected collectionName = 'admins';
+  protected serviceName = 'AdminService';
+  
+  protected toEntity(id: string, data: any): Admin {
+    return toAdmin(id, data);
+  }
 
-// ============================================
-// ADMIN SERVICES
-// ============================================
-export const AdminService = {
-  // Get admin by ID
   async getAdminById(adminId: string): Promise<Admin | null> {
-    try {
-      const adminDoc = await adminDb.collection('admins').doc(adminId).get();
-      if (adminDoc.exists) {
-        return toAdmin(adminDoc.id, adminDoc.data()!);
-      }
-      return null;
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getAdminById', error, { adminId });
-      return null;
-    }
-  },
+    return this.getById(adminId);
+  }
 
-  // Get dashboard statistics
   async getDashboardStats(): Promise<DashboardStats> {
     try {
       const [studentsSnapshot, supervisorsSnapshot, applicationsSnapshot] = await Promise.all([
@@ -86,7 +81,7 @@ export const AdminService = {
         totalAvailableCapacity,
       };
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getDashboardStats', error);
+      logger.service.error(this.serviceName, 'getDashboardStats', error);
       return {
         totalStudents: 0,
         matchedStudents: 0,
@@ -99,5 +94,8 @@ export const AdminService = {
         totalAvailableCapacity: 0,
       };
     }
-  },
-};
+  }
+}
+
+// Create singleton instance and export
+export const adminService = new AdminServiceClass();

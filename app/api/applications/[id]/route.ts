@@ -9,7 +9,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApplicationService } from '@/lib/services/applications/application-service';
+import { applicationService } from '@/lib/services/applications/application-service';
 import { canAccessApplication, canModifyApplication } from '@/lib/services/applications/application-auth';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
@@ -32,7 +32,7 @@ export const GET = withAuth<ApplicationIdParams, Application>(
   { 
     resourceName: 'Application',
     resourceLoader: async (params) => {
-      return await ApplicationService.getApplicationById(params.id);
+      return await applicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
       return canAccessApplication(user.uid, application, user.role as UserRole);
@@ -82,7 +82,7 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
     };
 
     // Update the application
-    const result = await ApplicationService.updateApplication(params.id, updateData);
+    const result = await applicationService.updateApplication(params.id, updateData);
 
     if (!result.success) {
       return ApiResponse.error(result.error || 'Failed to update application', 500);
@@ -93,7 +93,7 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
   { 
     resourceName: 'Application',
     resourceLoader: async (params) => {
-      return await ApplicationService.getApplicationById(params.id);
+      return await applicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
       return canModifyApplication(user.uid, application, user.role as UserRole);
@@ -139,7 +139,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       });
     } else {
       // No capacity change needed - delete normally
-      const result = await ApplicationService.deleteApplication(params.id);
+      const result = await applicationService.deleteApplication(params.id);
 
       if (!result.success) {
         return ApiResponse.error(result.error || 'Failed to delete application', 500);
@@ -151,7 +151,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
   { 
     resourceName: 'Application',
     resourceLoader: async (params) => {
-      return await ApplicationService.getApplicationById(params.id);
+      return await applicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
       return canModifyApplication(user.uid, application, user.role as UserRole);

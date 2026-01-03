@@ -7,7 +7,7 @@
 
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/utils/html-escape';
-import { ApplicationService } from '@/lib/services/applications/application-service';
+import { applicationService } from '@/lib/services/applications/application-service';
 import { resend, FROM_EMAIL } from './resend-client';
 import { getStatusMessage } from './email-config';
 import { generateStatusChangeEmailHTML } from './templates';
@@ -39,7 +39,7 @@ export const EmailService = {
       }
 
       // Fetch application to get partnerId for accurate exclusion
-      const application = await ApplicationService.getApplicationById(event.applicationId);
+      const application = await applicationService.getApplicationById(event.applicationId);
       if (!application) {
         logger.warn('Application not found for email notification', {
           context: SERVICE_NAME,

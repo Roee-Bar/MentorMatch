@@ -6,7 +6,7 @@
  */
 
 import { logger } from '@/lib/logger';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import type { Student } from '@/types/database';
 
 const SERVICE_NAME = 'ApplicationValidation';
@@ -29,7 +29,7 @@ export async function validatePartner(
     return { isValid: false, warnings: [] };
   }
   
-  const partner = await StudentService.getStudentById(partnerId);
+  const partner = await studentService.getStudentById(partnerId);
   
   if (!partner) {
     const warning = `Partner ${partnerId} not found - proceeding without partner`;

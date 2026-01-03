@@ -4,7 +4,7 @@
  * Complex authorization logic extracted for reusability and testing
  */
 
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import type { Student } from '@/types/database';
 
 /**
@@ -30,7 +30,7 @@ export async function canViewStudentProfile(
 ): Promise<{ allowed: boolean; student?: Student }> {
   // Rule 1: Owner can always view their own profile
   if (requestingUserId === targetStudentId) {
-    const student = await StudentService.getStudentById(targetStudentId);
+    const student = await studentService.getStudentById(targetStudentId);
     if (!student) {
       return { allowed: false }; // Student doesn't exist
     }
@@ -39,7 +39,7 @@ export async function canViewStudentProfile(
   
   // Rule 2: Supervisors and admins can view any student profile
   if (['supervisor', 'admin'].includes(requestingUserRole)) {
-    const student = await StudentService.getStudentById(targetStudentId);
+    const student = await studentService.getStudentById(targetStudentId);
     if (!student) {
       return { allowed: false }; // Student doesn't exist
     }
@@ -49,8 +49,8 @@ export async function canViewStudentProfile(
   // Rule 3 & 4: Students can view partners or unpaired students only
   if (requestingUserRole === 'student') {
     const [requestingStudent, targetStudent] = await Promise.all([
-      StudentService.getStudentById(requestingUserId),
-      StudentService.getStudentById(targetStudentId)
+      studentService.getStudentById(requestingUserId),
+      studentService.getStudentById(targetStudentId)
     ]);
     
     // Check if student is viewing their actual partner

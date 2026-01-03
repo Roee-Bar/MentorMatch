@@ -4,53 +4,60 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { BaseService } from '@/lib/services/shared/base-service';
 import { toSupervisor } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
 
-const SERVICE_NAME = 'SupervisorService';
+// ============================================
+// SUPERVISOR SERVICE CLASS
+// ============================================
+class SupervisorServiceClass extends BaseService<Supervisor> {
+  protected collectionName = 'supervisors';
+  protected serviceName = 'SupervisorService';
+  
+  protected toEntity(id: string, data: any): Supervisor {
+    return toSupervisor(id, data);
+  }
 
-// ============================================
-// SUPERVISOR SERVICES
-// ============================================
-export const SupervisorService = {
-  // Get supervisor by ID
   async getSupervisorById(supervisorId: string): Promise<Supervisor | null> {
-    try {
-      const supervisorDoc = await adminDb.collection('supervisors').doc(supervisorId).get();
-      if (supervisorDoc.exists) {
-        return toSupervisor(supervisorDoc.id, supervisorDoc.data()!);
-      }
-      return null;
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getSupervisorById', error, { supervisorId });
-      return null;
-    }
-  },
+    return this.getById(supervisorId);
+  }
 
-  // Get all supervisors
   async getAllSupervisors(): Promise<Supervisor[]> {
-    try {
-      const querySnapshot = await adminDb.collection('supervisors').get();
-      return querySnapshot.docs.map((doc) => toSupervisor(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getAllSupervisors', error);
-      return [];
-    }
-  },
+    return this.getAll();
+  }
 
-  // Get available supervisors (with capacity)
+  async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
+    return this.query([
+      { field: 'department', operator: '==', value: department },
+      { field: 'isActive', operator: '==', value: true }
+    ]);
+  }
+
+  async createSupervisor(supervisorData: Omit<Supervisor, 'id'>): Promise<ServiceResult<string>> {
+    return this.create(supervisorData);
+  }
+
+  async updateSupervisor(supervisorId: string, data: Partial<Supervisor>): Promise<ServiceResult> {
+    return this.update(supervisorId, data);
+  }
+
+  async deleteSupervisor(supervisorId: string): Promise<ServiceResult> {
+    return this.delete(supervisorId);
+  }
+
   async getAvailableSupervisors(): Promise<SupervisorCardData[]> {
     try {
-      const querySnapshot = await adminDb.collection('supervisors')
+      const querySnapshot = await this.getCollection()
         .where('isActive', '==', true)
         .where('isApproved', '==', true)
         .get();
       
       return querySnapshot.docs
         .map((doc) => {
-          const data = toSupervisor(doc.id, doc.data());
+          const data = this.toEntity(doc.id, doc.data());
           return {
             id: doc.id,
             name: data.fullName,
@@ -65,77 +72,11 @@ export const SupervisorService = {
         })
         .filter((s) => s.availabilityStatus !== 'unavailable');
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getAvailableSupervisors', error);
+      logger.service.error(this.serviceName, 'getAvailableSupervisors', error);
       return [];
     }
-  },
+  }
 
-  // Update supervisor
-  async updateSupervisor(supervisorId: string, data: Partial<Supervisor>): Promise<ServiceResult> {
-    try {
-      // Filter out undefined values to prevent Firestore errors
-      const cleanData = Object.fromEntries(
-        Object.entries(data).filter(([, value]) => value !== undefined)
-      );
-      
-      await adminDb.collection('supervisors').doc(supervisorId).update({
-        ...cleanData,
-        updatedAt: new Date(),
-      });
-      return ServiceResults.success(undefined, 'Supervisor updated successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'updateSupervisor', error, { supervisorId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to update supervisor'
-      );
-    }
-  },
-
-  // Get supervisors by department
-  async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
-    try {
-      const querySnapshot = await adminDb.collection('supervisors')
-        .where('department', '==', department)
-        .where('isActive', '==', true)
-        .get();
-      return querySnapshot.docs.map((doc) => toSupervisor(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getSupervisorsByDepartment', error, { department });
-      return [];
-    }
-  },
-
-  // Create new supervisor
-  async createSupervisor(supervisorData: Omit<Supervisor, 'id'>): Promise<ServiceResult<string>> {
-    try {
-      const docRef = await adminDb.collection('supervisors').add({
-        ...supervisorData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-      return ServiceResults.success(docRef.id, 'Supervisor created successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'createSupervisor', error);
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to create supervisor'
-      );
-    }
-  },
-
-  // Delete supervisor
-  async deleteSupervisor(supervisorId: string): Promise<ServiceResult> {
-    try {
-      await adminDb.collection('supervisors').doc(supervisorId).delete();
-      return ServiceResults.success(undefined, 'Supervisor deleted successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'deleteSupervisor', error, { supervisorId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to delete supervisor'
-      );
-    }
-  },
-
-  // Get filtered supervisors with search and filtering capabilities
   async getFilteredSupervisors(filters: SupervisorFilterParams): Promise<ServiceResult<SupervisorCardData[]>> {
     try {
       // Get base data
@@ -197,10 +138,13 @@ export const SupervisorService = {
 
       return ServiceResults.success(supervisors);
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getFilteredSupervisors', error, { filters });
+      logger.service.error(this.serviceName, 'getFilteredSupervisors', error, { filters });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to fetch supervisors'
       );
     }
-  },
-};
+  }
+}
+
+// Create singleton instance and export
+export const supervisorService = new SupervisorServiceClass();

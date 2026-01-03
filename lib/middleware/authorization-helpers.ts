@@ -7,7 +7,7 @@
 import { NextResponse } from 'next/server';
 import { ApiResponse } from './response';
 import { SupervisorPartnershipRequestService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-request-service';
-import { ProjectService } from '@/lib/services/projects/project-service';
+import { projectService } from '@/lib/services/projects/project-service';
 import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
 import type { SupervisorPartnershipRequest } from '@/types/database';
 import type { Project } from '@/types/database';
@@ -75,7 +75,7 @@ export async function verifyProjectAccess(
   userRole: string,
   allowedRoles?: string[]
 ): Promise<AuthorizationResult<Project>> {
-  const project = await ProjectService.getProjectById(projectId);
+  const project = await projectService.getProjectById(projectId);
   
   if (!project) {
     return {
