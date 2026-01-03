@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
       partnershipStatus: 'none',
       
       // DEPRECATED - Keep for backwards compatibility (set to defaults)
+      // Note: Partner information is no longer collected during registration.
+      // Students can manage partnerships through the partnership request system after registration.
       hasPartner: false,
       partnerName: '',
       partnerEmail: '',

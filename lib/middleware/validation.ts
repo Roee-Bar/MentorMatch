@@ -108,11 +108,6 @@ export const registrationSchema = z.object({
   interests: z.string().optional(),
   previousProjects: z.string().optional(),
   preferredTopics: z.string().optional(),
-  
-  // Partner information
-  hasPartner: z.boolean(),
-  partnerName: z.string().optional(),
-  partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
