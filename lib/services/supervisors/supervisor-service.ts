@@ -77,13 +77,6 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
     }
   }
 
-  /**
-   * Get filtered supervisors with search and filtering capabilities
-   * Supports filtering by search term, department, availability, expertise, and interests
-   * 
-   * @param filters - Filter parameters
-   * @returns ServiceResult with filtered supervisor card data or error
-   */
   async getFilteredSupervisors(filters: SupervisorFilterParams): Promise<ServiceResult<SupervisorCardData[]>> {
     try {
       // Get base data
