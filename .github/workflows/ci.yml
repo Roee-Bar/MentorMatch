@@ -103,6 +103,8 @@ jobs:
         continue-on-error: true
         with:
           fail-on-severity: moderate
+        # Note: This step requires Dependency Graph to be enabled in repository settings
+        # If it fails, enable it at: https://github.com/Roee-Bar/MentorMatch/settings/security_analysis
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -141,6 +143,9 @@ jobs:
           else
             echo "❌ High severity vulnerabilities detected. Please review and update dependencies." >> $GITHUB_STEP_SUMMARY
           fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** If you see a 'Dependency review is not supported' error, enable the Dependency Graph in repository settings:" >> $GITHUB_STEP_SUMMARY
+          echo "https://github.com/Roee-Bar/MentorMatch/settings/security_analysis" >> $GITHUB_STEP_SUMMARY
 
   # E2E Tests - Only run if relevant files changed
   e2e-setup:
@@ -340,24 +345,8 @@ jobs:
             echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
           fi
           echo ""
-          echo "Waiting for Next.js server to be ready..."
-          MAX_WAIT=60
-          WAIT_COUNT=0
-          while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
-            if curl -f -s http://localhost:3000 > /dev/null 2>&1; then
-              echo "✓ Next.js server is running on port 3000"
-              break
-            fi
-            WAIT_COUNT=$((WAIT_COUNT + 1))
-            if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
-              echo "✗ Next.js server did not start within $MAX_WAIT seconds"
-              echo "Checking for Next.js process:"
-              ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js process found"
-              exit 1
-            fi
-            sleep 1
-          done
-          echo "✓ All services are healthy"
+          echo "Note: Next.js server will be started automatically by Playwright's webServer configuration"
+          echo "✓ Firebase emulators are ready for tests"
 
       - name: Run Tests
         shell: bash
@@ -373,6 +362,8 @@ jobs:
           echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
           echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
           echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+          echo "  NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=$NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST"
+          echo "  NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=$NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST"
           echo ""
           echo "Verifying Playwright installation:"
           npx playwright --version || echo "Playwright not found"
@@ -400,10 +391,14 @@ jobs:
             exit 1
           fi
           echo "Starting tests with paths: ${TEST_PATHS_ARRAY[*]}"
+          echo ""
+          echo "Note: Playwright will automatically start the Next.js dev server via webServer configuration"
+          echo "This may take up to 2 minutes for the first build..."
           set -o pipefail
           # Use array expansion to pass paths correctly to Playwright
           # Capture both stdout and stderr, and save exit code
-          npx playwright test "${TEST_PATHS_ARRAY[@]}" 2>&1 | tee test-output.log
+          # Increase timeout for CI environment
+          PLAYWRIGHT_TIMEOUT=300000 npx playwright test "${TEST_PATHS_ARRAY[@]}" --timeout=60000 2>&1 | tee test-output.log
           TEST_EXIT_CODE=${PIPESTATUS[0]}
           
           if [ $TEST_EXIT_CODE -ne 0 ]; then
@@ -418,12 +413,32 @@ jobs:
             echo "Service Health Status:"
             echo "=========================================="
             echo "Next.js server:"
-            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Running on port 3000" || echo "✗ NOT running on port 3000"
+            if curl -f -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✓ Running on port 3000"
+              echo "Server response:"
+              curl -s http://localhost:3000 | head -20 || true
+            else
+              echo "✗ NOT running on port 3000"
+              echo "Checking if port is in use:"
+              lsof -i :3000 || echo "Port 3000 is not in use"
+            fi
             echo ""
             echo "Firebase Emulators:"
-            curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ UI running on port 4000" || echo "✗ UI NOT running on port 4000"
-            nc -z localhost 9099 2>/dev/null && echo "✓ Auth emulator port 9099 open" || echo "✗ Auth emulator port 9099 closed"
-            nc -z localhost 8080 2>/dev/null && echo "✓ Firestore emulator port 8080 open" || echo "✗ Firestore emulator port 8080 closed"
+            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+              echo "✓ UI running on port 4000"
+            else
+              echo "✗ UI NOT running on port 4000"
+            fi
+            if nc -z localhost 9099 2>/dev/null; then
+              echo "✓ Auth emulator port 9099 open"
+            else
+              echo "✗ Auth emulator port 9099 closed"
+            fi
+            if nc -z localhost 8080 2>/dev/null; then
+              echo "✓ Firestore emulator port 8080 open"
+            else
+              echo "✗ Firestore emulator port 8080 closed"
+            fi
             echo ""
             echo "Playwright Report:"
             if [ -d "playwright-report" ]; then
@@ -440,6 +455,14 @@ jobs:
             echo ""
             echo "Firebase processes:"
             ps aux | grep -E "[f]irebase|[j]ava.*firebase" || echo "No Firebase processes found"
+            echo ""
+            echo "Environment variables check:"
+            echo "  E2E_TEST=$E2E_TEST"
+            echo "  CI=$CI"
+            echo "  NODE_ENV=$NODE_ENV"
+            echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
+            echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
+            echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
             exit $TEST_EXIT_CODE
           fi
 

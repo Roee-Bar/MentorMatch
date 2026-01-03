@@ -56,7 +56,9 @@ export default defineConfig({
     command: 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
+    timeout: process.env.CI ? 180000 : 120000, // Longer timeout in CI for first build
+    stdout: 'pipe',
+    stderr: 'pipe',
     // Use environment variables from the workflow, with fallbacks
     env: {
       E2E_TEST: process.env.E2E_TEST || 'true',
