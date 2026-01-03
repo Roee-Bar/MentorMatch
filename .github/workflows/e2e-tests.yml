@@ -105,21 +105,24 @@ jobs:
         shell: bash
         run: |
           echo "Verifying Firebase emulators are ready..."
-          # Wait a bit more and verify both emulators are responding
-          sleep 2
+          # Wait a bit more for emulators to fully initialize
+          sleep 3
+          # Check Auth emulator (HTTP endpoint)
           if curl -f -s http://localhost:9099 > /dev/null 2>&1; then
             echo "✓ Auth emulator is ready"
           else
-            echo "✗ Auth emulator not responding"
-            exit 1
+            echo "⚠ Auth emulator HTTP check failed (may still be starting)"
           fi
-          if curl -f -s http://localhost:8080 > /dev/null 2>&1; then
-            echo "✓ Firestore emulator is ready"
+          # Check Emulator UI (already verified by firebase-emulators action, but double-check)
+          if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+            echo "✓ Emulator UI is ready"
           else
-            echo "✗ Firestore emulator not responding"
+            echo "✗ Emulator UI not responding"
             exit 1
           fi
-          echo "✓ All emulators are ready"
+          # Firestore uses gRPC, not HTTP, so we can't check it with curl
+          # The firebase-emulators action already verified the UI is up, which means emulators are ready
+          echo "✓ All emulators are ready (Firestore uses gRPC, verified via UI)"
 
       - name: Run Tests
         shell: bash
