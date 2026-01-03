@@ -101,12 +101,43 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
+      - name: Verify Emulators Ready
+        shell: bash
+        run: |
+          echo "Verifying Firebase emulators are ready..."
+          # Wait a bit more and verify both emulators are responding
+          sleep 2
+          if curl -f -s http://localhost:9099 > /dev/null 2>&1; then
+            echo "✓ Auth emulator is ready"
+          else
+            echo "✗ Auth emulator not responding"
+            exit 1
+          fi
+          if curl -f -s http://localhost:8080 > /dev/null 2>&1; then
+            echo "✓ Firestore emulator is ready"
+          else
+            echo "✗ Firestore emulator not responding"
+            exit 1
+          fi
+          echo "✓ All emulators are ready"
+
       - name: Run Tests
         shell: bash
         run: |
           echo "Running tests for: ${{ matrix.suite }}"
           echo "Test paths: ${{ matrix.test_paths }}"
-          npx playwright test ${{ matrix.test_paths }}
+          echo "Environment check:"
+          echo "  E2E_TEST=$E2E_TEST"
+          echo "  CI=$CI"
+          echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
+          echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
+          echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+          npx playwright test ${{ matrix.test_paths }} || {
+            echo "Tests failed with exit code $?"
+            echo "Checking if Next.js server started..."
+            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "Next.js server is running" || echo "Next.js server is NOT running"
+            exit 1
+          }
 
       - name: Stop Firebase Emulators
         if: always()
