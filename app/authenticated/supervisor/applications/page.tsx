@@ -137,8 +137,6 @@ export default function SupervisorApplicationsPage() {
                   comments: application.supervisorFeedback,
                   hasPartner: application.hasPartner,
                   partnerName: application.partnerName,
-                  linkedApplicationId: application.linkedApplicationId,
-                  isLeadApplication: application.isLeadApplication,
                   studentName: application.studentName,
                   studentEmail: application.studentEmail,
                 }}

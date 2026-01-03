@@ -8,8 +8,31 @@ import { toApplication } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'ApplicationService';
+
+/**
+ * Helper function to map Firestore document to ApplicationCardData
+ * Eliminates code duplication in getStudentApplications
+ */
+const mapDocToApplicationCardData = (doc: QueryDocumentSnapshot): ApplicationCardData => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    projectTitle: data.projectTitle,
+    projectDescription: data.projectDescription,
+    supervisorName: data.supervisorName,
+    dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
+    status: data.status,
+    responseTime: data.responseTime || '5-7 business days',
+    comments: data.supervisorFeedback,
+    hasPartner: data.hasPartner,
+    partnerName: data.partnerName,
+    studentName: data.studentName,
+    studentEmail: data.studentEmail,
+  } as ApplicationCardData;
+};
 
 // ============================================
 // APPLICATION SERVICES
@@ -29,26 +52,35 @@ export const ApplicationService = {
     }
   },
 
-  // Get all applications for a student
+  // Get all applications for a student (including applications where student is the partner)
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
-      const querySnapshot = await adminDb.collection('applications')
+      // Query applications where student is the primary applicant
+      const primaryQuerySnapshot = await adminDb.collection('applications')
         .where('studentId', '==', studentId)
         .get();
       
-      return querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          projectTitle: data.projectTitle,
-          projectDescription: data.projectDescription,
-          supervisorName: data.supervisorName,
-          dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
-          status: data.status,
-          responseTime: data.responseTime || '5-7 business days',
-          comments: data.supervisorFeedback,
-        } as ApplicationCardData;
+      // Query applications where student is the partner
+      const partnerQuerySnapshot = await adminDb.collection('applications')
+        .where('partnerId', '==', studentId)
+        .get();
+      
+      // Combine and deduplicate results (in case an application has both studentId and partnerId matching)
+      const applicationMap = new Map<string, ApplicationCardData>();
+      
+      // Process primary applications
+      primaryQuerySnapshot.docs.forEach((doc) => {
+        applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
       });
+      
+      // Process partner applications (only add if not already in map)
+      partnerQuerySnapshot.docs.forEach((doc) => {
+        if (!applicationMap.has(doc.id)) {
+          applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
+        }
+      });
+      
+      return Array.from(applicationMap.values());
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getStudentApplications', error, { studentId });
       return [];

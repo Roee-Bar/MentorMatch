@@ -8,11 +8,13 @@ import { ApplicationService } from '@/lib/services/applications/application-serv
 import { StudentService } from '@/lib/services/students/student-service';
 import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
+import { validatePartner } from '@/lib/services/applications/application-validation';
 import { serviceEvents } from '@/lib/services/shared/events';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
 import type { Application } from '@/types/database';
 
 export const GET = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
@@ -48,28 +50,31 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     );
   }
 
-  // Handle partner logic (using workflow service)
-  let partnerInfo = { hasPartner: false, partnerName: '', partnerEmail: '' };
-  let linkedApplicationId: string | undefined = undefined;
-  let isLeadApplication = true;
+  // Auto-include partner if student has one (with validation)
+  let partnerInfo = { hasPartner: false, partnerName: '', partnerEmail: '', partnerId: undefined as string | undefined };
 
   if (student.partnerId) {
-    const partner = await StudentService.getStudentById(student.partnerId);
-    if (partner) {
+    const validation = await validatePartner(user.uid, student.partnerId);
+    
+    if (validation.isValid && validation.partner) {
       partnerInfo = {
         hasPartner: true,
-        partnerName: partner.fullName,
-        partnerEmail: partner.email
+        partnerName: validation.partner.fullName,
+        partnerEmail: validation.partner.email,
+        partnerId: validation.partner.id
       };
-
-      const linkResult = await ApplicationWorkflowService.handlePartnerApplicationLink(
-        user.uid,
-        student.partnerId,
-        validation.data.supervisorId
-      );
-
-      linkedApplicationId = linkResult.linkedApplicationId;
-      isLeadApplication = linkResult.isLeadApplication;
+    } else {
+      // Log warnings but proceed without partner (graceful handling)
+      if (validation.warnings.length > 0) {
+        logger.warn('Partner validation warnings during application creation', {
+          context: 'API',
+          data: {
+            studentId: user.uid,
+            partnerId: student.partnerId,
+            warnings: validation.warnings
+          }
+        });
+      }
     }
   }
 
@@ -93,9 +98,11 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     hasPartner: partnerInfo.hasPartner,
     partnerName: partnerInfo.partnerName || undefined,
     partnerEmail: partnerInfo.partnerEmail || undefined,
-    // Capacity Tracking
-    linkedApplicationId: linkedApplicationId ?? undefined,
-    isLeadApplication,
+    partnerId: partnerInfo.partnerId,
+    appliedByStudentId: user.uid, // Track who originally submitted
+    // Capacity Tracking (DEPRECATED - kept for backward compatibility)
+    linkedApplicationId: undefined,
+    isLeadApplication: true, // All new applications are "lead" (no linking)
     // Status
     status: 'pending',
     // Timestamps (will be set by service, but required by type)
@@ -110,14 +117,6 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   }
 
   const applicationId = result.data;
-
-  // If we linked to a partner's existing application, update their application to link back to ours
-  if (linkedApplicationId && !isLeadApplication) {
-    await adminDb.collection('applications').doc(linkedApplicationId).update({
-      linkedApplicationId: applicationId,
-      lastUpdated: new Date()
-    });
-  }
 
   // Emit application created event for side effects (e.g., email notifications)
   await serviceEvents.emit({

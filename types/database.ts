@@ -192,10 +192,18 @@ export interface Application {
   hasPartner: boolean;
   partnerName?: string;
   partnerEmail?: string;
+  partnerId?: string; // The partner's studentId if application has a partner
+  appliedByStudentId: string; // The studentId of who originally submitted the application
   
-  // Project-Based Capacity Tracking
-  linkedApplicationId?: string; // References partner's application ID
-  isLeadApplication: boolean; // True for the first application in a pair (or solo)
+  // Project-Based Capacity Tracking (DEPRECATED - kept for backward compatibility)
+  /**
+   * @deprecated Use partnerId instead. Kept for backward compatibility only.
+   */
+  linkedApplicationId?: string; // References partner's application ID (deprecated)
+  /**
+   * @deprecated All new applications are "lead". Kept for backward compatibility only.
+   */
+  isLeadApplication: boolean; // True for the first application in a pair (or solo) (deprecated)
   projectId?: string; // Optional reference to created Project (for future use)
   
   // Status
@@ -270,11 +278,12 @@ export interface ApplicationCardData {
   comments?: string;
   hasPartner?: boolean;
   partnerName?: string;
+  // For displaying both students' names
+  studentName?: string; // Primary applicant name
+  studentEmail?: string; // Primary applicant email
+  // DEPRECATED - kept for backward compatibility
   linkedApplicationId?: string;
   isLeadApplication?: boolean;
-  // For supervisor view
-  studentName?: string;
-  studentEmail?: string;
 }
 
 export interface DashboardStats {
