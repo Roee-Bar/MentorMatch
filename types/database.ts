@@ -253,6 +253,24 @@ export interface Project {
 }
 
 // ============================================
+// SUPERVISOR PARTNERSHIP TYPES
+// ============================================
+
+// Supervisor Partnership Request Type (stored in 'supervisor-partnership-requests' collection)
+export interface SupervisorPartnershipRequest {
+  id: string;
+  requestingSupervisorId: string;
+  requestingSupervisorName: string;
+  targetSupervisorId: string;
+  targetSupervisorName: string;
+  projectId: string;
+  projectTitle: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
+// ============================================
 // HELPER TYPES FOR UI
 // ============================================
 export interface SupervisorCardData {

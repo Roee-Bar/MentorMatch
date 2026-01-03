@@ -46,4 +46,11 @@ export interface UserIdParams {
   id: string;
 }
 
+/**
+ * Supervisor partnership route params
+ */
+export interface SupervisorPartnershipIdParams {
+  id: string;
+}
+
 

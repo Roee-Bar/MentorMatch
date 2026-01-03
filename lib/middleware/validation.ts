@@ -199,3 +199,32 @@ export const partnershipRequestSchema = z.object({
 export const partnershipResponseSchema = z.object({
   action: z.enum(['accept', 'reject']),
 }).strict();
+
+/**
+ * Schema for creating supervisor partnership request
+ */
+export const supervisorPartnershipRequestSchema = z.object({
+  targetSupervisorId: z.string().min(1, 'Target supervisor ID is required'),
+  projectId: z.string().min(1, 'Project ID is required'),
+}).strict();
+
+/**
+ * Schema for responding to supervisor partnership request
+ */
+export const supervisorPartnershipResponseSchema = z.object({
+  action: z.enum(['accept', 'reject']),
+}).strict();
+
+/**
+ * Schema for unpairing co-supervisor
+ */
+export const unpairCoSupervisorSchema = z.object({
+  projectId: z.string().min(1, 'Project ID is required'),
+}).strict();
+
+/**
+ * Schema for project status change
+ */
+export const projectStatusChangeSchema = z.object({
+  status: z.enum(['pending_approval', 'approved', 'in_progress', 'completed']),
+}).strict();
