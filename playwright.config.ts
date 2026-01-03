@@ -18,6 +18,8 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
+  // Global test timeout - increased in CI to account for webServer startup (~180s)
+  timeout: process.env.CI ? 240000 : 60000, // 4 minutes in CI (webServer + test), 1 minute locally
   globalSetup: require.resolve('./e2e/global-setup.ts'),
   reporter: [
     ['html'],

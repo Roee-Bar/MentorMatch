@@ -15,9 +15,9 @@ inputs:
     description: 'Total number of shards (e.g., 2)'
     required: false
   timeout:
-    description: 'Test timeout in milliseconds'
+    description: 'Test timeout in milliseconds (should account for webServer startup ~180s + test execution)'
     required: false
-    default: '300000'
+    default: '240000'
 
 runs:
   using: 'composite'
@@ -86,7 +86,9 @@ runs:
         fi
         
         set -o pipefail
-        PLAYWRIGHT_TIMEOUT=${{ inputs.timeout }} npx playwright test "${TEST_PATHS_ARRAY[@]}" $SHARD_ARGS --timeout=60000 2>&1 | tee test-output.log
+        # Use the timeout input for test timeout (default 240000ms = 4 minutes)
+        # This gives enough time for webServer startup (~180s) and test execution
+        npx playwright test "${TEST_PATHS_ARRAY[@]}" $SHARD_ARGS --timeout=${{ inputs.timeout }} 2>&1 | tee test-output.log
         TEST_EXIT_CODE=${PIPESTATUS[0]}
         
         if [ $TEST_EXIT_CODE -ne 0 ]; then
@@ -97,7 +99,8 @@ runs:
           # Sanitize log output to remove sensitive data
           if [ -f "test-output.log" ]; then
             sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' test-output.log | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
             cat test-output.log
           fi
           exit $TEST_EXIT_CODE

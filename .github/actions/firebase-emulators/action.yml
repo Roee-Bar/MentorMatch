@@ -110,7 +110,8 @@ runs:
           if [ -f "emulator.log" ]; then
             # Sanitize log output to remove sensitive data
             sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' emulator.log | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
             cat emulator.log
           else
             echo "No emulator.log file found"
@@ -137,7 +138,8 @@ runs:
           # Sanitize error output to remove sensitive data
           ERROR_LINES=$(grep -i "error\|failed\|exception" emulator.log | head -5 | \
             sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs')
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi')
           if [ -n "$ERROR_LINES" ]; then
             echo "$ERROR_LINES"
             echo "⚠ Potential errors detected in initial logs (may be normal during startup)"
@@ -196,7 +198,8 @@ runs:
             if [ -f "emulator.log" ]; then
               echo "  Last log lines:"
               tail -3 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' | \
+                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' | \
                 sed 's/^/    /' || true
             fi
           fi

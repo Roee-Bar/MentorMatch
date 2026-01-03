@@ -293,7 +293,8 @@ jobs:
           
           # Output for visibility (sanitized)
           sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-imports.log | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
             cat /tmp/tsc-imports.log
           
           if [ $TSC_IMPORT_EXIT -ne 0 ]; then
@@ -347,7 +348,8 @@ jobs:
           
           # Output to console for visibility (sanitized)
           sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-output.log | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
             cat /tmp/tsc-output.log
           
           if [ $TSC_EXIT_CODE -ne 0 ]; then
@@ -356,7 +358,8 @@ jobs:
               echo "ERROR: TypeScript errors in Playwright configuration"
               grep "error TS" /tmp/tsc-output.log | head -10 | \
                 sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs'
+                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi'
               exit 1
             else
               echo "⚠️ TypeScript check had warnings but no errors - continuing"
@@ -375,7 +378,8 @@ jobs:
           
           # Output for debugging (sanitized)
           sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/playwright-list.log | \
-            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
             cat /tmp/playwright-list.log
           
           if [ $EXIT_CODE -eq 0 ]; then
@@ -395,7 +399,8 @@ jobs:
               echo "ERROR: Playwright validation failed with non-webServer error:"
               head -30 /tmp/playwright-list.log | \
                 sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs'
+                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi'
               echo ""
               echo "This appears to be a configuration error, not a webServer issue."
               exit 1
