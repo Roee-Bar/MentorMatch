@@ -6,8 +6,8 @@
  * These functions abstract the logic of finding who should receive notifications.
  */
 
-import { StudentService } from '@/lib/services/students/student-service';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { studentService } from '@/lib/services/students/student-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import type { Application } from '@/types/database';
 import type { ApplicationStatusChangedEvent } from '@/lib/services/shared/events';
 
@@ -87,7 +87,7 @@ export function getApplicationStudentRecipients(
 export async function getStudentAndPartnerRecipients(
   studentId: string
 ): Promise<NotificationRecipients> {
-  const student = await StudentService.getStudentById(studentId);
+  const student = await studentService.getStudentById(studentId);
   
   if (!student) {
     return EMPTY_RECIPIENTS;
@@ -98,7 +98,7 @@ export async function getStudentAndPartnerRecipients(
 
   // Check if student has a paired partner
   if (student.partnerId && student.partnershipStatus === 'paired') {
-    const partner = await StudentService.getStudentById(student.partnerId);
+    const partner = await studentService.getStudentById(student.partnerId);
     if (partner) {
       emails.push(partner.email);
       names.push(partner.fullName);
@@ -119,7 +119,7 @@ export async function getStudentAndPartnerRecipients(
 export async function getSupervisorRecipient(
   supervisorId: string
 ): Promise<NotificationRecipients> {
-  const supervisor = await SupervisorService.getSupervisorById(supervisorId);
+  const supervisor = await supervisorService.getSupervisorById(supervisorId);
   
   if (!supervisor) {
     return EMPTY_RECIPIENTS;
@@ -158,7 +158,7 @@ export async function getApplicationStatusChangeRecipients(
 
   // Add supervisor (need to fetch email, and exclude if triggerer)
   if (event.supervisorId !== triggeredByUserId) {
-    const supervisor = await SupervisorService.getSupervisorById(event.supervisorId);
+    const supervisor = await supervisorService.getSupervisorById(event.supervisorId);
     if (supervisor) {
       recipients.push({
         email: supervisor.email,

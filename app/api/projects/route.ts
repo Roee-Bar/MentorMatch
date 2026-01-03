@@ -10,7 +10,12 @@ export const GET = withAuth<Record<string, string>>(async (request: NextRequest,
 
 export const POST = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
   const body = await request.json();
-  const projectId = await ProjectService.createProject(body);
-  return ApiResponse.created({ projectId }, 'Project created successfully');
+  const result = await ProjectService.createProject(body);
+  
+  if (!result.success || !result.data) {
+    return ApiResponse.error(result.error || 'Failed to create project', 500);
+  }
+  
+  return ApiResponse.created({ projectId: result.data }, 'Project created successfully');
 });
 

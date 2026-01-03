@@ -7,7 +7,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApplicationService } from '@/lib/services/applications/application-service';
+import { applicationService } from '@/lib/services/applications/application-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
@@ -58,7 +58,7 @@ export const PATCH = withAuth<ApplicationIdParams, Application>(
   {
     resourceName: 'Application',
     resourceLoader: async (params) => {
-      return await ApplicationService.getApplicationById(params.id);
+      return await applicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
       if (!application) return false;

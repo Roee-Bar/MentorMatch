@@ -4,7 +4,7 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ProjectService } from '@/lib/services/projects/project-service';
 import { toProject } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
@@ -117,7 +117,7 @@ export const SupervisorPartnershipPairingService = {
   ): Promise<Supervisor[]> {
     try {
       // Get all active supervisors
-      const allSupervisors = await SupervisorService.getAllSupervisors();
+      const allSupervisors = await supervisorService.getAllSupervisors();
 
       // Use shared filtering logic
       return _filterSupervisorsByCapacity(allSupervisors, requestingSupervisorId);

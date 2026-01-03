@@ -4,13 +4,12 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { BaseService } from '@/lib/services/shared/base-service';
 import { toApplication } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-
-const SERVICE_NAME = 'ApplicationService';
 
 /**
  * Helper function to map Firestore document to ApplicationCardData
@@ -35,33 +34,78 @@ const mapDocToApplicationCardData = (doc: QueryDocumentSnapshot): ApplicationCar
 };
 
 // ============================================
-// APPLICATION SERVICES
+// APPLICATION SERVICE CLASS
 // ============================================
-export const ApplicationService = {
-  // Get application by ID
+class ApplicationServiceClass extends BaseService<Application> {
+  protected collectionName = 'applications';
+  protected serviceName = 'ApplicationService';
+  
+  protected toEntity(id: string, data: any): Application {
+    return toApplication(id, data);
+  }
+
+  // Public methods that wrap protected base methods
   async getApplicationById(applicationId: string): Promise<Application | null> {
-    try {
-      const appDoc = await adminDb.collection('applications').doc(applicationId).get();
-      if (appDoc.exists) {
-        return toApplication(appDoc.id, appDoc.data()!);
-      }
-      return null;
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getApplicationById', error, { applicationId });
-      return null;
-    }
-  },
+    return this.getById(applicationId);
+  }
+
+  async getAllApplications(): Promise<Application[]> {
+    return this.getAll();
+  }
+
+  async getSupervisorApplications(supervisorId: string): Promise<Application[]> {
+    return this.query([
+      { field: 'supervisorId', operator: '==', value: supervisorId }
+    ]);
+  }
+
+  async getPendingApplications(supervisorId: string): Promise<Application[]> {
+    return this.query([
+      { field: 'supervisorId', operator: '==', value: supervisorId },
+      { field: 'status', operator: '==', value: 'pending' }
+    ]);
+  }
+
+  // Create new application with custom timestamp fields
+  async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
+    // Log incoming data for debugging
+    logger.service.operation(this.serviceName, 'createApplication', { 
+      supervisorId: applicationData.supervisorId,
+      studentId: applicationData.studentId 
+    });
+    
+    // Use custom timestamp fields: dateApplied/lastUpdated instead of createdAt/updatedAt
+    return this.create(applicationData, {
+      createdAt: 'dateApplied',
+      updatedAt: 'lastUpdated'
+    });
+  }
+
+  // Update application with custom timestamp field
+  async updateApplication(
+    applicationId: string, 
+    updates: Partial<Application>
+  ): Promise<ServiceResult> {
+    // Use custom timestamp field: lastUpdated instead of updatedAt
+    return this.update(applicationId, updates, 'lastUpdated');
+  }
+
+  // Delete application
+  async deleteApplication(applicationId: string): Promise<ServiceResult> {
+    return this.delete(applicationId);
+  }
 
   // Get all applications for a student (including applications where student is the partner)
+  // Complex method with multiple queries and deduplication - keep as-is
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
       // Query applications where student is the primary applicant
-      const primaryQuerySnapshot = await adminDb.collection('applications')
+      const primaryQuerySnapshot = await adminDb.collection(this.collectionName)
         .where('studentId', '==', studentId)
         .get();
       
       // Query applications where student is the partner
-      const partnerQuerySnapshot = await adminDb.collection('applications')
+      const partnerQuerySnapshot = await adminDb.collection(this.collectionName)
         .where('partnerId', '==', studentId)
         .get();
       
@@ -82,99 +126,12 @@ export const ApplicationService = {
       
       return Array.from(applicationMap.values());
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getStudentApplications', error, { studentId });
+      logger.service.error(this.serviceName, 'getStudentApplications', error, { studentId });
       return [];
     }
-  },
+  }
 
-  // Get all applications for a supervisor
-  async getSupervisorApplications(supervisorId: string): Promise<Application[]> {
-    try {
-      const querySnapshot = await adminDb.collection('applications')
-        .where('supervisorId', '==', supervisorId)
-        .get();
-      
-      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getSupervisorApplications', error, { supervisorId });
-      return [];
-    }
-  },
-
-  // Get pending applications for a supervisor
-  async getPendingApplications(supervisorId: string): Promise<Application[]> {
-    try {
-      const querySnapshot = await adminDb.collection('applications')
-        .where('supervisorId', '==', supervisorId)
-        .where('status', '==', 'pending')
-        .get();
-      
-      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getPendingApplications', error, { supervisorId });
-      return [];
-    }
-  },
-
-  // Update application content
-  async updateApplication(
-    applicationId: string, 
-    updates: Partial<Application>
-  ): Promise<ServiceResult> {
-    try {
-      // Filter out undefined values to prevent Firestore errors
-      const cleanUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([, value]) => value !== undefined)
-      );
-      
-      await adminDb.collection('applications').doc(applicationId).update({
-        ...cleanUpdates,
-        lastUpdated: new Date(),
-      });
-      return ServiceResults.success(undefined, 'Application updated successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'updateApplication', error, { applicationId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to update application'
-      );
-    }
-  },
-
-  // Create new application
-  async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
-    try {
-      // Log incoming data for debugging
-      logger.service.operation(SERVICE_NAME, 'createApplication', { 
-        supervisorId: applicationData.supervisorId,
-        studentId: applicationData.studentId 
-      });
-      
-      // Filter out undefined values to prevent Firestore errors
-      // Firestore rejects undefined but accepts null
-      const cleanData = Object.fromEntries(
-        Object.entries(applicationData).filter(([, value]) => value !== undefined)
-      );
-      
-      const docRef = await adminDb.collection('applications').add({
-        ...cleanData,
-        dateApplied: new Date(),
-        lastUpdated: new Date(),
-      });
-      return ServiceResults.success(docRef.id, 'Application created successfully');
-    } catch (error) {
-      // Enhanced error logging with context
-      logger.service.error(SERVICE_NAME, 'createApplication', error, {
-        studentId: applicationData.studentId,
-        supervisorId: applicationData.supervisorId,
-        errorType: error instanceof Error ? error.name : 'Unknown'
-      });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to create application'
-      );
-    }
-  },
-
-  // Update application status
+  // Update application status with custom logic
   async updateApplicationStatus(
     applicationId: string,
     status: Application['status'],
@@ -194,37 +151,16 @@ export const ApplicationService = {
         updateData.responseDate = new Date();
       }
 
-      await adminDb.collection('applications').doc(applicationId).update(updateData);
+      await adminDb.collection(this.collectionName).doc(applicationId).update(updateData);
       return ServiceResults.success(undefined, 'Application status updated successfully');
     } catch (error) {
-      logger.service.error(SERVICE_NAME, 'updateApplicationStatus', error, { applicationId, status });
+      logger.service.error(this.serviceName, 'updateApplicationStatus', error, { applicationId, status });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to update application status'
       );
     }
-  },
+  }
+}
 
-  // Get all applications (for admin)
-  async getAllApplications(): Promise<Application[]> {
-    try {
-      const querySnapshot = await adminDb.collection('applications').get();
-      return querySnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'getAllApplications', error);
-      return [];
-    }
-  },
-
-  // Delete application
-  async deleteApplication(applicationId: string): Promise<ServiceResult> {
-    try {
-      await adminDb.collection('applications').doc(applicationId).delete();
-      return ServiceResults.success(undefined, 'Application deleted successfully');
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'deleteApplication', error, { applicationId });
-      return ServiceResults.error(
-        error instanceof Error ? error.message : 'Failed to delete application'
-      );
-    }
-  },
-};
+// Create singleton instance and export
+export const applicationService = new ApplicationServiceClass();

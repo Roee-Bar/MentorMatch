@@ -6,7 +6,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateSupervisorSchema } from '@/lib/middleware/validation';
@@ -21,7 +21,7 @@ export const GET = withAuth<SupervisorIdParams>(async (request: NextRequest, { p
   // - Supervisors can view their own profile
   // - Admins need access for management purposes
   
-  const supervisor = await SupervisorService.getSupervisorById(params.id);
+  const supervisor = await supervisorService.getSupervisorById(params.id);
   
   if (!supervisor) {
     logger.warn('Supervisor not found', { context: 'API', data: { supervisorId: params.id } });
@@ -48,7 +48,7 @@ export const PUT = withAuth<SupervisorIdParams>(
       return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
-    const result = await SupervisorService.updateSupervisor(params.id, validation.data);
+    const result = await supervisorService.updateSupervisor(params.id, validation.data);
 
     if (!result.success) {
       logger.error('Supervisor database update failed', undefined, {

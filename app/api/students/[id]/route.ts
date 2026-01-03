@@ -4,7 +4,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
@@ -56,7 +56,7 @@ export const PUT = withAuth<StudentIdParams>(
       return ApiResponse.validationError(validation.error || 'Invalid request data');
     }
 
-    const result = await StudentService.updateStudent(params.id, validation.data);
+    const result = await studentService.updateStudent(params.id, validation.data);
 
     if (!result.success) {
       logger.error('Student database update failed', undefined, {

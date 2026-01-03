@@ -10,7 +10,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
@@ -28,7 +28,7 @@ export const GET = withAuth<Record<string, string>>(async (request: NextRequest,
   };
 
   // Delegate filtering to service layer
-  const result = await SupervisorService.getFilteredSupervisors(filters);
+  const result = await supervisorService.getFilteredSupervisors(filters);
 
   if (!result.success) {
     return ApiResponse.error(result.error || 'Failed to fetch supervisors');

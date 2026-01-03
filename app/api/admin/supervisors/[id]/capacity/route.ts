@@ -6,7 +6,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { adminDb } from '@/lib/firebase-admin';
@@ -19,7 +19,7 @@ export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   user
 ) => {
   // Get supervisor
-  const supervisor = await SupervisorService.getSupervisorById(params.id);
+  const supervisor = await supervisorService.getSupervisorById(params.id);
   
   if (!supervisor) {
     return ApiResponse.notFound('Supervisor');
@@ -83,7 +83,7 @@ export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   });
 
   // Get updated supervisor
-  const updatedSupervisor = await SupervisorService.getSupervisorById(params.id);
+  const updatedSupervisor = await supervisorService.getSupervisorById(params.id);
 
   return ApiResponse.success(updatedSupervisor);
 });

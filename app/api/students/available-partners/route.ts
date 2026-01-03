@@ -5,19 +5,19 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
 export const GET = withRoles<Record<string, string>>(['student'], async (request: NextRequest, context, user) => {
   // Check if student already has a partner - if so, return empty array immediately
-  const currentStudent = await StudentService.getStudentById(user.uid);
+  const currentStudent = await studentService.getStudentById(user.uid);
   if (currentStudent?.partnerId) {
     return ApiResponse.successWithCount([]);
   }
   
   // Get available partners excluding the current student
-  const students = await StudentService.getAvailablePartners(user.uid);
+  const students = await studentService.getAvailablePartners(user.uid);
   return ApiResponse.successWithCount(students);
 });
 

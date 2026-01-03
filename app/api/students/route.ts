@@ -3,7 +3,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
@@ -13,7 +13,7 @@ export const GET = withAuth<Record<string, string>>(async (request: NextRequest,
     return ApiResponse.forbidden();
   }
 
-  const students = await StudentService.getAllStudents();
+  const students = await studentService.getAllStudents();
   return ApiResponse.successWithCount(students);
 });
 

@@ -4,9 +4,9 @@
  */
 
 import { NextRequest } from 'next/server';
-import { ApplicationService } from '@/lib/services/applications/application-service';
+import { applicationService } from '@/lib/services/applications/application-service';
 import { StudentService } from '@/lib/services/students/student-service';
-import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { validatePartner } from '@/lib/services/applications/application-validation';
 import { serviceEvents } from '@/lib/services/shared/events';
@@ -18,7 +18,7 @@ import { logger } from '@/lib/logger';
 import type { Application } from '@/types/database';
 
 export const GET = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
-  const applications = await ApplicationService.getAllApplications();
+  const applications = await applicationService.getAllApplications();
   return ApiResponse.successWithCount(applications);
 });
 
@@ -30,8 +30,8 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   }
 
   // Fetch student and supervisor details
-  const student = await StudentService.getStudentById(user.uid);
-  const supervisor = await SupervisorService.getSupervisorById(validation.data.supervisorId);
+  const student = await studentService.getStudentById(user.uid);
+  const supervisor = await supervisorService.getSupervisorById(validation.data.supervisorId);
 
   if (!student || !supervisor) {
     return ApiResponse.notFound('Student or supervisor');
@@ -110,7 +110,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     lastUpdated: new Date(),
   };
 
-  const result = await ApplicationService.createApplication(applicationData);
+  const result = await applicationService.createApplication(applicationData);
 
   if (!result.success || !result.data) {
     return ApiResponse.error(result.error || 'Failed to create application', 500);

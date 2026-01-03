@@ -3,7 +3,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { toStudent } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import { executeBatchUpdates } from './utils/batch-utils';
@@ -18,7 +18,7 @@ const SERVICE_NAME = 'PartnershipPairingService';
 export const PartnershipPairingService = {
   /**
    * Get available students for partnership (not paired, excluding current user)
-   * Note: This method is less comprehensive than StudentService.getAvailablePartners
+   * Note: This method is less comprehensive than studentService.getAvailablePartners
    * which also filters out students with existing pending requests
    */
   async getAvailableStudents(currentUserId: string): Promise<Student[]> {
@@ -42,7 +42,7 @@ export const PartnershipPairingService = {
    */
   async getPartnerDetails(partnerId: string): Promise<Student | null> {
     try {
-      const partner = await StudentService.getStudentById(partnerId);
+      const partner = await studentService.getStudentById(partnerId);
       if (!partner) {
         logger.service.warn(SERVICE_NAME, 'getPartnerDetails', 'Partner not found - possible orphaned reference', { partnerId });
       }

@@ -4,7 +4,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { PartnershipRequestService } from './partnership-request-service';
 import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
@@ -27,8 +27,8 @@ export const PartnershipWorkflowService = {
     try {
       // Get both student profiles first
       const [requester, target] = await Promise.all([
-        StudentService.getStudentById(requesterId),
-        StudentService.getStudentById(targetStudentId)
+        studentService.getStudentById(requesterId),
+        studentService.getStudentById(targetStudentId)
       ]);
 
       if (!requester || !target) {
