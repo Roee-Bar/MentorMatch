@@ -31,7 +31,7 @@ export const POST = withAuth<Record<string, string>>(
       return ApiResponse.error(result.error || 'Failed to unpair co-supervisor', 400);
     }
 
-    return ApiResponse.success(undefined, 'Co-supervisor removed successfully');
+    return ApiResponse.successMessage('Co-supervisor removed successfully');
   },
   { allowedRoles: ['supervisor'] }
 );

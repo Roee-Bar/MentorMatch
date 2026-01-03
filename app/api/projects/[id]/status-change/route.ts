@@ -60,7 +60,7 @@ export const POST = withAuth<ProjectIdParams>(
       }
     }
 
-    return ApiResponse.success(undefined, 'Project status updated successfully');
+    return ApiResponse.successMessage('Project status updated successfully');
   },
   { allowedRoles: ['supervisor', 'admin'] }
 );

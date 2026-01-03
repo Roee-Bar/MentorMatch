@@ -73,7 +73,7 @@ export default function SupervisorsTable({
             Capacity
           </Table.HeaderCell>
           {showAvailableSlots && (
-            <Table.HeaderCell align="center" className={widths.availableSlots}>
+            <Table.HeaderCell align="center" className={SUPERVISORS_TABLE_WIDTHS.withAvailableSlots.availableSlots}>
               Available Slots
             </Table.HeaderCell>
           )}
@@ -100,7 +100,7 @@ export default function SupervisorsTable({
                 </div>
               </Table.Cell>
               {showAvailableSlots && (
-                <Table.Cell className={widths.availableSlots}>
+                <Table.Cell className={SUPERVISORS_TABLE_WIDTHS.withAvailableSlots.availableSlots}>
                   <div className="text-center">
                     <span className={availableSlots > 0 ? capacityAvailable : capacityUnavailable}>
                       {availableSlots}

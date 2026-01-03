@@ -43,7 +43,7 @@ export const DELETE = withAuth<SupervisorPartnershipIdParams>(
       return ApiResponse.error(result.error || 'Failed to cancel request', 400);
     }
 
-    return ApiResponse.success(undefined, 'Request cancelled successfully');
+    return ApiResponse.successMessage('Request cancelled successfully');
   },
   { allowedRoles: ['supervisor'] }
 );

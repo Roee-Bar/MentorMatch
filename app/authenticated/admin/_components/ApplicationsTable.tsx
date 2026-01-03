@@ -75,7 +75,7 @@ export default function ApplicationsTable({
             Status
           </Table.HeaderCell>
           {tableType === 'pending-applications' && (
-            <Table.HeaderCell align="center" className={widths.daysPending}>
+            <Table.HeaderCell align="center" className={APPLICATIONS_TABLE_WIDTHS['pending-applications'].daysPending}>
               Days Pending
             </Table.HeaderCell>
           )}
@@ -101,7 +101,7 @@ export default function ApplicationsTable({
                 </div>
               </Table.Cell>
               {tableType === 'pending-applications' && daysPending !== null && (
-                <Table.Cell className={widths.daysPending}>
+                <Table.Cell className={APPLICATIONS_TABLE_WIDTHS['pending-applications'].daysPending}>
                   <div className="flex justify-center">
                     <span className={daysPending > 7 ? 'text-orange-600 font-semibold' : ''}>
                       {daysPending} day{daysPending !== 1 ? 's' : ''}

@@ -33,7 +33,7 @@ export const POST = withAuth<SupervisorPartnershipIdParams>(
       return ApiResponse.error(result.error || 'Failed to respond to request', 400);
     }
 
-    return ApiResponse.success(undefined, `Request ${action}ed successfully`);
+    return ApiResponse.successMessage(`Request ${action}ed successfully`);
   },
   { allowedRoles: ['supervisor'] }
 );
