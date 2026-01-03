@@ -1,10 +1,8 @@
 'use client';
 
-// lib/hooks/useApplicationActions.ts
-// Custom hook for application action handlers
-
 import { useActionHandler, type ActionConfig } from './useActionHandler';
 import { apiClient } from '@/lib/api/client';
+import type { CreateApplicationData } from '@/types/database';
 
 export interface ApplicationActionsConfig extends ActionConfig {}
 
@@ -18,8 +16,8 @@ export interface ApplicationActionsConfig extends ActionConfig {}
 export function useApplicationActions(config: ApplicationActionsConfig) {
   return useActionHandler(config, {
     submitApplication: {
-      key: (params: any) => `submit-${params.supervisorId}`,
-      handler: async (applicationData: any, token: string) => {
+      key: (params: CreateApplicationData) => `submit-${params.supervisorId}`,
+      handler: async (applicationData: CreateApplicationData, token: string) => {
         await apiClient.createApplication(applicationData, token);
       },
       successMessage: 'Application submitted successfully!',

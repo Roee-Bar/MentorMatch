@@ -1,8 +1,5 @@
 'use client';
 
-// lib/hooks/usePartnershipActions.ts
-// Custom hook for partnership action handlers
-
 import { useActionHandler, type ActionConfig } from './useActionHandler';
 import { apiClient } from '@/lib/api/client';
 
@@ -50,7 +47,7 @@ export function usePartnershipActions(config: PartnershipActionsConfig) {
     },
     unpair: {
       key: 'unpair',
-      handler: async (_: void, token: string) => {
+      handler: async (_params: {}, token: string) => {
         await apiClient.unpairFromPartner(token);
       },
       successMessage: 'Successfully unpaired from partner',

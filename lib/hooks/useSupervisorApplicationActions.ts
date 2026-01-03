@@ -1,8 +1,5 @@
 'use client';
 
-// lib/hooks/useSupervisorApplicationActions.ts
-// Custom hook for supervisor application action handlers
-
 import { useActionHandler, type ActionConfig } from './useActionHandler';
 import { apiClient } from '@/lib/api/client';
 import type { ApplicationStatus } from '@/types/database';

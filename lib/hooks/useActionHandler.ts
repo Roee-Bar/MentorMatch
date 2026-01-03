@@ -9,19 +9,6 @@
  * - Error handling and callbacks
  * - Success callbacks and refresh triggers
  * - Unmount protection for components
- * 
- * @example
- * ```typescript
- * const actions = useActionHandler(config, {
- *   submitForm: {
- *     key: (params) => `submit-${params.id}`,
- *     handler: async (params, token) => {
- *       await apiClient.submit(params, token);
- *     },
- *     successMessage: 'Form submitted successfully!',
- *   },
- * });
- * ```
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -76,17 +63,19 @@ export function useActionHandler<TActions extends Record<string, ActionDefinitio
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const mountedRef = useRef(true);
 
+  const preventUnmount = config.preventUnmountUpdates ?? false;
+
   // Cleanup on unmount if needed
   useEffect(() => {
-    if (config.preventUnmountUpdates) {
+    if (preventUnmount) {
       return () => {
         mountedRef.current = false;
       };
     }
-  }, [config.preventUnmountUpdates]);
+  }, [preventUnmount]);
 
   const setLoading = (key: string, value: boolean) => {
-    if (config.preventUnmountUpdates && !mountedRef.current) {
+    if (preventUnmount && !mountedRef.current) {
       return;
     }
     setLoadingStates((prev) => ({ ...prev, [key]: value }));
@@ -131,7 +120,6 @@ export function useActionHandler<TActions extends Record<string, ActionDefinitio
         if (actionDef.rethrowError) {
           throw error;
         }
-        throw error;
       } finally {
         setLoading(key, false);
       }
