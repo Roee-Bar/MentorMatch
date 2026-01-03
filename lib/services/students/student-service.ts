@@ -2,10 +2,9 @@
 // SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 // Student management services
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toStudent } from '@/lib/services/shared/firestore-converters';
+import { studentRepository } from '@/lib/repositories/student-repository';
 import { PartnershipRequestService } from '@/lib/services/partnerships/partnership-request-service';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student } from '@/types/database';
@@ -14,12 +13,8 @@ import type { Student } from '@/types/database';
 // STUDENT SERVICE CLASS
 // ============================================
 class StudentServiceClass extends BaseService<Student> {
-  protected collectionName = 'students';
   protected serviceName = 'StudentService';
-  
-  protected toEntity(id: string, data: any): Student {
-    return toStudent(id, data);
-  }
+  protected repository = studentRepository;
 
   async getStudentById(studentId: string): Promise<Student | null> {
     return this.getById(studentId);
@@ -37,25 +32,23 @@ class StudentServiceClass extends BaseService<Student> {
 
   async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
     try {
-      // Query for students who are not paired (allows multiple pending requests)
-      const querySnapshot = await this.getCollection()
-        .where('partnershipStatus', '!=', 'paired')
-        .get();
+      // Get all students and filter in memory (Firestore doesn't support != operator efficiently)
+      const allStudents = await this.repository.findAll();
       
-      // Filter out the current user
-      const students = querySnapshot.docs
-        .filter(doc => doc.id !== excludeStudentId)
-        .map(doc => this.toEntity(doc.id, doc.data()));
+      // Filter out the current user and students who are already paired
+      const unpairedStudents = allStudents.filter(
+        student => student.id !== excludeStudentId && student.partnershipStatus !== 'paired'
+      );
       
       // Check for existing requests in parallel for all students
       const existingChecks = await Promise.all(
-        students.map(student => 
+        unpairedStudents.map(student => 
           PartnershipRequestService.checkExistingRequest(excludeStudentId, student.id)
         )
       );
       
       // Filter out students who already have a pending request with the current user
-      const availableStudents = students.filter((student, index) => 
+      const availableStudents = unpairedStudents.filter((student, index) => 
         !existingChecks[index].exists
       );
       

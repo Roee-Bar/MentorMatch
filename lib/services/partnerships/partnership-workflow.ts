@@ -5,6 +5,8 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { studentService } from '@/lib/services/students/student-service';
+import { studentRepository } from '@/lib/repositories/student-repository';
+import { partnershipRequestRepository } from '@/lib/repositories/partnership-request-repository';
 import { PartnershipRequestService } from './partnership-request-service';
 import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
@@ -52,8 +54,8 @@ export const PartnershipWorkflowService = {
       let requestId = '';
       
       await adminDb.runTransaction(async (transaction) => {
-        const requesterRef = adminDb.collection('students').doc(requesterId);
-        const targetRef = adminDb.collection('students').doc(targetStudentId);
+        const requesterRef = studentRepository.getDocumentRef(requesterId);
+        const targetRef = studentRepository.getDocumentRef(targetStudentId);
 
         // Read both student documents in transaction
         const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
@@ -84,7 +86,8 @@ export const PartnershipWorkflowService = {
           createdAt: new Date(),
         };
 
-        const requestRef = adminDb.collection('partnership_requests').doc();
+        // Generate a new document ID for the request
+        const requestRef = partnershipRequestRepository.getNewDocumentRef();
         requestId = requestRef.id;
         transaction.set(requestRef, requestData);
 
@@ -176,22 +179,20 @@ export const PartnershipWorkflowService = {
       await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
       // Only reset status to 'none' if no other pending requests exist
-      const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
+      const updates: Promise<void>[] = [];
       
       if (requesterPendingCount === 0) {
         updates.push(
-          adminDb.collection('students').doc(requesterId).update({
-            partnershipStatus: 'none',
-            updatedAt: new Date()
+          studentRepository.update(requesterId, {
+            partnershipStatus: 'none'
           })
         );
       }
 
       if (targetPendingCount === 0) {
         updates.push(
-          adminDb.collection('students').doc(request.targetStudentId).update({
-            partnershipStatus: 'none',
-            updatedAt: new Date()
+          studentRepository.update(request.targetStudentId, {
+            partnershipStatus: 'none'
           })
         );
       }
@@ -246,9 +247,9 @@ export const PartnershipWorkflowService = {
   ): Promise<ServiceResult> {
     // Use transaction to prevent race conditions
     await adminDb.runTransaction(async (transaction) => {
-      const requesterRef = adminDb.collection('students').doc(request.requesterId);
-      const targetRef = adminDb.collection('students').doc(targetStudentId);
-      const requestRef = adminDb.collection('partnership_requests').doc(requestId);
+      const requesterRef = studentRepository.getDocumentRef(request.requesterId);
+      const targetRef = studentRepository.getDocumentRef(targetStudentId);
+      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
       // Read both student documents
       const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
@@ -317,7 +318,7 @@ export const PartnershipWorkflowService = {
 
     // Use transaction to ensure atomic rejection
     await adminDb.runTransaction(async (transaction) => {
-      const requestRef = adminDb.collection('partnership_requests').doc(requestId);
+      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
       // Update request status
       transaction.update(requestRef, {
@@ -327,22 +328,20 @@ export const PartnershipWorkflowService = {
     });
 
     // Only reset status to 'none' if no other pending requests exist
-    const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
+    const updates: Promise<void>[] = [];
     
     if (requesterPendingCount === 0) {
       updates.push(
-        adminDb.collection('students').doc(request.requesterId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
+        studentRepository.update(request.requesterId, {
+          partnershipStatus: 'none'
         })
       );
     }
 
     if (targetPendingCount === 0) {
       updates.push(
-        adminDb.collection('students').doc(targetStudentId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
+        studentRepository.update(targetStudentId, {
+          partnershipStatus: 'none'
         })
       );
     }

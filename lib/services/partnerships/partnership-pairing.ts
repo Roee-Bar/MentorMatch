@@ -4,7 +4,9 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { studentService } from '@/lib/services/students/student-service';
-import { toStudent } from '@/lib/services/shared/firestore-converters';
+import { studentRepository } from '@/lib/repositories/student-repository';
+import { partnershipRequestRepository } from '@/lib/repositories/partnership-request-repository';
+import { applicationRepository } from '@/lib/repositories/application-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import { executeBatchUpdates } from './utils/batch-utils';
 import type { ServiceResult } from '@/lib/services/shared/types';
@@ -23,14 +25,12 @@ export const PartnershipPairingService = {
    */
   async getAvailableStudents(currentUserId: string): Promise<Student[]> {
     try {
-      const studentsRef = adminDb.collection('students');
-      const snapshot = await studentsRef
-        .where('partnershipStatus', '!=', 'paired')
-        .get();
+      // Get all students and filter in memory (Firestore doesn't support != operator efficiently)
+      const allStudents = await studentRepository.findAll();
       
-      return snapshot.docs
-        .filter(doc => doc.id !== currentUserId)
-        .map(doc => toStudent(doc.id, doc.data()));
+      return allStudents.filter(
+        student => student.id !== currentUserId && student.partnershipStatus !== 'paired'
+      );
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getAvailableStudents', error, { currentUserId });
       return [];
@@ -62,8 +62,8 @@ export const PartnershipPairingService = {
   ): Promise<ServiceResult> {
     try {
       await adminDb.runTransaction(async (transaction) => {
-        const student1Ref = adminDb.collection('students').doc(studentId1);
-        const student2Ref = adminDb.collection('students').doc(studentId2);
+        const student1Ref = studentRepository.getDocumentRef(studentId1);
+        const student2Ref = studentRepository.getDocumentRef(studentId2);
 
         transaction.update(student1Ref, {
           partnerId: studentId2,
@@ -93,8 +93,8 @@ export const PartnershipPairingService = {
   async unpairStudents(studentId1: string, studentId2: string): Promise<ServiceResult> {
     try {
       await adminDb.runTransaction(async (transaction) => {
-        const student1Ref = adminDb.collection('students').doc(studentId1);
-        const student2Ref = adminDb.collection('students').doc(studentId2);
+        const student1Ref = studentRepository.getDocumentRef(studentId1);
+        const student2Ref = studentRepository.getDocumentRef(studentId2);
 
         // Read both student documents
         const [student1Snap, student2Snap] = await transaction.getAll(student1Ref, student2Ref);
@@ -149,19 +149,19 @@ export const PartnershipPairingService = {
     try {
       // Get all pending requests where student is requester or target
       const [requestsAsRequester, requestsAsTarget] = await Promise.all([
-        adminDb.collection('partnership_requests')
-          .where('requesterId', '==', studentId)
-          .where('status', '==', 'pending')
-          .get(),
-        adminDb.collection('partnership_requests')
-          .where('targetStudentId', '==', studentId)
-          .where('status', '==', 'pending')
-          .get()
+        partnershipRequestRepository.findAll([
+          { field: 'requesterId', operator: '==', value: studentId },
+          { field: 'status', operator: '==', value: 'pending' }
+        ]),
+        partnershipRequestRepository.findAll([
+          { field: 'targetStudentId', operator: '==', value: studentId },
+          { field: 'status', operator: '==', value: 'pending' }
+        ])
       ]);
 
       const allRefs = [
-        ...requestsAsRequester.docs.map(doc => doc.ref),
-        ...requestsAsTarget.docs.map(doc => doc.ref)
+        ...requestsAsRequester.map(req => partnershipRequestRepository.getDocumentRef(req.id)),
+        ...requestsAsTarget.map(req => partnershipRequestRepository.getDocumentRef(req.id))
       ];
       
       const result = await executeBatchUpdates(
@@ -184,17 +184,29 @@ export const PartnershipPairingService = {
    */
   async updateApplicationsAfterUnpair(studentId1: string, studentId2: string): Promise<void> {
     try {
-      const applicationsSnapshot = await adminDb.collection('applications')
-        .where('studentId', 'in', [studentId1, studentId2])
-        .where('status', 'in', ['pending', 'approved'])
-        .get();
+      // Get applications for both students - need to query separately since Firestore 'in' has limit of 10
+      const [apps1, apps2] = await Promise.all([
+        applicationRepository.findAll([
+          { field: 'studentId', operator: '==', value: studentId1 }
+        ]),
+        applicationRepository.findAll([
+          { field: 'studentId', operator: '==', value: studentId2 }
+        ])
+      ]);
 
-      if (applicationsSnapshot.empty) {
+      // Filter to only pending/approved applications
+      const applicationsToUpdate = [...apps1, ...apps2].filter(
+        app => app.status === 'pending' || app.status === 'approved'
+      );
+
+      if (applicationsToUpdate.length === 0) {
         return; // No applications to update
       }
 
+      const refs = applicationsToUpdate.map(app => applicationRepository.getDocumentRef(app.id));
+
       await executeBatchUpdates(
-        applicationsSnapshot.docs.map(doc => doc.ref),
+        refs,
         {
           hasPartner: false,
           partnerName: null,
@@ -219,17 +231,21 @@ export const PartnershipPairingService = {
     partnerEmail: string | null
   ): Promise<ServiceResult<number>> {
     try {
-      const applicationsSnapshot = await adminDb.collection('applications')
-        .where('studentId', '==', studentId)
-        .where('status', 'in', ['pending', 'approved'])
-        .get();
+      const applications = await applicationRepository.findByStudentId(studentId);
 
-      if (applicationsSnapshot.empty) {
+      // Filter to only pending/approved applications
+      const applicationsToUpdate = applications.filter(
+        app => app.status === 'pending' || app.status === 'approved'
+      );
+
+      if (applicationsToUpdate.length === 0) {
         return ServiceResults.success(0, 'No applications to update');
       }
 
+      const refs = applicationsToUpdate.map(app => applicationRepository.getDocumentRef(app.id));
+
       const result = await executeBatchUpdates(
-        applicationsSnapshot.docs.map(doc => doc.ref),
+        refs,
         {
           hasPartner,
           partnerName,

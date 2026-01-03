@@ -3,7 +3,7 @@
 // User management services
 
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toUser } from '@/lib/services/shared/firestore-converters';
+import { userRepository } from '@/lib/repositories/user-repository';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { BaseUser } from '@/types/database';
 
@@ -11,12 +11,8 @@ import type { BaseUser } from '@/types/database';
 // USER SERVICE CLASS
 // ============================================
 class UserServiceClass extends BaseService<BaseUser> {
-  protected collectionName = 'users';
   protected serviceName = 'UserService';
-  
-  protected toEntity(id: string, data: any): BaseUser {
-    return toUser(id, data);
-  }
+  protected repository = userRepository;
 
   async getUserById(userId: string): Promise<BaseUser | null> {
     return this.getById(userId);

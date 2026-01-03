@@ -2,22 +2,20 @@
 // SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 // Admin management services
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toAdmin, toStudent, toApplication } from '@/lib/services/shared/firestore-converters';
+import { adminRepository } from '@/lib/repositories/admin-repository';
+import { studentRepository } from '@/lib/repositories/student-repository';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { applicationRepository } from '@/lib/repositories/application-repository';
 import type { Admin, DashboardStats, Student } from '@/types/database';
 
 // ============================================
 // ADMIN SERVICE CLASS
 // ============================================
 class AdminServiceClass extends BaseService<Admin> {
-  protected collectionName = 'admins';
   protected serviceName = 'AdminService';
-  
-  protected toEntity(id: string, data: any): Admin {
-    return toAdmin(id, data);
-  }
+  protected repository = adminRepository;
 
   async getAdminById(adminId: string): Promise<Admin | null> {
     return this.getById(adminId);
@@ -25,15 +23,11 @@ class AdminServiceClass extends BaseService<Admin> {
 
   async getDashboardStats(): Promise<DashboardStats> {
     try {
-      const [studentsSnapshot, supervisorsSnapshot, applicationsSnapshot] = await Promise.all([
-        adminDb.collection('students').get(),
-        adminDb.collection('supervisors').where('isActive', '==', true).get(),
-        adminDb.collection('applications').get(),
+      const [students, supervisors, applications] = await Promise.all([
+        studentRepository.findAll(),
+        supervisorRepository.findActive(),
+        applicationRepository.findAll(),
       ]);
-
-      const students: Student[] = studentsSnapshot.docs.map((doc) => toStudent(doc.id, doc.data()));
-      const supervisors = supervisorsSnapshot.docs.map((doc) => doc.data());
-      const applications = applicationsSnapshot.docs.map((doc) => toApplication(doc.id, doc.data()));
 
       // Existing metrics
       const matchedStudents = students.filter((s) => s.matchStatus === 'matched').length;
@@ -43,7 +37,7 @@ class AdminServiceClass extends BaseService<Admin> {
 
       // NEW METRICS
       // 1. Total supervisors (count all)
-      const totalSupervisors = supervisorsSnapshot.size;
+      const totalSupervisors = supervisors.length;
 
       // 2. Approved applications
       const approvedApplications = applications.filter(
@@ -73,7 +67,7 @@ class AdminServiceClass extends BaseService<Admin> {
         totalStudents: students.length,
         matchedStudents,
         pendingMatches,
-        activeSupervisors: supervisorsSnapshot.size,
+        activeSupervisors: supervisors.length,
         totalSupervisors,
         approvedApplications,
         pendingApplications,

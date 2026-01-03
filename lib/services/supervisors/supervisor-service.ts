@@ -2,10 +2,9 @@
 // SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 // Supervisor management services
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toSupervisor } from '@/lib/services/shared/firestore-converters';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
@@ -14,12 +13,8 @@ import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/t
 // SUPERVISOR SERVICE CLASS
 // ============================================
 class SupervisorServiceClass extends BaseService<Supervisor> {
-  protected collectionName = 'supervisors';
   protected serviceName = 'SupervisorService';
-  
-  protected toEntity(id: string, data: any): Supervisor {
-    return toSupervisor(id, data);
-  }
+  protected repository = supervisorRepository;
 
   async getSupervisorById(supervisorId: string): Promise<Supervisor | null> {
     return this.getById(supervisorId);
@@ -50,16 +45,15 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
 
   async getAvailableSupervisors(): Promise<SupervisorCardData[]> {
     try {
-      const querySnapshot = await this.getCollection()
-        .where('isActive', '==', true)
-        .where('isApproved', '==', true)
-        .get();
+      const supervisors = await this.repository.findAll([
+        { field: 'isActive', operator: '==', value: true },
+        { field: 'isApproved', operator: '==', value: true }
+      ]);
       
-      return querySnapshot.docs
-        .map((doc) => {
-          const data = this.toEntity(doc.id, doc.data());
+      return supervisors
+        .map((data) => {
           return {
-            id: doc.id,
+            id: data.id,
             name: data.fullName,
             department: data.department,
             bio: data.bio,
