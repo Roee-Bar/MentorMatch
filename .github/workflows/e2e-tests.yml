@@ -87,6 +87,15 @@ jobs:
             echo "Dependencies found in cache"
           fi
 
+      - name: Type check
+        shell: bash
+        run: |
+          echo "Running TypeScript type check..."
+          npm run typecheck || {
+            echo "TypeScript errors found. This may cause test failures."
+            echo "Continuing anyway to see test errors..."
+          }
+
       - name: Set test environment variables
         uses: ./.github/actions/test-env-vars
         with:

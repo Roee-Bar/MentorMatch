@@ -21,6 +21,15 @@ export default defineConfig({
     ['list'],
     ...(process.env.CI ? [['github'] as const] : []),
   ],
+  // Use the project's tsconfig.json for path resolution
+  use: {
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
+  },
   
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
