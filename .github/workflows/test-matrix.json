@@ -3,7 +3,16 @@
     {
       "suite": "Auth + Student",
       "test_paths": "e2e/tests/auth/ e2e/tests/student/",
-      "artifact_name": "auth-student"
+      "artifact_name": "auth-student",
+      "shard": 1,
+      "shards": 2
+    },
+    {
+      "suite": "Auth + Student",
+      "test_paths": "e2e/tests/auth/ e2e/tests/student/",
+      "artifact_name": "auth-student",
+      "shard": 2,
+      "shards": 2
     },
     {
       "suite": "Supervisor",

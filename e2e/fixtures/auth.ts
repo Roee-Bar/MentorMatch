@@ -131,8 +131,12 @@ async function authenticateUser(
     // Navigate to the app
     await page.goto('/');
     
-    // Wait for authentication to complete
-    await page.waitForTimeout(2000);
+    // Wait for authentication to complete - check for auth state in localStorage or Firebase
+    await page.waitForFunction(() => {
+      return window.localStorage.getItem('firebase:authUser') !== null ||
+             document.cookie.includes('auth') ||
+             (window as any).firebase?.auth()?.currentUser !== null;
+    }, { timeout: 10000 });
     await page.waitForURL(/\/(authenticated|dashboard|supervisor|admin|$)/, { timeout: 15000 });
     return;
   }

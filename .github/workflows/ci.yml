@@ -399,6 +399,8 @@ jobs:
         with:
           test-paths: ${{ matrix.test_paths }}
           suite-name: ${{ matrix.suite }}
+          shard: ${{ matrix.shard }}
+          shards: ${{ matrix.shards }}
 
       - name: Stop Firebase Emulators
         if: always()

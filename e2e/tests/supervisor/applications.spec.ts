@@ -4,15 +4,25 @@
 
 import { test, expect } from '../../fixtures/auth';
 import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
-import { seedStudent, seedApplication } from '../../fixtures/db-helpers';
+import { seedStudent, seedApplication, cleanupUser } from '../../fixtures/db-helpers';
+import type { Student } from '@/types/database';
 
 test.describe('Supervisor - Applications', () => {
+  let sharedStudent: { uid: string; student: Student };
+
+  test.beforeAll(async () => {
+    sharedStudent = await seedStudent();
+  });
+
+  test.afterAll(async () => {
+    await cleanupUser(sharedStudent.uid);
+  });
+
   test('should display pending applications', async ({ page, authenticatedSupervisor }) => {
     const dashboard = new SupervisorDashboard(page);
 
-    // Create a student and application
-    const { student } = await seedStudent();
-    await seedApplication(student.id, authenticatedSupervisor.uid, {
+    // Use shared student
+    await seedApplication(sharedStudent.student.id, authenticatedSupervisor.uid, {
       status: 'pending',
     });
 
@@ -28,9 +38,8 @@ test.describe('Supervisor - Applications', () => {
   test('should approve an application', async ({ page, authenticatedSupervisor }) => {
     const dashboard = new SupervisorDashboard(page);
 
-    // Create a student and application
-    const { student } = await seedStudent();
-    const { application } = await seedApplication(student.id, authenticatedSupervisor.uid, {
+    // Use shared student
+    const { application } = await seedApplication(sharedStudent.student.id, authenticatedSupervisor.uid, {
       status: 'pending',
     });
 
@@ -54,9 +63,8 @@ test.describe('Supervisor - Applications', () => {
   test('should reject an application', async ({ page, authenticatedSupervisor }) => {
     const dashboard = new SupervisorDashboard(page);
 
-    // Create a student and application
-    const { student } = await seedStudent();
-    await seedApplication(student.id, authenticatedSupervisor.uid, {
+    // Use shared student
+    await seedApplication(sharedStudent.student.id, authenticatedSupervisor.uid, {
       status: 'pending',
     });
 

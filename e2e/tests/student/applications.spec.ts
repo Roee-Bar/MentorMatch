@@ -4,16 +4,26 @@
 
 import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
-import { seedSupervisor, seedApplication, cleanupApplication } from '../../fixtures/db-helpers';
+import { seedSupervisor, seedApplication, cleanupApplication, cleanupUser } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
+import type { Supervisor } from '@/types/database';
 
 test.describe('Student - Applications', () => {
+  let sharedSupervisor: { uid: string; supervisor: Supervisor };
+
+  test.beforeAll(async () => {
+    sharedSupervisor = await seedSupervisor();
+  });
+
+  test.afterAll(async () => {
+    await cleanupUser(sharedSupervisor.uid);
+  });
+
   test('should display student applications', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
-    // Create a supervisor and application
-    const { supervisor } = await seedSupervisor();
-    await seedApplication(authenticatedStudent.uid, supervisor.id, {
+    // Use shared supervisor
+    await seedApplication(authenticatedStudent.uid, sharedSupervisor.supervisor.id, {
       status: 'pending',
     });
 
@@ -29,9 +39,7 @@ test.describe('Student - Applications', () => {
   test('should submit a new application', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
-    // Create a supervisor
-    const { supervisor } = await seedSupervisor();
-
+    // Use shared supervisor
     await dashboard.goto();
     await dashboard.navigateToSupervisors();
 
@@ -64,7 +72,7 @@ test.describe('Student - Applications', () => {
   test('should delete a pending application', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
-    // Create a supervisor with capacity
+    // Create a supervisor with capacity for this specific test
     const { supervisor } = await seedSupervisor({
       maxCapacity: 5,
       currentCapacity: 2,
@@ -94,6 +102,9 @@ test.describe('Student - Applications', () => {
     // Verify application removed from database
     const applicationDoc = await adminDb.collection('applications').doc(application.id).get();
     expect(applicationDoc.exists).toBeFalsy();
+
+    // Cleanup supervisor created for this test
+    await cleanupUser(supervisor.id);
   });
 
   test('should decrease supervisor capacity when deleting approved application', async ({ page, authenticatedStudent }) => {

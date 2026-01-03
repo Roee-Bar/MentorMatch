@@ -8,6 +8,12 @@ inputs:
   suite-name:
     description: 'Name of the test suite'
     required: true
+  shard:
+    description: 'Shard number (e.g., 1)'
+    required: false
+  shards:
+    description: 'Total number of shards (e.g., 2)'
+    required: false
   timeout:
     description: 'Test timeout in milliseconds'
     required: false
@@ -63,8 +69,15 @@ runs:
         echo "Note: Playwright will automatically start the Next.js dev server via webServer configuration"
         echo "This may take up to 2 minutes for the first build..."
         
+        # Build shard arguments if provided
+        SHARD_ARGS=""
+        if [ -n "${{ inputs.shard }}" ] && [ -n "${{ inputs.shards }}" ]; then
+          SHARD_ARGS="--shard=${{ inputs.shard }}/${{ inputs.shards }}"
+          echo "Using sharding: $SHARD_ARGS"
+        fi
+        
         set -o pipefail
-        PLAYWRIGHT_TIMEOUT=${{ inputs.timeout }} npx playwright test "${TEST_PATHS_ARRAY[@]}" --timeout=60000 2>&1 | tee test-output.log
+        PLAYWRIGHT_TIMEOUT=${{ inputs.timeout }} npx playwright test "${TEST_PATHS_ARRAY[@]}" $SHARD_ARGS --timeout=60000 2>&1 | tee test-output.log
         TEST_EXIT_CODE=${PIPESTATUS[0]}
         
         if [ $TEST_EXIT_CODE -ne 0 ]; then

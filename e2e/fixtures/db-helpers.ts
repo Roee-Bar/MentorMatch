@@ -203,6 +203,42 @@ export async function cleanupProject(projectId: string): Promise<void> {
 }
 
 /**
+ * Seed multiple students in parallel
+ */
+export async function seedMultipleStudents(
+  count: number,
+  overrides?: Partial<Student>
+): Promise<Array<{ uid: string; student: Student }>> {
+  return Promise.all(
+    Array.from({ length: count }, () => seedStudent(overrides))
+  );
+}
+
+/**
+ * Seed multiple supervisors in parallel
+ */
+export async function seedMultipleSupervisors(
+  count: number,
+  overrides?: Partial<Supervisor>
+): Promise<Array<{ uid: string; supervisor: Supervisor }>> {
+  return Promise.all(
+    Array.from({ length: count }, () => seedSupervisor(overrides))
+  );
+}
+
+/**
+ * Seed multiple admins in parallel
+ */
+export async function seedMultipleAdmins(
+  count: number,
+  overrides?: Partial<Admin>
+): Promise<Array<{ uid: string; admin: Admin }>> {
+  return Promise.all(
+    Array.from({ length: count }, () => seedAdmin(overrides))
+  );
+}
+
+/**
  * Clean up all test data (use with caution)
  */
 export async function cleanupAllTestData(): Promise<void> {

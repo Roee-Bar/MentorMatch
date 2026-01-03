@@ -17,7 +17,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 4 : undefined,
   reporter: [
     ['html'],
     ['list'],
@@ -29,8 +29,12 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    actionTimeout: 10000,
-    navigationTimeout: 30000,
+    actionTimeout: 5000,
+    navigationTimeout: 15000,
+  },
+
+  expect: {
+    timeout: 5000,
   },
 
   // Note: Environment variables for test workers are inherited from process.env
