@@ -18,13 +18,11 @@ if (!admin.apps.length) {
 
     // Check if all required environment variables are present
     if (!projectId || !clientEmail || !privateKey) {
-      // During build time or in non-production environments, initialize with minimal config
-      // This allows Next.js to statically analyze API routes during build
-      // In production runtime, we'll fail if credentials are missing
-      const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+      // Only fail in production runtime on Vercel (actual deployment)
+      // For builds, tests, and development, initialize with minimal config
       const isProductionRuntime = process.env.NODE_ENV === 'production' && 
-                                  !isBuildTime && 
-                                  process.env.VERCEL === '1';
+                                  process.env.VERCEL === '1' &&
+                                  !process.env.CI; // CI builds should use minimal config
       
       if (isProductionRuntime) {
         const error = new Error('CRITICAL: Missing Firebase Admin credentials in production');
