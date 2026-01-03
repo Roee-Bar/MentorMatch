@@ -9,6 +9,7 @@
 import { StudentService } from '@/lib/services/students/student-service';
 import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import type { Application } from '@/types/database';
+import type { ApplicationStatusChangedEvent } from '@/lib/services/shared/events';
 
 // ============================================
 // TYPES
@@ -23,6 +24,16 @@ export interface NotificationRecipients {
   emails: string[];
   /** Display names of recipients (same order as emails) */
   names: string[];
+}
+
+/**
+ * Email recipient with user identification
+ * Used by email service for status change notifications
+ */
+export interface EmailRecipient {
+  email: string;
+  name: string;
+  userId: string;
 }
 
 /**
@@ -118,6 +129,57 @@ export async function getSupervisorRecipient(
     emails: [supervisor.email],
     names: [supervisor.fullName],
   };
+}
+
+/**
+ * Get recipients for application status change notifications
+ * Excludes the user who triggered the status change
+ * 
+ * @param event - Application status changed event
+ * @param application - The application object (must include partnerId)
+ * @param triggeredByUserId - User ID who triggered the change (to exclude)
+ * @returns Array of EmailRecipient objects
+ */
+export async function getApplicationStatusChangeRecipients(
+  event: ApplicationStatusChangedEvent,
+  application: Application,
+  triggeredByUserId: string
+): Promise<EmailRecipient[]> {
+  const recipients: EmailRecipient[] = [];
+
+  // Add student (if not the triggerer)
+  if (event.studentId !== triggeredByUserId) {
+    recipients.push({
+      email: event.studentEmail,
+      name: event.studentName,
+      userId: event.studentId,
+    });
+  }
+
+  // Add supervisor (need to fetch email, and exclude if triggerer)
+  if (event.supervisorId !== triggeredByUserId) {
+    const supervisor = await SupervisorService.getSupervisorById(event.supervisorId);
+    if (supervisor) {
+      recipients.push({
+        email: supervisor.email,
+        name: event.supervisorName,
+        userId: event.supervisorId,
+      });
+    }
+  }
+
+  // Add partner (if exists and not the triggerer)
+  if (event.hasPartner && event.partnerEmail && application.partnerId) {
+    if (application.partnerId !== triggeredByUserId) {
+      recipients.push({
+        email: event.partnerEmail,
+        name: event.partnerName || 'Partner',
+        userId: application.partnerId,
+      });
+    }
+  }
+
+  return recipients;
 }
 
 // ============================================
