@@ -24,6 +24,9 @@ jobs:
     timeout-minutes: 5
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
@@ -45,6 +48,9 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
@@ -77,6 +83,9 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
