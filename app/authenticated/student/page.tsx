@@ -87,6 +87,9 @@ export default function StudentAuthenticated() {
 
   // Ref to track previous application count for scroll detection
   const previousAppCountRef = useRef(applications.length);
+  
+  // Ref for scrolling to applications section when Apply is clicked
+  const applicationsSectionRef = useRef<HTMLDivElement>(null);
 
   // Scroll to newly submitted application after data refresh
   useEffect(() => {
@@ -146,6 +149,16 @@ export default function StudentAuthenticated() {
     if (supervisor) {
       setSelectedSupervisor(supervisor);
       setShowApplicationModal(true);
+      
+      // Scroll to applications section once when Apply is clicked
+      setTimeout(() => {
+        if (applicationsSectionRef.current) {
+          applicationsSectionRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
+      }, 100);
     }
   };
 
@@ -339,7 +352,11 @@ export default function StudentAuthenticated() {
         )}
 
         {/* My Applications Section */}
-        <div className="mb-8">
+        <div 
+          ref={applicationsSectionRef}
+          id="my-applications-section"
+          className="mb-8"
+        >
           <SectionHeader
             title="My Applications"
             action={
