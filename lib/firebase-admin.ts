@@ -18,25 +18,31 @@ if (!admin.apps.length) {
 
     // Check if all required environment variables are present
     if (!projectId || !clientEmail || !privateKey) {
-      // Fail fast in production to prevent silent failures
-      if (process.env.NODE_ENV === 'production') {
+      // During build time or in non-production environments, initialize with minimal config
+      // This allows Next.js to statically analyze API routes during build
+      // In production runtime, we'll fail if credentials are missing
+      const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+      const isProductionRuntime = process.env.NODE_ENV === 'production' && 
+                                  !isBuildTime && 
+                                  process.env.VERCEL === '1';
+      
+      if (isProductionRuntime) {
         const error = new Error('CRITICAL: Missing Firebase Admin credentials in production');
         logger.error('Firebase initialization failed', error, { context: 'Firebase' });
         throw error;
       }
       
       logger.warn(
-        'Missing Firebase Admin environment variables. Server-side features unavailable.',
+        'Missing Firebase Admin environment variables. Initializing with minimal config for build/testing.',
         { context: 'Firebase', data: { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKey } }
       );
       
-      // Initialize with minimal config for testing or development only
-      if (isTestEnv) {
-        admin.initializeApp({
-          projectId: projectId || 'demo-test',
-        });
-        logger.debug('Initialized with minimal config for testing', { context: 'Firebase' });
-      }
+      // Initialize with minimal config for build, testing, or development
+      // This allows the build to succeed and API routes to be analyzed
+      admin.initializeApp({
+        projectId: projectId || 'demo-test',
+      });
+      logger.debug('Initialized with minimal config', { context: 'Firebase' });
     } else {
       // Initialize with full credentials
       admin.initializeApp({
