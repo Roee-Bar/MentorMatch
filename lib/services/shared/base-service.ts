@@ -37,6 +37,38 @@ export abstract class BaseService<T extends { id: string }> {
   protected abstract toEntity(id: string, data: any): T;
 
   /**
+   * Validate data before creation (override in subclasses for custom validation)
+   * 
+   * @param data - Entity data to validate
+   * @throws Error if validation fails
+   */
+  protected async validateBeforeCreate(data: Omit<T, 'id'>): Promise<void> {
+    // Default: no validation
+    // Subclasses can override for custom validation
+  }
+
+  /**
+   * Validate updates before applying (override in subclasses for custom validation)
+   * 
+   * @param id - Entity ID
+   * @param updates - Updates to validate
+   * @throws Error if validation fails
+   */
+  protected async validateBeforeUpdate(id: string, updates: Partial<T>): Promise<void> {
+    // Default: no validation
+    // Subclasses can override for custom validation
+  }
+
+  /**
+   * Get collection reference (for complex multi-query scenarios)
+   * 
+   * @returns Firestore collection reference
+   */
+  protected getCollection(): FirebaseFirestore.CollectionReference {
+    return adminDb.collection(this.collectionName);
+  }
+
+  /**
    * Get entity by ID
    * Returns null if not found or on error
    */
@@ -67,17 +99,18 @@ export abstract class BaseService<T extends { id: string }> {
   }
 
   /**
-   * Query entities with filters
+   * Query entities with filters (returns ServiceResult for error handling)
    * 
    * @param conditions - Array of filter conditions
    * @param orderBy - Optional sorting configuration
    * @param limit - Optional limit on results
+   * @returns ServiceResult with array of entities or error
    */
-  protected async query(
+  protected async queryWithResult(
     conditions: Array<{ field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }>,
     orderBy?: { field: string; direction: 'asc' | 'desc' },
     limit?: number
-  ): Promise<T[]> {
+  ): Promise<ServiceResult<T[]>> {
     try {
       let query: FirebaseFirestore.Query = adminDb.collection(this.collectionName);
       
@@ -94,24 +127,48 @@ export abstract class BaseService<T extends { id: string }> {
       }
       
       const snapshot = await query.get();
-      return snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
+      const results = snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
+      return ServiceResults.success(results);
     } catch (error) {
       logger.service.error(this.serviceName, 'query', error, { conditions });
-      return [];
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to query entities'
+      );
     }
+  }
+
+  /**
+   * Query entities with filters
+   * Returns empty array on error (for backward compatibility)
+   * Use queryWithResult() if you need to distinguish between "no results" and "error"
+   * 
+   * @param conditions - Array of filter conditions
+   * @param orderBy - Optional sorting configuration
+   * @param limit - Optional limit on results
+   */
+  protected async query(
+    conditions: Array<{ field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }>,
+    orderBy?: { field: string; direction: 'asc' | 'desc' },
+    limit?: number
+  ): Promise<T[]> {
+    const result = await this.queryWithResult(conditions, orderBy, limit);
+    return result.success ? (result.data || []) : [];
   }
 
   /**
    * Create new entity
    * 
-   * @param data - Entity data without id
+   * @param data - Entity data without id and timestamp fields (timestamp fields are handled internally)
    * @param timestampFields - Optional custom timestamp field names (defaults to createdAt/updatedAt)
    */
   protected async create(
-    data: Omit<T, 'id'>,
+    data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'dateApplied' | 'lastUpdated'>,
     timestampFields?: { createdAt?: string; updatedAt?: string }
   ): Promise<ServiceResult<string>> {
     try {
+      // Validate before creation
+      await this.validateBeforeCreate(data as Omit<T, 'id'>);
+      
       const cleanData = this.cleanData(data);
       const createdAtField = timestampFields?.createdAt || 'createdAt';
       const updatedAtField = timestampFields?.updatedAt || 'updatedAt';
@@ -144,6 +201,9 @@ export abstract class BaseService<T extends { id: string }> {
     timestampField?: string
   ): Promise<ServiceResult> {
     try {
+      // Validate before update
+      await this.validateBeforeUpdate(id, updates);
+      
       const cleanUpdates = this.cleanData(updates);
       const updatedAtField = timestampField || 'updatedAt';
       

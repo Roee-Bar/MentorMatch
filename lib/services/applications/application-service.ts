@@ -44,21 +44,43 @@ class ApplicationServiceClass extends BaseService<Application> {
     return toApplication(id, data);
   }
 
-  // Public methods that wrap protected base methods
+  /**
+   * Get application by ID
+   * 
+   * @param applicationId - Application ID
+   * @returns Application or null if not found
+   */
   async getApplicationById(applicationId: string): Promise<Application | null> {
     return this.getById(applicationId);
   }
 
+  /**
+   * Get all applications (for admin)
+   * 
+   * @returns Array of all applications
+   */
   async getAllApplications(): Promise<Application[]> {
     return this.getAll();
   }
 
+  /**
+   * Get all applications for a supervisor
+   * 
+   * @param supervisorId - Supervisor ID
+   * @returns Array of applications
+   */
   async getSupervisorApplications(supervisorId: string): Promise<Application[]> {
     return this.query([
       { field: 'supervisorId', operator: '==', value: supervisorId }
     ]);
   }
 
+  /**
+   * Get pending applications for a supervisor
+   * 
+   * @param supervisorId - Supervisor ID
+   * @returns Array of pending applications
+   */
   async getPendingApplications(supervisorId: string): Promise<Application[]> {
     return this.query([
       { field: 'supervisorId', operator: '==', value: supervisorId },
@@ -66,7 +88,12 @@ class ApplicationServiceClass extends BaseService<Application> {
     ]);
   }
 
-  // Create new application with custom timestamp fields
+  /**
+   * Create new application with custom timestamp fields
+   * 
+   * @param applicationData - Application data (timestamp fields will be set automatically)
+   * @returns ServiceResult with application ID or error
+   */
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
     // Log incoming data for debugging
     logger.service.operation(this.serviceName, 'createApplication', { 
@@ -74,14 +101,23 @@ class ApplicationServiceClass extends BaseService<Application> {
       studentId: applicationData.studentId 
     });
     
+    // Exclude timestamp fields - they will be set by base create() method
+    const { dateApplied, lastUpdated, ...dataWithoutTimestamps } = applicationData;
+    
     // Use custom timestamp fields: dateApplied/lastUpdated instead of createdAt/updatedAt
-    return this.create(applicationData, {
+    return this.create(dataWithoutTimestamps, {
       createdAt: 'dateApplied',
       updatedAt: 'lastUpdated'
     });
   }
 
-  // Update application with custom timestamp field
+  /**
+   * Update application with custom timestamp field
+   * 
+   * @param applicationId - Application ID
+   * @param updates - Partial application data to update
+   * @returns ServiceResult indicating success or failure
+   */
   async updateApplication(
     applicationId: string, 
     updates: Partial<Application>
@@ -90,22 +126,32 @@ class ApplicationServiceClass extends BaseService<Application> {
     return this.update(applicationId, updates, 'lastUpdated');
   }
 
-  // Delete application
+  /**
+   * Delete application
+   * 
+   * @param applicationId - Application ID to delete
+   * @returns ServiceResult indicating success or failure
+   */
   async deleteApplication(applicationId: string): Promise<ServiceResult> {
     return this.delete(applicationId);
   }
 
-  // Get all applications for a student (including applications where student is the partner)
-  // Complex method with multiple queries and deduplication - keep as-is
+  /**
+   * Get all applications for a student (including applications where student is the partner)
+   * Complex method with multiple queries and deduplication
+   * 
+   * @param studentId - Student ID to get applications for
+   * @returns Array of application card data
+   */
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
       // Query applications where student is the primary applicant
-      const primaryQuerySnapshot = await adminDb.collection(this.collectionName)
+      const primaryQuerySnapshot = await this.getCollection()
         .where('studentId', '==', studentId)
         .get();
       
       // Query applications where student is the partner
-      const partnerQuerySnapshot = await adminDb.collection(this.collectionName)
+      const partnerQuerySnapshot = await this.getCollection()
         .where('partnerId', '==', studentId)
         .get();
       
@@ -126,12 +172,23 @@ class ApplicationServiceClass extends BaseService<Application> {
       
       return Array.from(applicationMap.values());
     } catch (error) {
-      logger.service.error(this.serviceName, 'getStudentApplications', error, { studentId });
+      logger.service.error(this.serviceName, 'getStudentApplications', error, { 
+        studentId,
+        errorType: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error)
+      });
       return [];
     }
   }
 
-  // Update application status with custom logic
+  /**
+   * Update application status with custom logic
+   * 
+   * @param applicationId - Application ID to update
+   * @param status - New status
+   * @param feedback - Optional supervisor feedback
+   * @returns ServiceResult indicating success or failure
+   */
   async updateApplicationStatus(
     applicationId: string,
     status: Application['status'],
@@ -151,7 +208,7 @@ class ApplicationServiceClass extends BaseService<Application> {
         updateData.responseDate = new Date();
       }
 
-      await adminDb.collection(this.collectionName).doc(applicationId).update(updateData);
+      await this.getCollection().doc(applicationId).update(updateData);
       return ServiceResults.success(undefined, 'Application status updated successfully');
     } catch (error) {
       logger.service.error(this.serviceName, 'updateApplicationStatus', error, { applicationId, status });

@@ -5,7 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { applicationService } from '@/lib/services/applications/application-service';
-import { StudentService } from '@/lib/services/students/student-service';
+import { studentService } from '@/lib/services/students/student-service';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { validatePartner } from '@/lib/services/applications/application-validation';

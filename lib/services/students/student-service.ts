@@ -21,27 +21,47 @@ class StudentServiceClass extends BaseService<Student> {
     return toStudent(id, data);
   }
 
-  // Public methods that wrap protected base methods
+  /**
+   * Get student by ID
+   * 
+   * @param studentId - Student ID
+   * @returns Student or null if not found
+   */
   async getStudentById(studentId: string): Promise<Student | null> {
     return this.getById(studentId);
   }
 
+  /**
+   * Get all students
+   * 
+   * @returns Array of all students
+   */
   async getAllStudents(): Promise<Student[]> {
     return this.getAll();
   }
 
+  /**
+   * Get unmatched students
+   * 
+   * @returns Array of unmatched students
+   */
   async getUnmatchedStudents(): Promise<Student[]> {
     return this.query([
       { field: 'matchStatus', operator: '==', value: 'unmatched' }
     ]);
   }
 
-  // Get available partners (students without partners, excluding current user)
-  // Complex method with custom logic - keep as-is
+  /**
+   * Get available partners (students without partners, excluding current user)
+   * Filters out students who already have pending partnership requests
+   * 
+   * @param excludeStudentId - Student ID to exclude from results
+   * @returns Array of available student partners
+   */
   async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
     try {
       // Query for students who are not paired (allows multiple pending requests)
-      const querySnapshot = await adminDb.collection(this.collectionName)
+      const querySnapshot = await this.getCollection()
         .where('partnershipStatus', '!=', 'paired')
         .get();
       
@@ -69,6 +89,13 @@ class StudentServiceClass extends BaseService<Student> {
     }
   }
 
+  /**
+   * Update student
+   * 
+   * @param studentId - Student ID
+   * @param data - Partial student data to update
+   * @returns ServiceResult indicating success or failure
+   */
   async updateStudent(studentId: string, data: Partial<Student>): Promise<ServiceResult> {
     return this.update(studentId, data);
   }

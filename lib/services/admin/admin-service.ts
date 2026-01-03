@@ -19,13 +19,22 @@ class AdminServiceClass extends BaseService<Admin> {
     return toAdmin(id, data);
   }
 
-  // Public methods that wrap protected base methods
+  /**
+   * Get admin by ID
+   * 
+   * @param adminId - Admin ID
+   * @returns Admin or null if not found
+   */
   async getAdminById(adminId: string): Promise<Admin | null> {
     return this.getById(adminId);
   }
 
-  // Get dashboard statistics
-  // Complex aggregation method - keep as-is
+  /**
+   * Get dashboard statistics
+   * Aggregates data from students, supervisors, and applications collections
+   * 
+   * @returns Dashboard statistics object
+   */
   async getDashboardStats(): Promise<DashboardStats> {
     try {
       const [studentsSnapshot, supervisorsSnapshot, applicationsSnapshot] = await Promise.all([
