@@ -1,8 +1,6 @@
 name: E2E Tests
 
 on:
-  push:
-    branches: [main, feature/add-e2e-tests]
   pull_request:
     branches: [main]
 
@@ -36,37 +34,49 @@ jobs:
 
       - name: Start Firebase Emulators
         run: |
-          # Start emulators in background and capture PID
-          # Use nohup to ensure process persists across steps
-          nohup npx firebase emulators:start --only auth,firestore > emulator.log 2>&1 &
-          EMULATOR_PID=$!
+          # Start emulators in background using a more reliable method
+          # Redirect output and run in background, then capture the actual process
+          npx firebase emulators:start --only auth,firestore > emulator.log 2>&1 &
+          sleep 3
+          
+          # Find the actual firebase process PID (more reliable than $!)
+          # Use ps and grep for better compatibility
+          EMULATOR_PID=$(ps aux | grep -E "[f]irebase emulators:start" | awk '{print $2}' | head -1)
+          if [ -z "$EMULATOR_PID" ]; then
+            echo "✗ Failed to find emulator process. Logs:"
+            cat emulator.log
+            echo "Running processes:"
+            ps aux | grep firebase || echo "No firebase processes found"
+            exit 1
+          fi
+          
           echo "Started Firebase emulators with PID: $EMULATOR_PID"
           echo "EMULATOR_PID=$EMULATOR_PID" >> $GITHUB_ENV
-          
-          # Give emulators a moment to initialize
-          sleep 5
           
           # Wait for emulator UI to be ready (this indicates all emulators are up)
           echo "Waiting for Firebase emulators to start..."
           MAX_ATTEMPTS=60
           ATTEMPT=0
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
-              echo "✓ Firebase emulators are ready!"
-              break
-            fi
-            
-            # Check if process is still running
+            # Check if process is still running first
             if ! kill -0 $EMULATOR_PID 2>/dev/null; then
               echo "✗ Emulator process died. Logs:"
               cat emulator.log
               exit 1
             fi
             
+            # Check if emulator UI is ready
+            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+              echo "✓ Firebase emulators are ready!"
+              break
+            fi
+            
             ATTEMPT=$((ATTEMPT + 1))
             if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
               echo "✗ Emulators failed to start within timeout. Logs:"
               cat emulator.log
+              echo "Checking if ports are in use:"
+              (ss -tuln 2>/dev/null || netstat -tuln 2>/dev/null || lsof -i -P -n 2>/dev/null | grep -E ':(4000|9099|8080)') || echo "Could not check ports"
               exit 1
             fi
             
@@ -75,7 +85,7 @@ jobs:
           done
           
           echo "Emulator startup complete. Final logs:"
-          tail -20 emulator.log
+          tail -30 emulator.log
         env:
           E2E_TEST: 'true'
           NODE_ENV: 'test'
@@ -92,6 +102,22 @@ jobs:
           FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
           FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
           FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
+      - name: Verify Emulators Still Running
+        run: |
+          if [ -n "$EMULATOR_PID" ]; then
+            if ! kill -0 $EMULATOR_PID 2>/dev/null; then
+              echo "✗ Emulator process is not running!"
+              exit 1
+            fi
+            echo "✓ Emulator process is still running (PID: $EMULATOR_PID)"
+          fi
+          # Verify emulator UI is still accessible
+          if ! curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+            echo "✗ Emulator UI is not accessible!"
+            exit 1
+          fi
+          echo "✓ Emulator UI is accessible"
 
       - name: Run E2E tests
         run: npm run test:e2e
