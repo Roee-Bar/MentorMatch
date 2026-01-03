@@ -5,34 +5,26 @@ on:
   pull_request:
     branches: [main]
 
-# Configuration constants (update these values to change versions/timeouts)
-# Node.js version, Java version, and timeouts are defined here for easy maintenance
+# Configuration constants - Update these values for easy maintenance
 # These values are used throughout the workflow and passed to composite actions
-
-# Shared environment variables for Firebase emulators
-env:
-  E2E_TEST: 'true'
-  NODE_ENV: 'test'
-  FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-  FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-  NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-  NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-  NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
-  NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
-  FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
-  FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
-  FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+vars:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+  FIREBASE_PROJECT_ID: 'demo-test'
+  E2E_BASE_URL: 'http://localhost:3000'
+  EMULATOR_UI_PORT: '4000'
+  EMULATOR_MAX_ATTEMPTS: '30'
+  SETUP_TIMEOUT: '10'
+  TEST_TIMEOUT: '15'
+  AGGREGATE_TIMEOUT: '5'
 
 jobs:
   # Setup job: Install dependencies and cache artifacts for reuse by test jobs
   setup:
     name: Setup and Cache
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ vars.SETUP_TIMEOUT }}
 
     steps:
       - name: Checkout code
@@ -41,22 +33,12 @@ jobs:
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: '20'
-          java-version: '17'
-          java-distribution: 'temurin'
+          node-version: ${{ vars.NODE_VERSION }}
+          java-version: ${{ vars.JAVA_VERSION }}
+          java-distribution: ${{ vars.JAVA_DISTRIBUTION }}
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+      - name: Setup Playwright browsers
+        uses: ./.github/actions/setup-playwright
 
       - name: Upload dependencies cache
         uses: actions/cache@v4
@@ -69,11 +51,14 @@ jobs:
             ${{ runner.os }}-deps-
 
   # Test jobs: Run in parallel using matrix strategy
+  # Note: Test matrix configuration is also available in .github/workflows/test-matrix.json
+  # for reference and potential future tooling. The matrix must be defined inline here
+  # as GitHub Actions doesn't support loading matrix from external files natively.
   test:
     name: Test ${{ matrix.suite }}
     needs: setup
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: ${{ vars.TEST_TIMEOUT }}
     strategy:
       fail-fast: false
       matrix:
@@ -95,52 +80,30 @@ jobs:
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: '20'
-          java-version: '17'
-          java-distribution: 'temurin'
+          node-version: ${{ vars.NODE_VERSION }}
+          java-version: ${{ vars.JAVA_VERSION }}
+          java-distribution: ${{ vars.JAVA_DISTRIBUTION }}
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: playwright-cache
+      - name: Setup Playwright browsers
+        uses: ./.github/actions/setup-playwright
+
+      - name: Set test environment variables
+        uses: ./.github/actions/test-env-vars
         with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+          project-id: ${{ vars.FIREBASE_PROJECT_ID }}
+          base-url: ${{ vars.E2E_BASE_URL }}
 
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
         with:
           action: start
-          project-id: 'demo-test'
-          max-attempts: '30'
-          emulator-ui-port: '4000'
+          project-id: ${{ vars.FIREBASE_PROJECT_ID }}
+          max-attempts: ${{ vars.EMULATOR_MAX_ATTEMPTS }}
+          emulator-ui-port: ${{ vars.EMULATOR_UI_PORT }}
 
       - name: Run Tests
         shell: bash
         run: npx playwright test ${{ matrix.test_paths }}
-        env:
-          CI: 'true'
-          E2E_TEST: 'true'
-          NODE_ENV: 'test'
-          E2E_BASE_URL: 'http://localhost:3000'
-          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
-          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
-          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
-          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
-          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
 
       - name: Stop Firebase Emulators
         if: always()
@@ -148,23 +111,10 @@ jobs:
         with:
           action: stop
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload test artifacts
+        uses: ./.github/actions/upload-test-artifacts
         with:
-          name: test-results-${{ matrix.artifact_name }}
-          path: playwright-report/
-          retention-days: 30
-          if-no-files-found: ignore
-
-      - name: Upload test screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-screenshots-${{ matrix.artifact_name }}
-          path: test-results/
-          retention-days: 7
-          if-no-files-found: ignore
+          artifact-name: ${{ matrix.artifact_name }}
 
   # Aggregate results from all test jobs
   aggregate-results:
@@ -172,7 +122,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: always()
-    timeout-minutes: 5
+    timeout-minutes: ${{ vars.AGGREGATE_TIMEOUT }}
 
     steps:
       - name: Download all test results
