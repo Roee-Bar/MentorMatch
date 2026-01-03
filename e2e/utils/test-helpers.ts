@@ -7,14 +7,6 @@
 import { Page } from '@playwright/test';
 
 /**
- * Wait for page to be fully loaded
- */
-export async function waitForPageLoad(page: Page): Promise<void> {
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForLoadState('load');
-}
-
-/**
  * Wait for API response
  */
 export async function waitForAPIResponse(

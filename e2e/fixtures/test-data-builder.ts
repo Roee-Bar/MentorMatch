@@ -5,7 +5,7 @@
  * Provides fluent API for building test entities.
  */
 
-import type { Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest } from '@/types/database';
+import type { Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest, ProjectTopic, AdminPermission } from '@/types/database';
 import { 
   generateStudentData, 
   generateSupervisorData, 
@@ -157,7 +157,7 @@ export class SupervisorDataBuilder {
     return this;
   }
 
-  withSuggestedTopics(topics: string[]): this {
+  withSuggestedTopics(topics: ProjectTopic[]): this {
     this.data.suggestedTopics = topics;
     return this;
   }
@@ -193,12 +193,12 @@ export class AdminDataBuilder {
     return this;
   }
 
-  withRole(role: 'system_admin' | 'department_admin' | 'supervisor_admin'): this {
+  withRole(role: 'project_coordinator' | 'department_secretary' | 'system_admin'): this {
     this.data.adminRole = role;
     return this;
   }
 
-  withPermissions(permissions: string[]): this {
+  withPermissions(permissions: AdminPermission[]): this {
     this.data.permissions = permissions;
     return this;
   }

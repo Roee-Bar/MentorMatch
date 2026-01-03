@@ -28,8 +28,11 @@ runs:
         echo "Running tests for: ${{ inputs.suite-name }}"
         echo "Test paths: ${{ inputs.test-paths }}"
         echo ""
-        echo "Environment variables:"
-        env | grep -E "(E2E_|CI|NODE_ENV|FIREBASE_|NEXT_PUBLIC_)" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL)" | sort
+        echo "Environment variables (non-sensitive only):"
+        # Filter out variables with sensitive names (API_KEY, AUTH_TOKEN, etc.)
+        # Note: This shows test environment values only - production secrets are never exposed
+        env | grep -E "(E2E_|CI|NODE_ENV|FIREBASE_|NEXT_PUBLIC_)" | \
+          grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | sort
         echo ""
         
         echo "Verifying Playwright installation:"
@@ -118,11 +121,19 @@ runs:
         ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js processes"
         ps aux | grep -E "[f]irebase|[j]ava.*firebase" || echo "No Firebase processes"
         echo ""
-        echo "Environment variables check:"
+        echo "Environment variables check (sanitized):"
         echo "  E2E_TEST=$E2E_TEST"
         echo "  CI=$CI"
         echo "  NODE_ENV=$NODE_ENV"
         echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
         echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
-        echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+        # Sanitize project ID and other potentially sensitive values
+        if [ -n "$NEXT_PUBLIC_FIREBASE_PROJECT_ID" ]; then
+          echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=[SET]"
+        else
+          echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=[NOT SET]"
+        fi
+        # Don't print API keys or tokens even if they're test values
+        echo "  NEXT_PUBLIC_FIREBASE_API_KEY=[REDACTED]"
+        echo "  (Other sensitive variables are set but not displayed)"
 

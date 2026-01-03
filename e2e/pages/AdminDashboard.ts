@@ -2,7 +2,7 @@
  * Admin Dashboard Page Object Model
  */
 
-import { Page, expect } from '@playwright/test';
+import { Page, expect, Locator } from '@playwright/test';
 import { BasePage } from '../components/BasePage';
 import { Table } from '../components/Table';
 import { Modal } from '../components/Modal';
@@ -55,9 +55,15 @@ export class AdminDashboard extends BasePage {
     }
 
     // Find and click on the supervisor row
-    const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`).or(
-      this.supervisorsTable.getRow(0)
-    );
+    const supervisorRowByTestId = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`);
+    let supervisorRow: Locator;
+    
+    if (await supervisorRowByTestId.isVisible({ timeout: 1000 }).catch(() => false)) {
+      supervisorRow = supervisorRowByTestId;
+    } else {
+      supervisorRow = await this.supervisorsTable.getRow(0);
+    }
+    
     if (await supervisorRow.isVisible({ timeout: 1000 })) {
       await supervisorRow.click();
       await waitForStable(supervisorRow);

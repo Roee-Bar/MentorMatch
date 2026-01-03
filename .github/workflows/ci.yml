@@ -326,7 +326,7 @@ jobs:
           echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
           # Export all NEXT_PUBLIC_ variables that are already set
           # Filter out any variables that might contain sensitive data (safety check)
-          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL)" | while IFS= read -r line; do
+          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
             echo "$line" >> $GITHUB_ENV || true
           done
           echo "✓ Environment variables exported"
