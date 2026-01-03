@@ -50,3 +50,6 @@ docs/testing/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# refactoring recommendations (internal documentation)
+docs/REFACTORING_RECOMMENDATIONS.md
