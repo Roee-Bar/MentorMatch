@@ -3,7 +3,7 @@
 import Table from '@/app/components/shared/Table';
 import type { Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
-import { formatFirestoreDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 import StatusBadge from '@/app/components/shared/StatusBadge';
 import { STUDENTS_TABLE_WIDTHS } from '../_utils/tableConfig';
 import { emptyStateContainer, sortableHeaderButton, linkEmail } from '@/lib/styles/shared-styles';
@@ -104,7 +104,7 @@ export default function StudentsTable({
             <Table.Cell className={STUDENTS_TABLE_WIDTHS.status}>
               <StatusBadge status={student.matchStatus} variant="matchStatus" />
             </Table.Cell>
-            <Table.Cell className={STUDENTS_TABLE_WIDTHS.registered}>{formatFirestoreDate(student.registrationDate)}</Table.Cell>
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.registered}>{DateFormatter.formatForTable(student.registrationDate)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

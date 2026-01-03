@@ -3,7 +3,7 @@
 import Table from '@/app/components/shared/Table';
 import type { Application, Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
-import { formatFirestoreDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 import { calculateDaysPending } from '../_utils/dataProcessing';
 import StatusBadge from '@/app/components/shared/StatusBadge';
 import { APPLICATIONS_TABLE_WIDTHS } from '../_utils/tableConfig';
@@ -109,7 +109,7 @@ export default function ApplicationsTable({
                   </div>
                 </Table.Cell>
               )}
-              <Table.Cell className={widths.submitted}>{formatFirestoreDate(application.dateApplied)}</Table.Cell>
+              <Table.Cell className={widths.submitted}>{DateFormatter.formatForTable(application.dateApplied)}</Table.Cell>
             </Table.Row>
           );
         })}

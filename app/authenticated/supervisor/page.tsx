@@ -18,7 +18,7 @@ import EmptyState from '@/app/components/feedback/EmptyState';
 import ErrorState from '@/app/components/feedback/ErrorState';
 import ApplicationStatusModal from './_components/ApplicationStatusModal';
 import type { Application } from '@/types/database';
-import { formatFirestoreDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 import { linkAction } from '@/lib/styles/shared-styles';
 
 export default function SupervisorAuthenticated() {
@@ -141,7 +141,7 @@ export default function SupervisorAuthenticated() {
         ) : (
           <div className="grid-cards-3col">
             {applications.slice(0, 6).map((application) => {
-              const dateAppliedStr = formatFirestoreDate(application.dateApplied);
+              const dateAppliedStr = DateFormatter.formatForDisplay(application.dateApplied);
               
               return (
                 <ApplicationCard 

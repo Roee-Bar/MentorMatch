@@ -21,6 +21,7 @@ import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
 import { btnPrimary, badgeWarning, linkAction } from '@/lib/styles/shared-styles';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -110,12 +111,8 @@ export default function StudentAuthenticated() {
         })
         .sort((a, b) => {
           // Sort by dateApplied if available, otherwise by position in array
-          const dateA = a.dateApplied instanceof Date 
-            ? a.dateApplied.getTime() 
-            : (a.dateApplied as any)?.toDate?.()?.getTime() || 0;
-          const dateB = b.dateApplied instanceof Date 
-            ? b.dateApplied.getTime() 
-            : (b.dateApplied as any)?.toDate?.()?.getTime() || 0;
+          const dateA = DateFormatter.getTimestamp(a.dateApplied);
+          const dateB = DateFormatter.getTimestamp(b.dateApplied);
           return dateB - dateA; // Most recent first
         })[0];
       
@@ -389,10 +386,7 @@ export default function StudentAuthenticated() {
           ) : (
             <div className="grid-cards-3col">
               {applications.map((application) => {
-                // Convert Firestore Timestamp to Date, then format as string
-                const dateAppliedStr = application.dateApplied instanceof Date
-                  ? application.dateApplied.toLocaleDateString()
-                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+                const dateAppliedStr = DateFormatter.formatForDisplay(application.dateApplied);
                 
                 return (
                   <div key={application.id} data-application-id={application.id}>
