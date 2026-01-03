@@ -22,15 +22,19 @@ export default defineConfig({
   timeout: process.env.CI ? 240000 : 60000, // 4 minutes in CI (webServer + test), 1 minute locally
   globalSetup: require.resolve('./e2e/global-setup.ts'),
   globalTeardown: require.resolve('./e2e/global-teardown.ts'),
-  reporter: [
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    ['list'],
-    ['json', { outputFile: 'test-results.json' }],
-    ...(process.env.CI ? [
-      ['github'],
-      ['junit', { outputFile: 'test-results.xml' }],
-    ] : []),
-  ],
+  reporter: process.env.CI
+    ? [
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['list'],
+        ['json', { outputFile: 'test-results.json' }],
+        ['github'],
+        ['junit', { outputFile: 'test-results.xml' }],
+      ]
+    : [
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+        ['list'],
+        ['json', { outputFile: 'test-results.json' }],
+      ],
   
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
@@ -43,7 +47,7 @@ export default defineConfig({
 
   expect: {
     timeout: 10000,
-    toHaveScreenshot: { threshold: 0.2, mode: 'strict' },
+    toHaveScreenshot: { threshold: 0.2 },
     toMatchSnapshot: { threshold: 0.2 },
   },
 
