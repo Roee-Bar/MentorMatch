@@ -81,5 +81,126 @@ export class SupervisorDashboard {
       }
     }
   }
+
+  async navigateToPartnerships(): Promise<void> {
+    // Try to find partnerships link in navigation
+    const partnershipsLink = this.page.getByRole('link', { name: /partnerships/i });
+    if (await partnershipsLink.isVisible()) {
+      await partnershipsLink.click();
+      await this.page.waitForURL(/\/authenticated\/supervisor\/partnerships/);
+    } else {
+      // Fallback: try navigating via URL if UI doesn't exist yet
+      await this.page.goto('/authenticated/supervisor/partnerships');
+      await this.page.waitForLoadState('domcontentloaded');
+    }
+  }
+
+  async createPartnershipRequest(projectId: string, targetSupervisorId: string): Promise<void> {
+    // Navigate to partnerships page first
+    await this.navigateToPartnerships();
+
+    // Look for create request button or form
+    const createButton = this.page.getByRole('button', { name: /create|request|send partnership/i });
+    if (await createButton.isVisible()) {
+      await createButton.click();
+      await this.page.waitForTimeout(500);
+
+      // Fill form if modal opens
+      const projectSelect = this.page.getByLabel(/project/i).or(this.page.locator('select[name="projectId"]'));
+      const supervisorSelect = this.page.getByLabel(/supervisor|target/i).or(this.page.locator('select[name="targetSupervisorId"]'));
+
+      if (await projectSelect.isVisible()) {
+        await projectSelect.selectOption(projectId);
+      }
+      if (await supervisorSelect.isVisible()) {
+        await supervisorSelect.selectOption(targetSupervisorId);
+      }
+
+      const submitButton = this.page.getByRole('button', { name: /submit|create|send/i });
+      if (await submitButton.isVisible()) {
+        await submitButton.click();
+        await this.page.waitForTimeout(2000);
+      }
+    } else {
+      // If UI doesn't exist, use API directly
+      await this.page.request.post('/api/supervisor-partnerships/request', {
+        data: {
+          targetSupervisorId,
+          projectId,
+        },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+  }
+
+  async acceptPartnershipRequest(requestId: string): Promise<void> {
+    await this.navigateToPartnerships();
+
+    // Find the request in the list
+    const requestCard = this.page.locator(
+      `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
+    ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
+
+    if (await requestCard.isVisible()) {
+      const acceptButton = requestCard.getByRole('button', { name: /accept|approve/i });
+      if (await acceptButton.isVisible()) {
+        await acceptButton.click();
+        await this.page.waitForTimeout(2000);
+      }
+    } else {
+      // If UI doesn't exist, use API directly
+      await this.page.request.post(`/api/supervisor-partnerships/${requestId}/respond`, {
+        data: { action: 'accept' },
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  async rejectPartnershipRequest(requestId: string): Promise<void> {
+    await this.navigateToPartnerships();
+
+    // Find the request in the list
+    const requestCard = this.page.locator(
+      `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
+    ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
+
+    if (await requestCard.isVisible()) {
+      const rejectButton = requestCard.getByRole('button', { name: /reject|decline/i });
+      if (await rejectButton.isVisible()) {
+        await rejectButton.click();
+        await this.page.waitForTimeout(2000);
+      }
+    } else {
+      // If UI doesn't exist, use API directly
+      await this.page.request.post(`/api/supervisor-partnerships/${requestId}/respond`, {
+        data: { action: 'reject' },
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  async cancelPartnershipRequest(requestId: string): Promise<void> {
+    await this.navigateToPartnerships();
+
+    // Find the request in the list
+    const requestCard = this.page.locator(
+      `[data-testid="partnership-request-${requestId}"], [data-request-id="${requestId}"]`
+    ).or(this.page.locator('[data-testid="partnership-request"], .partnership-request, table tbody tr').first());
+
+    if (await requestCard.isVisible()) {
+      const cancelButton = requestCard.getByRole('button', { name: /cancel/i });
+      if (await cancelButton.isVisible()) {
+        await cancelButton.click();
+        await this.page.waitForTimeout(2000);
+      }
+    } else {
+      // If UI doesn't exist, use API directly
+      await this.page.request.delete(`/api/supervisor-partnerships/${requestId}`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
 }
 

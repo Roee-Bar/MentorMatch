@@ -5,7 +5,7 @@
  * These functions create realistic test data that matches the application's data structures.
  */
 
-import type { RegistrationData, Student, Supervisor, Admin, Application, Project } from '@/types/database';
+import type { RegistrationData, Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest } from '@/types/database';
 
 /**
  * Generate a unique email address for testing
@@ -202,6 +202,31 @@ export function generateProjectData(overrides?: Partial<Project>): Omit<Project,
     updatedAt: now,
     approvedAt: overrides?.approvedAt ?? (overrides?.status === 'approved' || overrides?.status === 'in_progress' || overrides?.status === 'completed' ? now : undefined),
     completedAt: overrides?.completedAt ?? (overrides?.status === 'completed' ? now : undefined),
+    ...overrides,
+  };
+}
+
+/**
+ * Generate test supervisor partnership request data (for Firestore)
+ */
+export function generateSupervisorPartnershipRequestData(
+  requestingSupervisorId: string,
+  targetSupervisorId: string,
+  projectId: string,
+  overrides?: Partial<SupervisorPartnershipRequest>
+): Omit<SupervisorPartnershipRequest, 'id'> {
+  const now = new Date();
+
+  return {
+    requestingSupervisorId,
+    requestingSupervisorName: overrides?.requestingSupervisorName || 'Dr. Requesting Supervisor',
+    targetSupervisorId,
+    targetSupervisorName: overrides?.targetSupervisorName || 'Dr. Target Supervisor',
+    projectId,
+    projectTitle: overrides?.projectTitle || 'Test Project Title',
+    status: overrides?.status || 'pending',
+    createdAt: now,
+    respondedAt: overrides?.respondedAt,
     ...overrides,
   };
 }

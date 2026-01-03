@@ -5,8 +5,8 @@
  */
 
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
-import type { Student, Supervisor, Admin, Application, Project } from '@/types/database';
-import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData } from './test-data';
+import type { Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest } from '@/types/database';
+import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData, generateSupervisorPartnershipRequestData } from './test-data';
 
 /**
  * Seed a test student in Firestore
@@ -200,6 +200,102 @@ export async function cleanupProject(projectId: string): Promise<void> {
   } catch (error) {
     // Document might not exist, ignore
   }
+}
+
+/**
+ * Seed a supervisor partnership request in Firestore
+ */
+export async function seedSupervisorPartnershipRequest(
+  requestingSupervisorId: string,
+  targetSupervisorId: string,
+  projectId: string,
+  overrides?: Partial<SupervisorPartnershipRequest>
+): Promise<{ id: string; request: SupervisorPartnershipRequest }> {
+  const requestData = generateSupervisorPartnershipRequestData(
+    requestingSupervisorId,
+    targetSupervisorId,
+    projectId,
+    overrides
+  );
+  
+  // Remove undefined values to avoid Firestore errors
+  const cleanRequestData = Object.fromEntries(
+    Object.entries(requestData).filter(([_, value]) => value !== undefined)
+  ) as typeof requestData;
+  
+  const docRef = await adminDb.collection('supervisor-partnership-requests').add(cleanRequestData);
+  
+  return {
+    id: docRef.id,
+    request: { id: docRef.id, ...requestData } as SupervisorPartnershipRequest,
+  };
+}
+
+/**
+ * Clean up a supervisor partnership request
+ */
+export async function cleanupSupervisorPartnershipRequest(requestId: string): Promise<void> {
+  try {
+    await adminDb.collection('supervisor-partnership-requests').doc(requestId).delete();
+  } catch (error) {
+    // Document might not exist, ignore
+  }
+}
+
+/**
+ * Seed multiple students with various partnership statuses
+ */
+export async function seedMultipleStudentsWithPartnerships(
+  count: number,
+  options?: {
+    pairedCount?: number;
+    pendingSentCount?: number;
+    pendingReceivedCount?: number;
+    noneCount?: number;
+  }
+): Promise<Array<{ uid: string; student: Student }>> {
+  const students: Array<{ uid: string; student: Student }> = [];
+  
+  // Seed paired students
+  const pairedCount = options?.pairedCount || 0;
+  for (let i = 0; i < pairedCount; i++) {
+    const student1 = await seedStudent({ partnershipStatus: 'paired' });
+    const student2 = await seedStudent({ 
+      partnershipStatus: 'paired',
+      partnerId: student1.uid,
+      hasPartner: true,
+      partnerName: student1.student.fullName,
+      partnerEmail: student1.student.email,
+    });
+    // Update student1 to have partner
+    await adminDb.collection('students').doc(student1.uid).update({
+      partnerId: student2.uid,
+      hasPartner: true,
+      partnerName: student2.student.fullName,
+      partnerEmail: student2.student.email,
+    });
+    students.push(student1, student2);
+  }
+  
+  // Seed students with pending sent status
+  const pendingSentCount = options?.pendingSentCount || 0;
+  for (let i = 0; i < pendingSentCount; i++) {
+    students.push(await seedStudent({ partnershipStatus: 'pending_sent' }));
+  }
+  
+  // Seed students with pending received status
+  const pendingReceivedCount = options?.pendingReceivedCount || 0;
+  for (let i = 0; i < pendingReceivedCount; i++) {
+    students.push(await seedStudent({ partnershipStatus: 'pending_received' }));
+  }
+  
+  // Seed students with none status
+  const noneCount = options?.noneCount || (count - pairedCount * 2 - pendingSentCount - pendingReceivedCount);
+  for (let i = 0; i < noneCount; i++) {
+    students.push(await seedStudent({ partnershipStatus: 'none' }));
+  }
+  
+  return students;
 }
 
 /**

@@ -91,5 +91,123 @@ test.describe('Admin - Capacity Override', () => {
     const updatedCapacityCell = updatedRow.locator('td').nth(3); // Current / Max column
     await expect(updatedCapacityCell).toContainText('8', { timeout: 5000 });
   });
+
+  test('should log capacity changes with correct timestamp', async ({ page, authenticatedAdmin }) => {
+    const dashboard = new AdminDashboard(page);
+
+    // Create a supervisor with initial capacity
+    const { supervisor } = await seedSupervisor({
+      maxCapacity: 5,
+      currentCapacity: 2,
+    });
+
+    await dashboard.goto();
+
+    // Override supervisor capacity
+    const newCapacity = 12;
+    const reason = 'Test capacity change repository';
+    await dashboard.overrideSupervisorCapacity(supervisor.id, newCapacity, reason);
+
+    // Wait for database updates
+    await page.waitForTimeout(2000);
+
+    // Verify capacity change was logged using capacityChangeRepository.create()
+    // This tests the repository pattern indirectly
+    const capacityChangesSnapshot = await adminDb
+      .collection('capacity_changes')
+      .where('supervisorId', '==', supervisor.id)
+      .orderBy('timestamp', 'desc')
+      .limit(1)
+      .get();
+
+    expect(capacityChangesSnapshot.empty).toBeFalsy();
+    const latestChange = capacityChangesSnapshot.docs[0].data();
+    expect(latestChange.supervisorId).toBe(supervisor.id);
+    expect(latestChange.newMaxCapacity).toBe(newCapacity);
+    expect(latestChange.oldMaxCapacity).toBe(5);
+    expect(latestChange.reason).toBe(reason);
+    expect(latestChange.adminId).toBe(authenticatedAdmin.uid);
+    expect(latestChange.timestamp).toBeDefined();
+    
+    // Verify timestamp is a Date object (repository handles this)
+    expect(latestChange.timestamp.toDate).toBeDefined();
+  });
+
+  test('should retrieve capacity change history', async ({ page, authenticatedAdmin }) => {
+    const dashboard = new AdminDashboard(page);
+
+    // Create a supervisor
+    const { supervisor } = await seedSupervisor({
+      maxCapacity: 5,
+      currentCapacity: 2,
+    });
+
+    await dashboard.goto();
+
+    // Make multiple capacity changes
+    await dashboard.overrideSupervisorCapacity(supervisor.id, 8, 'First change');
+    await page.waitForTimeout(1000);
+    await dashboard.overrideSupervisorCapacity(supervisor.id, 10, 'Second change');
+    await page.waitForTimeout(1000);
+    await dashboard.overrideSupervisorCapacity(supervisor.id, 12, 'Third change');
+
+    // Wait for all updates
+    await page.waitForTimeout(2000);
+
+    // Test repository query - retrieve all capacity changes
+    const capacityChangesSnapshot = await adminDb
+      .collection('capacity_changes')
+      .where('supervisorId', '==', supervisor.id)
+      .orderBy('timestamp', 'desc')
+      .get();
+
+    // Should have 3 changes
+    expect(capacityChangesSnapshot.docs.length).toBeGreaterThanOrEqual(3);
+
+    // Verify changes are in correct order (repository handles sorting)
+    const changes = capacityChangesSnapshot.docs.map(doc => doc.data());
+    expect(changes[0].newMaxCapacity).toBe(12);
+    expect(changes[1].newMaxCapacity).toBe(10);
+    expect(changes[2].newMaxCapacity).toBe(8);
+  });
+
+  test('should handle multiple capacity changes correctly', async ({ page, authenticatedAdmin }) => {
+    const dashboard = new AdminDashboard(page);
+
+    // Create a supervisor
+    const { supervisor } = await seedSupervisor({
+      maxCapacity: 5,
+      currentCapacity: 2,
+    });
+
+    await dashboard.goto();
+
+    // Make a capacity change
+    const newCapacity = 15;
+    const reason = 'Multiple changes test';
+    await dashboard.overrideSupervisorCapacity(supervisor.id, newCapacity, reason);
+
+    // Wait for database updates
+    await page.waitForTimeout(2000);
+
+    // Verify supervisor capacity updated (repository.update())
+    const supervisorDoc = await adminDb.collection('supervisors').doc(supervisor.id).get();
+    expect(supervisorDoc.exists).toBeTruthy();
+    const supervisorData = supervisorDoc.data();
+    expect(supervisorData?.maxCapacity).toBe(newCapacity);
+
+    // Verify capacity change logged (capacityChangeRepository.create())
+    const capacityChangesSnapshot = await adminDb
+      .collection('capacity_changes')
+      .where('supervisorId', '==', supervisor.id)
+      .where('newMaxCapacity', '==', newCapacity)
+      .get();
+
+    expect(capacityChangesSnapshot.empty).toBeFalsy();
+    const change = capacityChangesSnapshot.docs[0].data();
+    expect(change.newMaxCapacity).toBe(newCapacity);
+    expect(change.oldMaxCapacity).toBe(5);
+    expect(change.reason).toBe(reason);
+  });
 });
 

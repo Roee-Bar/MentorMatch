@@ -9,17 +9,35 @@ import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor } from '@/types/database';
 
 test.describe('Student - Applications', () => {
-  let sharedSupervisor: { uid: string; supervisor: Supervisor };
+  let sharedSupervisor: { uid: string; supervisor: Supervisor } | undefined;
 
   test.beforeAll(async () => {
-    sharedSupervisor = await seedSupervisor();
-  });
+    // Increase timeout for beforeAll to handle potential Firebase initialization delays
+    try {
+      sharedSupervisor = await seedSupervisor();
+    } catch (error) {
+      console.error('Failed to seed supervisor in beforeAll:', error);
+      throw error;
+    }
+  }, { timeout: 120000 }); // 2 minutes timeout
 
   test.afterAll(async () => {
-    await cleanupUser(sharedSupervisor.uid);
+    // Guard against cleanup when sharedSupervisor was not initialized
+    if (sharedSupervisor?.uid) {
+      try {
+        await cleanupUser(sharedSupervisor.uid);
+      } catch (error) {
+        console.error('Failed to cleanup supervisor in afterAll:', error);
+        // Don't throw - cleanup errors shouldn't fail the test suite
+      }
+    }
   });
 
   test('should display student applications', async ({ page, authenticatedStudent }) => {
+    if (!sharedSupervisor) {
+      throw new Error('sharedSupervisor was not initialized in beforeAll');
+    }
+
     const dashboard = new StudentDashboard(page);
 
     // Use shared supervisor

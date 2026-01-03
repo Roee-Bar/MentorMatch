@@ -8,17 +8,35 @@ import { seedStudent, seedApplication, cleanupUser } from '../../fixtures/db-hel
 import type { Student } from '@/types/database';
 
 test.describe('Supervisor - Applications', () => {
-  let sharedStudent: { uid: string; student: Student };
+  let sharedStudent: { uid: string; student: Student } | undefined;
 
   test.beforeAll(async () => {
-    sharedStudent = await seedStudent();
-  });
+    // Increase timeout for beforeAll to handle potential Firebase initialization delays
+    try {
+      sharedStudent = await seedStudent();
+    } catch (error) {
+      console.error('Failed to seed student in beforeAll:', error);
+      throw error;
+    }
+  }, { timeout: 120000 }); // 2 minutes timeout
 
   test.afterAll(async () => {
-    await cleanupUser(sharedStudent.uid);
+    // Guard against cleanup when sharedStudent was not initialized
+    if (sharedStudent?.uid) {
+      try {
+        await cleanupUser(sharedStudent.uid);
+      } catch (error) {
+        console.error('Failed to cleanup student in afterAll:', error);
+        // Don't throw - cleanup errors shouldn't fail the test suite
+      }
+    }
   });
 
   test('should display pending applications', async ({ page, authenticatedSupervisor }) => {
+    if (!sharedStudent) {
+      throw new Error('sharedStudent was not initialized in beforeAll');
+    }
+
     const dashboard = new SupervisorDashboard(page);
 
     // Use shared student
@@ -36,6 +54,10 @@ test.describe('Supervisor - Applications', () => {
   });
 
   test('should approve an application', async ({ page, authenticatedSupervisor }) => {
+    if (!sharedStudent) {
+      throw new Error('sharedStudent was not initialized in beforeAll');
+    }
+
     const dashboard = new SupervisorDashboard(page);
 
     // Use shared student
@@ -61,6 +83,10 @@ test.describe('Supervisor - Applications', () => {
   });
 
   test('should reject an application', async ({ page, authenticatedSupervisor }) => {
+    if (!sharedStudent) {
+      throw new Error('sharedStudent was not initialized in beforeAll');
+    }
+
     const dashboard = new SupervisorDashboard(page);
 
     // Use shared student

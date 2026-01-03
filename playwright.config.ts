@@ -18,6 +18,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : undefined,
+  globalSetup: require.resolve('./e2e/global-setup.ts'),
   reporter: [
     ['html'],
     ['list'],
@@ -31,6 +32,12 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 5000,
     navigationTimeout: 15000,
+    // Pass environment variables to test workers
+    // These are needed for Firebase Admin SDK to connect to emulators
+    ...(process.env.E2E_TEST || process.env.NODE_ENV === 'test' ? {
+      // Test environment variables are inherited from process.env
+      // but we ensure they're available here for clarity
+    } : {}),
   },
 
   expect: {
