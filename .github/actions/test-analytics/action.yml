@@ -1,0 +1,165 @@
+name: 'Test Analytics'
+description: 'Parse test results, identify flaky tests, and generate metrics'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Parse Test Results
+      shell: bash
+      run: |
+        echo "Analyzing test results..."
+        
+        if [ ! -f "test-results.json" ]; then
+          echo "⚠️ test-results.json not found. Skipping analytics."
+          exit 0
+        fi
+        
+        # Parse JSON and extract metrics
+        node -e "
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+          
+          const metrics = {
+            total: results.stats?.total || 0,
+            passed: results.stats?.passed || 0,
+            failed: results.stats?.failed || 0,
+            skipped: results.stats?.skipped || 0,
+            duration: results.stats?.duration || 0,
+            tests: [],
+            flakyTests: [],
+            slowTests: [],
+            failurePatterns: {}
+          };
+          
+          // Analyze each test
+          if (results.suites) {
+            function analyzeSuite(suite) {
+              if (suite.specs) {
+                suite.specs.forEach(spec => {
+                  if (spec.tests) {
+                    spec.tests.forEach(test => {
+                      const testInfo = {
+                        title: test.title,
+                        file: spec.file,
+                        duration: test.results?.[0]?.duration || 0,
+                        status: test.results?.[0]?.status || 'unknown',
+                        retries: test.results?.length || 1
+                      };
+                      
+                      metrics.tests.push(testInfo);
+                      
+                      // Identify flaky tests (passed on retry)
+                      if (test.results && test.results.length > 1) {
+                        const firstFailed = test.results[0].status === 'failed';
+                        const lastPassed = test.results[test.results.length - 1].status === 'passed';
+                        if (firstFailed && lastPassed) {
+                          metrics.flakyTests.push({
+                            title: test.title,
+                            file: spec.file,
+                            retries: test.results.length
+                          });
+                        }
+                      }
+                      
+                      // Identify slow tests (> 30s)
+                      if (testInfo.duration > 30000) {
+                        metrics.slowTests.push({
+                          title: test.title,
+                          file: spec.file,
+                          duration: testInfo.duration
+                        });
+                      }
+                      
+                      // Categorize failures
+                      if (testInfo.status === 'failed') {
+                        const error = test.results?.[0]?.error?.message || 'unknown';
+                        let category = 'other';
+                        
+                        if (error.includes('timeout') || error.includes('Timeout')) {
+                          category = 'timeout';
+                        } else if (error.includes('expect') || error.includes('Assertion')) {
+                          category = 'assertion';
+                        } else if (error.includes('network') || error.includes('ECONNREFUSED')) {
+                          category = 'network';
+                        } else if (error.includes('element') || error.includes('selector')) {
+                          category = 'element';
+                        }
+                        
+                        metrics.failurePatterns[category] = (metrics.failurePatterns[category] || 0) + 1;
+                      }
+                    });
+                  }
+                });
+              }
+              
+              if (suite.suites) {
+                suite.suites.forEach(subSuite => analyzeSuite(subSuite));
+              }
+            }
+            
+            results.suites.forEach(suite => analyzeSuite(suite));
+          }
+          
+          // Write metrics to file
+          fs.writeFileSync('test-metrics.json', JSON.stringify(metrics, null, 2));
+          
+          // Generate summary
+          console.log('Test Metrics Summary:');
+          console.log(\`  Total: \${metrics.total}\`);
+          console.log(\`  Passed: \${metrics.passed}\`);
+          console.log(\`  Failed: \${metrics.failed}\`);
+          console.log(\`  Skipped: \${metrics.skipped}\`);
+          console.log(\`  Duration: \${(metrics.duration / 1000).toFixed(2)}s\`);
+          console.log(\`  Flaky Tests: \${metrics.flakyTests.length}\`);
+          console.log(\`  Slow Tests (>30s): \${metrics.slowTests.length}\`);
+          console.log('  Failure Patterns:', JSON.stringify(metrics.failurePatterns, null, 2));
+        "
+        
+        if [ -f "test-metrics.json" ]; then
+          echo "✓ Test metrics generated"
+          cat test-metrics.json
+        else
+          echo "⚠️ Failed to generate test metrics"
+        fi
+
+    - name: Upload Test Metrics
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-metrics
+        path: test-metrics.json
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Generate Metrics Summary
+      if: always()
+      shell: bash
+      run: |
+        if [ -f "test-metrics.json" ]; then
+          echo "## Test Analytics Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract key metrics
+          TOTAL=$(node -e "const m = require('./test-metrics.json'); console.log(m.total || 0)")
+          PASSED=$(node -e "const m = require('./test-metrics.json'); console.log(m.passed || 0)")
+          FAILED=$(node -e "const m = require('./test-metrics.json'); console.log(m.failed || 0)")
+          FLAKY=$(node -e "const m = require('./test-metrics.json'); console.log(m.flakyTests?.length || 0)")
+          SLOW=$(node -e "const m = require('./test-metrics.json'); console.log(m.slowTests?.length || 0)")
+          
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Tests | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Passed | $PASSED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Failed | $FAILED |" >> $GITHUB_STEP_SUMMARY
+          echo "| Flaky Tests | $FLAKY |" >> $GITHUB_STEP_SUMMARY
+          echo "| Slow Tests (>30s) | $SLOW |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "### ⚠️ Flaky Tests Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            node -e "const m = require('./test-metrics.json'); m.flakyTests?.forEach(t => console.log(\`- \${t.title} (\${t.file})\`))" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+

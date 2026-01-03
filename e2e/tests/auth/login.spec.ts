@@ -6,9 +6,10 @@ import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/LoginPage';
 import { expectErrorMessage, expectAuthenticatedDashboard } from '../../utils/assertions';
 import { seedStudent } from '../../fixtures/db-helpers';
+import { waitForStableState, waitForAnimations } from '../../utils/test-stability';
 
-test.describe('User Login @auth @smoke', () => {
-  test('should successfully login with valid credentials @smoke @regression', async ({ page }) => {
+test.describe('User Login @auth @smoke @critical', () => {
+  test('should successfully login with valid credentials @smoke @critical @fast', async ({ page }) => {
     const loginPage = new LoginPage(page);
     
     // Create test user
@@ -23,7 +24,7 @@ test.describe('User Login @auth @smoke', () => {
     await expect(page).toHaveURL(/\/(authenticated|$)/);
   });
 
-  test('should show error with invalid email @regression', async ({ page }) => {
+  test('should show error with invalid email @regression @fast', async ({ page }) => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goto();
@@ -35,7 +36,7 @@ test.describe('User Login @auth @smoke', () => {
     expect(message.toLowerCase()).toMatch(/invalid|incorrect|error/i);
   });
 
-  test('should show error with invalid password @regression', async ({ page }) => {
+  test('should show error with invalid password @regression @fast', async ({ page }) => {
     const loginPage = new LoginPage(page);
     
     // Create test user
@@ -69,7 +70,7 @@ test.describe('User Login @auth @smoke', () => {
       await page.locator('[data-testid="login-button"]').click();
       
       // Wait for browser validation message or check that form didn't submit
-      await page.waitForTimeout(500);
+      await waitForAnimations(page, undefined, 500);
       
       // Should still be on login page (form didn't submit)
       await expect(page).toHaveURL(/\/login/);
@@ -108,7 +109,7 @@ test.describe('User Login @auth @smoke', () => {
       await page.locator('[data-testid="login-button"]').click();
       
       // Wait for browser validation message or check that form didn't submit
-      await page.waitForTimeout(500);
+      await waitForAnimations(page, undefined, 500);
       
       // Should still be on login page (form didn't submit)
       await expect(page).toHaveURL(/\/login/);

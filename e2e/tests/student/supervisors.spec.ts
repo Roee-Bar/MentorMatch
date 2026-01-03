@@ -6,8 +6,8 @@ import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedSupervisor } from '../../fixtures/db-helpers';
 
-test.describe('Student - Browse Supervisors', () => {
-  test('should display list of supervisors', async ({ page, authenticatedStudent }) => {
+test.describe('Student - Browse Supervisors @student @regression', () => {
+  test('should display list of supervisors @smoke @fast', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create a test supervisor
@@ -23,7 +23,7 @@ test.describe('Student - Browse Supervisors', () => {
     await expect(supervisorsList.first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('should filter supervisors by department', async ({ page, authenticatedStudent }) => {
+  test('should filter supervisors by department @regression @ui @fast', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create supervisors in different departments

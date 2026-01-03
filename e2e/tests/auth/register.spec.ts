@@ -8,8 +8,8 @@ import { LoginPage } from '../../pages/LoginPage';
 import { generateRegistrationData } from '../../fixtures/test-data';
 import { expectSuccessMessage, expectErrorMessage } from '../../utils/assertions';
 
-test.describe('User Registration', () => {
-  test('should successfully register a new student', async ({ page }) => {
+test.describe('User Registration @auth @regression', () => {
+  test('should successfully register a new student @smoke @fast', async ({ page }) => {
     const registerPage = new RegisterPage(page);
     const loginPage = new LoginPage(page);
     const registrationData = generateRegistrationData();
@@ -23,7 +23,7 @@ test.describe('User Registration', () => {
     expect(message.toLowerCase()).toContain('success');
   });
 
-  test('should show error when passwords do not match', async ({ page }) => {
+  test('should show error when passwords do not match @regression @ui @fast', async ({ page }) => {
     const registerPage = new RegisterPage(page);
     const registrationData = generateRegistrationData({
       password: 'Password123!',
@@ -40,7 +40,7 @@ test.describe('User Registration', () => {
     expect(message.toLowerCase()).toContain('password');
   });
 
-  test('should show error when password is too short', async ({ page }) => {
+  test('should show error when password is too short @regression @ui @fast', async ({ page }) => {
     const registerPage = new RegisterPage(page);
     const registrationData = generateRegistrationData({
       password: '12345',
@@ -57,7 +57,7 @@ test.describe('User Registration', () => {
     expect(message.toLowerCase()).toContain('password');
   });
 
-  test('should show error when required fields are missing', async ({ page }) => {
+  test('should show error when required fields are missing @regression @ui @fast', async ({ page }) => {
     const registerPage = new RegisterPage(page);
 
     await registerPage.goto();
@@ -69,7 +69,7 @@ test.describe('User Registration', () => {
     await expect(page).toHaveURL('/register');
   });
 
-  test('should show error when email is already registered', async ({ page }) => {
+  test('should show error when email is already registered @regression @api @fast', async ({ page }) => {
     const registerPage = new RegisterPage(page);
     const registrationData = generateRegistrationData();
 

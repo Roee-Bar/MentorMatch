@@ -1,0 +1,153 @@
+name: 'Analyze Test Failures'
+description: 'Categorize test failures and suggest fixes'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Analyze Test Failures
+      shell: bash
+      run: |
+        echo "Analyzing test failures..."
+        
+        if [ ! -f "test-results.json" ]; then
+          echo "⚠️ test-results.json not found. Skipping failure analysis."
+          exit 0
+        fi
+        
+        # Parse failures and categorize
+        node -e "
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync('test-results.json', 'utf8'));
+          
+          const analysis = {
+            totalFailures: 0,
+            categories: {
+              timeout: [],
+              assertion: [],
+              network: [],
+              element: [],
+              other: []
+            },
+            suggestions: []
+          };
+          
+          function analyzeSuite(suite) {
+            if (suite.specs) {
+              suite.specs.forEach(spec => {
+                if (spec.tests) {
+                  spec.tests.forEach(test => {
+                    const result = test.results?.[0];
+                    if (result && result.status === 'failed') {
+                      analysis.totalFailures++;
+                      const error = result.error?.message || 'unknown error';
+                      const testInfo = {
+                        title: test.title,
+                        file: spec.file,
+                        error: error.substring(0, 200) // Truncate long errors
+                      };
+                      
+                      // Categorize failure
+                      if (error.includes('timeout') || error.includes('Timeout') || error.includes('exceeded')) {
+                        analysis.categories.timeout.push(testInfo);
+                        analysis.suggestions.push({
+                          test: test.title,
+                          category: 'timeout',
+                          suggestion: 'Consider increasing timeout or optimizing test performance'
+                        });
+                      } else if (error.includes('expect') || error.includes('Assertion') || error.includes('Expected')) {
+                        analysis.categories.assertion.push(testInfo);
+                        analysis.suggestions.push({
+                          test: test.title,
+                          category: 'assertion',
+                          suggestion: 'Review expected vs actual values, check test data setup'
+                        });
+                      } else if (error.includes('network') || error.includes('ECONNREFUSED') || error.includes('fetch')) {
+                        analysis.categories.network.push(testInfo);
+                        analysis.suggestions.push({
+                          test: test.title,
+                          category: 'network',
+                          suggestion: 'Check network connectivity, verify services are running, add retry logic'
+                        });
+                      } else if (error.includes('element') || error.includes('selector') || error.includes('locator')) {
+                        analysis.categories.element.push(testInfo);
+                        analysis.suggestions.push({
+                          test: test.title,
+                          category: 'element',
+                          suggestion: 'Verify element selectors, check if element is visible/attached, add wait strategies'
+                        });
+                      } else {
+                        analysis.categories.other.push(testInfo);
+                      }
+                    }
+                  });
+                }
+              });
+            }
+            
+            if (suite.suites) {
+              suite.suites.forEach(subSuite => analyzeSuite(subSuite));
+            }
+          }
+          
+          if (results.suites) {
+            results.suites.forEach(suite => analyzeSuite(suite));
+          }
+          
+          // Write analysis to file
+          fs.writeFileSync('failure-analysis.json', JSON.stringify(analysis, null, 2));
+          
+          // Output summary
+          console.log('Failure Analysis Summary:');
+          console.log(\`  Total Failures: \${analysis.totalFailures}\`);
+          console.log(\`  Timeout: \${analysis.categories.timeout.length}\`);
+          console.log(\`  Assertion: \${analysis.categories.assertion.length}\`);
+          console.log(\`  Network: \${analysis.categories.network.length}\`);
+          console.log(\`  Element: \${analysis.categories.element.length}\`);
+          console.log(\`  Other: \${analysis.categories.other.length}\`);
+        "
+        
+        if [ -f "failure-analysis.json" ]; then
+          echo "✓ Failure analysis generated"
+        else
+          echo "⚠️ Failed to generate failure analysis"
+        fi
+
+    - name: Upload Failure Analysis
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: failure-analysis
+        path: failure-analysis.json
+        retention-days: 7
+        if-no-files-found: ignore
+
+    - name: Generate Failure Report
+      if: failure()
+      shell: bash
+      run: |
+        if [ -f "failure-analysis.json" ]; then
+          echo "## Test Failure Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          TOTAL=$(node -e "const a = require('./failure-analysis.json'); console.log(a.totalFailures || 0)")
+          TIMEOUT=$(node -e "const a = require('./failure-analysis.json'); console.log(a.categories?.timeout?.length || 0)")
+          ASSERTION=$(node -e "const a = require('./failure-analysis.json'); console.log(a.categories?.assertion?.length || 0)")
+          NETWORK=$(node -e "const a = require('./failure-analysis.json'); console.log(a.categories?.network?.length || 0)")
+          ELEMENT=$(node -e "const a = require('./failure-analysis.json'); console.log(a.categories?.element?.length || 0)")
+          
+          echo "| Category | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Failures | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timeout | $TIMEOUT |" >> $GITHUB_STEP_SUMMARY
+          echo "| Assertion | $ASSERTION |" >> $GITHUB_STEP_SUMMARY
+          echo "| Network | $NETWORK |" >> $GITHUB_STEP_SUMMARY
+          echo "| Element | $ELEMENT |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$TOTAL" -gt 0 ]; then
+            echo "### Suggested Fixes" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            node -e "const a = require('./failure-analysis.json'); a.suggestions?.slice(0, 10).forEach(s => console.log(\`- **\${s.test}** (\${s.category}): \${s.suggestion}\`))" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
+

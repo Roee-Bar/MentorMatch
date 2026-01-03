@@ -5,8 +5,8 @@
 import { test, expect } from '../../fixtures/auth';
 import { AdminDashboard } from '../../pages/AdminDashboard';
 
-test.describe('Admin - Dashboard', () => {
-  test('should display dashboard statistics', async ({ page, authenticatedAdmin }) => {
+test.describe('Admin - Dashboard @admin @regression', () => {
+  test('should display dashboard statistics @smoke @fast', async ({ page, authenticatedAdmin }) => {
     const dashboard = new AdminDashboard(page);
 
     await dashboard.goto();
@@ -23,7 +23,7 @@ test.describe('Admin - Dashboard', () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test('should display students table', async ({ page, authenticatedAdmin }) => {
+  test('should display students table @regression @fast', async ({ page, authenticatedAdmin }) => {
     const dashboard = new AdminDashboard(page);
 
     await dashboard.goto();
@@ -33,7 +33,7 @@ test.describe('Admin - Dashboard', () => {
     await expect(studentsTable).toBeVisible({ timeout: 10000 });
   });
 
-  test('should display supervisors table', async ({ page, authenticatedAdmin }) => {
+  test('should display supervisors table @regression @fast', async ({ page, authenticatedAdmin }) => {
     const dashboard = new AdminDashboard(page);
 
     await dashboard.goto();
@@ -43,7 +43,7 @@ test.describe('Admin - Dashboard', () => {
     await expect(supervisorsTable).toBeVisible({ timeout: 10000 });
   });
 
-  test('should display applications table', async ({ page, authenticatedAdmin }) => {
+  test('should display applications table @regression @fast', async ({ page, authenticatedAdmin }) => {
     const dashboard = new AdminDashboard(page);
 
     await dashboard.goto();

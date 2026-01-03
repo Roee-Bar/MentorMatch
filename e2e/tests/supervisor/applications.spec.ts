@@ -6,8 +6,9 @@ import { test, expect } from '../../fixtures/auth';
 import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
 import { seedStudent, seedApplication, cleanupUser } from '../../fixtures/db-helpers';
 import type { Student } from '@/types/database';
+import { waitForNetworkIdle, waitForAnimations } from '../../utils/test-stability';
 
-test.describe('Supervisor - Applications', () => {
+test.describe('Supervisor - Applications @supervisor @regression', () => {
   let sharedStudent: { uid: string; student: Student } | undefined;
 
   test.beforeAll(async () => {
@@ -32,7 +33,7 @@ test.describe('Supervisor - Applications', () => {
     }
   });
 
-  test('should display pending applications', async ({ page, authenticatedSupervisor }) => {
+  test('should display pending applications @smoke @fast', async ({ page, authenticatedSupervisor }) => {
     if (!sharedStudent) {
       throw new Error('sharedStudent was not initialized in beforeAll');
     }
@@ -66,7 +67,7 @@ test.describe('Supervisor - Applications', () => {
     await expect(applicationsList.first()).toBeVisible();
   });
 
-  test('should approve an application', async ({ page, authenticatedSupervisor }) => {
+  test('should approve an application @regression @api @slow', async ({ page, authenticatedSupervisor }) => {
     if (!sharedStudent) {
       throw new Error('sharedStudent was not initialized in beforeAll');
     }
@@ -112,7 +113,8 @@ test.describe('Supervisor - Applications', () => {
     await approveButton.click();
     
     // Wait for action to complete
-    await page.waitForTimeout(2000);
+    await waitForNetworkIdle(page, 2000);
+    await waitForAnimations(page, undefined, 1000);
     
     // Should see success message or status change (optional - don't fail if not visible)
     const successMessage = page.locator('[role="status"], .success');
@@ -122,7 +124,7 @@ test.describe('Supervisor - Applications', () => {
     }
   });
 
-  test('should reject an application', async ({ page, authenticatedSupervisor }) => {
+  test('should reject an application @regression @api @slow', async ({ page, authenticatedSupervisor }) => {
     if (!sharedStudent) {
       throw new Error('sharedStudent was not initialized in beforeAll');
     }
@@ -168,7 +170,8 @@ test.describe('Supervisor - Applications', () => {
     await rejectButton.click();
     
     // Wait for action to complete
-    await page.waitForTimeout(2000);
+    await waitForNetworkIdle(page, 2000);
+    await waitForAnimations(page, undefined, 1000);
   });
 });
 

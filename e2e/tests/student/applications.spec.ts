@@ -130,7 +130,7 @@ test.describe('Student - Applications @student @regression', () => {
     await cleanupUser(supervisor.id);
   });
 
-  test('should decrease supervisor capacity when deleting approved application @regression @student @api', async ({ page, authenticatedStudent }) => {
+  test('should decrease supervisor capacity when deleting approved application @regression @student @api @slow', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create a supervisor with capacity

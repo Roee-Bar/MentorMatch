@@ -5,24 +5,28 @@
       "test_paths": "e2e/tests/auth/ e2e/tests/student/",
       "artifact_name": "auth-student",
       "shard": 1,
-      "shards": 2
+      "shards": 2,
+      "grep": "@regression"
     },
     {
       "suite": "Auth + Student",
       "test_paths": "e2e/tests/auth/ e2e/tests/student/",
       "artifact_name": "auth-student",
       "shard": 2,
-      "shards": 2
+      "shards": 2,
+      "grep": "@regression"
     },
     {
       "suite": "Supervisor",
       "test_paths": "e2e/tests/supervisor/",
-      "artifact_name": "supervisor"
+      "artifact_name": "supervisor",
+      "grep": "@regression"
     },
     {
       "suite": "Admin",
       "test_paths": "e2e/tests/admin/",
-      "artifact_name": "admin"
+      "artifact_name": "admin",
+      "grep": "@regression"
     }
   ]
 }

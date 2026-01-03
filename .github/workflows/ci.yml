@@ -96,6 +96,8 @@ jobs:
         with:
           path: |
             .next/cache
+            .next/standalone
+            .next/static
           key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
@@ -220,6 +222,107 @@ jobs:
         if: steps.check-e2e.outputs.should_run == 'true'
         uses: ./.github/actions/setup-playwright
 
+  fast-e2e-tests:
+    name: Fast E2E Tests
+    needs: [lint, build, e2e-setup]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: needs.e2e-setup.outputs.should_run == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          java-distribution: 'temurin'
+
+      - name: Setup Playwright browsers
+        uses: ./.github/actions/setup-playwright
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies (if cache miss)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Set test environment variables
+        uses: ./.github/actions/test-env-vars
+        with:
+          project-id: ${{ env.PROJECT_ID }}
+          base-url: 'http://localhost:3000'
+
+      - name: Start Firebase Emulators
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: start
+          project-id: ${{ env.PROJECT_ID }}
+          max-attempts: '30'
+          emulator-ui-port: '4000'
+
+      - name: Export environment variables for Playwright
+        shell: bash
+        run: |
+          echo "Ensuring all environment variables are available for Playwright webServer..."
+          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
+          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
+            echo "$line" >> $GITHUB_ENV || true
+          done
+          echo "✓ Environment variables exported"
+
+      - name: Health Check Services
+        uses: ./.github/actions/health-check-services
+
+      - name: Run Fast Tests
+        shell: bash
+        run: |
+          echo "Running fast E2E tests (@fast and @smoke tags only)..."
+          set -o pipefail
+          # Use grep to filter tests - Playwright supports regex
+          npx playwright test --grep "(@fast|@smoke)" --timeout=300000 2>&1 | tee test-output.log
+          TEST_EXIT_CODE=${PIPESTATUS[0]}
+          
+          if [ $TEST_EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "=========================================="
+            echo "Fast tests failed with exit code: $TEST_EXIT_CODE"
+            echo "=========================================="
+            if [ -f "test-output.log" ]; then
+              cat test-output.log
+            fi
+            exit $TEST_EXIT_CODE
+          fi
+          
+          echo "✓ Fast tests completed successfully"
+
+      - name: Stop Firebase Emulators
+        if: always()
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: stop
+
+      - name: Test Summary
+        if: always()
+        uses: ./.github/actions/job-summary
+        with:
+          job-name: 'Fast E2E Tests'
+          status: ${{ job.status }}
+          details: |
+            - Running @fast and @smoke tagged tests only
+            - Quick feedback for critical path tests
+
   load-matrix:
     name: Load Test Matrix
     runs-on: ubuntu-latest
@@ -260,6 +363,24 @@ jobs:
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: cache-playwright
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
 
       - name: Verify dependencies
         shell: bash
@@ -316,7 +437,7 @@ jobs:
         with:
           action: start
           project-id: ${{ env.PROJECT_ID }}
-          max-attempts: '30'
+          max-attempts: '60'
           emulator-ui-port: '4000'
 
       - name: Export environment variables for Playwright
@@ -419,6 +540,14 @@ jobs:
           shard: ${{ matrix.shard }}
           shards: ${{ matrix.shards }}
 
+      - name: Analyze Test Results
+        if: always()
+        uses: ./.github/actions/test-analytics
+
+      - name: Analyze Test Failures
+        if: failure()
+        uses: ./.github/actions/analyze-test-failures
+
       - name: Stop Firebase Emulators
         if: always()
         uses: ./.github/actions/firebase-emulators
@@ -472,6 +601,90 @@ jobs:
           path: all-results/
           retention-days: 30
           if-no-files-found: ignore
+
+  # Performance tests - optional, runs after E2E suite
+  performance-tests:
+    name: Performance Tests
+    needs: [e2e-setup, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always() && needs.e2e-setup.outputs.should_run == 'true'
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-environment
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          java-distribution: 'temurin'
+
+      - name: Setup Playwright browsers
+        uses: ./.github/actions/setup-playwright
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies (if cache miss)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Set test environment variables
+        uses: ./.github/actions/test-env-vars
+        with:
+          project-id: ${{ env.PROJECT_ID }}
+          base-url: 'http://localhost:3000'
+
+      - name: Start Firebase Emulators
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: start
+          project-id: ${{ env.PROJECT_ID }}
+          max-attempts: '30'
+          emulator-ui-port: '4000'
+
+      - name: Export environment variables for Playwright
+        shell: bash
+        run: |
+          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
+          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
+            echo "$line" >> $GITHUB_ENV || true
+          done
+
+      - name: Health Check Services
+        uses: ./.github/actions/health-check-services
+
+      - name: Run Performance Tests
+        shell: bash
+        run: |
+          echo "Running performance tests..."
+          npx playwright test e2e/tests/performance/ --grep "@performance" || true
+          # Don't fail the job if performance tests fail - they're informational
+
+      - name: Stop Firebase Emulators
+        if: always()
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: stop
+
+      - name: Performance Test Summary
+        if: always()
+        uses: ./.github/actions/job-summary
+        with:
+          job-name: 'Performance Tests'
+          status: ${{ job.status }}
+          details: |
+            - Performance tests completed
+            - Check test results for performance metrics
 
   # Final summary job
   ci-summary:

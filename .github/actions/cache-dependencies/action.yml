@@ -1,0 +1,60 @@
+name: 'Cache Dependencies'
+description: 'Centralize caching logic for reuse across workflows'
+
+inputs:
+  cache-type:
+    description: 'Type of cache: deps, build, test, playwright'
+    required: true
+  package-lock-hash:
+    description: 'Hash of package-lock.json for cache key'
+    required: false
+    default: ${{ hashFiles('package-lock.json') }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache Node Modules
+      if: inputs.cache-type == 'deps'
+      uses: actions/cache@v4
+      id: cache-deps
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-deps-${{ inputs.package-lock-hash }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
+    - name: Cache Build Artifacts
+      if: inputs.cache-type == 'build'
+      uses: actions/cache@v4
+      id: cache-build
+      with:
+        path: |
+          .next/cache
+          .next/standalone
+          .next/static
+        key: ${{ runner.os }}-nextjs-${{ inputs.package-lock-hash }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-nextjs-${{ inputs.package-lock-hash }}-
+
+    - name: Cache Test Results
+      if: inputs.cache-type == 'test'
+      uses: actions/cache@v4
+      id: cache-test
+      with:
+        path: |
+          test-results/
+          playwright-report/
+        key: ${{ runner.os }}-test-${{ inputs.package-lock-hash }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-test-${{ inputs.package-lock-hash }}-
+
+    - name: Cache Playwright Browsers
+      if: inputs.cache-type == 'playwright'
+      uses: actions/cache@v4
+      id: cache-playwright
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ inputs.package-lock-hash }}
+        restore-keys: |
+          ${{ runner.os }}-playwright-
+

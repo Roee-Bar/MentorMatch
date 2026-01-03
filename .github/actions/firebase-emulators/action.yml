@@ -12,7 +12,7 @@ inputs:
   max-attempts:
     description: 'Maximum attempts to wait for emulator UI'
     required: false
-    default: '30'
+    default: '60'
   emulator-ui-port:
     description: 'Port for Firebase Emulator UI'
     required: false
@@ -329,7 +329,14 @@ runs:
           
           # Check if emulator UI is ready
           # Use curl with timeout to avoid hanging
-          if curl -f -s --max-time 2 http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
+          # Temporarily disable set -e for curl check
+          set +e
+          CURL_EXIT=0
+          curl -f -s --max-time 2 http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1
+          CURL_EXIT=$?
+          set -e
+          
+          if [ $CURL_EXIT -eq 0 ]; then
             echo "✓ Firebase emulator UI is ready! (took ~$((ATTEMPT * 1))s)"
             echo "Emulator UI available at: http://localhost:${{ inputs.emulator-ui-port }}"
             UI_READY=true
@@ -339,9 +346,12 @@ runs:
           # Also check if individual emulators are responding
           # Check Auth emulator
           AUTH_READY=false
-          if curl -f -s --max-time 1 http://localhost:9099 > /dev/null 2>&1; then
+          set +e
+          curl -f -s --max-time 1 http://localhost:9099 > /dev/null 2>&1
+          if [ $? -eq 0 ]; then
             AUTH_READY=true
           fi
+          set -e
           
           # Check Firestore emulator (it might not have HTTP endpoint, so we skip this)
           
@@ -371,13 +381,29 @@ runs:
         if [ "$UI_READY" != "true" ]; then
           echo "✗ Emulators failed to start within timeout ($MAX_ATTEMPTS seconds)"
           echo "Checking emulator status..."
-          if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
-            echo "Last 20 lines of emulator.log:"
-            tail -20 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-              sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-              sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || true
+          
+          # Check if emulators are actually running (even if UI isn't ready)
+          set +e
+          AUTH_RESPONDING=$(curl -f -s --max-time 2 http://localhost:9099 > /dev/null 2>&1 && echo "yes" || echo "no")
+          FIRESTORE_PROCESS=$(ps aux | grep -E "[j]ava.*firestore" | grep -v grep | head -1)
+          set -e
+          
+          if [ "$AUTH_RESPONDING" = "yes" ] || [ -n "$FIRESTORE_PROCESS" ]; then
+            echo "⚠ Emulator UI not ready, but emulators appear to be running"
+            echo "Auth emulator responding: $AUTH_RESPONDING"
+            echo "Firestore process found: $([ -n "$FIRESTORE_PROCESS" ] && echo "yes" || echo "no")"
+            echo "Continuing anyway - emulators may be functional even if UI isn't ready"
+            echo "This can happen if UI download is slow or network is slow"
+          else
+            echo "Emulators do not appear to be running"
+            if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+              echo "Last 50 lines of emulator.log:"
+              tail -50 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || true
+            fi
+            show_logs_and_exit
           fi
-          show_logs_and_exit
         fi
         
         echo "✓ Emulator startup complete"

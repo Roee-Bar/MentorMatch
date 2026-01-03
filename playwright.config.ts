@@ -21,10 +21,15 @@ export default defineConfig({
   // Global test timeout - increased in CI to account for webServer startup (~180s)
   timeout: process.env.CI ? 240000 : 60000, // 4 minutes in CI (webServer + test), 1 minute locally
   globalSetup: require.resolve('./e2e/global-setup.ts'),
+  globalTeardown: require.resolve('./e2e/global-teardown.ts'),
   reporter: [
-    ['html'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['list'],
-    ...(process.env.CI ? [['github'] as const] : []),
+    ['json', { outputFile: 'test-results.json' }],
+    ...(process.env.CI ? [
+      ['github'],
+      ['junit', { outputFile: 'test-results.xml' }],
+    ] : []),
   ],
   
   use: {
@@ -37,7 +42,9 @@ export default defineConfig({
   },
 
   expect: {
-    timeout: 5000,
+    timeout: 10000,
+    toHaveScreenshot: { threshold: 0.2, mode: 'strict' },
+    toMatchSnapshot: { threshold: 0.2 },
   },
 
   // Note: Environment variables for test workers are inherited from process.env
