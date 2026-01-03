@@ -38,10 +38,12 @@ runs:
         echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ inputs.auth-domain }}" >> $GITHUB_ENV
         
         # Use provided storage bucket or generate from project-id
-        if [ -z "${{ inputs.storage-bucket }}" ]; then
+        # Handle empty string input properly
+        STORAGE_BUCKET="${{ inputs.storage-bucket }}"
+        if [ -z "$STORAGE_BUCKET" ] || [ "$STORAGE_BUCKET" == "" ]; then
           echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ inputs.project-id }}.appspot.com" >> $GITHUB_ENV
         else
-          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ inputs.storage-bucket }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$STORAGE_BUCKET" >> $GITHUB_ENV
         fi
         
         echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ inputs.messaging-sender-id }}" >> $GITHUB_ENV

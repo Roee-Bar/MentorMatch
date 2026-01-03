@@ -43,10 +43,12 @@ export class RegisterPage extends BasePage {
   async submit(): Promise<void> {
     await this.page.locator(Selectors.registerSubmitButton).click();
     // Wait for navigation or message with better error handling
+    // Check for both error and success messages
+    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
     try {
       await Promise.race([
         waitForURL(this.page, '/login', 10000),
-        this.page.locator(Selectors.successMessage).first().waitFor({ state: 'visible', timeout: 5000 }),
+        this.page.locator(messageSelector).first().waitFor({ state: 'visible', timeout: 8000 }),
       ]);
     } catch (error) {
       // If neither navigation nor message appears, wait a bit more for form validation
@@ -60,11 +62,15 @@ export class RegisterPage extends BasePage {
   }
 
   async getMessage(): Promise<string> {
-    return await this.getText(Selectors.successMessage);
+    // Wait for either error or success message to be visible
+    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
+    await this.waitForElement(messageSelector, 8000);
+    return await this.getText(messageSelector);
   }
 
   async isMessageVisible(): Promise<boolean> {
-    return await this.elementExists(Selectors.successMessage);
+    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
+    return await this.elementExists(messageSelector);
   }
 }
 

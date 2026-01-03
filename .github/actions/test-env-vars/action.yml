@@ -32,7 +32,8 @@ runs:
         echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789" >> $GITHUB_ENV
         echo "NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test" >> $GITHUB_ENV
         echo "FIREBASE_ADMIN_PROJECT_ID=${{ inputs.project-id }}" >> $GITHUB_ENV
-        echo "FIREBASE_ADMIN_CLIENT_EMAIL=test@example.com" >> $GITHUB_ENV
-        # Private key with escaped newlines for GITHUB_ENV
-        printf 'FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\\n-----END PRIVATE KEY-----\\n' >> $GITHUB_ENV
+        # NOTE: FIREBASE_ADMIN_CLIENT_EMAIL and FIREBASE_ADMIN_PRIVATE_KEY are NOT set in test environment.
+        # Firebase Admin SDK uses minimal config (no credentials) when connecting to emulators in test mode.
+        # This is the secure approach - no credentials are needed or exposed in CI/CD.
+        # See lib/firebase-admin.ts for implementation details.
 

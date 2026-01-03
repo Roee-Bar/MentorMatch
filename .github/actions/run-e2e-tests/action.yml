@@ -29,7 +29,7 @@ runs:
         echo "Test paths: ${{ inputs.test-paths }}"
         echo ""
         echo "Environment variables:"
-        env | grep -E "(E2E_|CI|NODE_ENV|FIREBASE_|NEXT_PUBLIC_)" | sort
+        env | grep -E "(E2E_|CI|NODE_ENV|FIREBASE_|NEXT_PUBLIC_)" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL)" | sort
         echo ""
         
         echo "Verifying Playwright installation:"
@@ -85,7 +85,12 @@ runs:
           echo "=========================================="
           echo "Tests failed with exit code: $TEST_EXIT_CODE"
           echo "=========================================="
-          cat test-output.log || true
+          # Sanitize log output to remove sensitive data
+          if [ -f "test-output.log" ]; then
+            sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' test-output.log | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            cat test-output.log
+          fi
           exit $TEST_EXIT_CODE
         fi
 

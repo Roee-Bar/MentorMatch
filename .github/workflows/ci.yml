@@ -290,8 +290,10 @@ jobs:
           TSC_IMPORT_EXIT=$?
           set -e  # Re-enable exit on error
           
-          # Output for visibility
-          cat /tmp/tsc-imports.log
+          # Output for visibility (sanitized)
+          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-imports.log | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            cat /tmp/tsc-imports.log
           
           if [ $TSC_IMPORT_EXIT -ne 0 ]; then
             echo "WARNING: TypeScript compilation check found issues"
@@ -323,7 +325,8 @@ jobs:
           echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
           echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
           # Export all NEXT_PUBLIC_ variables that are already set
-          env | grep "^NEXT_PUBLIC_" | while IFS= read -r line; do
+          # Filter out any variables that might contain sensitive data (safety check)
+          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL)" | while IFS= read -r line; do
             echo "$line" >> $GITHUB_ENV || true
           done
           echo "✓ Environment variables exported"
@@ -341,14 +344,18 @@ jobs:
           TSC_EXIT_CODE=$?
           set -e  # Re-enable exit on error
           
-          # Output to console for visibility
-          cat /tmp/tsc-output.log
+          # Output to console for visibility (sanitized)
+          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-output.log | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            cat /tmp/tsc-output.log
           
           if [ $TSC_EXIT_CODE -ne 0 ]; then
             # Check if there are actual TypeScript errors (not just warnings)
             if grep -q "error TS" /tmp/tsc-output.log; then
               echo "ERROR: TypeScript errors in Playwright configuration"
-              grep "error TS" /tmp/tsc-output.log | head -10
+              grep "error TS" /tmp/tsc-output.log | head -10 | \
+                sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs'
               exit 1
             else
               echo "⚠️ TypeScript check had warnings but no errors - continuing"
@@ -365,8 +372,10 @@ jobs:
           EXIT_CODE=$?
           set -e  # Re-enable exit on error
           
-          # Output for debugging
-          cat /tmp/playwright-list.log
+          # Output for debugging (sanitized)
+          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/playwright-list.log | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
+            cat /tmp/playwright-list.log
           
           if [ $EXIT_CODE -eq 0 ]; then
             echo "✓ Playwright configuration is valid"
@@ -383,7 +392,9 @@ jobs:
             else
               # It's likely a real config error - fail the step
               echo "ERROR: Playwright validation failed with non-webServer error:"
-              head -30 /tmp/playwright-list.log
+              head -30 /tmp/playwright-list.log | \
+                sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs'
               echo ""
               echo "This appears to be a configuration error, not a webServer issue."
               exit 1

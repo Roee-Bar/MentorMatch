@@ -43,8 +43,8 @@ export const Selectors = {
   registerSubmitButton: '[data-testid="register-submit-button"]',
   
   // Messages
-  errorMessage: '[role="alert"], [data-testid="error-message"], .error, .error-message',
-  successMessage: '[role="status"], [data-testid="success-message"], .success, .success-message',
+  errorMessage: '[role="alert"], [data-testid="error-message"], [data-testid="error"], .error, .error-message',
+  successMessage: '[role="status"], [data-testid="success-message"], [data-testid="success"], .success, .success-message',
   
   // Modals
   modal: '[role="dialog"], [data-testid="modal"]',

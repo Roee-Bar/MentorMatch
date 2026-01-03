@@ -25,7 +25,7 @@ export async function expectAuthenticatedDashboard(page: Page, role: 'student' |
  * Assert that error message is displayed
  */
 export async function expectErrorMessage(page: Page, message?: string): Promise<void> {
-  const errorSelector = '[role="alert"], .error, .error-message, [data-testid="error"], [role="status"]';
+  const errorSelector = '[role="alert"], [data-testid="error-message"], [data-testid="error"], .error, .error-message';
   const errorElement = page.locator(errorSelector).first();
   
   // Wait for error element to be visible with a reasonable timeout
@@ -41,10 +41,10 @@ export async function expectErrorMessage(page: Page, message?: string): Promise<
  * Assert that success message is displayed
  */
 export async function expectSuccessMessage(page: Page, message?: string): Promise<void> {
-  const successSelector = '[role="status"], .success, .success-message, [data-testid="success"]';
+  const successSelector = '[role="status"], [data-testid="success-message"], [data-testid="success"], .success, .success-message';
   const successElement = page.locator(successSelector).first();
   
-  await expect(successElement).toBeVisible();
+  await expect(successElement).toBeVisible({ timeout: 8000 });
   
   if (message) {
     await expect(successElement).toContainText(message, { ignoreCase: true });

@@ -108,6 +108,9 @@ runs:
           echo "Emulator startup failed. Full logs:"
           echo "=========================================="
           if [ -f "emulator.log" ]; then
+            # Sanitize log output to remove sensitive data
+            sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' emulator.log | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' || \
             cat emulator.log
           else
             echo "No emulator.log file found"
@@ -131,7 +134,12 @@ runs:
         
         # Check if emulator.log has any immediate errors
         if [ -f "emulator.log" ]; then
-          if grep -i "error\|failed\|exception" emulator.log | head -5; then
+          # Sanitize error output to remove sensitive data
+          ERROR_LINES=$(grep -i "error\|failed\|exception" emulator.log | head -5 | \
+            sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+            sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs')
+          if [ -n "$ERROR_LINES" ]; then
+            echo "$ERROR_LINES"
             echo "⚠ Potential errors detected in initial logs (may be normal during startup)"
           fi
         fi
@@ -184,10 +192,12 @@ runs:
           # Show progress every 5 attempts (more frequent updates)
           if [ $((ATTEMPT % 5)) -eq 0 ]; then
             echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Still waiting..."
-            # Show last few lines of log for debugging
+            # Show last few lines of log for debugging (sanitized)
             if [ -f "emulator.log" ]; then
               echo "  Last log lines:"
-              tail -3 emulator.log | sed 's/^/    /' || true
+              tail -3 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+                sed -E 's/-----BEGIN (PRIVATE KEY|RSA PRIVATE KEY)-----.*?-----END (PRIVATE KEY|RSA PRIVATE KEY)-----/-----BEGIN \1-----[REDACTED]-----END \2-----/gs' | \
+                sed 's/^/    /' || true
             fi
           fi
           
