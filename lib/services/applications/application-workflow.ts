@@ -2,7 +2,6 @@
  * Application Workflow Service
  * 
  * Business logic for application status management, resubmission, and validation.
- * SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
  */
 
 import { adminDb } from '@/lib/firebase-admin';
@@ -54,7 +53,6 @@ export const ApplicationWorkflowService = {
       // Check if capacity needs to be updated
       const isApproving = newStatus === 'approved' && previousStatus !== 'approved';
       const isUnapproving = previousStatus === 'approved' && newStatus !== 'approved';
-      // For new single-application model, always update capacity (no need to check isLeadApplication)
       // For backward compatibility with old linked applications, only update if it's a lead or has no link
       const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
       

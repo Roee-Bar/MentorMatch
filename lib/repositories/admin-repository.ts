@@ -1,5 +1,4 @@
 // lib/repositories/admin-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toAdmin } from '@/lib/services/shared/firestore-converters';
@@ -15,6 +14,5 @@ export class AdminRepository extends BaseRepository<Admin> {
   }
 }
 
-// Export singleton instance
 export const adminRepository = new AdminRepository();
 

@@ -1,5 +1,4 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-request-service.ts
-// SERVER-ONLY: Supervisor partnership request CRUD operations
 
 import { logger } from '@/lib/logger';
 import { supervisorPartnershipRequestRepository } from '@/lib/repositories/supervisor-partnership-request-repository';
@@ -7,13 +6,7 @@ import type { SupervisorPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipRequestService';
 
-// ============================================
-// SUPERVISOR PARTNERSHIP REQUEST CRUD OPERATIONS
-// ============================================
 export const SupervisorPartnershipRequestService = {
-  /**
-   * Get specific partnership request by ID
-   */
   async getById(requestId: string): Promise<SupervisorPartnershipRequest | null> {
     try {
       return await supervisorPartnershipRequestRepository.findById(requestId);
@@ -34,7 +27,6 @@ export const SupervisorPartnershipRequestService = {
   ): Promise<SupervisorPartnershipRequest[]> {
     try {
       if (type === 'all') {
-        // For 'all', query both incoming and outgoing requests separately
         const [incomingRequests, outgoingRequests] = await Promise.all([
           supervisorPartnershipRequestRepository.findAll([
             { field: 'status', operator: '==', value: 'pending' },
@@ -46,7 +38,6 @@ export const SupervisorPartnershipRequestService = {
           ])
         ]);
 
-        // Merge and deduplicate by request ID
         const requestMap = new Map<string, SupervisorPartnershipRequest>();
         
         incomingRequests.forEach(request => {
@@ -60,7 +51,6 @@ export const SupervisorPartnershipRequestService = {
         return Array.from(requestMap.values());
       }
 
-      // For 'incoming' or 'outgoing', use repository methods
       if (type === 'incoming') {
         return supervisorPartnershipRequestRepository.findAll([
           { field: 'status', operator: '==', value: 'pending' },

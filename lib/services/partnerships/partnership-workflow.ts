@@ -1,6 +1,4 @@
 // lib/services/partnerships/partnership-workflow.ts
-// SERVER-ONLY: Partnership workflow business logic
-// Handles create/accept/reject/cancel operations with validation
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
@@ -15,13 +13,7 @@ import type { StudentPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'PartnershipWorkflowService';
 
-// ============================================
-// PARTNERSHIP WORKFLOW OPERATIONS
-// ============================================
 export const PartnershipWorkflowService = {
-  /**
-   * Create a new partnership request with validation
-   */
   async createRequest(
     requesterId: string, 
     targetStudentId: string
@@ -86,7 +78,6 @@ export const PartnershipWorkflowService = {
           createdAt: new Date(),
         };
 
-        // Generate a new document ID for the request
         const requestRef = partnershipRequestRepository.getNewDocumentRef();
         requestId = requestRef.id;
         transaction.set(requestRef, requestData);
@@ -178,7 +169,6 @@ export const PartnershipWorkflowService = {
       // Update request status
       await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
-      // Only reset status to 'none' if no other pending requests exist
       const updates: Promise<void>[] = [];
       
       if (requesterPendingCount === 0) {
@@ -209,10 +199,6 @@ export const PartnershipWorkflowService = {
       );
     }
   },
-
-  // ============================================
-  // PRIVATE HELPER METHODS
-  // ============================================
 
   /**
    * Validate that student has correct partnership status for operation
@@ -251,10 +237,8 @@ export const PartnershipWorkflowService = {
       const targetRef = studentRepository.getDocumentRef(targetStudentId);
       const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      // Read both student documents
       const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
 
-      // Verify students exist
       if (!requesterSnap.exists || !targetSnap.exists) {
         throw new Error('One or both students not found');
       }
@@ -262,7 +246,6 @@ export const PartnershipWorkflowService = {
       const requesterData = requesterSnap.data();
       const targetData = targetSnap.data();
 
-      // Verify both students are not already paired
       if (requesterData?.partnershipStatus === 'paired') {
         throw new Error('Requester is already paired with another student');
       }
@@ -320,14 +303,12 @@ export const PartnershipWorkflowService = {
     await adminDb.runTransaction(async (transaction) => {
       const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      // Update request status
       transaction.update(requestRef, {
         status: 'rejected',
         respondedAt: new Date()
       });
     });
 
-    // Only reset status to 'none' if no other pending requests exist
     const updates: Promise<void>[] = [];
     
     if (requesterPendingCount === 0) {

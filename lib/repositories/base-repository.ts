@@ -1,23 +1,15 @@
 // lib/repositories/base-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Base repository class providing common Firestore operations
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import type { DocumentData } from 'firebase-admin/firestore';
 
-/**
- * Query condition type for building Firestore queries
- */
 export type RepositoryFilter = {
   field: string;
   operator: FirebaseFirestore.WhereFilterOp;
   value: any;
 };
 
-/**
- * Sort configuration for queries
- */
 export type RepositorySort = {
   field: string;
   direction: 'asc' | 'desc';
@@ -33,22 +25,12 @@ export abstract class BaseRepository<T extends { id: string }> {
   protected abstract collectionName: string;
   protected abstract repositoryName: string;
   
-  /**
-   * Convert Firestore document to entity type
-   * Must be implemented by subclasses
-   */
   protected abstract toEntity(id: string, data: DocumentData): T;
 
-  /**
-   * Get collection reference
-   */
   protected getCollection(): FirebaseFirestore.CollectionReference {
     return adminDb.collection(this.collectionName);
   }
 
-  /**
-   * Find entity by ID
-   */
   async findById(id: string): Promise<T | null> {
     try {
       const doc = await this.getCollection().doc(id).get();
@@ -65,9 +47,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
-  /**
-   * Find all entities matching filters
-   */
   async findAll(
     filters?: RepositoryFilter[],
     sort?: RepositorySort,
@@ -103,9 +82,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
-  /**
-   * Create new entity
-   */
   async create(
     data: Omit<T, 'id'>,
     timestampFields?: { createdAt?: string; updatedAt?: string }
@@ -131,9 +107,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
-  /**
-   * Update entity
-   */
   async update(
     id: string,
     data: Partial<T>,
@@ -157,9 +130,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
-  /**
-   * Delete entity
-   */
   async delete(id: string): Promise<void> {
     try {
       await this.getCollection().doc(id).delete();
@@ -172,9 +142,6 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
-  /**
-   * Batch update multiple entities
-   */
   async batchUpdate(
     updates: Array<{ id: string; data: Partial<T> }>,
     timestampField?: string
@@ -193,30 +160,18 @@ export abstract class BaseRepository<T extends { id: string }> {
     await batch.commit();
   }
 
-  /**
-   * Get document reference by ID
-   */
   getDocumentRef(id: string): FirebaseFirestore.DocumentReference {
     return this.getCollection().doc(id);
   }
 
-  /**
-   * Get a new document reference (for creating new documents in transactions)
-   */
   getNewDocumentRef(): FirebaseFirestore.DocumentReference {
     return this.getCollection().doc();
   }
 
-  /**
-   * Build a query (useful for complex queries)
-   */
   buildQuery(): FirebaseFirestore.Query {
     return this.getCollection();
   }
 
-  /**
-   * Clean data by removing undefined values
-   */
   protected cleanData(data: any): any {
     return Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== undefined)

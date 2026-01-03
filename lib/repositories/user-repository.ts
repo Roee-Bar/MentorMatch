@@ -1,5 +1,4 @@
 // lib/repositories/user-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toUser } from '@/lib/services/shared/firestore-converters';
@@ -15,6 +14,5 @@ export class UserRepository extends BaseRepository<BaseUser> {
   }
 }
 
-// Export singleton instance
 export const userRepository = new UserRepository();
 

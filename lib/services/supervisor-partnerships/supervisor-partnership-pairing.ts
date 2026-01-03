@@ -1,5 +1,4 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-pairing.ts
-// SERVER-ONLY: Supervisor partnership pairing and unpairing operations
 
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -13,10 +12,6 @@ import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, Project } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipPairingService';
-
-// ============================================
-// PRIVATE HELPER FUNCTIONS
-// ============================================
 
 /**
  * Shared transaction logic to remove co-supervisor from a project
@@ -74,9 +69,6 @@ function _filterSupervisorsByCapacity(
   });
 }
 
-// ============================================
-// SUPERVISOR PARTNERSHIP PAIRING OPERATIONS
-// ============================================
 export const SupervisorPartnershipPairingService = {
   /**
    * Get active partnerships for a supervisor (projects where they are co-supervisor)
@@ -95,7 +87,6 @@ export const SupervisorPartnershipPairingService = {
         return [];
       }
 
-      // Otherwise, get all active partnerships
       const allProjects = await projectRepository.findAll([
         { field: 'coSupervisorId', operator: '==', value: supervisorId }
       ]);

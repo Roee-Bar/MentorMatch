@@ -1,6 +1,4 @@
 // lib/services/applications/application-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Application management services
 
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
@@ -10,15 +8,11 @@ import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
 import { DateFormatter } from '@/lib/utils/date-formatter';
 
-// ============================================
-// APPLICATION SERVICE CLASS
-// ============================================
 class ApplicationServiceClass extends BaseService<Application> {
   protected serviceName = 'ApplicationService';
   protected repository = applicationRepository;
 
   protected async validateBeforeCreate(data: Omit<Application, 'id'>): Promise<void> {
-    // Required fields validation
     if (!data.studentId) {
       throw new Error('Student ID is required');
     }
@@ -32,7 +26,6 @@ class ApplicationServiceClass extends BaseService<Application> {
       throw new Error('Project description is required');
     }
 
-    // Status validation - new applications should start as 'pending'
     if (data.status && data.status !== 'pending') {
       throw new Error('New applications must have status "pending"');
     }
@@ -60,16 +53,13 @@ class ApplicationServiceClass extends BaseService<Application> {
   }
 
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
-    // Log incoming data for debugging
     logger.service.operation(this.serviceName, 'createApplication', { 
       supervisorId: applicationData.supervisorId,
       studentId: applicationData.studentId 
     });
     
-    // Exclude timestamp fields - they will be set by base create() method
     const { dateApplied, lastUpdated, ...dataWithoutTimestamps } = applicationData;
     
-    // Use custom timestamp fields: dateApplied/lastUpdated instead of createdAt/updatedAt
     return this.create(dataWithoutTimestamps, {
       createdAt: 'dateApplied',
       updatedAt: 'lastUpdated'
@@ -89,11 +79,9 @@ class ApplicationServiceClass extends BaseService<Application> {
 
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
-      // Use repository methods instead of direct Firestore calls
       const primaryApplications = await this.repository.findByStudentId(studentId);
       const partnerApplications = await this.repository.findByPartnerId(studentId);
       
-      // Combine and deduplicate
       const applicationMap = new Map<string, ApplicationCardData>();
       
       [...primaryApplications, ...partnerApplications].forEach(app => {
@@ -155,5 +143,4 @@ class ApplicationServiceClass extends BaseService<Application> {
   }
 }
 
-// Create singleton instance and export
 export const applicationService = new ApplicationServiceClass();

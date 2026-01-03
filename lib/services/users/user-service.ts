@@ -1,15 +1,10 @@
 // lib/services/users/user-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// User management services
 
 import { BaseService } from '@/lib/services/shared/base-service';
 import { userRepository } from '@/lib/repositories/user-repository';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { BaseUser } from '@/types/database';
 
-// ============================================
-// USER SERVICE CLASS
-// ============================================
 class UserServiceClass extends BaseService<BaseUser> {
   protected serviceName = 'UserService';
   protected repository = userRepository;
@@ -27,5 +22,4 @@ class UserServiceClass extends BaseService<BaseUser> {
   }
 }
 
-// Create singleton instance and export
 export const userService = new UserServiceClass();

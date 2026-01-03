@@ -1,6 +1,4 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-workflow.ts
-// SERVER-ONLY: Supervisor partnership workflow business logic
-// Handles create/accept/reject/cancel operations with validation
 
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -18,9 +16,6 @@ import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
 
 const SERVICE_NAME = 'SupervisorPartnershipWorkflowService';
 
-// ============================================
-// SUPERVISOR PARTNERSHIP WORKFLOW OPERATIONS
-// ============================================
 export const SupervisorPartnershipWorkflowService = {
   /**
    * Create a new supervisor partnership request with validation
@@ -184,10 +179,6 @@ export const SupervisorPartnershipWorkflowService = {
     }
   },
 
-  // ============================================
-  // PRIVATE HELPER METHODS
-  // ============================================
-
   /**
    * Handle accepting a partnership request
    */
@@ -217,13 +208,11 @@ export const SupervisorPartnershipWorkflowService = {
         return ServiceResults.error('Target supervisor no longer has available capacity');
       }
 
-      // Use transaction to ensure atomic updates
       await adminDb.runTransaction(async (transaction) => {
         const projectRef = projectRepository.getDocumentRef(request.projectId);
         const requestRef = supervisorPartnershipRequestRepository.getDocumentRef(requestId);
         const targetSupervisorRef = supervisorRepository.getDocumentRef(targetSupervisorId);
 
-        // Update project with co-supervisor
         transaction.update(projectRef, {
           coSupervisorId: targetSupervisorId,
           coSupervisorName: request.targetSupervisorName,

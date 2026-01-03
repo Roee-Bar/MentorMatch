@@ -1,5 +1,4 @@
 // lib/repositories/student-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toStudent } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class StudentRepository extends BaseRepository<Student> {
     return toStudent(id, data);
   }
 
-  // Custom query methods
   async findByPartnerId(partnerId: string): Promise<Student[]> {
     return this.findAll([
       { field: 'partnerId', operator: '==', value: partnerId }
@@ -34,6 +32,5 @@ export class StudentRepository extends BaseRepository<Student> {
   }
 }
 
-// Export singleton instance
 export const studentRepository = new StudentRepository();
 

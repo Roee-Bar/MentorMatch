@@ -1,5 +1,4 @@
 // lib/repositories/application-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toApplication } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class ApplicationRepository extends BaseRepository<Application> {
     return toApplication(id, data);
   }
 
-  // Custom query methods specific to applications
   async findByStudentId(studentId: string): Promise<Application[]> {
     return this.findAll([
       { field: 'studentId', operator: '==', value: studentId }
@@ -40,7 +38,6 @@ export class ApplicationRepository extends BaseRepository<Application> {
     ]);
   }
 
-  // Override create to use custom timestamp fields
   async create(
     data: Omit<Application, 'id' | 'dateApplied' | 'lastUpdated'>,
     timestampFields?: { createdAt?: string; updatedAt?: string }
@@ -52,7 +49,6 @@ export class ApplicationRepository extends BaseRepository<Application> {
     });
   }
 
-  // Override update to use custom timestamp field
   async update(
     id: string,
     data: Partial<Application>,
@@ -62,6 +58,5 @@ export class ApplicationRepository extends BaseRepository<Application> {
   }
 }
 
-// Export singleton instance
 export const applicationRepository = new ApplicationRepository();
 

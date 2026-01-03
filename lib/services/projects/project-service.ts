@@ -1,15 +1,10 @@
 // lib/services/projects/project-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Project management services
 
 import { BaseService } from '@/lib/services/shared/base-service';
 import { projectRepository } from '@/lib/repositories/project-repository';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
 
-// ============================================
-// PROJECT SERVICE CLASS
-// ============================================
 class ProjectServiceClass extends BaseService<Project> {
   protected serviceName = 'ProjectService';
   protected repository = projectRepository;
@@ -38,5 +33,4 @@ class ProjectServiceClass extends BaseService<Project> {
   }
 }
 
-// Create singleton instance and export
 export const projectService = new ProjectServiceClass();

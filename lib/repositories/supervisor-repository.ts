@@ -1,5 +1,4 @@
 // lib/repositories/supervisor-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toSupervisor } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class SupervisorRepository extends BaseRepository<Supervisor> {
     return toSupervisor(id, data);
   }
 
-  // Custom query methods
   async findActive(): Promise<Supervisor[]> {
     return this.findAll([
       { field: 'isActive', operator: '==', value: true }
@@ -36,6 +34,5 @@ export class SupervisorRepository extends BaseRepository<Supervisor> {
   }
 }
 
-// Export singleton instance
 export const supervisorRepository = new SupervisorRepository();
 

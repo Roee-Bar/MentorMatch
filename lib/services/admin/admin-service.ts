@@ -1,6 +1,4 @@
 // lib/services/admin/admin-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Admin management services
 
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
@@ -10,9 +8,6 @@ import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { applicationRepository } from '@/lib/repositories/application-repository';
 import type { Admin, DashboardStats, Student } from '@/types/database';
 
-// ============================================
-// ADMIN SERVICE CLASS
-// ============================================
 class AdminServiceClass extends BaseService<Admin> {
   protected serviceName = 'AdminService';
   protected repository = adminRepository;
@@ -29,27 +24,19 @@ class AdminServiceClass extends BaseService<Admin> {
         applicationRepository.findAll(),
       ]);
 
-      // Existing metrics
       const matchedStudents = students.filter((s) => s.matchStatus === 'matched').length;
       const pendingMatches = students.filter(
         (s) => s.matchStatus === 'pending' || s.matchStatus === 'unmatched'
       ).length;
 
-      // NEW METRICS
-      // 1. Total supervisors (count all)
       const totalSupervisors = supervisors.length;
-
-      // 2. Approved applications
       const approvedApplications = applications.filter(
         (app) => app.status === 'approved'
       ).length;
-
-      // 3. Pending applications
       const pendingApplications = applications.filter(
         (app) => app.status === 'pending'
       ).length;
 
-      // 4. Students without approved application (ALL students)
       const studentsWithoutApprovedApp = students.filter((student) => {
         const hasApprovedApp = applications.some(
           (app) => app.studentId === student.id && app.status === 'approved'
@@ -57,7 +44,6 @@ class AdminServiceClass extends BaseService<Admin> {
         return !hasApprovedApp;
       }).length;
 
-      // 5. Total available capacity (sum of available slots)
       const totalAvailableCapacity = supervisors.reduce((total, supervisor) => {
         const available = (supervisor.maxCapacity || 0) - (supervisor.currentCapacity || 0);
         return total + (available > 0 ? available : 0);
@@ -91,5 +77,4 @@ class AdminServiceClass extends BaseService<Admin> {
   }
 }
 
-// Create singleton instance and export
 export const adminService = new AdminServiceClass();

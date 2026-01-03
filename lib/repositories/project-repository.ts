@@ -1,5 +1,4 @@
 // lib/repositories/project-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toProject } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class ProjectRepository extends BaseRepository<Project> {
     return toProject(id, data);
   }
 
-  // Custom query methods
   async findBySupervisorId(supervisorId: string): Promise<Project[]> {
     return this.findAll([
       { field: 'supervisorId', operator: '==', value: supervisorId }
@@ -34,6 +32,5 @@ export class ProjectRepository extends BaseRepository<Project> {
   }
 }
 
-// Export singleton instance
 export const projectRepository = new ProjectRepository();
 

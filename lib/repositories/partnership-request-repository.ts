@@ -1,5 +1,4 @@
 // lib/repositories/partnership-request-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toPartnershipRequest } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class PartnershipRequestRepository extends BaseRepository<StudentPartners
     return toPartnershipRequest(id, data);
   }
 
-  // Custom query methods
   async findByRequesterId(requesterId: string): Promise<StudentPartnershipRequest[]> {
     return this.findAll([
       { field: 'requesterId', operator: '==', value: requesterId }
@@ -34,6 +32,5 @@ export class PartnershipRequestRepository extends BaseRepository<StudentPartners
   }
 }
 
-// Export singleton instance
 export const partnershipRequestRepository = new PartnershipRequestRepository();
 

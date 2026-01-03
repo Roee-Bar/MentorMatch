@@ -1,5 +1,4 @@
 // lib/services/partnerships/partnership-pairing.ts
-// SERVER-ONLY: Student pairing and unpairing operations
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
@@ -14,9 +13,6 @@ import type { Student } from '@/types/database';
 
 const SERVICE_NAME = 'PartnershipPairingService';
 
-// ============================================
-// STUDENT PAIRING OPERATIONS
-// ============================================
 export const PartnershipPairingService = {
   /**
    * Get available students for partnership (not paired, excluding current user)
@@ -194,7 +190,6 @@ export const PartnershipPairingService = {
         ])
       ]);
 
-      // Filter to only pending/approved applications
       const applicationsToUpdate = [...apps1, ...apps2].filter(
         app => app.status === 'pending' || app.status === 'approved'
       );
@@ -233,7 +228,6 @@ export const PartnershipPairingService = {
     try {
       const applications = await applicationRepository.findByStudentId(studentId);
 
-      // Filter to only pending/approved applications
       const applicationsToUpdate = applications.filter(
         app => app.status === 'pending' || app.status === 'approved'
       );

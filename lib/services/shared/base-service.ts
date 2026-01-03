@@ -1,22 +1,10 @@
 // lib/services/shared/base-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Base service class providing common CRUD operations
 
 import { logger } from '@/lib/logger';
 import { ServiceResults } from './types';
 import type { ServiceResult } from './types';
 import type { BaseRepository } from '@/lib/repositories/base-repository';
 import type { RepositoryFilter, RepositorySort } from '@/lib/repositories/base-repository';
-
-/**
- * Query condition type for better type safety and readability
- * @deprecated Use RepositoryFilter from repositories instead
- */
-export type QueryCondition = {
-  field: string;
-  operator: FirebaseFirestore.WhereFilterOp;
-  value: any;
-};
 
 /**
  * Base service class that provides common CRUD operations
@@ -94,7 +82,6 @@ export abstract class BaseService<T extends { id: string }> {
   ): Promise<T[]> {
     const result = await this.queryWithResult(conditions, orderBy, limit);
     if (!result.success) {
-      // Log warning so errors aren't completely silent
       logger.service.warn(
         this.serviceName,
         'query',
@@ -110,7 +97,6 @@ export abstract class BaseService<T extends { id: string }> {
     timestampFields?: { createdAt?: string; updatedAt?: string }
   ): Promise<ServiceResult<string>> {
     try {
-      // Validate before creation
       await this.validateBeforeCreate(data as Omit<T, 'id'>);
       
       const id = await this.repository.create(data as Omit<T, 'id'>, timestampFields);
@@ -129,7 +115,6 @@ export abstract class BaseService<T extends { id: string }> {
     timestampField?: string
   ): Promise<ServiceResult> {
     try {
-      // Validate before update
       await this.validateBeforeUpdate(id, updates);
       await this.repository.update(id, updates, timestampField);
       return ServiceResults.success(undefined, `${this.serviceName} updated successfully`);

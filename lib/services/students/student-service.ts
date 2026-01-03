@@ -1,6 +1,4 @@
 // lib/services/students/student-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Student management services
 
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
@@ -9,9 +7,6 @@ import { PartnershipRequestService } from '@/lib/services/partnerships/partnersh
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student } from '@/types/database';
 
-// ============================================
-// STUDENT SERVICE CLASS
-// ============================================
 class StudentServiceClass extends BaseService<Student> {
   protected serviceName = 'StudentService';
   protected repository = studentRepository;
@@ -35,19 +30,16 @@ class StudentServiceClass extends BaseService<Student> {
       // Get all students and filter in memory (Firestore doesn't support != operator efficiently)
       const allStudents = await this.repository.findAll();
       
-      // Filter out the current user and students who are already paired
       const unpairedStudents = allStudents.filter(
         student => student.id !== excludeStudentId && student.partnershipStatus !== 'paired'
       );
       
-      // Check for existing requests in parallel for all students
       const existingChecks = await Promise.all(
         unpairedStudents.map(student => 
           PartnershipRequestService.checkExistingRequest(excludeStudentId, student.id)
         )
       );
       
-      // Filter out students who already have a pending request with the current user
       const availableStudents = unpairedStudents.filter((student, index) => 
         !existingChecks[index].exists
       );
@@ -64,5 +56,4 @@ class StudentServiceClass extends BaseService<Student> {
   }
 }
 
-// Create singleton instance and export
 export const studentService = new StudentServiceClass();

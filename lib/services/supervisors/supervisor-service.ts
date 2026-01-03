@@ -1,6 +1,4 @@
 // lib/services/supervisors/supervisor-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Supervisor management services
 
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
@@ -9,9 +7,6 @@ import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
 
-// ============================================
-// SUPERVISOR SERVICE CLASS
-// ============================================
 class SupervisorServiceClass extends BaseService<Supervisor> {
   protected serviceName = 'SupervisorService';
   protected repository = supervisorRepository;
@@ -73,17 +68,14 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
 
   async getFilteredSupervisors(filters: SupervisorFilterParams): Promise<ServiceResult<SupervisorCardData[]>> {
     try {
-      // Get base data
       let supervisors = await this.getAvailableSupervisors();
 
-      // Normalize filter values
       const search = filters.search?.toLowerCase().trim();
       const department = filters.department;
       const availability = filters.availability;
       const expertise = filters.expertise?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
       const interests = filters.interests?.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
 
-      // Filter by search term (name, bio, expertise, research interests)
       if (search) {
         supervisors = supervisors.filter(supervisor => {
           const nameMatch = supervisor.name.toLowerCase().includes(search);
@@ -98,21 +90,18 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
         });
       }
 
-      // Filter by department
       if (department && department !== 'all') {
         supervisors = supervisors.filter(supervisor => 
           supervisor.department.toLowerCase() === department.toLowerCase()
         );
       }
 
-      // Filter by availability status
       if (availability && availability !== 'all') {
         supervisors = supervisors.filter(supervisor => 
           supervisor.availabilityStatus === availability
         );
       }
 
-      // Filter by expertise areas (any match)
       if (expertise && expertise.length > 0) {
         supervisors = supervisors.filter(supervisor => 
           supervisor.expertiseAreas.some(area => 
@@ -121,7 +110,6 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
         );
       }
 
-      // Filter by research interests (any match)
       if (interests && interests.length > 0) {
         supervisors = supervisors.filter(supervisor => 
           supervisor.researchInterests.some(interest => 
@@ -140,5 +128,4 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
   }
 }
 
-// Create singleton instance and export
 export const supervisorService = new SupervisorServiceClass();

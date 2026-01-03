@@ -1,5 +1,4 @@
 // lib/services/partnerships/partnership-request-service.ts
-// SERVER-ONLY: Partnership request CRUD operations
 
 import { logger } from '@/lib/logger';
 import { partnershipRequestRepository } from '@/lib/repositories/partnership-request-repository';
@@ -7,13 +6,7 @@ import type { StudentPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'PartnershipRequestService';
 
-// ============================================
-// PARTNERSHIP REQUEST CRUD OPERATIONS
-// ============================================
 export const PartnershipRequestService = {
-  /**
-   * Get specific partnership request by ID
-   */
   async getById(requestId: string): Promise<StudentPartnershipRequest | null> {
     try {
       return await partnershipRequestRepository.findById(requestId);
@@ -34,7 +27,6 @@ export const PartnershipRequestService = {
   ): Promise<StudentPartnershipRequest[]> {
     try {
       if (type === 'all') {
-        // For 'all', query both incoming and outgoing requests separately
         const [incomingRequests, outgoingRequests] = await Promise.all([
           partnershipRequestRepository.findAll([
             { field: 'status', operator: '==', value: 'pending' },
@@ -46,7 +38,6 @@ export const PartnershipRequestService = {
           ])
         ]);
 
-        // Merge and deduplicate by request ID
         const requestMap = new Map<string, StudentPartnershipRequest>();
         
         incomingRequests.forEach(request => {
@@ -60,7 +51,6 @@ export const PartnershipRequestService = {
         return Array.from(requestMap.values());
       }
 
-      // For 'incoming' or 'outgoing', use repository methods
       if (type === 'incoming') {
         return partnershipRequestRepository.findAll([
           { field: 'status', operator: '==', value: 'pending' },
@@ -87,7 +77,6 @@ export const PartnershipRequestService = {
     targetStudentId: string
   ): Promise<{ exists: boolean; isReverse: boolean }> {
     try {
-      // Check same direction (requester -> target)
       const existingRequests = await partnershipRequestRepository.findAll([
         { field: 'requesterId', operator: '==', value: requesterId },
         { field: 'targetStudentId', operator: '==', value: targetStudentId },
@@ -98,7 +87,6 @@ export const PartnershipRequestService = {
         return { exists: true, isReverse: false };
       }
 
-      // Check reverse direction (target -> requester)
       const reverseRequests = await partnershipRequestRepository.findAll([
         { field: 'requesterId', operator: '==', value: targetStudentId },
         { field: 'targetStudentId', operator: '==', value: requesterId },

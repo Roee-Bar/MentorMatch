@@ -1,5 +1,4 @@
 // lib/repositories/supervisor-partnership-request-repository.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
 
 import { BaseRepository } from './base-repository';
 import { toSupervisorPartnershipRequest } from '@/lib/services/shared/firestore-converters';
@@ -14,7 +13,6 @@ export class SupervisorPartnershipRequestRepository extends BaseRepository<Super
     return toSupervisorPartnershipRequest(id, data);
   }
 
-  // Custom query methods
   async findByRequestingSupervisorId(requestingSupervisorId: string): Promise<SupervisorPartnershipRequest[]> {
     return this.findAll([
       { field: 'requestingSupervisorId', operator: '==', value: requestingSupervisorId }
@@ -34,6 +32,5 @@ export class SupervisorPartnershipRequestRepository extends BaseRepository<Super
   }
 }
 
-// Export singleton instance
 export const supervisorPartnershipRequestRepository = new SupervisorPartnershipRequestRepository();
 
