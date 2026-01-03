@@ -162,19 +162,23 @@ export const PartnershipWorkflowService = {
         return ServiceResults.error('Can only cancel pending requests');
       }
 
+      // Check for other pending requests BEFORE updating status to avoid race conditions
+      const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
+        PartnershipRequestService.getByStudent(requesterId, 'all'),
+        PartnershipRequestService.getByStudent(request.targetStudentId, 'all')
+      ]);
+
+      // Filter out the current request being cancelled
+      const requesterPendingCount = requesterOtherRequests.filter(r => r.id !== requestId && r.status === 'pending').length;
+      const targetPendingCount = targetOtherRequests.filter(r => r.id !== requestId && r.status === 'pending').length;
+
       // Update request status
       await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
-      // Check for other pending requests before resetting status
-      const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
-        PartnershipRequestService.getByStudent(requesterId, 'outgoing'),
-        PartnershipRequestService.getByStudent(request.targetStudentId, 'incoming')
-      ]);
-
       // Only reset status to 'none' if no other pending requests exist
-      const updates: Promise<void>[] = [];
+      const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
       
-      if (requesterOtherRequests.length === 0) {
+      if (requesterPendingCount === 0) {
         updates.push(
           adminDb.collection('students').doc(requesterId).update({
             partnershipStatus: 'none',
@@ -183,7 +187,7 @@ export const PartnershipWorkflowService = {
         );
       }
 
-      if (targetOtherRequests.length === 0) {
+      if (targetPendingCount === 0) {
         updates.push(
           adminDb.collection('students').doc(request.targetStudentId).update({
             partnershipStatus: 'none',
@@ -301,6 +305,16 @@ export const PartnershipWorkflowService = {
     requestId: string,
     targetStudentId: string
   ): Promise<ServiceResult> {
+    // Check for other pending requests BEFORE updating status to avoid race conditions
+    const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
+      PartnershipRequestService.getByStudent(request.requesterId, 'all'),
+      PartnershipRequestService.getByStudent(targetStudentId, 'all')
+    ]);
+
+    // Filter out the current request being rejected
+    const requesterPendingCount = requesterOtherRequests.filter(r => r.id !== requestId && r.status === 'pending').length;
+    const targetPendingCount = targetOtherRequests.filter(r => r.id !== requestId && r.status === 'pending').length;
+
     // Use transaction to ensure atomic rejection
     await adminDb.runTransaction(async (transaction) => {
       const requestRef = adminDb.collection('partnership_requests').doc(requestId);
@@ -312,16 +326,10 @@ export const PartnershipWorkflowService = {
       });
     });
 
-    // Check for other pending requests before resetting status (outside transaction)
-    const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
-      PartnershipRequestService.getByStudent(request.requesterId, 'outgoing'),
-      PartnershipRequestService.getByStudent(targetStudentId, 'incoming')
-    ]);
-
     // Only reset status to 'none' if no other pending requests exist
-    const updates: Promise<void>[] = [];
+    const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
     
-    if (requesterOtherRequests.length === 0) {
+    if (requesterPendingCount === 0) {
       updates.push(
         adminDb.collection('students').doc(request.requesterId).update({
           partnershipStatus: 'none',
@@ -330,7 +338,7 @@ export const PartnershipWorkflowService = {
       );
     }
 
-    if (targetOtherRequests.length === 0) {
+    if (targetPendingCount === 0) {
       updates.push(
         adminDb.collection('students').doc(targetStudentId).update({
           partnershipStatus: 'none',

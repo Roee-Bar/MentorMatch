@@ -62,28 +62,22 @@ export const StudentService = {
         .where('partnershipStatus', '!=', 'paired')
         .get();
       
-      // Filter out the current user and students with existing pending requests
-      const studentMap = new Map<string, Student>();
-      
-      // Check for existing requests in parallel for all students
+      // Filter out the current user
       const students = querySnapshot.docs
         .filter(doc => doc.id !== excludeStudentId)
         .map(doc => toStudent(doc.id, doc.data()));
       
-      // Filter out students who already have a pending request with the current user
-      const availableStudents: Student[] = [];
+      // Check for existing requests in parallel for all students
+      const existingChecks = await Promise.all(
+        students.map(student => 
+          PartnershipRequestService.checkExistingRequest(excludeStudentId, student.id)
+        )
+      );
       
-      for (const student of students) {
-        const existingCheck = await PartnershipRequestService.checkExistingRequest(
-          excludeStudentId,
-          student.id
-        );
-        
-        // Only include if no existing request (in either direction)
-        if (!existingCheck.exists) {
-          availableStudents.push(student);
-        }
-      }
+      // Filter out students who already have a pending request with the current user
+      const availableStudents = students.filter((student, index) => 
+        !existingChecks[index].exists
+      );
       
       return availableStudents;
     } catch (error) {
