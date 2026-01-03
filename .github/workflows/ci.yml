@@ -157,8 +157,14 @@ jobs:
             BASE_BRANCH="main"
           fi
           
+          # Fetch base branch to compare
+          git fetch origin $BASE_BRANCH:$BASE_BRANCH || true
+          
           # Get changed files
-          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD || echo "")
+          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...HEAD 2>/dev/null || git diff --name-only origin/$BASE_BRANCH...HEAD 2>/dev/null || echo "")
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES" | head -20
           
           # Check if any relevant files changed
           if echo "$CHANGED_FILES" | grep -qE "(^app/|^lib/|^e2e/|playwright\.config\.ts|package\.json|package-lock\.json|\.github/workflows/ci\.yml)"; then
@@ -472,9 +478,9 @@ jobs:
   # Aggregate E2E test results
   e2e-aggregate:
     name: Aggregate E2E Test Results
-    needs: e2e-tests
+    needs: [e2e-setup, e2e-tests]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && (needs.e2e-setup.outputs.should_run == 'true' || needs.e2e-tests.result != 'skipped')
     timeout-minutes: 5
 
     steps:
@@ -496,7 +502,7 @@ jobs:
   # Final summary job
   ci-summary:
     name: CI Pipeline Summary
-    needs: [lint, build, security, e2e-setup, e2e-tests]
+    needs: [lint, build, security, e2e-setup]
     runs-on: ubuntu-latest
     if: always()
     timeout-minutes: 2
@@ -511,23 +517,33 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
           
-          E2E_STATUS="${{ needs.e2e-tests.result }}"
-          if [ -z "$E2E_STATUS" ] || [ "$E2E_STATUS" == "skipped" ]; then
-            echo "| E2E Tests | skipped (no relevant files changed) |" >> $GITHUB_STEP_SUMMARY
+          # Check E2E status
+          E2E_SHOULD_RUN="${{ needs.e2e-setup.outputs.should_run }}"
+          if [ "$E2E_SHOULD_RUN" == "true" ]; then
+            echo "| E2E Tests | See individual test jobs above |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "| E2E Tests | $E2E_STATUS |" >> $GITHUB_STEP_SUMMARY
+            echo "| E2E Tests | skipped (no relevant files changed) |" >> $GITHUB_STEP_SUMMARY
           fi
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ needs.lint.result }}" == "success" ] && [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.security.result }}" == "success" ]; then
-            if [ -z "$E2E_STATUS" ] || [ "$E2E_STATUS" == "skipped" ] || [ "$E2E_STATUS" == "success" ]; then
+          # Determine overall status
+          LINT_STATUS="${{ needs.lint.result }}"
+          BUILD_STATUS="${{ needs.build.result }}"
+          SECURITY_STATUS="${{ needs.security.result }}"
+          
+          if [ "$LINT_STATUS" == "success" ] && [ "$BUILD_STATUS" == "success" ] && [ "$SECURITY_STATUS" == "success" ]; then
+            if [ "$E2E_SHOULD_RUN" != "true" ]; then
               echo "✅ **All CI checks passed!**" >> $GITHUB_STEP_SUMMARY
+              echo "E2E tests were skipped as no relevant files changed." >> $GITHUB_STEP_SUMMARY
             else
-              echo "❌ **E2E tests failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
+              echo "✅ **Fast checks passed!**" >> $GITHUB_STEP_SUMMARY
+              echo "E2E tests are running. Check individual test jobs for results." >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "❌ **Some CI checks failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
