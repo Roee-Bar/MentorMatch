@@ -10,6 +10,7 @@ export { useStudentDashboard } from './useStudentDashboard';
 export { useStudentPartnerships } from './useStudentPartnerships';
 
 // Action hooks
+export { useActionHandler, type ActionConfig, type ActionDefinition } from './useActionHandler';
 export { usePartnershipActions } from './usePartnershipActions';
 export { useApplicationActions } from './useApplicationActions';
 export { useSupervisorApplicationActions } from './useSupervisorApplicationActions';
