@@ -655,6 +655,7 @@ jobs:
 
       - name: Cache dependencies
         uses: actions/cache@v4
+        id: cache-deps
         with:
           path: node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
