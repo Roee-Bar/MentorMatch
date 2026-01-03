@@ -25,37 +25,121 @@ runs:
       if: inputs.action == 'start'
       shell: bash
       run: |
+        set -e
         echo "Starting Firebase emulators..."
+        
+        # Pre-flight checks
+        echo "Running pre-flight checks..."
+        
+        # Check Java is available (required for Firebase emulators)
+        if ! command -v java &> /dev/null; then
+          echo "✗ ERROR: Java is not installed or not in PATH"
+          echo "Firebase emulators require Java. Please ensure Java is installed."
+          exit 1
+        fi
+        JAVA_VERSION=$(java -version 2>&1 | head -n 1)
+        echo "✓ Java found: $JAVA_VERSION"
+        
+        # Check Firebase CLI is available
+        if ! command -v firebase &> /dev/null && ! command -v npx &> /dev/null; then
+          echo "✗ ERROR: Firebase CLI not found and npx not available"
+          exit 1
+        fi
+        echo "✓ Firebase CLI available via npx"
+        
+        # Check firebase.json exists
+        if [ ! -f "firebase.json" ]; then
+          echo "✗ ERROR: firebase.json not found in current directory"
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la | head -20
+          exit 1
+        fi
+        echo "✓ firebase.json found"
+        
+        # Check firestore.rules exists (warn if missing)
+        if [ ! -f "firestore.rules" ]; then
+          echo "⚠ WARNING: firestore.rules not found (emulators may still work)"
+        else
+          echo "✓ firestore.rules found"
+        fi
+        
+        # Check if ports are already in use
+        if lsof -i :${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
+          echo "⚠ WARNING: Port ${{ inputs.emulator-ui-port }} is already in use"
+          echo "Processes using port ${{ inputs.emulator-ui-port }}:"
+          lsof -i :${{ inputs.emulator-ui-port }} || true
+        fi
+        if lsof -i :9099 > /dev/null 2>&1; then
+          echo "⚠ WARNING: Port 9099 (Auth emulator) is already in use"
+        fi
+        if lsof -i :8080 > /dev/null 2>&1; then
+          echo "⚠ WARNING: Port 8080 (Firestore emulator) is already in use"
+        fi
+        
+        echo ""
+        echo "Starting emulators..."
+        
+        # Clean up any existing emulator.log
+        rm -f emulator.log
         
         # Start emulators in background with explicit project
         # Use --project flag to avoid any project detection issues
+        # Redirect both stdout and stderr to log file
+        echo "Running: npx firebase emulators:start --only auth,firestore --project ${{ inputs.project-id }}"
         npx firebase emulators:start --only auth,firestore --project ${{ inputs.project-id }} > emulator.log 2>&1 &
         BACKGROUND_PID=$!
         echo "Background process started with PID: $BACKGROUND_PID"
         
-        # Give emulators minimal time to initialize
-        sleep 2
+        # Function to show logs and exit on error
+        show_logs_and_exit() {
+          echo ""
+          echo "=========================================="
+          echo "Emulator startup failed. Full logs:"
+          echo "=========================================="
+          if [ -f "emulator.log" ]; then
+            cat emulator.log
+          else
+            echo "No emulator.log file found"
+          fi
+          echo "=========================================="
+          echo "Process status:"
+          ps aux | grep -E "[f]irebase|[j]ava" || echo "No firebase/java processes found"
+          echo "=========================================="
+          exit 1
+        }
+        
+        # Give emulators time to initialize (increased from 2 to 3 seconds)
+        echo "Waiting for emulators to initialize..."
+        sleep 3
         
         # Check if background process is still running
         if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
-          echo "✗ Background process died immediately. Logs:"
-          cat emulator.log
-          exit 1
+          echo "✗ Background process died immediately after starting"
+          show_logs_and_exit
+        fi
+        
+        # Check if emulator.log has any immediate errors
+        if [ -f "emulator.log" ]; then
+          if grep -i "error\|failed\|exception" emulator.log | head -5; then
+            echo "⚠ Potential errors detected in initial logs (may be normal during startup)"
+          fi
         fi
         
         # Find the actual firebase/java process PID (more reliable)
         # Firebase emulators spawn Java processes, so we need to find those
-        sleep 1
+        sleep 2
         EMULATOR_PID=$(ps aux | grep -E "[j]ava.*firebase" | awk '{print $2}' | head -1)
         if [ -z "$EMULATOR_PID" ]; then
           # Fallback: try to find any firebase process
-          EMULATOR_PID=$(ps aux | grep -E "[f]irebase" | awk '{print $2}' | head -1)
+          EMULATOR_PID=$(ps aux | grep -E "[f]irebase.*emulators" | awk '{print $2}' | head -1)
         fi
         
         if [ -z "$EMULATOR_PID" ]; then
-          echo "✗ Failed to find emulator process. Logs:"
-          cat emulator.log
-          exit 1
+          echo "✗ Failed to find emulator process after startup"
+          echo "Background PID $BACKGROUND_PID status:"
+          ps -p $BACKGROUND_PID || echo "Background process not found"
+          show_logs_and_exit
         fi
         
         echo "✓ Found emulator process with PID: $EMULATOR_PID"
@@ -68,34 +152,46 @@ runs:
         while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
           # Check if process is still running first
           if ! kill -0 $EMULATOR_PID 2>/dev/null; then
-            echo "✗ Emulator process (PID: $EMULATOR_PID) died. Logs:"
-            cat emulator.log
-            exit 1
+            echo "✗ Emulator process (PID: $EMULATOR_PID) died during startup"
+            show_logs_and_exit
+          fi
+          
+          # Also check background process
+          if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
+            echo "✗ Background process (PID: $BACKGROUND_PID) died during startup"
+            show_logs_and_exit
           fi
           
           # Check if emulator UI is ready
           if curl -f -s http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
             echo "✓ Firebase emulators are ready! (took ~$((ATTEMPT * 1))s)"
+            echo "Emulator UI available at: http://localhost:${{ inputs.emulator-ui-port }}"
             break
           fi
           
           ATTEMPT=$((ATTEMPT + 1))
           
-          # Show progress every 10 attempts
-          if [ $((ATTEMPT % 10)) -eq 0 ]; then
+          # Show progress every 5 attempts (more frequent updates)
+          if [ $((ATTEMPT % 5)) -eq 0 ]; then
             echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Still waiting..."
+            # Show last few lines of log for debugging
+            if [ -f "emulator.log" ]; then
+              echo "  Last log lines:"
+              tail -3 emulator.log | sed 's/^/    /' || true
+            fi
           fi
           
           if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "✗ Emulators failed to start within timeout. Logs:"
-            cat emulator.log
-            exit 1
+            echo "✗ Emulators failed to start within timeout ($MAX_ATTEMPTS seconds)"
+            show_logs_and_exit
           fi
           
           sleep 1
         done
         
         echo "✓ Emulator startup complete"
+        echo "Emulator processes:"
+        ps aux | grep -E "[f]irebase|[j]ava.*firebase" | head -5 || true
 
     - name: Stop Firebase Emulators
       if: inputs.action == 'stop'
