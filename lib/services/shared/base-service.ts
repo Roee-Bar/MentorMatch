@@ -9,6 +9,15 @@ import type { ServiceResult } from './types';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 /**
+ * Query condition type for better type safety and readability
+ */
+export type QueryCondition = {
+  field: string;
+  operator: FirebaseFirestore.WhereFilterOp;
+  value: any;
+};
+
+/**
  * Base service class that provides common CRUD operations
  * All services should extend this class to reduce code duplication
  * 
@@ -80,26 +89,59 @@ export abstract class BaseService<T extends { id: string }> {
       }
       return null;
     } catch (error) {
-      logger.service.error(this.serviceName, 'getById', error, { id });
+      logger.service.error(this.serviceName, 'getById', error, { 
+        id,
+        collection: this.collectionName,
+        operation: 'getById'
+      });
       return null;
     }
   }
 
   /**
+   * Get entity by ID with ServiceResult for error distinction
+   * Use this when you need to distinguish between "not found" and "error occurred"
+   */
+  protected async getByIdWithResult(id: string): Promise<ServiceResult<T | null>> {
+    try {
+      const doc = await adminDb.collection(this.collectionName).doc(id).get();
+      if (doc.exists) {
+        const entity = this.toEntity(doc.id, doc.data()!);
+        return ServiceResults.success(entity);
+      }
+      return ServiceResults.success(null);
+    } catch (error) {
+      logger.service.error(this.serviceName, 'getByIdWithResult', error, { 
+        id,
+        collection: this.collectionName,
+        operation: 'getByIdWithResult'
+      });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to get entity by ID'
+      );
+    }
+  }
+
+  /**
    * Get all entities in the collection
+   * Returns empty array on error
    */
   protected async getAll(): Promise<T[]> {
     try {
       const querySnapshot = await adminDb.collection(this.collectionName).get();
       return querySnapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
     } catch (error) {
-      logger.service.error(this.serviceName, 'getAll', error);
+      logger.service.error(this.serviceName, 'getAll', error, {
+        collection: this.collectionName,
+        operation: 'getAll'
+      });
       return [];
     }
   }
 
   /**
    * Query entities with filters (returns ServiceResult for error handling)
+   * Use this when you need to distinguish between "no results" and "error occurred"
    * 
    * @param conditions - Array of filter conditions
    * @param orderBy - Optional sorting configuration
@@ -107,7 +149,7 @@ export abstract class BaseService<T extends { id: string }> {
    * @returns ServiceResult with array of entities or error
    */
   protected async queryWithResult(
-    conditions: Array<{ field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }>,
+    conditions: QueryCondition[],
     orderBy?: { field: string; direction: 'asc' | 'desc' },
     limit?: number
   ): Promise<ServiceResult<T[]>> {
@@ -130,7 +172,13 @@ export abstract class BaseService<T extends { id: string }> {
       const results = snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
       return ServiceResults.success(results);
     } catch (error) {
-      logger.service.error(this.serviceName, 'query', error, { conditions });
+      logger.service.error(this.serviceName, 'queryWithResult', error, { 
+        conditions,
+        collection: this.collectionName,
+        operation: 'queryWithResult',
+        orderBy,
+        limit
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to query entities'
       );
@@ -140,18 +188,34 @@ export abstract class BaseService<T extends { id: string }> {
   /**
    * Query entities with filters
    * Returns empty array on error (for backward compatibility)
-   * Use queryWithResult() if you need to distinguish between "no results" and "error"
+   * Use `queryWithResult()` if you need to distinguish between "no results" and "error occurred"
    * 
    * @param conditions - Array of filter conditions
    * @param orderBy - Optional sorting configuration
    * @param limit - Optional limit on results
+   * @returns Array of entities (empty array if error or no results)
    */
   protected async query(
-    conditions: Array<{ field: string; operator: FirebaseFirestore.WhereFilterOp; value: any }>,
+    conditions: QueryCondition[],
     orderBy?: { field: string; direction: 'asc' | 'desc' },
     limit?: number
   ): Promise<T[]> {
     const result = await this.queryWithResult(conditions, orderBy, limit);
+    if (!result.success) {
+      // Log warning so errors aren't completely silent
+      logger.service.warn(
+        this.serviceName,
+        'query',
+        `Query failed, returning empty array: ${result.error}`,
+        {
+          conditions,
+          collection: this.collectionName,
+          operation: 'query',
+          orderBy,
+          limit
+        }
+      );
+    }
     return result.success ? (result.data || []) : [];
   }
 
@@ -160,6 +224,7 @@ export abstract class BaseService<T extends { id: string }> {
    * 
    * @param data - Entity data without id and timestamp fields (timestamp fields are handled internally)
    * @param timestampFields - Optional custom timestamp field names (defaults to createdAt/updatedAt)
+   * @returns ServiceResult with entity ID on success
    */
   protected async create(
     data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'dateApplied' | 'lastUpdated'>,
@@ -181,7 +246,11 @@ export abstract class BaseService<T extends { id: string }> {
       
       return ServiceResults.success(docRef.id, `${this.serviceName} created successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'create', error, { data });
+      logger.service.error(this.serviceName, 'create', error, { 
+        data,
+        collection: this.collectionName,
+        operation: 'create'
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to create entity'
       );
@@ -194,6 +263,7 @@ export abstract class BaseService<T extends { id: string }> {
    * @param id - Entity ID
    * @param updates - Partial entity data to update
    * @param timestampField - Optional custom timestamp field name (defaults to updatedAt)
+   * @returns ServiceResult indicating success or failure
    */
   protected async update(
     id: string,
@@ -214,7 +284,11 @@ export abstract class BaseService<T extends { id: string }> {
       
       return ServiceResults.success(undefined, `${this.serviceName} updated successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'update', error, { id });
+      logger.service.error(this.serviceName, 'update', error, { 
+        id,
+        collection: this.collectionName,
+        operation: 'update'
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to update entity'
       );
@@ -223,13 +297,20 @@ export abstract class BaseService<T extends { id: string }> {
 
   /**
    * Delete entity
+   * 
+   * @param id - Entity ID to delete
+   * @returns ServiceResult indicating success or failure
    */
   protected async delete(id: string): Promise<ServiceResult> {
     try {
       await adminDb.collection(this.collectionName).doc(id).delete();
       return ServiceResults.success(undefined, `${this.serviceName} deleted successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'delete', error, { id });
+      logger.service.error(this.serviceName, 'delete', error, { 
+        id,
+        collection: this.collectionName,
+        operation: 'delete'
+      });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to delete entity'
       );

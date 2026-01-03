@@ -45,6 +45,33 @@ class ApplicationServiceClass extends BaseService<Application> {
   }
 
   /**
+   * Validate application data before creation
+   * This is an example of using the validateBeforeCreate hook
+   * 
+   * @throws Error if validation fails
+   */
+  protected async validateBeforeCreate(data: Omit<Application, 'id'>): Promise<void> {
+    // Required fields validation
+    if (!data.studentId) {
+      throw new Error('Student ID is required');
+    }
+    if (!data.supervisorId) {
+      throw new Error('Supervisor ID is required');
+    }
+    if (!data.projectTitle) {
+      throw new Error('Project title is required');
+    }
+    if (!data.projectDescription) {
+      throw new Error('Project description is required');
+    }
+
+    // Status validation - new applications should start as 'pending'
+    if (data.status && data.status !== 'pending') {
+      throw new Error('New applications must have status "pending"');
+    }
+  }
+
+  /**
    * Get application by ID
    * 
    * @param applicationId - Application ID
