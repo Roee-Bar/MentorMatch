@@ -42,7 +42,7 @@ export class ApplicationRepository extends BaseRepository<Application> {
     data: Omit<Application, 'id' | 'dateApplied' | 'lastUpdated'>,
     timestampFields?: { createdAt?: string; updatedAt?: string }
   ): Promise<string> {
-    return super.create(data, {
+    return super.create(data as Omit<Application, 'id'>, {
       createdAt: 'dateApplied',
       updatedAt: 'lastUpdated',
       ...timestampFields,

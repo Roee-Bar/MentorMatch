@@ -40,8 +40,7 @@ export abstract class BaseRepository<T extends { id: string }> {
       return null;
     } catch (error) {
       logger.error(`Repository.findById failed for ${this.repositoryName}`, error, {
-        id,
-        collection: this.collectionName,
+        data: { id, collection: this.collectionName },
       });
       throw error;
     }
@@ -73,10 +72,7 @@ export abstract class BaseRepository<T extends { id: string }> {
       return snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
     } catch (error) {
       logger.error(`Repository.findAll failed for ${this.repositoryName}`, error, {
-        filters,
-        sort,
-        limit,
-        collection: this.collectionName,
+        data: { filters, sort, limit, collection: this.collectionName },
       });
       throw error;
     }
@@ -100,8 +96,7 @@ export abstract class BaseRepository<T extends { id: string }> {
       return docRef.id;
     } catch (error) {
       logger.error(`Repository.create failed for ${this.repositoryName}`, error, {
-        data,
-        collection: this.collectionName,
+        data: { data, collection: this.collectionName },
       });
       throw error;
     }
@@ -122,9 +117,7 @@ export abstract class BaseRepository<T extends { id: string }> {
       });
     } catch (error) {
       logger.error(`Repository.update failed for ${this.repositoryName}`, error, {
-        id,
-        data,
-        collection: this.collectionName,
+        data: { id, data, collection: this.collectionName },
       });
       throw error;
     }
@@ -135,8 +128,7 @@ export abstract class BaseRepository<T extends { id: string }> {
       await this.getCollection().doc(id).delete();
     } catch (error) {
       logger.error(`Repository.delete failed for ${this.repositoryName}`, error, {
-        id,
-        collection: this.collectionName,
+        data: { id, collection: this.collectionName },
       });
       throw error;
     }
