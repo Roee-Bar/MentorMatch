@@ -164,10 +164,15 @@ export default function StudentAuthenticated() {
 
   // Handle application submission
   const handleSubmitApplication = async (applicationData: ApplicationSubmitData) => {
+    if (!selectedSupervisor?.id) {
+      setError('No supervisor selected');
+      return;
+    }
+
     try {
       await applicationActions.submitApplication({
         ...applicationData,
-        supervisorId: selectedSupervisor?.id,
+        supervisorId: selectedSupervisor.id,
       });
 
       // Close modal on success
@@ -289,7 +294,11 @@ export default function StudentAuthenticated() {
                 student={currentPartner}
                 showRequestButton={false}
                 isCurrentPartner={true}
-                onUnpair={partnershipActions.unpair}
+                onUnpair={() => {
+                  partnershipActions.unpair({}).catch(() => {
+                    // Error already handled by partnershipActions hook
+                  });
+                }}
                 isLoading={partnershipActions.isLoading('unpair')}
               />
             </div>

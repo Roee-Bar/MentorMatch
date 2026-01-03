@@ -120,6 +120,8 @@ export function useActionHandler<TActions extends Record<string, ActionDefinitio
         if (actionDef.rethrowError) {
           throw error;
         }
+        // When rethrowError is false, return undefined (error handled via callback)
+        return undefined as TResult;
       } finally {
         setLoading(key, false);
       }

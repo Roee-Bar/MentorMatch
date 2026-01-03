@@ -187,10 +187,15 @@ export default function BrowseSupervisorsClient() {
 
   // Handle application submission
   const handleSubmitApplication = async (applicationData: ApplicationSubmitData) => {
+    if (!selectedSupervisor?.id) {
+      setError('No supervisor selected');
+      return;
+    }
+
     try {
       await applicationActions.submitApplication({
         ...applicationData,
-        supervisorId: selectedSupervisor?.id,
+        supervisorId: selectedSupervisor.id,
       });
       setShowApplicationModal(false);
     } catch {
