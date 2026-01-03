@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main]
 
+# Configuration constants (update these values to change versions/timeouts)
+# Node.js version, Java version, and timeouts are defined here for easy maintenance
+# These values are used throughout the workflow and passed to composite actions
+
 # Shared environment variables for Firebase emulators
 env:
   E2E_TEST: 'true'
@@ -34,20 +38,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-environment
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Setup Java (required for Firebase Emulators)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
           java-version: '17'
-
-      - name: Install dependencies
-        run: npm ci
+          java-distribution: 'temurin'
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
@@ -96,120 +92,35 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-environment
         with:
           node-version: '20'
-          cache: 'npm'
-
-      - name: Setup Java (required for Firebase Emulators)
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
           java-version: '17'
-
-      - name: Restore dependencies cache
-        uses: actions/cache@v4
-        id: cache-deps
-        with:
-          path: |
-            node_modules
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
-      - name: Install dependencies (if cache miss)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: npm ci
+          java-distribution: 'temurin'
 
       - name: Start Firebase Emulators
-        run: |
-          echo "Starting Firebase emulators..."
-          
-          # Start emulators in background with explicit project
-          # Use --project flag to avoid any project detection issues
-          npx firebase emulators:start --only auth,firestore --project demo-test > emulator.log 2>&1 &
-          BACKGROUND_PID=$!
-          echo "Background process started with PID: $BACKGROUND_PID"
-          
-          # Give emulators minimal time to initialize
-          sleep 2
-          
-          # Check if background process is still running
-          if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
-            echo "✗ Background process died immediately. Logs:"
-            cat emulator.log
-            exit 1
-          fi
-          
-          # Find the actual firebase/java process PID (more reliable)
-          # Firebase emulators spawn Java processes, so we need to find those
-          sleep 1
-          EMULATOR_PID=$(ps aux | grep -E "[j]ava.*firebase" | awk '{print $2}' | head -1)
-          if [ -z "$EMULATOR_PID" ]; then
-            # Fallback: try to find any firebase process
-            EMULATOR_PID=$(ps aux | grep -E "[f]irebase" | awk '{print $2}' | head -1)
-          fi
-          
-          if [ -z "$EMULATOR_PID" ]; then
-            echo "✗ Failed to find emulator process. Logs:"
-            cat emulator.log
-            exit 1
-          fi
-          
-          echo "✓ Found emulator process with PID: $EMULATOR_PID"
-          echo "EMULATOR_PID=$EMULATOR_PID" >> $GITHUB_ENV
-          
-          # Wait for emulator UI to be ready (this indicates all emulators are up)
-          echo "Waiting for Firebase emulators to start..."
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            # Check if process is still running first
-            if ! kill -0 $EMULATOR_PID 2>/dev/null; then
-              echo "✗ Emulator process (PID: $EMULATOR_PID) died. Logs:"
-              cat emulator.log
-              exit 1
-            fi
-            
-            # Check if emulator UI is ready
-            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
-              echo "✓ Firebase emulators are ready! (took ~$((ATTEMPT * 1))s)"
-              break
-            fi
-            
-            ATTEMPT=$((ATTEMPT + 1))
-            
-            # Show progress every 10 attempts
-            if [ $((ATTEMPT % 10)) -eq 0 ]; then
-              echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Still waiting..."
-            fi
-            
-            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-              echo "✗ Emulators failed to start within timeout. Logs:"
-              cat emulator.log
-              exit 1
-            fi
-            
-            sleep 1
-          done
-          
-          echo "✓ Emulator startup complete"
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: start
+          project-id: 'demo-test'
+          max-attempts: '30'
+          emulator-ui-port: '4000'
 
       - name: Run Tests
         run: npx playwright test ${{ matrix.test_paths }}
         env:
           CI: 'true'
           E2E_BASE_URL: 'http://localhost:3000'
+          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
+          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
+          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
 
       - name: Stop Firebase Emulators
         if: always()
-        run: |
-          if [ -n "$EMULATOR_PID" ]; then
-            kill $EMULATOR_PID 2>/dev/null || true
-          fi
-          pkill -f "firebase emulators" || true
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: stop
 
       - name: Upload test results
         if: always()
