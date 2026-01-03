@@ -126,16 +126,16 @@ jobs:
         shell: bash
         run: |
           echo "Checking for deprecated action usage..."
-          DEPRECATED_COUNT=0
           
-          # Check for direct usage of deprecated actions (they should use setup-env-vars internally)
-          # This is just a warning, not an error, since they're still functional
-          if grep -r "uses:.*test-env-vars" .github/workflows/*.yml 2>/dev/null | grep -v "setup-env-vars"; then
-            echo "⚠️  Warning: Direct usage of test-env-vars detected (consider using setup-env-vars)"
+          # Check for usage of removed actions
+          if grep -r "uses:.*build-env-vars" .github/workflows/*.yml 2>/dev/null; then
+            echo "❌ Error: build-env-vars action has been removed. Use direct environment variable setting instead."
+            exit 1
           fi
           
-          if grep -r "uses:.*build-env-vars" .github/workflows/*.yml 2>/dev/null | grep -v "setup-env-vars"; then
-            echo "⚠️  Warning: Direct usage of build-env-vars detected (consider using setup-env-vars)"
+          if grep -r "uses:.*test-env-vars" .github/workflows/*.yml 2>/dev/null; then
+            echo "❌ Error: test-env-vars action does not exist. Use direct environment variable setting instead."
+            exit 1
           fi
           
           echo "✓ Deprecated action check complete"
