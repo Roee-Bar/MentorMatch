@@ -16,7 +16,8 @@ if (!admin.apps.length) {
   const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
 
   // Check if all required environment variables are present
-  const hasFullCredentials = projectId && clientEmail && privateKey;
+  // In test environment, always use minimal config (no credentials) to connect to emulator
+  const hasFullCredentials = !isTestEnv && projectId && clientEmail && privateKey;
   
   // Only fail in production runtime on Vercel (actual deployment)
   // For builds, tests, and development, initialize with minimal config
@@ -31,7 +32,7 @@ if (!admin.apps.length) {
   }
 
   try {
-    if (hasFullCredentials) {
+    if (hasFullCredentials && !isTestEnv) {
       // Initialize with full credentials
       // TypeScript narrowing: we know these are defined due to hasFullCredentials check
       const certProjectId = projectId as string;
