@@ -10,50 +10,52 @@ import { logger } from './logger';
 
 // Initialize Firebase Admin SDK only if not already initialized
 if (!admin.apps.length) {
-  try {
-    const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
-    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
-    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+  const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
 
-    // Check if all required environment variables are present
-    if (!projectId || !clientEmail || !privateKey) {
-      // Only fail in production runtime on Vercel (actual deployment)
-      // For builds, tests, and development, initialize with minimal config
-      const isProductionRuntime = process.env.NODE_ENV === 'production' && 
-                                  process.env.VERCEL === '1' &&
-                                  !process.env.CI; // CI builds should use minimal config
-      
-      if (isProductionRuntime) {
-        const error = new Error('CRITICAL: Missing Firebase Admin credentials in production');
-        logger.error('Firebase initialization failed', error, { context: 'Firebase' });
-        throw error;
-      }
-      
+  // Check if all required environment variables are present
+  const hasFullCredentials = projectId && clientEmail && privateKey;
+  
+  // Only fail in production runtime on Vercel (actual deployment)
+  // For builds, tests, and development, initialize with minimal config
+  const isProductionRuntime = process.env.NODE_ENV === 'production' && 
+                              process.env.VERCEL === '1' &&
+                              !process.env.CI; // CI builds should use minimal config
+  
+  if (!hasFullCredentials && isProductionRuntime) {
+    const error = new Error('CRITICAL: Missing Firebase Admin credentials in production');
+    logger.error('Firebase initialization failed', error, { context: 'Firebase' });
+    throw error;
+  }
+
+  try {
+    if (hasFullCredentials) {
+      // Initialize with full credentials
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId!,
+          clientEmail!,
+          // Replace escaped newlines with actual newlines
+          privateKey: privateKey!.replace(/\\n/g, '\n'),
+        }),
+        projectId: projectId!,
+      });
+
+      logger.firebase.init();
+    } else {
+      // Initialize with minimal config for build, testing, or development
+      // This allows the build to succeed and API routes to be analyzed
       logger.warn(
         'Missing Firebase Admin environment variables. Initializing with minimal config for build/testing.',
         { context: 'Firebase', data: { projectId: !!projectId, clientEmail: !!clientEmail, privateKey: !!privateKey } }
       );
       
-      // Initialize with minimal config for build, testing, or development
-      // This allows the build to succeed and API routes to be analyzed
       admin.initializeApp({
         projectId: projectId || 'demo-test',
       });
       logger.debug('Initialized with minimal config', { context: 'Firebase' });
-    } else {
-      // Initialize with full credentials
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId,
-          clientEmail,
-          // Replace escaped newlines with actual newlines
-          privateKey: privateKey.replace(/\\n/g, '\n'),
-        }),
-        projectId,
-      });
-
-      logger.firebase.init();
     }
 
     // Connect to emulators if in test environment
@@ -72,11 +74,45 @@ if (!admin.apps.length) {
     }
   } catch (error) {
     logger.firebase.error('Initialization', error);
+    
+    // If initialization failed, try to initialize with minimal config as fallback
+    // This ensures the app is always initialized, even if credentials are invalid
+    if (!admin.apps.length) {
+      try {
+        logger.warn('Initialization failed, attempting fallback with minimal config', { context: 'Firebase' });
+        admin.initializeApp({
+          projectId: projectId || 'demo-test',
+        });
+        logger.debug('Fallback initialization succeeded', { context: 'Firebase' });
+      } catch (fallbackError) {
+        logger.firebase.error('Fallback initialization also failed', fallbackError);
+        // Only throw in development to help debug
+        // In production/test builds, we'll let the exports fail with a clear error
+        if (process.env.NODE_ENV === 'development') {
+          throw fallbackError;
+        }
+      }
+    }
+    
     // Only throw in development to help debug
-    // In production/test builds, allow it to continue with limited functionality
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' && admin.apps.length === 0) {
       throw error;
     }
+  }
+}
+
+// Ensure app is initialized before exporting services
+if (!admin.apps.length) {
+  // Last resort: initialize with minimal config
+  try {
+    admin.initializeApp({
+      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
+    });
+    logger.debug('Emergency initialization with minimal config', { context: 'Firebase' });
+  } catch (error) {
+    logger.firebase.error('Emergency initialization failed', error);
+    // This should never happen, but if it does, we need to throw
+    throw new Error('Failed to initialize Firebase Admin SDK. Please check your configuration.');
   }
 }
 
