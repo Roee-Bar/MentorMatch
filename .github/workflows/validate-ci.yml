@@ -87,6 +87,9 @@ jobs:
             exit 1
           fi
           
+          # Install yaml package for Node.js validation
+          npm install yaml --no-save
+          
           # Check for required sections using Node.js
           node << 'EOF'
           const fs = require('fs');
