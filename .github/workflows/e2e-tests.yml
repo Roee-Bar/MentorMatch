@@ -95,6 +95,15 @@ jobs:
             echo "TypeScript errors found. This may cause test failures."
             echo "Continuing anyway to see test errors..."
           }
+      
+      - name: Verify Playwright can resolve imports
+        shell: bash
+        run: |
+          echo "Checking if Playwright can resolve path aliases..."
+          # Try to compile a test file to check for import errors
+          npx tsc --noEmit e2e/fixtures/db-helpers.ts 2>&1 | head -20 || {
+            echo "TypeScript compilation check completed (errors may be expected)"
+          }
 
       - name: Set test environment variables
         uses: ./.github/actions/test-env-vars
