@@ -11,20 +11,27 @@ import { NextRequest } from 'next/server';
 import { SupervisorPartnershipRequestService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-request-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { getOptionalQueryParam } from '@/lib/utils/query-params';
+import { extractQueryParams } from '@/lib/middleware/query-params';
+import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
+import { z } from 'zod';
+
+const requestTypeSchema = z.object({
+  type: z.enum(['incoming', 'outgoing', 'all'], {
+    errorMap: () => ({ message: ERROR_MESSAGES.INVALID_TYPE_PARAMETER })
+  }).default('all'),
+});
 
 export const GET = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
-    const { searchParams } = new URL(request.url);
-    const type = getOptionalQueryParam(searchParams, 'type') || 'all';
-
-    if (!['incoming', 'outgoing', 'all'].includes(type)) {
-      return ApiResponse.validationError('Invalid type parameter. Must be: incoming, outgoing, or all');
+    const params = await extractQueryParams(request, requestTypeSchema);
+    
+    if (params instanceof Response) {
+      return params;
     }
 
     const requests = await SupervisorPartnershipRequestService.getBySupervisor(
       user.uid,
-      type as 'incoming' | 'outgoing' | 'all'
+      params.type
     );
 
     return ApiResponse.successWithCount(requests);

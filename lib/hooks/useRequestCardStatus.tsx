@@ -1,11 +1,10 @@
 /**
  * Hook for handling request card status badge logic
- * Provides status badge component and display logic for partnership request cards
+ * Provides status configuration for partnership request cards
+ * 
+ * Note: This hook returns data, not JSX, following React hooks best practices.
+ * Components should use this data to render the appropriate badge.
  */
-
-import { ReactNode } from 'react';
-import StatusBadge from '@/app/components/shared/StatusBadge';
-import { badgeWarning } from '@/lib/styles/shared-styles';
 
 interface UseRequestCardStatusProps {
   status: string;
@@ -13,15 +12,23 @@ interface UseRequestCardStatusProps {
   variant?: 'student' | 'supervisor';
 }
 
+export interface StatusBadgeConfig {
+  status: string;
+  variant?: 'application' | 'availability' | 'partnership' | 'matchStatus' | 'supervisorPartnership' | 'custom';
+  showIncomingOutgoing: boolean;
+  isIncoming: boolean;
+  isPending: boolean;
+}
+
 interface UseRequestCardStatusReturn {
-  statusBadge: ReactNode;
+  statusConfig: StatusBadgeConfig;
   isPending: boolean;
 }
 
 /**
- * Hook that provides status badge component and status checks for request cards
+ * Hook that provides status badge configuration for request cards
  * @param props - Status string, request type (incoming/outgoing), and variant (student/supervisor)
- * @returns Object with status badge component and status flags
+ * @returns Object with status configuration and status flags
  */
 export function useRequestCardStatus({
   status,
@@ -31,23 +38,26 @@ export function useRequestCardStatus({
   const isIncoming = type === 'incoming';
   const isPending = status === 'pending';
 
-  const getStatusBadge = (): ReactNode => {
-    // For supervisor partnerships, use StatusBadge component
-    if (variant === 'supervisor') {
-      // For pending status, show incoming/outgoing badge
-      if (status === 'pending') {
-        return <span className={badgeWarning}>{isIncoming ? 'Incoming' : 'Outgoing'}</span>;
-      }
-      // For other statuses, use StatusBadge component
-      return <StatusBadge status={status} variant="supervisorPartnership" />;
-    }
-    
-    // For student partnerships, show simple incoming/outgoing badge
-    return <span className={badgeWarning}>{isIncoming ? 'Incoming' : 'Outgoing'}</span>;
-  };
+  // Determine if we should show incoming/outgoing badge (only for pending status)
+  const showIncomingOutgoing = isPending;
+
+  // Determine the StatusBadge variant
+  let badgeVariant: StatusBadgeConfig['variant'];
+  if (variant === 'supervisor' && !isPending) {
+    badgeVariant = 'supervisorPartnership';
+  } else if (variant === 'student') {
+    // Student partnerships don't use StatusBadge for pending, only incoming/outgoing
+    badgeVariant = undefined;
+  }
 
   return {
-    statusBadge: getStatusBadge(),
+    statusConfig: {
+      status,
+      variant: badgeVariant,
+      showIncomingOutgoing,
+      isIncoming,
+      isPending,
+    },
     isPending,
   };
 }

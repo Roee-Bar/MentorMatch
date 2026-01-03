@@ -44,6 +44,35 @@ async function _removeCoSupervisorFromProject(
   });
 }
 
+/**
+ * Filter supervisors by capacity and active status
+ * Excludes the specified supervisor ID and filters out inactive/unapproved supervisors
+ * 
+ * @param supervisors - Array of supervisors to filter
+ * @param excludeSupervisorId - Supervisor ID to exclude from results
+ * @returns Filtered array of supervisors with available capacity
+ */
+function _filterSupervisorsByCapacity(
+  supervisors: Supervisor[],
+  excludeSupervisorId: string
+): Supervisor[] {
+  return supervisors.filter(supervisor => {
+    // Exclude the specified supervisor
+    if (supervisor.id === excludeSupervisorId) {
+      return false;
+    }
+    
+    // Filter out inactive or unapproved supervisors
+    if (!supervisor.isActive || !supervisor.isApproved) {
+      return false;
+    }
+    
+    // Only include supervisors with available capacity
+    const availableCapacity = supervisor.maxCapacity - supervisor.currentCapacity;
+    return availableCapacity > 0;
+  });
+}
+
 // ============================================
 // SUPERVISOR PARTNERSHIP PAIRING OPERATIONS
 // ============================================
@@ -90,17 +119,8 @@ export const SupervisorPartnershipPairingService = {
       // Get all active supervisors
       const allSupervisors = await SupervisorService.getAllSupervisors();
 
-      // Filter out requesting supervisor and those without capacity
-      return allSupervisors.filter(supervisor => {
-        if (supervisor.id === requestingSupervisorId) {
-          return false;
-        }
-        if (!supervisor.isActive || !supervisor.isApproved) {
-          return false;
-        }
-        const availableCapacity = supervisor.maxCapacity - supervisor.currentCapacity;
-        return availableCapacity > 0;
-      });
+      // Use shared filtering logic
+      return _filterSupervisorsByCapacity(allSupervisors, requestingSupervisorId);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getPartnersWithCapacity', error, { requestingSupervisorId, projectId });
       return [];

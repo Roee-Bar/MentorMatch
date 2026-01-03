@@ -9,31 +9,40 @@
 import { NextRequest } from 'next/server';
 import { SupervisorPartnershipWorkflowService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-workflow';
 import { withAuth } from '@/lib/middleware/apiHandler';
-import { validateRequest, supervisorPartnershipResponseSchema } from '@/lib/middleware/validation';
+import { validateAndExtract, handleValidationError } from '@/lib/middleware/validation-helpers';
+import { supervisorPartnershipResponseSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants/error-messages';
 import type { SupervisorPartnershipIdParams } from '@/types/api';
 
 export const POST = withAuth<SupervisorPartnershipIdParams>(
   async (request: NextRequest, { params }, user) => {
-    // Validate request body
-    const validation = await validateRequest(request, supervisorPartnershipResponseSchema);
-    if (!validation.valid || !validation.data) {
-      return ApiResponse.validationError(validation.error || 'Invalid request data');
+    try {
+      // Validate request body
+      const { action } = await validateAndExtract(
+        request,
+        supervisorPartnershipResponseSchema
+      );
+
+      const result = await SupervisorPartnershipWorkflowService.respondToRequest(
+        params.id,
+        user.uid,
+        action
+      );
+
+      const errorResponse = handleServiceResult(result, ERROR_MESSAGES.RESPOND_TO_REQUEST);
+      if (errorResponse) return errorResponse;
+
+      const successMessage = action === 'accept' 
+        ? SUCCESS_MESSAGES.REQUEST_ACCEPTED 
+        : SUCCESS_MESSAGES.REQUEST_REJECTED;
+      return ApiResponse.successMessage(successMessage);
+    } catch (error) {
+      const validationResponse = handleValidationError(error);
+      if (validationResponse) return validationResponse;
+      throw error;
     }
-
-    const { action } = validation.data;
-
-    const result = await SupervisorPartnershipWorkflowService.respondToRequest(
-      params.id,
-      user.uid,
-      action
-    );
-
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to respond to request', 400);
-    }
-
-    return ApiResponse.successMessage(`Request ${action}ed successfully`);
   },
   { allowedRoles: ['supervisor'] }
 );

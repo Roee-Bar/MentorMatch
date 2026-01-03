@@ -4,23 +4,20 @@
 import type { StudentPartnershipRequest } from '@/types/database';
 import { formatRelativeDate } from '@/lib/utils/date';
 import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
+import BaseRequestCard from './BaseRequestCard';
 import { 
-  cardHover, 
   btnSuccess, 
   btnSecondary, 
   btnDanger, 
   badgeWarning,
-  cardHeader,
   cardDetailRow,
   textSecondary,
   textMuted,
   textValue,
   headingLg,
-  infoBoxBlue,
   linkEmailWithTruncate,
   textInfoDark,
-  textLabel,
-  borderLeftAccentBlue
+  textLabel
 } from '@/lib/styles/shared-styles';
 
 interface PartnershipRequestCardProps {
@@ -55,9 +52,8 @@ export default function PartnershipRequestCard({
   });
 
   return (
-    <div className={`${cardHover} ${borderLeftAccentBlue}`}>
-      {/* Header */}
-      <div className={cardHeader}>
+    <BaseRequestCard
+      renderHeader={() => (
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <h3 className={headingLg}>
@@ -72,70 +68,70 @@ export default function PartnershipRequestCard({
             <p className={textLabel}>ID: {displayStudentId}</p>
           )}
         </div>
-      </div>
-
-      {/* Request Details */}
-      <div className="space-y-2 mb-4">
-        <div className={cardDetailRow}>
-          <span className={textMuted}>
-            {isIncoming ? 'From:' : 'To:'}
-          </span>
-          <a 
-            href={`mailto:${displayEmail}`}
-            className={linkEmailWithTruncate}
-          >
-            {displayEmail}
-          </a>
-        </div>
-        <div className={cardDetailRow}>
-          <span className={textMuted}>Requested:</span>
-          <span className={textValue}>
-            {formatRelativeDate(request.createdAt)}
-          </span>
-        </div>
-      </div>
-
-      {/* Message */}
-      <div className={`${infoBoxBlue} mb-4`}>
+      )}
+      renderDetails={() => (
+        <>
+          <div className={cardDetailRow}>
+            <span className={textMuted}>
+              {isIncoming ? 'From:' : 'To:'}
+            </span>
+            <a 
+              href={`mailto:${displayEmail}`}
+              className={linkEmailWithTruncate}
+            >
+              {displayEmail}
+            </a>
+          </div>
+          <div className={cardDetailRow}>
+            <span className={textMuted}>Requested:</span>
+            <span className={textValue}>
+              {formatRelativeDate(request.createdAt)}
+            </span>
+          </div>
+        </>
+      )}
+      renderMessage={() => (
         <p className={`text-sm ${textInfoDark}`}>
           {isIncoming 
             ? `${request.requesterName} wants to partner with you for your final project.`
             : `Waiting for ${request.targetStudentName} to respond to your partnership request.`
           }
         </p>
-      </div>
-
-      {/* Action Buttons */}
-      {isIncoming && onAccept && onReject && (
-        <div className="flex gap-2">
-          <button
-            onClick={handleAccept}
-            className={`${btnSuccess} flex-1`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Accepting...' : 'Accept'}
-          </button>
-          <button
-            onClick={handleReject}
-            className={`${btnSecondary} flex-1`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Rejecting...' : 'Reject'}
-          </button>
-        </div>
       )}
+      renderActions={() => (
+        <>
+          {isIncoming && onAccept && onReject && (
+            <div className="flex gap-2">
+              <button
+                onClick={handleAccept}
+                className={`${btnSuccess} flex-1`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Accepting...' : 'Accept'}
+              </button>
+              <button
+                onClick={handleReject}
+                className={`${btnSecondary} flex-1`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Rejecting...' : 'Reject'}
+              </button>
+            </div>
+          )}
 
-      {!isIncoming && onCancel && (
-        <div>
-          <button
-            onClick={handleCancel}
-            className={`${btnDanger} w-full`}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Cancelling...' : 'Cancel Request'}
-          </button>
-        </div>
+          {!isIncoming && onCancel && (
+            <div>
+              <button
+                onClick={handleCancel}
+                className={`${btnDanger} w-full`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Cancelling...' : 'Cancel Request'}
+              </button>
+            </div>
+          )}
+        </>
       )}
-    </div>
+    />
   );
 }

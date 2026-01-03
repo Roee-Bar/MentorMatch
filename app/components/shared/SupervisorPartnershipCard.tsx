@@ -23,7 +23,9 @@ import {
   linkEmailWithTruncate,
   capacityAvailable,
   capacityUnavailable,
-  infoBoxGray
+  infoBoxGray,
+  spacingFormField,
+  spacingTop
 } from '@/lib/styles/shared-styles';
 
 interface SupervisorPartnershipCardProps {
@@ -63,7 +65,7 @@ export default function SupervisorPartnershipCard({
 
       {/* Bio */}
       {supervisor.bio && (
-        <div className="mb-4">
+        <div className={spacingFormField}>
           <p className={`${textDescription} line-clamp-3`}>
             {supervisor.bio}
           </p>
@@ -72,8 +74,8 @@ export default function SupervisorPartnershipCard({
 
       {/* Expertise Areas */}
       {supervisor.expertiseAreas && supervisor.expertiseAreas.length > 0 && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-2`}>Expertise:</p>
+        <div className={spacingFormField}>
+          <p className={`${textLabel} ${spacingTop}`}>Expertise:</p>
           <div className="flex flex-wrap gap-2">
             {supervisor.expertiseAreas.slice(0, 4).map((area, index) => (
               <span
@@ -94,8 +96,8 @@ export default function SupervisorPartnershipCard({
 
       {/* Research Interests */}
       {supervisor.researchInterests && supervisor.researchInterests.length > 0 && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-2`}>Research Interests:</p>
+        <div className={spacingFormField}>
+          <p className={`${textLabel} ${spacingTop}`}>Research Interests:</p>
           <div className="flex flex-wrap gap-2">
             {supervisor.researchInterests.slice(0, 3).map((interest, index) => (
               <span
@@ -155,7 +157,7 @@ export default function SupervisorPartnershipCard({
       )}
 
       {!hasCapacity && (
-        <div className={`mt-4 ${infoBoxGray}`}>
+        <div className={`${spacingTop} ${infoBoxGray}`}>
           <p className={`text-sm ${textMuted}`}>
             No available capacity
           </p>

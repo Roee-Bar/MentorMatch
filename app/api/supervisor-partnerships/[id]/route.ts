@@ -8,26 +8,23 @@
  */
 
 import { NextRequest } from 'next/server';
-import { SupervisorPartnershipRequestService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-request-service';
 import { SupervisorPartnershipWorkflowService } from '@/lib/services/supervisor-partnerships/supervisor-partnership-workflow';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { verifyRequestAccess } from '@/lib/middleware/authorization-helpers';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants/error-messages';
 import type { SupervisorPartnershipIdParams } from '@/types/api';
 
 export const GET = withAuth<SupervisorPartnershipIdParams>(
   async (request: NextRequest, { params }, user) => {
-    const requestData = await SupervisorPartnershipRequestService.getById(params.id);
+    const authResult = await verifyRequestAccess(params.id, user.uid);
     
-    if (!requestData) {
-      return ApiResponse.notFound('Partnership request');
+    if (!authResult.authorized || !authResult.resource) {
+      return authResult.error || ApiResponse.forbidden(ERROR_MESSAGES.UNAUTHORIZED_VIEW_REQUEST);
     }
 
-    // Verify user is either requesting or target supervisor
-    if (requestData.requestingSupervisorId !== user.uid && requestData.targetSupervisorId !== user.uid) {
-      return ApiResponse.forbidden('Unauthorized to view this request');
-    }
-
-    return ApiResponse.success(requestData);
+    return ApiResponse.success(authResult.resource);
   },
   { allowedRoles: ['supervisor'] }
 );
@@ -39,11 +36,10 @@ export const DELETE = withAuth<SupervisorPartnershipIdParams>(
       user.uid
     );
 
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to cancel request', 400);
-    }
+    const errorResponse = handleServiceResult(result, ERROR_MESSAGES.CANCEL_REQUEST);
+    if (errorResponse) return errorResponse;
 
-    return ApiResponse.successMessage('Request cancelled successfully');
+    return ApiResponse.successMessage(SUCCESS_MESSAGES.REQUEST_CANCELLED);
   },
   { allowedRoles: ['supervisor'] }
 );
