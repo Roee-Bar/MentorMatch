@@ -366,9 +366,6 @@ export interface RegistrationData {
   interests?: string;
   previousProjects?: string;
   preferredTopics?: string;
-  hasPartner: boolean;
-  partnerName?: string;
-  partnerEmail?: string;
 }
 
 // Create application data (what client sends)

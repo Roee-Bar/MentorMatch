@@ -11,7 +11,7 @@ import FormSelect from '@/app/components/form/FormSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
-import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted, headingXl, checkboxLg } from '@/lib/styles/shared-styles'
+import { btnPrimaryFullWidth, linkPrimary, cardFormSection, textMuted, headingXl } from '@/lib/styles/shared-styles'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -34,10 +34,7 @@ export default function RegisterPage() {
     skills: '',
     interests: '',
     previousProjects: '',
-    preferredTopics: '',
-    hasPartner: false,
-    partnerName: '',
-    partnerEmail: ''
+    preferredTopics: ''
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -245,47 +242,6 @@ export default function RegisterPage() {
           placeholder="e.g., Web Development, AI, Mobile Apps, IoT"
           className="mb-5"
         />
-
-        {/* Partner Information Section */}
-        <FormSection title="Partner Information" />
-
-        <div className="mb-6 p-4 rounded-xl border bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-800">
-          <label className="flex gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="hasPartner"
-              checked={formData.hasPartner}
-              onChange={handleChange}
-              className={checkboxLg}
-            />
-            <span className="font-semibold text-blue-900 text-sm dark:text-blue-200">I have a project partner</span>
-          </label>
-        </div>
-
-        {formData.hasPartner && (
-          <div className="p-5 bg-white dark:bg-slate-800 rounded-xl border border-gray-300 dark:border-slate-600">
-            <div className="grid-form-2col">
-              <FormInput
-                label="Partner Name"
-                type="text"
-                name="partnerName"
-                value={formData.partnerName}
-                onChange={handleChange}
-                required={formData.hasPartner}
-                placeholder="Partner's full name"
-              />
-              <FormInput
-                label="Partner Email"
-                type="email"
-                name="partnerEmail"
-                value={formData.partnerEmail}
-                onChange={handleChange}
-                required={formData.hasPartner}
-                placeholder="partner@braude.ac.il"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Submit Button */}
         <button
