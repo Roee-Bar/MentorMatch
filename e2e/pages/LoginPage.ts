@@ -29,9 +29,16 @@ export class LoginPage {
   }
 
   async login(email: string, password: string): Promise<void> {
-    await this.emailInput.fill(email);
-    await this.passwordInput.fill(password);
+    // Only fill fields if they have values (for testing empty field validation)
+    if (email) {
+      await this.emailInput.fill(email);
+    }
+    if (password) {
+      await this.passwordInput.fill(password);
+    }
+    
     await this.loginButton.click();
+    
     // Wait for navigation or message with better error handling
     try {
       await Promise.race([
@@ -40,6 +47,7 @@ export class LoginPage {
       ]);
     } catch (error) {
       // If neither navigation nor message appears, wait a bit more
+      // This handles cases where browser validation prevents submission
       await this.page.waitForTimeout(1000);
     }
   }

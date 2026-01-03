@@ -45,8 +45,8 @@ test.describe('User Login', () => {
     await loginPage.goto();
     await loginPage.login(email, 'WrongPassword123!');
 
-    // Should show error message
-    await expectErrorMessage(page);
+    // Should show error message - wait for it with timeout
+    await expectErrorMessage(page, undefined);
     const message = await loginPage.getMessage();
     expect(message.toLowerCase()).toMatch(/invalid|incorrect|error|password/i);
   });
@@ -55,8 +55,14 @@ test.describe('User Login', () => {
     const loginPage = new LoginPage(page);
 
     await loginPage.goto();
-    await loginPage.login('', 'TestPassword123!');
-
+    
+    // Try to submit with empty email - browser validation may prevent this
+    await loginPage.passwordInput.fill('TestPassword123!');
+    await loginPage.loginButton.click();
+    
+    // Wait a bit for any validation or error to appear
+    await page.waitForTimeout(1000);
+    
     // Browser validation should show error or prevent submission
     // Check that we're still on login page or error is shown
     const isOnLoginPage = page.url().includes('/login');
@@ -72,7 +78,13 @@ test.describe('User Login', () => {
     const email = student.email;
 
     await loginPage.goto();
-    await loginPage.login(email, '');
+    
+    // Try to submit with empty password - browser validation may prevent this
+    await loginPage.emailInput.fill(email);
+    await loginPage.loginButton.click();
+    
+    // Wait a bit for any validation or error to appear
+    await page.waitForTimeout(1000);
 
     // Browser validation should show error or prevent submission
     const isOnLoginPage = page.url().includes('/login');

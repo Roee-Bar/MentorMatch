@@ -68,18 +68,21 @@ test.describe('Supervisor - Applications', () => {
     await dashboard.goto();
     await dashboard.navigateToApplications();
 
+    // Wait for applications list to be visible
+    const applicationsList = page.locator('[data-testid="application-card"], .application-card, table tbody tr');
+    await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
+
     // Find the application and approve it
     const approveButton = page.getByRole('button', { name: /approve|accept/i }).first();
-    if (await approveButton.isVisible()) {
-      await approveButton.click();
-      await page.waitForTimeout(2000);
-      
-      // Should see success message or status change
-      const successMessage = page.locator('[role="status"], .success');
-      if (await successMessage.isVisible({ timeout: 5000 })) {
-        await expect(successMessage).toBeVisible();
-      }
-    }
+    await expect(approveButton).toBeVisible({ timeout: 10000 });
+    await approveButton.click();
+    
+    // Wait for action to complete
+    await page.waitForTimeout(2000);
+    
+    // Should see success message or status change
+    const successMessage = page.locator('[role="status"], .success');
+    await expect(successMessage).toBeVisible({ timeout: 10000 });
   });
 
   test('should reject an application', async ({ page, authenticatedSupervisor }) => {
@@ -97,12 +100,17 @@ test.describe('Supervisor - Applications', () => {
     await dashboard.goto();
     await dashboard.navigateToApplications();
 
+    // Wait for applications list to be visible
+    const applicationsList = page.locator('[data-testid="application-card"], .application-card, table tbody tr');
+    await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
+
     // Find the application and reject it
     const rejectButton = page.getByRole('button', { name: /reject|decline/i }).first();
-    if (await rejectButton.isVisible()) {
-      await rejectButton.click();
-      await page.waitForTimeout(2000);
-    }
+    await expect(rejectButton).toBeVisible({ timeout: 10000 });
+    await rejectButton.click();
+    
+    // Wait for action to complete
+    await page.waitForTimeout(2000);
   });
 });
 

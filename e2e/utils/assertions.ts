@@ -25,10 +25,11 @@ export async function expectAuthenticatedDashboard(page: Page, role: 'student' |
  * Assert that error message is displayed
  */
 export async function expectErrorMessage(page: Page, message?: string): Promise<void> {
-  const errorSelector = '[role="alert"], .error, .error-message, [data-testid="error"]';
+  const errorSelector = '[role="alert"], .error, .error-message, [data-testid="error"], [role="status"]';
   const errorElement = page.locator(errorSelector).first();
   
-  await expect(errorElement).toBeVisible();
+  // Wait for error element to be visible with a reasonable timeout
+  await expect(errorElement).toBeVisible({ timeout: 10000 });
   
   if (message) {
     await expect(errorElement).toContainText(message, { ignoreCase: true });

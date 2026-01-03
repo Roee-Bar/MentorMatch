@@ -16,9 +16,9 @@ test.describe('Supervisor - Capacity Management', () => {
     const capacityInfo = page.locator('[data-testid="capacity"]')
       .or(page.locator('.capacity'))
       .or(page.locator('text=/capacity/i'));
-    if (await capacityInfo.isVisible()) {
-      await expect(capacityInfo).toBeVisible();
-    }
+    
+    // Wait for capacity info to be visible with timeout
+    await expect(capacityInfo).toBeVisible({ timeout: 10000 });
   });
 
   test('should update capacity', async ({ page, authenticatedSupervisor }) => {
@@ -26,21 +26,40 @@ test.describe('Supervisor - Capacity Management', () => {
 
     await dashboard.goto();
 
-    // Look for edit capacity button
+    // Look for edit capacity button - skip if UI doesn't exist
     const editButton = page.getByRole('button', { name: /edit capacity|update capacity/i });
-    if (await editButton.isVisible()) {
-      await editButton.click();
+    const isEditButtonVisible = await editButton.isVisible({ timeout: 5000 }).catch(() => false);
+    
+    if (!isEditButtonVisible) {
+      // If UI doesn't exist, test passes (UI may not be implemented yet)
+      return;
+    }
+    
+    await editButton.click();
 
-      // If modal opens, update capacity
-      const capacityInput = page.getByLabel(/max capacity|capacity/i);
-      if (await capacityInput.isVisible()) {
-        await capacityInput.fill('10');
-        
-        const saveButton = page.getByRole('button', { name: /save|update/i });
-        await saveButton.click();
+    // If modal opens, update capacity
+    const capacityInput = page.getByLabel(/max capacity|capacity/i);
+    const isInputVisible = await capacityInput.isVisible({ timeout: 5000 }).catch(() => false);
+    
+    if (!isInputVisible) {
+      // If input doesn't appear, test passes (modal may not open)
+      return;
+    }
+    
+    await capacityInput.fill('10');
+    
+    const saveButton = page.getByRole('button', { name: /save|update/i });
+    await expect(saveButton).toBeVisible({ timeout: 5000 });
+    await saveButton.click();
 
-        await page.waitForTimeout(2000);
-      }
+    // Wait for update to complete
+    await page.waitForTimeout(2000);
+    
+    // Verify success message if it appears
+    const successMessage = page.locator('[role="status"], .success');
+    const hasSuccess = await successMessage.isVisible({ timeout: 5000 }).catch(() => false);
+    if (hasSuccess) {
+      await expect(successMessage).toBeVisible();
     }
   });
 });
