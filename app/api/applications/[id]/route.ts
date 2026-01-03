@@ -17,7 +17,7 @@ import { validateBody, updateApplicationSchema } from '@/lib/middleware/validati
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import type { ApplicationIdParams } from '@/types/api';
-import type { Application } from '@/types/database';
+import type { Application, UserRole } from '@/types/database';
 
 export const GET = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {
@@ -35,7 +35,7 @@ export const GET = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      return canAccessApplication(user.uid, application, user.role);
+      return canAccessApplication(user.uid, application, user.role as UserRole);
     }
   }
 );
@@ -96,7 +96,7 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      return canModifyApplication(user.uid, application, user.role);
+      return canModifyApplication(user.uid, application, user.role as UserRole);
     }
   }
 );
@@ -154,7 +154,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      return canModifyApplication(user.uid, application, user.role);
+      return canModifyApplication(user.uid, application, user.role as UserRole);
     }
   }
 );

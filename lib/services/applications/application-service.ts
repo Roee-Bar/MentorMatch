@@ -8,8 +8,31 @@ import { toApplication } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'ApplicationService';
+
+/**
+ * Helper function to map Firestore document to ApplicationCardData
+ * Eliminates code duplication in getStudentApplications
+ */
+const mapDocToApplicationCardData = (doc: QueryDocumentSnapshot): ApplicationCardData => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    projectTitle: data.projectTitle,
+    projectDescription: data.projectDescription,
+    supervisorName: data.supervisorName,
+    dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
+    status: data.status,
+    responseTime: data.responseTime || '5-7 business days',
+    comments: data.supervisorFeedback,
+    hasPartner: data.hasPartner,
+    partnerName: data.partnerName,
+    studentName: data.studentName,
+    studentEmail: data.studentEmail,
+  } as ApplicationCardData;
+};
 
 // ============================================
 // APPLICATION SERVICES
@@ -47,41 +70,13 @@ export const ApplicationService = {
       
       // Process primary applications
       primaryQuerySnapshot.docs.forEach((doc) => {
-        const data = doc.data();
-        applicationMap.set(doc.id, {
-          id: doc.id,
-          projectTitle: data.projectTitle,
-          projectDescription: data.projectDescription,
-          supervisorName: data.supervisorName,
-          dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
-          status: data.status,
-          responseTime: data.responseTime || '5-7 business days',
-          comments: data.supervisorFeedback,
-          hasPartner: data.hasPartner,
-          partnerName: data.partnerName,
-          studentName: data.studentName,
-          studentEmail: data.studentEmail,
-        } as ApplicationCardData);
+        applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
       });
       
       // Process partner applications (only add if not already in map)
       partnerQuerySnapshot.docs.forEach((doc) => {
         if (!applicationMap.has(doc.id)) {
-          const data = doc.data();
-          applicationMap.set(doc.id, {
-            id: doc.id,
-            projectTitle: data.projectTitle,
-            projectDescription: data.projectDescription,
-            supervisorName: data.supervisorName,
-            dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
-            status: data.status,
-            responseTime: data.responseTime || '5-7 business days',
-            comments: data.supervisorFeedback,
-            hasPartner: data.hasPartner,
-            partnerName: data.partnerName,
-            studentName: data.studentName,
-            studentEmail: data.studentEmail,
-          } as ApplicationCardData);
+          applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
         }
       });
       

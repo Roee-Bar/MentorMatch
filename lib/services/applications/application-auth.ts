@@ -5,13 +5,13 @@
  * Helper functions for checking application access permissions
  */
 
-import type { Application } from '@/types/database';
+import type { Application, UserRole } from '@/types/database';
 
 /**
  * Check if a user can access an application (view)
  * Allows: studentId, partnerId, supervisorId, or admin
  */
-export function canAccessApplication(userId: string, application: Application | null, userRole?: string): boolean {
+export function canAccessApplication(userId: string, application: Application | null | undefined, userRole?: UserRole): boolean {
   if (!application) return false;
   
   // Admin can always access
@@ -33,7 +33,7 @@ export function canAccessApplication(userId: string, application: Application | 
  * Check if a user can modify an application (edit, delete, resubmit)
  * Allows: studentId, partnerId, or admin
  */
-export function canModifyApplication(userId: string, application: Application | null, userRole?: string): boolean {
+export function canModifyApplication(userId: string, application: Application | null | undefined, userRole?: UserRole): boolean {
   if (!application) return false;
   
   // Admin can always modify

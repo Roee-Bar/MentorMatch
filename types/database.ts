@@ -196,7 +196,13 @@ export interface Application {
   appliedByStudentId: string; // The studentId of who originally submitted the application
   
   // Project-Based Capacity Tracking (DEPRECATED - kept for backward compatibility)
+  /**
+   * @deprecated Use partnerId instead. Kept for backward compatibility only.
+   */
   linkedApplicationId?: string; // References partner's application ID (deprecated)
+  /**
+   * @deprecated All new applications are "lead". Kept for backward compatibility only.
+   */
   isLeadApplication: boolean; // True for the first application in a pair (or solo) (deprecated)
   projectId?: string; // Optional reference to created Project (for future use)
   

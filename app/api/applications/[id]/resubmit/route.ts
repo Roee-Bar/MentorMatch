@@ -15,7 +15,7 @@ import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
 import type { ApplicationIdParams } from '@/types/api';
-import type { Application } from '@/types/database';
+import type { Application, UserRole } from '@/types/database';
 
 export const POST = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {
@@ -42,7 +42,7 @@ export const POST = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      return canModifyApplication(user.uid, application, user.role);
+      return canModifyApplication(user.uid, application, user.role as UserRole);
     }
   }
 );

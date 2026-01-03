@@ -6,6 +6,7 @@
 import { useRouter } from 'next/navigation';
 import type { ApplicationCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
+import StudentNamesDisplay from './StudentNamesDisplay';
 import { 
   cardBase, 
   btnPrimary, 
@@ -61,17 +62,13 @@ export default function ApplicationCard({
           </h3>
           {/* Show supervisor name for students, student name(s) for supervisors */}
           {isSupervisorView ? (
-            <p className={`text-sm ${textSecondary}`}>
-              {application.hasPartner && application.partnerName ? (
-                <>
-                  Students: <span className="font-medium">{application.studentName} & {application.partnerName}</span>
-                </>
-              ) : (
-                <>
-                  Student: <span className="font-medium">{application.studentName}</span>
-                </>
-              )}
-            </p>
+            <StudentNamesDisplay
+              hasPartner={application.hasPartner}
+              studentName={application.studentName}
+              partnerName={application.partnerName}
+              variant="inline"
+              textSecondary={textSecondary}
+            />
           ) : (
             <p className={`text-sm ${textSecondary}`}>
               Supervisor: {application.supervisorName}

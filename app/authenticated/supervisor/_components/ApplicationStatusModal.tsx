@@ -6,6 +6,7 @@ import { useState } from 'react';
 import type { Application, ApplicationStatus } from '@/types/database';
 import FormTextArea from '@/app/components/form/FormTextArea';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import StudentNamesDisplay from '@/app/components/shared/StudentNamesDisplay';
 import { 
   modalBackdrop, 
   btnPrimary, 
@@ -149,22 +150,16 @@ export default function ApplicationStatusModal({
             <StatusBadge status={application.status} variant="application" />
           </div>
           
-          <div className="space-y-2 text-sm">
-            {application.hasPartner && application.partnerName ? (
-              <>
-                <p><span className={textMuted}>Students:</span> <span className="font-medium dark:text-slate-200">{application.studentName} & {application.partnerName}</span></p>
-                <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
-                <p className="text-blue-600 dark:text-blue-400">
-                  <span className={textMuted}>Team Project</span>
-                </p>
-              </>
-            ) : (
-              <>
-                <p><span className={textMuted}>Student:</span> <span className="font-medium dark:text-slate-200">{application.studentName}</span></p>
-                <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
-              </>
-            )}
-          </div>
+          <StudentNamesDisplay
+            hasPartner={application.hasPartner}
+            studentName={application.studentName}
+            partnerName={application.partnerName}
+            studentEmail={application.studentEmail}
+            showEmail={true}
+            variant="detailed"
+            textMuted={textMuted}
+            textSecondary={textSecondary}
+          />
 
           {/* Project Description Preview */}
           <div className={`mt-3 pt-3 ${borderTop}`}>

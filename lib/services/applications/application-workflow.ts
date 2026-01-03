@@ -264,27 +264,4 @@ export const ApplicationWorkflowService = {
       return { isDuplicate: false };
     }
   },
-
-  /**
-   * Handle linked partner application logic
-   * DEPRECATED: This method is kept for backward compatibility but is no longer used.
-   * New applications use the single-application model with partnerId field.
-   * 
-   * @deprecated Use single application model with partnerId instead
-   */
-  async handlePartnerApplicationLink(
-    studentId: string,
-    partnerId: string,
-    supervisorId: string
-  ): Promise<{
-    linkedApplicationId?: string;
-    isLeadApplication: boolean;
-  }> {
-    // This method is deprecated - new applications don't use linking
-    // Return default values for backward compatibility
-    return {
-      linkedApplicationId: undefined,
-      isLeadApplication: true
-    };
-  },
 };

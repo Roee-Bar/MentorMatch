@@ -66,7 +66,10 @@ export default function ApplicationEditPage() {
         if (response.data) {
           const data = response.data;
           
-          // Authorization check - allow student or partner
+          // UX-only authorization check (for early error feedback)
+          // Security is enforced server-side in API routes via canModifyApplication()
+          // This check prevents unnecessary API calls and improves UX
+          // Allows: student (primary applicant) or partner
           if (data.studentId !== userId && data.partnerId !== userId) {
             setLoadError('You do not have permission to edit this application');
             return;
