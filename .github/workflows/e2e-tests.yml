@@ -130,21 +130,36 @@ jobs:
           echo ""
           echo "Checking test files exist:"
           # Split test_paths by space and check each path
+          TEST_PATHS_ARRAY=()
           for path in ${{ matrix.test_paths }}; do
             if [ -d "$path" ] || [ -f "$path" ]; then
               echo "✓ Found: $path"
               ls -la "$path" | head -5
+              TEST_PATHS_ARRAY+=("$path")
             else
               echo "✗ Not found: $path"
             fi
           done
           echo ""
-          echo "Starting tests..."
+          if [ ${#TEST_PATHS_ARRAY[@]} -eq 0 ]; then
+            echo "ERROR: No test paths found!"
+            exit 1
+          fi
+          echo "Starting tests with paths: ${TEST_PATHS_ARRAY[*]}"
           set -o pipefail
-          # Split test_paths and pass each as separate argument to Playwright
-          npx playwright test ${{ matrix.test_paths }} 2>&1 | tee test-output.log || {
+          # Use array expansion to pass paths correctly to Playwright
+          npx playwright test "${TEST_PATHS_ARRAY[@]}" 2>&1 | tee test-output.log || {
+            echo ""
+            echo "=========================================="
             echo "Tests failed. Full output:"
+            echo "=========================================="
             cat test-output.log || true
+            echo ""
+            echo "Checking if Next.js server is running:"
+            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Next.js server is running" || echo "✗ Next.js server is NOT running"
+            echo ""
+            echo "Checking if emulators are running:"
+            curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ Emulator UI is running" || echo "✗ Emulator UI is NOT running"
             exit 1
           }
 
