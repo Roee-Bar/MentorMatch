@@ -5,8 +5,8 @@
  */
 
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
-import type { Student, Supervisor, Admin, Application } from '@/types/database';
-import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData } from './test-data';
+import type { Student, Supervisor, Admin, Application, Project } from '@/types/database';
+import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData } from './test-data';
 
 /**
  * Seed a test student in Firestore
@@ -125,6 +125,19 @@ export async function seedApplication(
 }
 
 /**
+ * Seed a test project in Firestore
+ */
+export async function seedProject(overrides?: Partial<Project>): Promise<{ projectId: string; project: Project }> {
+  const projectData = generateProjectData(overrides);
+  const docRef = await adminDb.collection('projects').add(projectData);
+  
+  return {
+    projectId: docRef.id,
+    project: { id: docRef.id, ...projectData } as Project,
+  };
+}
+
+/**
  * Clean up a user and all related data
  */
 export async function cleanupUser(uid: string): Promise<void> {
@@ -153,6 +166,17 @@ export async function cleanupUser(uid: string): Promise<void> {
 export async function cleanupApplication(applicationId: string): Promise<void> {
   try {
     await adminDb.collection('applications').doc(applicationId).delete();
+  } catch (error) {
+    // Document might not exist, ignore
+  }
+}
+
+/**
+ * Clean up a project
+ */
+export async function cleanupProject(projectId: string): Promise<void> {
+  try {
+    await adminDb.collection('projects').doc(projectId).delete();
   } catch (error) {
     // Document might not exist, ignore
   }

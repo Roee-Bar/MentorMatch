@@ -5,7 +5,7 @@
  * These functions create realistic test data that matches the application's data structures.
  */
 
-import type { RegistrationData, Student, Supervisor, Admin, Application } from '@/types/database';
+import type { RegistrationData, Student, Supervisor, Admin, Application, Project } from '@/types/database';
 
 /**
  * Generate a unique email address for testing
@@ -166,6 +166,42 @@ export function generateApplicationData(
     status: overrides?.status || 'pending',
     dateApplied: now,
     lastUpdated: now,
+    ...overrides,
+  };
+}
+
+/**
+ * Generate test project data (for Firestore)
+ */
+export function generateProjectData(overrides?: Partial<Project>): Omit<Project, 'id'> {
+  const now = new Date();
+  
+  // Generate project code if not provided
+  let projectCode = overrides?.projectCode;
+  if (!projectCode) {
+    const year = new Date().getFullYear();
+    const semester = Math.floor((new Date().getMonth() + 1) / 7) + 1; // 1 or 2
+    const deptCode = 'C'; // Default to Computer Science
+    const number = Math.floor(Math.random() * 99) + 1;
+    projectCode = `${year}-${semester}-${deptCode}-${number.toString().padStart(2, '0')}`;
+  }
+
+  return {
+    projectCode,
+    studentIds: overrides?.studentIds || [],
+    studentNames: overrides?.studentNames || [],
+    supervisorId: overrides?.supervisorId || '',
+    supervisorName: overrides?.supervisorName || 'Dr. Test Supervisor',
+    coSupervisorId: overrides?.coSupervisorId || undefined,
+    coSupervisorName: overrides?.coSupervisorName || undefined,
+    title: overrides?.title || 'Test Project Title',
+    description: overrides?.description || 'Test project description',
+    status: overrides?.status || 'in_progress',
+    phase: overrides?.phase || 'A',
+    createdAt: now,
+    updatedAt: now,
+    approvedAt: overrides?.approvedAt || (overrides?.status === 'approved' || overrides?.status === 'in_progress' || overrides?.status === 'completed' ? now : undefined),
+    completedAt: overrides?.completedAt || (overrides?.status === 'completed' ? now : undefined),
     ...overrides,
   };
 }

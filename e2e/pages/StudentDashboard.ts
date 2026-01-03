@@ -36,5 +36,31 @@ export class StudentDashboard {
     await this.profileLink.click();
     await this.page.waitForURL(/\/authenticated\/student\/profile/);
   }
+
+  async deleteApplication(applicationId: string): Promise<void> {
+    // Navigate to applications page first
+    await this.navigateToApplications();
+
+    // Find the application in the list (could be by ID, title, or position)
+    const applicationCard = this.page.locator(
+      `[data-testid="application-${applicationId}"], [data-application-id="${applicationId}"]`
+    ).or(this.page.locator('[data-testid="application-card"], .application-card, table tbody tr').first());
+
+    if (await applicationCard.isVisible()) {
+      // Look for delete button within the application card
+      const deleteButton = applicationCard.getByRole('button', { name: /delete|remove/i });
+      if (await deleteButton.isVisible()) {
+        await deleteButton.click();
+        await this.page.waitForTimeout(500);
+
+        // Handle confirmation dialog if it appears
+        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|delete/i });
+        if (await confirmButton.isVisible()) {
+          await confirmButton.click();
+          await this.page.waitForTimeout(2000);
+        }
+      }
+    }
+  }
 }
 
