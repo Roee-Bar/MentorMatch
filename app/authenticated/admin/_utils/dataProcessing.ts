@@ -36,13 +36,8 @@ export function getFilteredAndSortedData<T>(
 
 /**
  * Calculate days pending for an application
- * Now supports all date input types (Date, Firestore Timestamp, string, number, etc.)
  */
 export function calculateDaysPending(submittedAt: DateInput): number {
   return DateFormatter.calculateDaysBetween(submittedAt);
 }
-
-
-
-
 

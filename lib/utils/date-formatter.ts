@@ -24,27 +24,20 @@ export type DateInput =
   | null;
 
 export class DateFormatter {
-  /**
-   * Safely convert any date input to Date object
-   * Returns null if the input cannot be converted to a valid Date
-   */
   private static toDate(input: DateInput): Date | null {
     if (!input) return null;
     if (input instanceof Date) return input;
     
-    // Handle string dates
     if (typeof input === 'string') {
       const parsed = new Date(input);
       return isNaN(parsed.getTime()) ? null : parsed;
     }
     
-    // Handle number timestamps
     if (typeof input === 'number') {
       const parsed = new Date(input);
       return isNaN(parsed.getTime()) ? null : parsed;
     }
     
-    // Handle Firestore Timestamp (both admin and client)
     if (typeof input === 'object' && 'toDate' in input) {
       try {
         return (input as { toDate: () => Date }).toDate();
@@ -57,8 +50,7 @@ export class DateFormatter {
   }
 
   /**
-   * Format for Firestore display (legacy compatibility)
-   * Maintains backward compatibility with existing formatFirestoreDate()
+   * Format for Firestore display
    * 
    * @param input - Date input of any supported type
    * @returns Formatted date string or 'N/A' if invalid
@@ -123,8 +115,7 @@ export class DateFormatter {
   }
 
   /**
-   * Format relative time (e.g., "2 days ago")
-   * Enhanced version that supports all date input types
+   * Format relative time (e.g., "2 days ago", "3 months ago")
    * 
    * @param input - Date input of any supported type
    * @returns Relative time string or 'N/A' if invalid
@@ -151,8 +142,6 @@ export class DateFormatter {
   }
 
   /**
-   * Calculate days between two dates
-   * 
    * @param start - Start date input
    * @param end - End date input (defaults to now)
    * @returns Number of days between dates, or 0 if invalid
@@ -167,9 +156,6 @@ export class DateFormatter {
   }
 
   /**
-   * Get timestamp for sorting/comparison
-   * Returns the timestamp in milliseconds, or 0 if invalid
-   * 
    * @param input - Date input of any supported type
    * @returns Timestamp in milliseconds, or 0 if invalid
    */
