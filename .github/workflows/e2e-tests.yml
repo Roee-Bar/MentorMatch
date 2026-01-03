@@ -129,10 +129,19 @@ jobs:
           npx playwright --version || echo "Playwright not found"
           echo ""
           echo "Checking test files exist:"
-          ls -la ${{ matrix.test_paths }} || echo "Test paths not found"
+          # Split test_paths by space and check each path
+          for path in ${{ matrix.test_paths }}; do
+            if [ -d "$path" ] || [ -f "$path" ]; then
+              echo "✓ Found: $path"
+              ls -la "$path" | head -5
+            else
+              echo "✗ Not found: $path"
+            fi
+          done
           echo ""
           echo "Starting tests..."
           set -o pipefail
+          # Split test_paths and pass each as separate argument to Playwright
           npx playwright test ${{ matrix.test_paths }} 2>&1 | tee test-output.log || {
             echo "Tests failed. Full output:"
             cat test-output.log || true
