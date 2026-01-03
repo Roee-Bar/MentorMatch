@@ -1,0 +1,535 @@
+name: CI Pipeline
+
+# Trigger on pull requests targeting main branch
+on:
+  pull_request:
+    branches: [main]
+
+# Prevent overlapping workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fast checks that run in parallel
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Lint Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Lint Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Code linting passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Linting failed. Please fix the issues above." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build application
+        run: npm run build
+        env:
+          # Minimal environment variables needed for build
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
+
+      - name: Build Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Build Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Build completed successfully!" >> $GITHUB_STEP_SUMMARY
+            echo "- Type check: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+            echo "- Build: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Build failed. Check the logs above for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run npm audit (moderate and above)
+        continue-on-error: true
+        run: |
+          echo "Running npm audit for moderate and high severity issues..."
+          npm audit --audit-level=moderate || true
+
+      - name: Run npm audit (high severity only)
+        run: |
+          echo "Checking for high severity vulnerabilities..."
+          npm audit --audit-level=high
+
+      - name: Security Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ No high severity vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ High severity vulnerabilities detected. Please review and update dependencies." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # E2E Tests - Only run if relevant files changed
+  e2e-setup:
+    name: E2E Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should_run: ${{ steps.check-e2e.outputs.should_run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if E2E tests should run
+        id: check-e2e
+        shell: bash
+        run: |
+          # Get the base branch
+          BASE_BRANCH="${{ github.base_ref }}"
+          if [ -z "$BASE_BRANCH" ]; then
+            BASE_BRANCH="main"
+          fi
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD || echo "")
+          
+          # Check if any relevant files changed
+          if echo "$CHANGED_FILES" | grep -qE "(^app/|^lib/|^e2e/|playwright\.config\.ts|package\.json|package-lock\.json|\.github/workflows/ci\.yml)"; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "E2E tests will run - relevant files changed"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "E2E tests will be skipped - no relevant files changed"
+          fi
+
+      - name: Setup test environment
+        if: steps.check-e2e.outputs.should_run == 'true'
+        uses: ./.github/actions/setup-test-environment
+        with:
+          node-version: '20'
+          java-version: '17'
+          java-distribution: 'temurin'
+
+      - name: Setup Playwright browsers
+        if: steps.check-e2e.outputs.should_run == 'true'
+        uses: ./.github/actions/setup-playwright
+
+  e2e-tests:
+    name: E2E Test - ${{ matrix.suite }}
+    needs: [lint, build, security, e2e-setup]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: needs.e2e-setup.outputs.should_run == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: Auth + Student
+            test_paths: e2e/tests/auth/ e2e/tests/student/
+            artifact_name: auth-student
+          - suite: Supervisor
+            test_paths: e2e/tests/supervisor/
+            artifact_name: supervisor
+          - suite: Admin
+            test_paths: e2e/tests/admin/
+            artifact_name: admin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup test environment
+        uses: ./.github/actions/setup-test-environment
+        with:
+          node-version: '20'
+          java-version: '17'
+          java-distribution: 'temurin'
+
+      - name: Setup Playwright browsers
+        uses: ./.github/actions/setup-playwright
+
+      - name: Verify dependencies
+        shell: bash
+        run: |
+          if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/playwright" ]; then
+            echo "Dependencies not found, installing..."
+            npm ci --prefer-offline --no-audit
+          else
+            echo "Dependencies found in cache"
+          fi
+
+      - name: Type check
+        shell: bash
+        run: |
+          echo "Running TypeScript type check..."
+          if ! npm run typecheck; then
+            echo "ERROR: TypeScript type check failed!"
+            echo "This may cause test failures. Fix type errors before running tests."
+            exit 1
+          fi
+          echo "✓ TypeScript type check passed"
+      
+      - name: Verify Playwright can resolve imports
+        shell: bash
+        run: |
+          echo "Checking if Playwright can resolve path aliases..."
+          # Use the Playwright tsconfig to verify path resolution
+          if ! npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | head -30; then
+            echo "WARNING: TypeScript compilation check found issues"
+            echo "This may indicate path alias resolution problems"
+            echo "Continuing with tests..."
+          else
+            echo "✓ Path alias resolution check passed"
+          fi
+
+      - name: Set test environment variables
+        uses: ./.github/actions/test-env-vars
+        with:
+          project-id: 'demo-test'
+          base-url: 'http://localhost:3000'
+
+      - name: Verify Firebase configuration
+        shell: bash
+        run: |
+          echo "Verifying Firebase configuration..."
+          if [ ! -f "firebase.json" ]; then
+            echo "ERROR: firebase.json not found!"
+            exit 1
+          fi
+          if [ ! -f "firestore.rules" ]; then
+            echo "WARNING: firestore.rules not found"
+          fi
+          echo "✓ Firebase configuration verified"
+
+      - name: Start Firebase Emulators
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: start
+          project-id: 'demo-test'
+          max-attempts: '30'
+          emulator-ui-port: '4000'
+
+      - name: Export environment variables for Playwright
+        shell: bash
+        run: |
+          echo "Ensuring all environment variables are available for Playwright webServer..."
+          # Explicitly export all Firebase-related environment variables
+          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
+          # Export all NEXT_PUBLIC_ variables that are already set
+          env | grep "^NEXT_PUBLIC_" | while IFS= read -r line; do
+            echo "$line" >> $GITHUB_ENV || true
+          done
+          echo "✓ Environment variables exported"
+
+      - name: Validate Playwright Config
+        shell: bash
+        run: |
+          echo "Validating Playwright configuration..."
+          OUTPUT=$(npx playwright test --list 2>&1)
+          if [ $? -ne 0 ]; then
+            echo "ERROR: Playwright configuration is invalid!"
+            echo "$OUTPUT"
+            exit 1
+          fi
+          echo "✓ Playwright configuration is valid"
+          echo "Found tests:"
+          echo "$OUTPUT" | grep -E "^\s+[0-9]+" | head -20 || echo "$OUTPUT" | head -20
+
+      - name: Health Check Services
+        shell: bash
+        run: |
+          echo "Performing health checks before running tests..."
+          echo ""
+          echo "Checking Firebase Emulators:"
+          if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+            echo "✓ Emulator UI is running on port 4000"
+          else
+            echo "✗ Emulator UI is NOT running on port 4000"
+            exit 1
+          fi
+          if curl -f -s http://localhost:9099 > /dev/null 2>&1 || nc -z localhost 9099 2>/dev/null; then
+            echo "✓ Auth Emulator is running on port 9099"
+          else
+            echo "⚠ Auth Emulator port check (may be normal if not HTTP)"
+          fi
+          if curl -f -s http://localhost:8080 > /dev/null 2>&1 || nc -z localhost 8080 2>/dev/null; then
+            echo "✓ Firestore Emulator is running on port 8080"
+          else
+            echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
+          fi
+          echo ""
+          echo "Waiting for Next.js server to be ready..."
+          MAX_WAIT=60
+          WAIT_COUNT=0
+          while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+            if curl -f -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✓ Next.js server is running on port 3000"
+              break
+            fi
+            WAIT_COUNT=$((WAIT_COUNT + 1))
+            if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+              echo "✗ Next.js server did not start within $MAX_WAIT seconds"
+              echo "Checking for Next.js process:"
+              ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js process found"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "✓ All services are healthy"
+
+      - name: Run Tests
+        shell: bash
+        run: |
+          echo "Running tests for: ${{ matrix.suite }}"
+          echo "Test paths: ${{ matrix.test_paths }}"
+          echo ""
+          echo "Environment variables:"
+          echo "  E2E_TEST=$E2E_TEST"
+          echo "  CI=$CI"
+          echo "  NODE_ENV=$NODE_ENV"
+          echo "  E2E_BASE_URL=$E2E_BASE_URL"
+          echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
+          echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
+          echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+          echo ""
+          echo "Verifying Playwright installation:"
+          npx playwright --version || echo "Playwright not found"
+          echo ""
+          echo "Checking test files exist:"
+          # Split test_paths by space and check each path
+          # Trim whitespace and filter empty strings
+          TEST_PATHS_ARRAY=()
+          for path in ${{ matrix.test_paths }}; do
+            # Trim leading/trailing whitespace
+            path=$(echo "$path" | xargs)
+            # Skip empty paths
+            [ -z "$path" ] && continue
+            if [ -d "$path" ] || [ -f "$path" ]; then
+              echo "✓ Found: $path"
+              ls -la "$path" | head -5
+              TEST_PATHS_ARRAY+=("$path")
+            else
+              echo "✗ Not found: $path"
+            fi
+          done
+          echo ""
+          if [ ${#TEST_PATHS_ARRAY[@]} -eq 0 ]; then
+            echo "ERROR: No test paths found!"
+            exit 1
+          fi
+          echo "Starting tests with paths: ${TEST_PATHS_ARRAY[*]}"
+          set -o pipefail
+          # Use array expansion to pass paths correctly to Playwright
+          # Capture both stdout and stderr, and save exit code
+          npx playwright test "${TEST_PATHS_ARRAY[@]}" 2>&1 | tee test-output.log
+          TEST_EXIT_CODE=${PIPESTATUS[0]}
+          
+          if [ $TEST_EXIT_CODE -ne 0 ]; then
+            echo ""
+            echo "=========================================="
+            echo "Tests failed with exit code: $TEST_EXIT_CODE"
+            echo "Full output:"
+            echo "=========================================="
+            cat test-output.log || true
+            echo ""
+            echo "=========================================="
+            echo "Service Health Status:"
+            echo "=========================================="
+            echo "Next.js server:"
+            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Running on port 3000" || echo "✗ NOT running on port 3000"
+            echo ""
+            echo "Firebase Emulators:"
+            curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ UI running on port 4000" || echo "✗ UI NOT running on port 4000"
+            nc -z localhost 9099 2>/dev/null && echo "✓ Auth emulator port 9099 open" || echo "✗ Auth emulator port 9099 closed"
+            nc -z localhost 8080 2>/dev/null && echo "✓ Firestore emulator port 8080 open" || echo "✗ Firestore emulator port 8080 closed"
+            echo ""
+            echo "Playwright Report:"
+            if [ -d "playwright-report" ]; then
+              echo "✓ Report directory exists"
+              echo "Report files:"
+              ls -la playwright-report/ | head -10
+            else
+              echo "✗ Report directory not found"
+            fi
+            echo ""
+            echo "Process Status:"
+            echo "Next.js processes:"
+            ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js processes found"
+            echo ""
+            echo "Firebase processes:"
+            ps aux | grep -E "[f]irebase|[j]ava.*firebase" || echo "No Firebase processes found"
+            exit $TEST_EXIT_CODE
+          fi
+
+      - name: Stop Firebase Emulators
+        if: always()
+        uses: ./.github/actions/firebase-emulators
+        with:
+          action: stop
+
+      - name: Upload test output logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output-${{ matrix.artifact_name }}
+          path: test-output.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Test Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## E2E Test Results - ${{ matrix.suite }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Paths: ${{ matrix.test_paths }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f "test-output.log" ]; then
+            echo "### Test Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -50 test-output.log >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests failed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test artifacts
+        if: always()
+        uses: ./.github/actions/upload-test-artifacts
+        with:
+          artifact-name: ${{ matrix.artifact_name }}
+
+  # Aggregate E2E test results
+  e2e-aggregate:
+    name: Aggregate E2E Test Results
+    needs: e2e-tests
+    runs-on: ubuntu-latest
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          merge-multiple: true
+          path: all-results/
+
+      - name: Upload combined results
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-test-results
+          path: all-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # Final summary job
+  ci-summary:
+    name: CI Pipeline Summary
+    needs: [lint, build, security, e2e-setup, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    timeout-minutes: 2
+
+    steps:
+      - name: Generate Summary
+        shell: bash
+        run: |
+          echo "# CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
+          
+          E2E_STATUS="${{ needs.e2e-tests.result }}"
+          if [ -z "$E2E_STATUS" ] || [ "$E2E_STATUS" == "skipped" ]; then
+            echo "| E2E Tests | skipped (no relevant files changed) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| E2E Tests | $E2E_STATUS |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.lint.result }}" == "success" ] && [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.security.result }}" == "success" ]; then
+            if [ -z "$E2E_STATUS" ] || [ "$E2E_STATUS" == "skipped" ] || [ "$E2E_STATUS" == "success" ]; then
+              echo "✅ **All CI checks passed!**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **E2E tests failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Some CI checks failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
+          fi
+
