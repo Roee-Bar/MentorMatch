@@ -4,7 +4,7 @@
 
 import { test, expect } from '../../fixtures/auth';
 import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
-import { seedStudent, seedSupervisor, seedProject, cleanupProject } from '../../fixtures/db-helpers';
+import { seedStudent, seedSupervisor, seedProject, cleanupProject, cleanupUser } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
 
 test.describe('Supervisor - Projects', () => {

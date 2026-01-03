@@ -19,7 +19,7 @@ test.describe('Student - Applications', () => {
       console.error('Failed to seed supervisor in beforeAll:', error);
       throw error;
     }
-  }, { timeout: 120000 }); // 2 minutes timeout
+  });
 
   test.afterAll(async () => {
     // Guard against cleanup when sharedSupervisor was not initialized
