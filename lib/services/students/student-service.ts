@@ -56,9 +56,10 @@ export const StudentService = {
   // Get available partners (students without partners, excluding current user)
   async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
     try {
-      // Query for students without a partner
+      // Query for students with available partnership statuses (none, pending_sent, pending_received)
+      // Excludes students with 'paired' status
       const querySnapshot = await adminDb.collection('students')
-        .where('partnerId', '==', null)
+        .where('partnershipStatus', 'in', ['none', 'pending_sent', 'pending_received'])
         .get();
       
       // Filter out the current user, deduplicate by student ID, and return
