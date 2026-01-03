@@ -13,9 +13,7 @@
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
     "test:setup-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-test-partnerships.ts",
-    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
-    "test:email-service": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/test-email-service.ts",
-    "test:email-simple": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/test-email-simple.ts"
+    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",
