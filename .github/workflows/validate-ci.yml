@@ -1,16 +1,14 @@
 name: Validate CI/CD
 
 on:
-  pull_request:
-    paths:
-      - '.github/**/*.yml'
-      - '.github/**/*.yaml'
-      - '.github/**/*.js'
+  # Only run on push to main, not on pull requests
+  # This ensures PRs only trigger the main CI pipeline
   push:
     branches: [main]
     paths:
       - '.github/**/*.yml'
       - '.github/**/*.yaml'
+      - '.github/**/*.js'
 
 jobs:
   validate:
