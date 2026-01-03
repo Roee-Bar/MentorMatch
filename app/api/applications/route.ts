@@ -48,10 +48,8 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     );
   }
 
-  // Handle partner logic (using workflow service)
-  let partnerInfo = { hasPartner: false, partnerName: '', partnerEmail: '' };
-  let linkedApplicationId: string | undefined = undefined;
-  let isLeadApplication = true;
+  // Auto-include partner if student has one
+  let partnerInfo = { hasPartner: false, partnerName: '', partnerEmail: '', partnerId: undefined as string | undefined };
 
   if (student.partnerId) {
     const partner = await StudentService.getStudentById(student.partnerId);
@@ -59,17 +57,9 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
       partnerInfo = {
         hasPartner: true,
         partnerName: partner.fullName,
-        partnerEmail: partner.email
+        partnerEmail: partner.email,
+        partnerId: partner.id
       };
-
-      const linkResult = await ApplicationWorkflowService.handlePartnerApplicationLink(
-        user.uid,
-        student.partnerId,
-        validation.data.supervisorId
-      );
-
-      linkedApplicationId = linkResult.linkedApplicationId;
-      isLeadApplication = linkResult.isLeadApplication;
     }
   }
 
@@ -93,9 +83,11 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     hasPartner: partnerInfo.hasPartner,
     partnerName: partnerInfo.partnerName || undefined,
     partnerEmail: partnerInfo.partnerEmail || undefined,
-    // Capacity Tracking
-    linkedApplicationId: linkedApplicationId ?? undefined,
-    isLeadApplication,
+    partnerId: partnerInfo.partnerId,
+    appliedByStudentId: user.uid, // Track who originally submitted
+    // Capacity Tracking (DEPRECATED - kept for backward compatibility)
+    linkedApplicationId: undefined,
+    isLeadApplication: true, // All new applications are "lead" (no linking)
     // Status
     status: 'pending',
     // Timestamps (will be set by service, but required by type)
@@ -110,14 +102,6 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   }
 
   const applicationId = result.data;
-
-  // If we linked to a partner's existing application, update their application to link back to ours
-  if (linkedApplicationId && !isLeadApplication) {
-    await adminDb.collection('applications').doc(linkedApplicationId).update({
-      linkedApplicationId: applicationId,
-      lastUpdated: new Date()
-    });
-  }
 
   // Emit application created event for side effects (e.g., email notifications)
   await serviceEvents.emit({

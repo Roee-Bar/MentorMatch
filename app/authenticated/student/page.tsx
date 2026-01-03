@@ -399,8 +399,8 @@ export default function StudentAuthenticated() {
                         comments: application.supervisorFeedback,
                         hasPartner: application.hasPartner,
                         partnerName: application.partnerName,
-                        linkedApplicationId: application.linkedApplicationId,
-                        isLeadApplication: application.isLeadApplication,
+                        studentName: application.studentName,
+                        studentEmail: application.studentEmail,
                       }}
                       onWithdraw={applicationActions.withdrawApplication}
                       isLoading={applicationActions.isLoading(`withdraw-${application.id}`)}

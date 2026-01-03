@@ -29,16 +29,26 @@ export const ApplicationService = {
     }
   },
 
-  // Get all applications for a student
+  // Get all applications for a student (including applications where student is the partner)
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
-      const querySnapshot = await adminDb.collection('applications')
+      // Query applications where student is the primary applicant
+      const primaryQuerySnapshot = await adminDb.collection('applications')
         .where('studentId', '==', studentId)
         .get();
       
-      return querySnapshot.docs.map((doc) => {
+      // Query applications where student is the partner
+      const partnerQuerySnapshot = await adminDb.collection('applications')
+        .where('partnerId', '==', studentId)
+        .get();
+      
+      // Combine and deduplicate results (in case an application has both studentId and partnerId matching)
+      const applicationMap = new Map<string, ApplicationCardData>();
+      
+      // Process primary applications
+      primaryQuerySnapshot.docs.forEach((doc) => {
         const data = doc.data();
-        return {
+        applicationMap.set(doc.id, {
           id: doc.id,
           projectTitle: data.projectTitle,
           projectDescription: data.projectDescription,
@@ -47,8 +57,35 @@ export const ApplicationService = {
           status: data.status,
           responseTime: data.responseTime || '5-7 business days',
           comments: data.supervisorFeedback,
-        } as ApplicationCardData;
+          hasPartner: data.hasPartner,
+          partnerName: data.partnerName,
+          studentName: data.studentName,
+          studentEmail: data.studentEmail,
+        } as ApplicationCardData);
       });
+      
+      // Process partner applications (only add if not already in map)
+      partnerQuerySnapshot.docs.forEach((doc) => {
+        if (!applicationMap.has(doc.id)) {
+          const data = doc.data();
+          applicationMap.set(doc.id, {
+            id: doc.id,
+            projectTitle: data.projectTitle,
+            projectDescription: data.projectDescription,
+            supervisorName: data.supervisorName,
+            dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
+            status: data.status,
+            responseTime: data.responseTime || '5-7 business days',
+            comments: data.supervisorFeedback,
+            hasPartner: data.hasPartner,
+            partnerName: data.partnerName,
+            studentName: data.studentName,
+            studentEmail: data.studentEmail,
+          } as ApplicationCardData);
+        }
+      });
+      
+      return Array.from(applicationMap.values());
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getStudentApplications', error, { studentId });
       return [];

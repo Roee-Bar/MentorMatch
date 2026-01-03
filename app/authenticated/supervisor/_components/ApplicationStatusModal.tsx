@@ -150,12 +150,19 @@ export default function ApplicationStatusModal({
           </div>
           
           <div className="space-y-2 text-sm">
-            <p><span className={textMuted}>Student:</span> <span className="font-medium dark:text-slate-200">{application.studentName}</span></p>
-            <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
-            {application.hasPartner && application.partnerName && (
-              <p className="text-blue-600 dark:text-blue-400">
-                <span className={textMuted}>Partner:</span> {application.partnerName} (Team Project)
-              </p>
+            {application.hasPartner && application.partnerName ? (
+              <>
+                <p><span className={textMuted}>Students:</span> <span className="font-medium dark:text-slate-200">{application.studentName} & {application.partnerName}</span></p>
+                <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
+                <p className="text-blue-600 dark:text-blue-400">
+                  <span className={textMuted}>Team Project</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <p><span className={textMuted}>Student:</span> <span className="font-medium dark:text-slate-200">{application.studentName}</span></p>
+                <p><span className={textMuted}>Email:</span> <span className="dark:text-slate-300">{application.studentEmail}</span></p>
+              </>
             )}
           </div>
 

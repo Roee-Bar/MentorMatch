@@ -66,8 +66,8 @@ export default function ApplicationEditPage() {
         if (response.data) {
           const data = response.data;
           
-          // Authorization check
-          if (data.studentId !== userId) {
+          // Authorization check - allow student or partner
+          if (data.studentId !== userId && data.partnerId !== userId) {
             setLoadError('You do not have permission to edit this application');
             return;
           }

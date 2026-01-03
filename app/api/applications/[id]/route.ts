@@ -10,6 +10,7 @@
 
 import { NextRequest } from 'next/server';
 import { ApplicationService } from '@/lib/services/applications/application-service';
+import { canAccessApplication, canModifyApplication } from '@/lib/services/applications/application-auth';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
@@ -34,10 +35,7 @@ export const GET = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      if (!application) return false;
-      return user.uid === application.studentId || 
-             user.uid === application.supervisorId || 
-             user.role === 'admin';
+      return canAccessApplication(user.uid, application, user.role);
     }
   }
 );
@@ -98,8 +96,7 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      if (!application) return false;
-      return user.uid === application.studentId || user.role === 'admin';
+      return canModifyApplication(user.uid, application, user.role);
     }
   }
 );
@@ -157,8 +154,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      if (!application) return false;
-      return user.uid === application.studentId || user.role === 'admin';
+      return canModifyApplication(user.uid, application, user.role);
     }
   }
 );

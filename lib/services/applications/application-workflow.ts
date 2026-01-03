@@ -49,27 +49,11 @@ export const ApplicationWorkflowService = {
         return { success: false, error: 'Cannot revert application back to pending status after a decision has been made.' };
       }
 
-      // Handle linked partner application rejection
-      if (newStatus === 'rejected' && application.isLeadApplication && application.linkedApplicationId) {
-        const linkedAppRef = adminDb.collection('applications').doc(application.linkedApplicationId);
-        const linkedAppSnap = await linkedAppRef.get();
-        
-        if (linkedAppSnap.exists) {
-          const linkedAppData = linkedAppSnap.data();
-          if (linkedAppData?.status === 'pending') {
-            await linkedAppRef.update({
-              status: 'rejected',
-              supervisorFeedback: feedback ? `${feedback} (Linked partner application was rejected)` : 'Linked partner application was rejected',
-              lastUpdated: new Date(),
-              responseDate: new Date()
-            });
-          }
-        }
-      }
-
       // Check if capacity needs to be updated
       const isApproving = newStatus === 'approved' && previousStatus !== 'approved';
       const isUnapproving = previousStatus === 'approved' && newStatus !== 'approved';
+      // For new single-application model, always update capacity (no need to check isLeadApplication)
+      // For backward compatibility with old linked applications, only update if it's a lead or has no link
       const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
       
       if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
@@ -178,10 +162,11 @@ export const ApplicationWorkflowService = {
         return { success: false, error: 'Application not found. It may have been deleted.' };
       }
 
-      // Authorization check
+      // Authorization check - allow student or partner
       const isOwner = studentId === application.studentId;
+      const isPartner = application.partnerId && studentId === application.partnerId;
       
-      if (!isOwner) {
+      if (!isOwner && !isPartner) {
         return { success: false, error: 'You don\'t have permission to resubmit this application.' };
       }
 
@@ -196,25 +181,6 @@ export const ApplicationWorkflowService = {
         lastUpdated: new Date(),
         resubmittedDate: new Date(),
       };
-
-      // Handle linked applications
-      if (application.linkedApplicationId) {
-        const linkedAppRef = adminDb.collection('applications').doc(application.linkedApplicationId);
-        const linkedAppSnap = await linkedAppRef.get();
-        
-        if (linkedAppSnap.exists) {
-          const linkedAppData = linkedAppSnap.data();
-          
-          // If partner is also in revision_requested, transition both
-          if (linkedAppData?.status === 'revision_requested') {
-            await linkedAppRef.update({
-              status: 'pending',
-              lastUpdated: new Date(),
-              resubmittedDate: new Date(),
-            });
-          }
-        }
-      }
 
       // Update the application
       const applicationRef = adminDb.collection('applications').doc(applicationId);
@@ -253,23 +219,40 @@ export const ApplicationWorkflowService = {
 
   /**
    * Check for duplicate applications before creation
+   * Checks both studentId and partnerId to prevent duplicates
    */
   async checkDuplicateApplication(
     studentId: string,
     supervisorId: string
   ): Promise<{ isDuplicate: boolean; existingApplicationId?: string }> {
     try {
-      const existingApplicationsSnapshot = await adminDb
+      // Check if student already has an application to this supervisor
+      const studentApplicationsSnapshot = await adminDb
         .collection('applications')
         .where('studentId', '==', studentId)
         .where('supervisorId', '==', supervisorId)
         .where('status', 'in', ['pending', 'approved'])
         .get();
 
-      if (!existingApplicationsSnapshot.empty) {
+      if (!studentApplicationsSnapshot.empty) {
         return { 
           isDuplicate: true, 
-          existingApplicationId: existingApplicationsSnapshot.docs[0].id 
+          existingApplicationId: studentApplicationsSnapshot.docs[0].id 
+        };
+      }
+
+      // Check if student is already a partner in an application to this supervisor
+      const partnerApplicationsSnapshot = await adminDb
+        .collection('applications')
+        .where('partnerId', '==', studentId)
+        .where('supervisorId', '==', supervisorId)
+        .where('status', 'in', ['pending', 'approved'])
+        .get();
+
+      if (!partnerApplicationsSnapshot.empty) {
+        return { 
+          isDuplicate: true, 
+          existingApplicationId: partnerApplicationsSnapshot.docs[0].id 
         };
       }
 
@@ -284,7 +267,10 @@ export const ApplicationWorkflowService = {
 
   /**
    * Handle linked partner application logic
-   * Returns partner application info if exists
+   * DEPRECATED: This method is kept for backward compatibility but is no longer used.
+   * New applications use the single-application model with partnerId field.
+   * 
+   * @deprecated Use single application model with partnerId instead
    */
   async handlePartnerApplicationLink(
     studentId: string,
@@ -294,42 +280,11 @@ export const ApplicationWorkflowService = {
     linkedApplicationId?: string;
     isLeadApplication: boolean;
   }> {
-    try {
-      // Check if partner already has an application to the same supervisor
-      const partnerApplicationsSnapshot = await adminDb
-        .collection('applications')
-        .where('studentId', '==', partnerId)
-        .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'approved'])
-        .get();
-
-      if (!partnerApplicationsSnapshot.empty) {
-        // Partner has an existing application - link to it
-        const partnerApplication = partnerApplicationsSnapshot.docs[0];
-        const linkedApplicationId = partnerApplication.id;
-        
-        // Note: The partner's application will be updated to link back after this application is created
-        // This is handled in the API route to ensure we have the new application ID
-
-        return {
-          linkedApplicationId,
-          isLeadApplication: false // This is the second application in the pair
-        };
-      }
-
-      // No partner application found - this will be the lead
-      return {
-        linkedApplicationId: undefined,
-        isLeadApplication: true
-      };
-      
-    } catch (error) {
-      logger.service.error(SERVICE_NAME, 'handlePartnerApplicationLink', error, { studentId, partnerId, supervisorId });
-      // On error, treat as solo application
-      return {
-        linkedApplicationId: undefined,
-        isLeadApplication: true
-      };
-    }
+    // This method is deprecated - new applications don't use linking
+    // Return default values for backward compatibility
+    return {
+      linkedApplicationId: undefined,
+      isLeadApplication: true
+    };
   },
 };

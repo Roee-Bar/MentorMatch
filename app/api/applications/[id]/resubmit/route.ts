@@ -10,6 +10,7 @@
 import { NextRequest } from 'next/server';
 import { ApplicationService } from '@/lib/services/applications/application-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
+import { canModifyApplication } from '@/lib/services/applications/application-auth';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
@@ -41,8 +42,7 @@ export const POST = withAuth<ApplicationIdParams, Application>(
       return await ApplicationService.getApplicationById(params.id);
     },
     requireResourceAccess: async (user, context, application) => {
-      if (!application) return false;
-      return user.uid === application.studentId || user.role === 'admin';
+      return canModifyApplication(user.uid, application, user.role);
     }
   }
 );
