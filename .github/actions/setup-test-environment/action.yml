@@ -7,9 +7,9 @@ inputs:
     required: false
     default: '20'
   java-version:
-    description: 'Java version to install'
+    description: 'Java version to install (Firebase emulators require Java 21+)'
     required: false
-    default: '17'
+    default: '21'
   java-distribution:
     description: 'Java distribution to use'
     required: false

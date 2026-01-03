@@ -1,0 +1,49 @@
+name: 'Build Environment Variables'
+description: 'Set up Firebase environment variables for builds'
+
+inputs:
+  project-id:
+    description: 'Firebase project ID'
+    required: false
+    default: 'demo-test'
+  api-key:
+    description: 'Firebase API key (use secret for production)'
+    required: false
+    default: 'test-api-key'
+  auth-domain:
+    description: 'Firebase Auth domain'
+    required: false
+    default: 'localhost'
+  storage-bucket:
+    description: 'Firebase Storage bucket (auto-generated from project-id if not provided)'
+    required: false
+    default: ''
+  messaging-sender-id:
+    description: 'Firebase Messaging Sender ID'
+    required: false
+    default: '123456789'
+  app-id:
+    description: 'Firebase App ID'
+    required: false
+    default: '1:123456789:web:test'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set build environment variables
+      shell: bash
+      run: |
+        echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ inputs.project-id }}" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ inputs.api-key }}" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ inputs.auth-domain }}" >> $GITHUB_ENV
+        
+        # Use provided storage bucket or generate from project-id
+        if [ -z "${{ inputs.storage-bucket }}" ]; then
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ inputs.project-id }}.appspot.com" >> $GITHUB_ENV
+        else
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ inputs.storage-bucket }}" >> $GITHUB_ENV
+        fi
+        
+        echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ inputs.messaging-sender-id }}" >> $GITHUB_ENV
+        echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ inputs.app-id }}" >> $GITHUB_ENV
+

@@ -1,0 +1,32 @@
+name: 'Job Summary'
+description: 'Generate a standardized job summary'
+
+inputs:
+  job-name:
+    description: 'Name of the job'
+    required: true
+  status:
+    description: 'Job status (success, failure, etc.)'
+    required: true
+  details:
+    description: 'Additional details to include (markdown supported)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate Summary
+      shell: bash
+      run: |
+        echo "## ${{ inputs.job-name }} Results" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ inputs.status }}" == "success" ]; then
+          echo "✅ ${{ inputs.job-name }} passed!" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ ${{ inputs.job-name }} failed. Please check the logs above." >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ inputs.details }}" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "${{ inputs.details }}" >> $GITHUB_STEP_SUMMARY
+        fi
+

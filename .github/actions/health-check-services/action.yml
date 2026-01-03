@@ -1,0 +1,62 @@
+name: 'Health Check Services'
+description: 'Check health of all required services before tests (post-startup checks)'
+
+inputs:
+  nextjs-port:
+    description: 'Next.js server port'
+    required: false
+    default: '3000'
+  emulator-ui-port:
+    description: 'Firebase Emulator UI port'
+    required: false
+    default: '4000'
+  auth-emulator-port:
+    description: 'Auth emulator port'
+    required: false
+    default: '9099'
+  firestore-emulator-port:
+    description: 'Firestore emulator port'
+    required: false
+    default: '8080'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Health Check Services
+      shell: bash
+      run: |
+        echo "Performing health checks before running tests..."
+        echo ""
+        
+        FAILED_CHECKS=0
+        
+        echo "Checking Firebase Emulators:"
+        if curl -f -s http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
+          echo "✓ Emulator UI is running on port ${{ inputs.emulator-ui-port }}"
+        else
+          echo "✗ Emulator UI is NOT running on port ${{ inputs.emulator-ui-port }}"
+          FAILED_CHECKS=$((FAILED_CHECKS + 1))
+        fi
+        
+        if nc -z localhost ${{ inputs.auth-emulator-port }} 2>/dev/null; then
+          echo "✓ Auth Emulator is running on port ${{ inputs.auth-emulator-port }}"
+        else
+          echo "⚠ Auth Emulator port check (may be normal if not HTTP)"
+        fi
+        
+        if nc -z localhost ${{ inputs.firestore-emulator-port }} 2>/dev/null; then
+          echo "✓ Firestore Emulator is running on port ${{ inputs.firestore-emulator-port }}"
+        else
+          echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
+        fi
+        
+        echo ""
+        echo "Note: Next.js server will be started automatically by Playwright's webServer configuration"
+        
+        if [ $FAILED_CHECKS -gt 0 ]; then
+          echo "❌ Some health checks failed"
+          exit 1
+        else
+          echo "✓ All services are ready for tests"
+        fi
+

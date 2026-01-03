@@ -34,11 +34,21 @@ runs:
         # Check Java is available (required for Firebase emulators)
         if ! command -v java &> /dev/null; then
           echo "✗ ERROR: Java is not installed or not in PATH"
-          echo "Firebase emulators require Java. Please ensure Java is installed."
+          echo "Firebase emulators require Java 21 or above. Please ensure Java is installed."
           exit 1
         fi
-        JAVA_VERSION=$(java -version 2>&1 | head -n 1)
-        echo "✓ Java found: $JAVA_VERSION"
+        JAVA_VERSION_OUTPUT=$(java -version 2>&1 | head -n 1)
+        echo "✓ Java found: $JAVA_VERSION_OUTPUT"
+        
+        # Verify Java version is 21 or above
+        JAVA_MAJOR_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F '.' '{print $1}')
+        if [ -z "$JAVA_MAJOR_VERSION" ] || [ "$JAVA_MAJOR_VERSION" -lt 21 ]; then
+          echo "✗ ERROR: Java version $JAVA_MAJOR_VERSION detected, but Firebase emulators require Java 21 or above"
+          echo "Current Java version: $JAVA_VERSION_OUTPUT"
+          echo "Please update Java to version 21 or above."
+          exit 1
+        fi
+        echo "✓ Java version $JAVA_MAJOR_VERSION is compatible (requires 21+)"
         
         # Check Firebase CLI is available
         if ! command -v firebase &> /dev/null && ! command -v npx &> /dev/null; then
