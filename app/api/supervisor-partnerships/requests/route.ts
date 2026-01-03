@@ -16,9 +16,7 @@ import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
 import { z } from 'zod';
 
 const requestTypeSchema = z.object({
-  type: z.enum(['incoming', 'outgoing', 'all'], {
-    errorMap: () => ({ message: ERROR_MESSAGES.INVALID_TYPE_PARAMETER })
-  }).default('all'),
+  type: z.enum(['incoming', 'outgoing', 'all']).default('all'),
 });
 
 export const GET = withAuth<Record<string, string>>(
