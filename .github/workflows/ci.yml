@@ -180,27 +180,34 @@ jobs:
         if: steps.check-e2e.outputs.should_run == 'true'
         uses: ./.github/actions/setup-playwright
 
+  load-matrix:
+    name: Load Test Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Read test matrix
+        id: set-matrix
+        run: |
+          MATRIX=$(cat .github/workflows/test-matrix.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
   e2e-tests:
     name: E2E Test - ${{ matrix.suite }}
-    needs: [lint, build, security, e2e-setup]
+    needs: [lint, build, security, e2e-setup, load-matrix]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: needs.e2e-setup.outputs.should_run == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - suite: Auth + Student
-            test_paths: e2e/tests/auth/ e2e/tests/student/
-            artifact_name: auth-student
-          - suite: Supervisor
-            test_paths: e2e/tests/supervisor/
-            artifact_name: supervisor
-          - suite: Admin
-            test_paths: e2e/tests/admin/
-            artifact_name: admin
+      matrix: ${{ fromJson(needs.load-matrix.outputs.matrix) }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
@@ -250,19 +257,6 @@ jobs:
         with:
           project-id: ${{ env.PROJECT_ID }}
           base-url: 'http://localhost:3000'
-
-      - name: Verify Firebase configuration
-        shell: bash
-        run: |
-          echo "Verifying Firebase configuration..."
-          if [ ! -f "firebase.json" ]; then
-            echo "ERROR: firebase.json not found!"
-            exit 1
-          fi
-          if [ ! -f "firestore.rules" ]; then
-            echo "WARNING: firestore.rules not found"
-          fi
-          echo "✓ Firebase configuration verified"
 
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
