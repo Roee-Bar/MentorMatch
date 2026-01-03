@@ -33,7 +33,11 @@ export async function seedStudent(overrides?: Partial<Student>): Promise<{ uid: 
   });
 
   // Create student document
-  await adminDb.collection('students').doc(userRecord.uid).set(studentData);
+  // Remove undefined values to avoid Firestore errors
+  const cleanStudentData = Object.fromEntries(
+    Object.entries(studentData).filter(([_, value]) => value !== undefined)
+  ) as typeof studentData;
+  await adminDb.collection('students').doc(userRecord.uid).set(cleanStudentData);
 
   return {
     uid: userRecord.uid,
@@ -66,7 +70,11 @@ export async function seedSupervisor(overrides?: Partial<Supervisor>): Promise<{
   });
 
   // Create supervisor document
-  await adminDb.collection('supervisors').doc(userRecord.uid).set(supervisorData);
+  // Remove undefined values to avoid Firestore errors
+  const cleanSupervisorData = Object.fromEntries(
+    Object.entries(supervisorData).filter(([_, value]) => value !== undefined)
+  ) as typeof supervisorData;
+  await adminDb.collection('supervisors').doc(userRecord.uid).set(cleanSupervisorData);
 
   return {
     uid: userRecord.uid,
@@ -99,7 +107,11 @@ export async function seedAdmin(overrides?: Partial<Admin>): Promise<{ uid: stri
   });
 
   // Create admin document
-  await adminDb.collection('admins').doc(userRecord.uid).set(adminData);
+  // Remove undefined values to avoid Firestore errors
+  const cleanAdminData = Object.fromEntries(
+    Object.entries(adminData).filter(([_, value]) => value !== undefined)
+  ) as typeof adminData;
+  await adminDb.collection('admins').doc(userRecord.uid).set(cleanAdminData);
 
   return {
     uid: userRecord.uid,
@@ -116,7 +128,11 @@ export async function seedApplication(
   overrides?: Partial<Application>
 ): Promise<{ id: string; application: Application }> {
   const applicationData = generateApplicationData(studentId, supervisorId, overrides);
-  const docRef = await adminDb.collection('applications').add(applicationData);
+  // Remove undefined values to avoid Firestore errors
+  const cleanApplicationData = Object.fromEntries(
+    Object.entries(applicationData).filter(([_, value]) => value !== undefined)
+  ) as typeof applicationData;
+  const docRef = await adminDb.collection('applications').add(cleanApplicationData);
   
   return {
     id: docRef.id,
@@ -129,7 +145,11 @@ export async function seedApplication(
  */
 export async function seedProject(overrides?: Partial<Project>): Promise<{ projectId: string; project: Project }> {
   const projectData = generateProjectData(overrides);
-  const docRef = await adminDb.collection('projects').add(projectData);
+  // Remove undefined values to avoid Firestore errors
+  const cleanProjectData = Object.fromEntries(
+    Object.entries(projectData).filter(([_, value]) => value !== undefined)
+  ) as typeof projectData;
+  const docRef = await adminDb.collection('projects').add(cleanProjectData);
   
   return {
     projectId: docRef.id,

@@ -12,7 +12,10 @@ test.describe('Supervisor - Capacity Management', () => {
     await dashboard.goto();
 
     // Should see capacity information
-    const capacityInfo = page.locator('[data-testid="capacity"], .capacity, text=/capacity/i');
+    // Try multiple selectors using or() method
+    const capacityInfo = page.locator('[data-testid="capacity"]')
+      .or(page.locator('.capacity'))
+      .or(page.locator('text=/capacity/i'));
     if (await capacityInfo.isVisible()) {
       await expect(capacityInfo).toBeVisible();
     }

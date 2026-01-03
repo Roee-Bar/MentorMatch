@@ -33,6 +33,19 @@ export default defineConfig({
     navigationTimeout: 30000,
   },
 
+  // Environment variables for test workers (not just the web server)
+  // These are needed for Firebase Admin SDK in test fixtures
+  env: {
+    E2E_TEST: process.env.E2E_TEST || 'true',
+    NODE_ENV: process.env.NODE_ENV || 'test',
+    FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099',
+    FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8080',
+    FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
+    // Don't set dummy credentials - let firebase-admin use emulator mode
+    // FIREBASE_ADMIN_CLIENT_EMAIL: undefined,
+    // FIREBASE_ADMIN_PRIVATE_KEY: undefined,
+  },
+
   projects: [
     {
       name: 'chromium',
@@ -75,8 +88,9 @@ export default defineConfig({
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
       NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:test',
       FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
-      FIREBASE_ADMIN_CLIENT_EMAIL: process.env.FIREBASE_ADMIN_CLIENT_EMAIL || 'test@example.com',
-      FIREBASE_ADMIN_PRIVATE_KEY: process.env.FIREBASE_ADMIN_PRIVATE_KEY || '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n',
+      // Don't set dummy credentials - let firebase-admin use emulator mode in test environment
+      // FIREBASE_ADMIN_CLIENT_EMAIL: undefined,
+      // FIREBASE_ADMIN_PRIVATE_KEY: undefined,
     },
   },
 });

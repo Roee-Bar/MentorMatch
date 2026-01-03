@@ -67,7 +67,8 @@ test.describe('Admin - Capacity Override', () => {
     await dashboard.navigateToSupervisorDetails(supervisor.id);
 
     // Verify initial capacity is displayed
-    const capacityDisplay = page.locator('[data-testid="capacity"], text=/capacity/i');
+    // Use or() to try testid first, then fallback to text selector
+    const capacityDisplay = page.locator('[data-testid="capacity"]').or(page.locator('text=/capacity/i'));
     if (await capacityDisplay.isVisible()) {
       const capacityText = await capacityDisplay.textContent();
       expect(capacityText).toContain('3');
