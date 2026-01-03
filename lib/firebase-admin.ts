@@ -14,6 +14,7 @@ if (!admin.apps.length) {
     const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
     const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
 
     // Check if all required environment variables are present
     if (!projectId || !clientEmail || !privateKey) {
@@ -30,9 +31,9 @@ if (!admin.apps.length) {
       );
       
       // Initialize with minimal config for testing or development only
-      if (process.env.NODE_ENV === 'test') {
+      if (isTestEnv) {
         admin.initializeApp({
-          projectId: projectId || 'placeholder-project',
+          projectId: projectId || 'demo-test',
         });
         logger.debug('Initialized with minimal config for testing', { context: 'Firebase' });
       }
@@ -49,6 +50,21 @@ if (!admin.apps.length) {
       });
 
       logger.firebase.init();
+    }
+
+    // Connect to emulators if in test environment
+    if (isTestEnv) {
+      const firestoreEmulatorHost = process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8080';
+      const authEmulatorHost = process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099';
+      
+      // Set emulator hosts for Admin SDK
+      process.env.FIRESTORE_EMULATOR_HOST = firestoreEmulatorHost;
+      process.env.FIREBASE_AUTH_EMULATOR_HOST = authEmulatorHost;
+      
+      logger.debug('Configured Firebase Admin SDK for emulator', { 
+        context: 'Firebase',
+        data: { firestoreEmulatorHost, authEmulatorHost }
+      });
     }
   } catch (error) {
     logger.firebase.error('Initialization', error);

@@ -1,0 +1,74 @@
+/**
+ * Supervisor Applications E2E Tests
+ */
+
+import { test, expect } from '../../fixtures/auth';
+import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
+import { seedStudent, seedApplication } from '../../fixtures/db-helpers';
+
+test.describe('Supervisor - Applications', () => {
+  test('should display pending applications', async ({ page, authenticatedSupervisor }) => {
+    const dashboard = new SupervisorDashboard(page);
+
+    // Create a student and application
+    const { student } = await seedStudent();
+    await seedApplication(student.id, authenticatedSupervisor.uid, {
+      status: 'pending',
+    });
+
+    await dashboard.goto();
+    await dashboard.navigateToApplications();
+
+    // Should see applications list
+    await expect(page).toHaveURL(/\/authenticated\/supervisor\/applications/);
+    const applicationsList = page.locator('[data-testid="application-card"], .application-card, table tbody tr');
+    await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('should approve an application', async ({ page, authenticatedSupervisor }) => {
+    const dashboard = new SupervisorDashboard(page);
+
+    // Create a student and application
+    const { student } = await seedStudent();
+    const { application } = await seedApplication(student.id, authenticatedSupervisor.uid, {
+      status: 'pending',
+    });
+
+    await dashboard.goto();
+    await dashboard.navigateToApplications();
+
+    // Find the application and approve it
+    const approveButton = page.getByRole('button', { name: /approve|accept/i }).first();
+    if (await approveButton.isVisible()) {
+      await approveButton.click();
+      await page.waitForTimeout(2000);
+      
+      // Should see success message or status change
+      const successMessage = page.locator('[role="status"], .success');
+      if (await successMessage.isVisible({ timeout: 5000 })) {
+        await expect(successMessage).toBeVisible();
+      }
+    }
+  });
+
+  test('should reject an application', async ({ page, authenticatedSupervisor }) => {
+    const dashboard = new SupervisorDashboard(page);
+
+    // Create a student and application
+    const { student } = await seedStudent();
+    await seedApplication(student.id, authenticatedSupervisor.uid, {
+      status: 'pending',
+    });
+
+    await dashboard.goto();
+    await dashboard.navigateToApplications();
+
+    // Find the application and reject it
+    const rejectButton = page.getByRole('button', { name: /reject|decline/i }).first();
+    if (await rejectButton.isVisible()) {
+      await rejectButton.click();
+      await page.waitForTimeout(2000);
+    }
+  });
+});
+

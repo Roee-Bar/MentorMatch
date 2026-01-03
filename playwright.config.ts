@@ -1,0 +1,77 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Playwright E2E Test Configuration
+ * 
+ * This configuration sets up Playwright for end-to-end testing of MentorMatch.
+ * It includes:
+ * - Automatic Next.js dev server startup
+ * - Firebase Emulator integration
+ * - Test retries and timeouts
+ * - Screenshot and video capture on failure
+ */
+export default defineConfig({
+  testDir: './e2e/tests',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [
+    ['html'],
+    ['list'],
+    ...(process.env.CI ? [['github'] as const] : []),
+  ],
+  
+  use: {
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    actionTimeout: 10000,
+    navigationTimeout: 30000,
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Uncomment to add more browsers
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
+  ],
+
+  // Configure web server to start Next.js dev server
+  // Note: Firebase Emulators require Java to be installed
+  // Start emulators manually with: npx firebase emulators:start --only auth,firestore
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+    env: {
+      E2E_TEST: 'true',
+      NODE_ENV: 'test',
+      FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099',
+      FIRESTORE_EMULATOR_HOST: 'localhost:8080',
+      NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099',
+      NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080',
+      NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key',
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost',
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test',
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com',
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+      NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test',
+      FIREBASE_ADMIN_PROJECT_ID: 'demo-test',
+      FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com',
+      FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n',
+    },
+  },
+});
+

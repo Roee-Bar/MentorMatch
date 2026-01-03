@@ -1,0 +1,120 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main, feature/add-e2e-tests]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e-tests:
+    name: Run E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java (required for Firebase Emulators)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Firebase Emulators
+        run: |
+          npx firebase emulators:start --only auth,firestore &
+          sleep 15
+        env:
+          E2E_TEST: 'true'
+          NODE_ENV: 'test'
+          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
+          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
+          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
+          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
+      - name: Wait for Firebase Emulators
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:4000; do sleep 2; done'
+
+      - name: Start Next.js dev server
+        run: |
+          npm run dev &
+          sleep 15
+        env:
+          E2E_TEST: 'true'
+          NODE_ENV: 'test'
+          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
+          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
+          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
+          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
+      - name: Wait for Next.js server
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          E2E_BASE_URL: 'http://localhost:3000'
+          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
+          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
+          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
+          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-screenshots
+          path: test-results/
+          retention-days: 7
+
