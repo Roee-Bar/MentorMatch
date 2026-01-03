@@ -99,6 +99,19 @@ jobs:
           java-version: '17'
           java-distribution: 'temurin'
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
         with:
@@ -108,10 +121,23 @@ jobs:
           emulator-ui-port: '4000'
 
       - name: Run Tests
+        shell: bash
         run: npx playwright test ${{ matrix.test_paths }}
         env:
           CI: 'true'
+          E2E_TEST: 'true'
+          NODE_ENV: 'test'
           E2E_BASE_URL: 'http://localhost:3000'
+          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
           FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
           FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
           FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
@@ -129,6 +155,7 @@ jobs:
           name: test-results-${{ matrix.artifact_name }}
           path: playwright-report/
           retention-days: 30
+          if-no-files-found: ignore
 
       - name: Upload test screenshots
         if: failure()
@@ -137,6 +164,7 @@ jobs:
           name: test-screenshots-${{ matrix.artifact_name }}
           path: test-results/
           retention-days: 7
+          if-no-files-found: ignore
 
   # Aggregate results from all test jobs
   aggregate-results:
@@ -160,3 +188,4 @@ jobs:
           name: all-test-results
           path: all-results/
           retention-days: 30
+          if-no-files-found: ignore
