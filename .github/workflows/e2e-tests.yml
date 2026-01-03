@@ -119,6 +119,17 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
+      - name: Validate Playwright Config
+        shell: bash
+        run: |
+          echo "Validating Playwright configuration..."
+          npx playwright test --list > /dev/null 2>&1 || {
+            echo "ERROR: Playwright configuration is invalid!"
+            npx playwright test --list 2>&1 | head -50
+            exit 1
+          }
+          echo "✓ Playwright configuration is valid"
+
       - name: Run Tests
         shell: bash
         run: |
