@@ -99,10 +99,10 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     partnerName: partnerInfo.partnerName || undefined,
     partnerEmail: partnerInfo.partnerEmail || undefined,
     partnerId: partnerInfo.partnerId,
-    appliedByStudentId: user.uid, // Track who originally submitted
-    // Capacity Tracking (DEPRECATED - kept for backward compatibility)
+    appliedByStudentId: user.uid,
+    // Backward compatibility
     linkedApplicationId: undefined,
-    isLeadApplication: true, // All new applications are "lead" (no linking)
+    isLeadApplication: true,
     // Status
     status: 'pending',
     // Timestamps (will be set by service, but required by type)

@@ -138,6 +138,21 @@ export interface Admin {
   updatedAt: Date;
 }
 
+// ============================================
+// CAPACITY CHANGE TYPE (stored in 'capacity_changes' collection)
+// ============================================
+export interface CapacityChange {
+  id: string; // Firestore document ID
+  supervisorId: string;
+  supervisorName: string;
+  adminId: string;
+  adminEmail: string;
+  oldMaxCapacity: number;
+  newMaxCapacity: number;
+  reason: string;
+  timestamp: Date;
+}
+
 export type AdminPermission = 
   | 'manage_users'
   | 'manage_supervisors'
@@ -195,15 +210,14 @@ export interface Application {
   partnerId?: string; // The partner's studentId if application has a partner
   appliedByStudentId: string; // The studentId of who originally submitted the application
   
-  // Project-Based Capacity Tracking (DEPRECATED - kept for backward compatibility)
   /**
    * @deprecated Use partnerId instead. Kept for backward compatibility only.
    */
-  linkedApplicationId?: string; // References partner's application ID (deprecated)
+  linkedApplicationId?: string;
   /**
    * @deprecated All new applications are "lead". Kept for backward compatibility only.
    */
-  isLeadApplication: boolean; // True for the first application in a pair (or solo) (deprecated)
+  isLeadApplication: boolean;
   projectId?: string; // Optional reference to created Project (for future use)
   
   // Status

@@ -1,27 +1,15 @@
 // lib/services/partnerships/partnership-request-service.ts
-// SERVER-ONLY: Partnership request CRUD operations
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
-import { toPartnershipRequest } from '@/lib/services/shared/firestore-converters';
+import { partnershipRequestRepository } from '@/lib/repositories/partnership-request-repository';
 import type { StudentPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'PartnershipRequestService';
 
-// ============================================
-// PARTNERSHIP REQUEST CRUD OPERATIONS
-// ============================================
 export const PartnershipRequestService = {
-  /**
-   * Get specific partnership request by ID
-   */
   async getById(requestId: string): Promise<StudentPartnershipRequest | null> {
     try {
-      const requestDoc = await adminDb.collection('partnership_requests').doc(requestId).get();
-      if (requestDoc.exists) {
-        return toPartnershipRequest(requestDoc.id, requestDoc.data()!);
-      }
-      return null;
+      return await partnershipRequestRepository.findById(requestId);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getById', error, { requestId });
       return null;
@@ -39,46 +27,41 @@ export const PartnershipRequestService = {
   ): Promise<StudentPartnershipRequest[]> {
     try {
       if (type === 'all') {
-        // For 'all', query both incoming and outgoing requests separately
-        const [incomingSnapshot, outgoingSnapshot] = await Promise.all([
-          adminDb.collection('partnership_requests')
-            .where('status', '==', 'pending')
-            .where('targetStudentId', '==', studentId)
-            .get(),
-          adminDb.collection('partnership_requests')
-            .where('status', '==', 'pending')
-            .where('requesterId', '==', studentId)
-            .get()
+        const [incomingRequests, outgoingRequests] = await Promise.all([
+          partnershipRequestRepository.findAll([
+            { field: 'status', operator: '==', value: 'pending' },
+            { field: 'targetStudentId', operator: '==', value: studentId }
+          ]),
+          partnershipRequestRepository.findAll([
+            { field: 'status', operator: '==', value: 'pending' },
+            { field: 'requesterId', operator: '==', value: studentId }
+          ])
         ]);
 
-        // Merge and deduplicate by request ID
         const requestMap = new Map<string, StudentPartnershipRequest>();
         
-        incomingSnapshot.docs.forEach(doc => {
-          const request = toPartnershipRequest(doc.id, doc.data());
+        incomingRequests.forEach(request => {
           requestMap.set(request.id, request);
         });
         
-        outgoingSnapshot.docs.forEach(doc => {
-          const request = toPartnershipRequest(doc.id, doc.data());
+        outgoingRequests.forEach(request => {
           requestMap.set(request.id, request);
         });
 
         return Array.from(requestMap.values());
       }
 
-      // For 'incoming' or 'outgoing', use a single query
-      let query = adminDb.collection('partnership_requests')
-        .where('status', '==', 'pending');
-
       if (type === 'incoming') {
-        query = query.where('targetStudentId', '==', studentId);
+        return partnershipRequestRepository.findAll([
+          { field: 'status', operator: '==', value: 'pending' },
+          { field: 'targetStudentId', operator: '==', value: studentId }
+        ]);
       } else {
-        query = query.where('requesterId', '==', studentId);
+        return partnershipRequestRepository.findAll([
+          { field: 'status', operator: '==', value: 'pending' },
+          { field: 'requesterId', operator: '==', value: studentId }
+        ]);
       }
-      
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getByStudent', error, { studentId, type });
       return [];
@@ -94,25 +77,23 @@ export const PartnershipRequestService = {
     targetStudentId: string
   ): Promise<{ exists: boolean; isReverse: boolean }> {
     try {
-      // Check same direction (requester -> target)
-      const existingRequest = await adminDb.collection('partnership_requests')
-        .where('requesterId', '==', requesterId)
-        .where('targetStudentId', '==', targetStudentId)
-        .where('status', '==', 'pending')
-        .get();
+      const existingRequests = await partnershipRequestRepository.findAll([
+        { field: 'requesterId', operator: '==', value: requesterId },
+        { field: 'targetStudentId', operator: '==', value: targetStudentId },
+        { field: 'status', operator: '==', value: 'pending' }
+      ]);
 
-      if (!existingRequest.empty) {
+      if (existingRequests.length > 0) {
         return { exists: true, isReverse: false };
       }
 
-      // Check reverse direction (target -> requester)
-      const reverseRequest = await adminDb.collection('partnership_requests')
-        .where('requesterId', '==', targetStudentId)
-        .where('targetStudentId', '==', requesterId)
-        .where('status', '==', 'pending')
-        .get();
+      const reverseRequests = await partnershipRequestRepository.findAll([
+        { field: 'requesterId', operator: '==', value: targetStudentId },
+        { field: 'targetStudentId', operator: '==', value: requesterId },
+        { field: 'status', operator: '==', value: 'pending' }
+      ]);
 
-      if (!reverseRequest.empty) {
+      if (reverseRequests.length > 0) {
         return { exists: true, isReverse: true };
       }
 
@@ -130,10 +111,10 @@ export const PartnershipRequestService = {
     requestId: string, 
     status: 'accepted' | 'rejected' | 'cancelled'
   ): Promise<void> {
-    await adminDb.collection('partnership_requests').doc(requestId).update({
+    await partnershipRequestRepository.update(requestId, {
       status,
       respondedAt: new Date()
-    });
+    } as Partial<StudentPartnershipRequest>);
   },
 };
 

@@ -1,27 +1,15 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-request-service.ts
-// SERVER-ONLY: Supervisor partnership request CRUD operations
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
-import { toSupervisorPartnershipRequest } from '@/lib/services/shared/firestore-converters';
+import { supervisorPartnershipRequestRepository } from '@/lib/repositories/supervisor-partnership-request-repository';
 import type { SupervisorPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipRequestService';
 
-// ============================================
-// SUPERVISOR PARTNERSHIP REQUEST CRUD OPERATIONS
-// ============================================
 export const SupervisorPartnershipRequestService = {
-  /**
-   * Get specific partnership request by ID
-   */
   async getById(requestId: string): Promise<SupervisorPartnershipRequest | null> {
     try {
-      const requestDoc = await adminDb.collection('supervisor-partnership-requests').doc(requestId).get();
-      if (requestDoc.exists) {
-        return toSupervisorPartnershipRequest(requestDoc.id, requestDoc.data()!);
-      }
-      return null;
+      return await supervisorPartnershipRequestRepository.findById(requestId);
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getById', error, { requestId });
       return null;
@@ -39,46 +27,41 @@ export const SupervisorPartnershipRequestService = {
   ): Promise<SupervisorPartnershipRequest[]> {
     try {
       if (type === 'all') {
-        // For 'all', query both incoming and outgoing requests separately
-        const [incomingSnapshot, outgoingSnapshot] = await Promise.all([
-          adminDb.collection('supervisor-partnership-requests')
-            .where('status', '==', 'pending')
-            .where('targetSupervisorId', '==', supervisorId)
-            .get(),
-          adminDb.collection('supervisor-partnership-requests')
-            .where('status', '==', 'pending')
-            .where('requestingSupervisorId', '==', supervisorId)
-            .get()
+        const [incomingRequests, outgoingRequests] = await Promise.all([
+          supervisorPartnershipRequestRepository.findAll([
+            { field: 'status', operator: '==', value: 'pending' },
+            { field: 'targetSupervisorId', operator: '==', value: supervisorId }
+          ]),
+          supervisorPartnershipRequestRepository.findAll([
+            { field: 'status', operator: '==', value: 'pending' },
+            { field: 'requestingSupervisorId', operator: '==', value: supervisorId }
+          ])
         ]);
 
-        // Merge and deduplicate by request ID
         const requestMap = new Map<string, SupervisorPartnershipRequest>();
         
-        incomingSnapshot.docs.forEach(doc => {
-          const request = toSupervisorPartnershipRequest(doc.id, doc.data());
+        incomingRequests.forEach(request => {
           requestMap.set(request.id, request);
         });
         
-        outgoingSnapshot.docs.forEach(doc => {
-          const request = toSupervisorPartnershipRequest(doc.id, doc.data());
+        outgoingRequests.forEach(request => {
           requestMap.set(request.id, request);
         });
 
         return Array.from(requestMap.values());
       }
 
-      // For 'incoming' or 'outgoing', use a single query
-      let query = adminDb.collection('supervisor-partnership-requests')
-        .where('status', '==', 'pending');
-
       if (type === 'incoming') {
-        query = query.where('targetSupervisorId', '==', supervisorId);
+        return supervisorPartnershipRequestRepository.findAll([
+          { field: 'status', operator: '==', value: 'pending' },
+          { field: 'targetSupervisorId', operator: '==', value: supervisorId }
+        ]);
       } else {
-        query = query.where('requestingSupervisorId', '==', supervisorId);
+        return supervisorPartnershipRequestRepository.findAll([
+          { field: 'status', operator: '==', value: 'pending' },
+          { field: 'requestingSupervisorId', operator: '==', value: supervisorId }
+        ]);
       }
-      
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => toSupervisorPartnershipRequest(doc.id, doc.data()));
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getBySupervisor', error, { supervisorId, type });
       return [];
@@ -95,14 +78,14 @@ export const SupervisorPartnershipRequestService = {
     projectId: string
   ): Promise<boolean> {
     try {
-      const existingRequest = await adminDb.collection('supervisor-partnership-requests')
-        .where('requestingSupervisorId', '==', requestingSupervisorId)
-        .where('targetSupervisorId', '==', targetSupervisorId)
-        .where('projectId', '==', projectId)
-        .where('status', '==', 'pending')
-        .get();
+      const existingRequests = await supervisorPartnershipRequestRepository.findAll([
+        { field: 'requestingSupervisorId', operator: '==', value: requestingSupervisorId },
+        { field: 'targetSupervisorId', operator: '==', value: targetSupervisorId },
+        { field: 'projectId', operator: '==', value: projectId },
+        { field: 'status', operator: '==', value: 'pending' }
+      ]);
 
-      return !existingRequest.empty;
+      return existingRequests.length > 0;
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'checkExistingRequest', error, { requestingSupervisorId, targetSupervisorId, projectId });
       return false;
@@ -116,10 +99,10 @@ export const SupervisorPartnershipRequestService = {
     requestId: string, 
     status: 'accepted' | 'rejected' | 'cancelled'
   ): Promise<void> {
-    await adminDb.collection('supervisor-partnership-requests').doc(requestId).update({
+    await supervisorPartnershipRequestRepository.update(requestId, {
       status,
       respondedAt: new Date()
-    });
+    } as Partial<SupervisorPartnershipRequest>);
   },
 };
 

@@ -1,10 +1,10 @@
 // lib/services/partnerships/partnership-workflow.ts
-// SERVER-ONLY: Partnership workflow business logic
-// Handles create/accept/reject/cancel operations with validation
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { studentService } from '@/lib/services/students/student-service';
+import { studentRepository } from '@/lib/repositories/student-repository';
+import { partnershipRequestRepository } from '@/lib/repositories/partnership-request-repository';
 import { PartnershipRequestService } from './partnership-request-service';
 import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
@@ -13,13 +13,7 @@ import type { StudentPartnershipRequest } from '@/types/database';
 
 const SERVICE_NAME = 'PartnershipWorkflowService';
 
-// ============================================
-// PARTNERSHIP WORKFLOW OPERATIONS
-// ============================================
 export const PartnershipWorkflowService = {
-  /**
-   * Create a new partnership request with validation
-   */
   async createRequest(
     requesterId: string, 
     targetStudentId: string
@@ -52,8 +46,8 @@ export const PartnershipWorkflowService = {
       let requestId = '';
       
       await adminDb.runTransaction(async (transaction) => {
-        const requesterRef = adminDb.collection('students').doc(requesterId);
-        const targetRef = adminDb.collection('students').doc(targetStudentId);
+        const requesterRef = studentRepository.getDocumentRef(requesterId);
+        const targetRef = studentRepository.getDocumentRef(targetStudentId);
 
         // Read both student documents in transaction
         const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
@@ -84,7 +78,7 @@ export const PartnershipWorkflowService = {
           createdAt: new Date(),
         };
 
-        const requestRef = adminDb.collection('partnership_requests').doc();
+        const requestRef = partnershipRequestRepository.getNewDocumentRef();
         requestId = requestRef.id;
         transaction.set(requestRef, requestData);
 
@@ -175,23 +169,20 @@ export const PartnershipWorkflowService = {
       // Update request status
       await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
-      // Only reset status to 'none' if no other pending requests exist
-      const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
+      const updates: Promise<void>[] = [];
       
       if (requesterPendingCount === 0) {
         updates.push(
-          adminDb.collection('students').doc(requesterId).update({
-            partnershipStatus: 'none',
-            updatedAt: new Date()
+          studentRepository.update(requesterId, {
+            partnershipStatus: 'none'
           })
         );
       }
 
       if (targetPendingCount === 0) {
         updates.push(
-          adminDb.collection('students').doc(request.targetStudentId).update({
-            partnershipStatus: 'none',
-            updatedAt: new Date()
+          studentRepository.update(request.targetStudentId, {
+            partnershipStatus: 'none'
           })
         );
       }
@@ -208,10 +199,6 @@ export const PartnershipWorkflowService = {
       );
     }
   },
-
-  // ============================================
-  // PRIVATE HELPER METHODS
-  // ============================================
 
   /**
    * Validate that student has correct partnership status for operation
@@ -246,14 +233,12 @@ export const PartnershipWorkflowService = {
   ): Promise<ServiceResult> {
     // Use transaction to prevent race conditions
     await adminDb.runTransaction(async (transaction) => {
-      const requesterRef = adminDb.collection('students').doc(request.requesterId);
-      const targetRef = adminDb.collection('students').doc(targetStudentId);
-      const requestRef = adminDb.collection('partnership_requests').doc(requestId);
+      const requesterRef = studentRepository.getDocumentRef(request.requesterId);
+      const targetRef = studentRepository.getDocumentRef(targetStudentId);
+      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      // Read both student documents
       const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
 
-      // Verify students exist
       if (!requesterSnap.exists || !targetSnap.exists) {
         throw new Error('One or both students not found');
       }
@@ -261,7 +246,6 @@ export const PartnershipWorkflowService = {
       const requesterData = requesterSnap.data();
       const targetData = targetSnap.data();
 
-      // Verify both students are not already paired
       if (requesterData?.partnershipStatus === 'paired') {
         throw new Error('Requester is already paired with another student');
       }
@@ -317,32 +301,28 @@ export const PartnershipWorkflowService = {
 
     // Use transaction to ensure atomic rejection
     await adminDb.runTransaction(async (transaction) => {
-      const requestRef = adminDb.collection('partnership_requests').doc(requestId);
+      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      // Update request status
       transaction.update(requestRef, {
         status: 'rejected',
         respondedAt: new Date()
       });
     });
 
-    // Only reset status to 'none' if no other pending requests exist
-    const updates: Promise<FirebaseFirestore.WriteResult>[] = [];
+    const updates: Promise<void>[] = [];
     
     if (requesterPendingCount === 0) {
       updates.push(
-        adminDb.collection('students').doc(request.requesterId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
+        studentRepository.update(request.requesterId, {
+          partnershipStatus: 'none'
         })
       );
     }
 
     if (targetPendingCount === 0) {
       updates.push(
-        adminDb.collection('students').doc(targetStudentId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
+        studentRepository.update(targetStudentId, {
+          partnershipStatus: 'none'
         })
       );
     }

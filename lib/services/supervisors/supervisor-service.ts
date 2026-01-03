@@ -1,25 +1,15 @@
 // lib/services/supervisors/supervisor-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Supervisor management services
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toSupervisor } from '@/lib/services/shared/firestore-converters';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
 
-// ============================================
-// SUPERVISOR SERVICE CLASS
-// ============================================
 class SupervisorServiceClass extends BaseService<Supervisor> {
-  protected collectionName = 'supervisors';
   protected serviceName = 'SupervisorService';
-  
-  protected toEntity(id: string, data: any): Supervisor {
-    return toSupervisor(id, data);
-  }
+  protected repository = supervisorRepository;
 
   async getSupervisorById(supervisorId: string): Promise<Supervisor | null> {
     return this.getById(supervisorId);
@@ -50,16 +40,15 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
 
   async getAvailableSupervisors(): Promise<SupervisorCardData[]> {
     try {
-      const querySnapshot = await this.getCollection()
-        .where('isActive', '==', true)
-        .where('isApproved', '==', true)
-        .get();
+      const supervisors = await this.repository.findAll([
+        { field: 'isActive', operator: '==', value: true },
+        { field: 'isApproved', operator: '==', value: true }
+      ]);
       
-      return querySnapshot.docs
-        .map((doc) => {
-          const data = this.toEntity(doc.id, doc.data());
+      return supervisors
+        .map((data) => {
           return {
-            id: doc.id,
+            id: data.id,
             name: data.fullName,
             department: data.department,
             bio: data.bio,
@@ -79,17 +68,14 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
 
   async getFilteredSupervisors(filters: SupervisorFilterParams): Promise<ServiceResult<SupervisorCardData[]>> {
     try {
-      // Get base data
       let supervisors = await this.getAvailableSupervisors();
 
-      // Normalize filter values
       const search = filters.search?.toLowerCase().trim();
       const department = filters.department;
       const availability = filters.availability;
       const expertise = filters.expertise?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
       const interests = filters.interests?.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
 
-      // Filter by search term (name, bio, expertise, research interests)
       if (search) {
         supervisors = supervisors.filter(supervisor => {
           const nameMatch = supervisor.name.toLowerCase().includes(search);
@@ -104,21 +90,18 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
         });
       }
 
-      // Filter by department
       if (department && department !== 'all') {
         supervisors = supervisors.filter(supervisor => 
           supervisor.department.toLowerCase() === department.toLowerCase()
         );
       }
 
-      // Filter by availability status
       if (availability && availability !== 'all') {
         supervisors = supervisors.filter(supervisor => 
           supervisor.availabilityStatus === availability
         );
       }
 
-      // Filter by expertise areas (any match)
       if (expertise && expertise.length > 0) {
         supervisors = supervisors.filter(supervisor => 
           supervisor.expertiseAreas.some(area => 
@@ -127,7 +110,6 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
         );
       }
 
-      // Filter by research interests (any match)
       if (interests && interests.length > 0) {
         supervisors = supervisors.filter(supervisor => 
           supervisor.researchInterests.some(interest => 
@@ -146,5 +128,4 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
   }
 }
 
-// Create singleton instance and export
 export const supervisorService = new SupervisorServiceClass();

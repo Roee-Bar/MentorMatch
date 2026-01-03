@@ -1,21 +1,17 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-pairing.ts
-// SERVER-ONLY: Supervisor partnership pairing and unpairing operations
 
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { projectService } from '@/lib/services/projects/project-service';
-import { toProject } from '@/lib/services/shared/firestore-converters';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { projectRepository } from '@/lib/repositories/project-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, Project } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipPairingService';
-
-// ============================================
-// PRIVATE HELPER FUNCTIONS
-// ============================================
 
 /**
  * Shared transaction logic to remove co-supervisor from a project
@@ -26,8 +22,8 @@ async function _removeCoSupervisorFromProject(
   coSupervisorId: string
 ): Promise<void> {
   await adminDb.runTransaction(async (transaction) => {
-    const projectRef = adminDb.collection('projects').doc(projectId);
-    const coSupervisorRef = adminDb.collection('supervisors').doc(coSupervisorId);
+    const projectRef = projectRepository.getDocumentRef(projectId);
+    const coSupervisorRef = supervisorRepository.getDocumentRef(coSupervisorId);
 
     // Remove co-supervisor from project
     transaction.update(projectRef, {
@@ -73,9 +69,6 @@ function _filterSupervisorsByCapacity(
   });
 }
 
-// ============================================
-// SUPERVISOR PARTNERSHIP PAIRING OPERATIONS
-// ============================================
 export const SupervisorPartnershipPairingService = {
   /**
    * Get active partnerships for a supervisor (projects where they are co-supervisor)
@@ -94,13 +87,12 @@ export const SupervisorPartnershipPairingService = {
         return [];
       }
 
-      // Otherwise, get all active partnerships
-      const query = adminDb.collection('projects')
-        .where('coSupervisorId', '==', supervisorId)
-        .where('status', '!=', 'completed');
-
-      const snapshot = await query.get();
-      return snapshot.docs.map(doc => toProject(doc.id, doc.data()));
+      const allProjects = await projectRepository.findAll([
+        { field: 'coSupervisorId', operator: '==', value: supervisorId }
+      ]);
+      
+      // Filter out completed projects in memory (Firestore doesn't support != efficiently)
+      return allProjects.filter(project => project.status !== 'completed');
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getActivePartnerships', error, { supervisorId, projectId });
       return [];

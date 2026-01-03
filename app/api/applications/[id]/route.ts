@@ -16,6 +16,8 @@ import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { applicationRepository } from '@/lib/repositories/application-repository';
 import type { ApplicationIdParams } from '@/types/api';
 import type { Application, UserRole } from '@/types/database';
 
@@ -119,7 +121,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       });
       // Use transaction to ensure atomicity when updating supervisor capacity
       await adminDb.runTransaction(async (transaction) => {
-        const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
+        const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
         const supervisorSnap = await transaction.get(supervisorRef);
 
         if (supervisorSnap.exists) {
@@ -134,7 +136,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
         }
 
         // Delete application
-        const applicationRef = adminDb.collection('applications').doc(params.id);
+        const applicationRef = applicationRepository.getDocumentRef(params.id);
         transaction.delete(applicationRef);
       });
     } else {

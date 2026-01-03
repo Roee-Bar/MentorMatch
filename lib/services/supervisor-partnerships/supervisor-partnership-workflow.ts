@@ -1,12 +1,13 @@
 // lib/services/supervisor-partnerships/supervisor-partnership-workflow.ts
-// SERVER-ONLY: Supervisor partnership workflow business logic
-// Handles create/accept/reject/cancel operations with validation
 
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { projectService } from '@/lib/services/projects/project-service';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { projectRepository } from '@/lib/repositories/project-repository';
+import { supervisorPartnershipRequestRepository } from '@/lib/repositories/supervisor-partnership-request-repository';
 import { SupervisorPartnershipRequestService } from './supervisor-partnership-request-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
@@ -15,9 +16,6 @@ import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
 
 const SERVICE_NAME = 'SupervisorPartnershipWorkflowService';
 
-// ============================================
-// SUPERVISOR PARTNERSHIP WORKFLOW OPERATIONS
-// ============================================
 export const SupervisorPartnershipWorkflowService = {
   /**
    * Create a new supervisor partnership request with validation
@@ -83,7 +81,7 @@ export const SupervisorPartnershipWorkflowService = {
       let requestId = '';
       
       await adminDb.runTransaction(async (transaction) => {
-        const requestRef = adminDb.collection('supervisor-partnership-requests').doc();
+        const requestRef = supervisorPartnershipRequestRepository.getNewDocumentRef();
         requestId = requestRef.id;
 
         const requestData = {
@@ -181,10 +179,6 @@ export const SupervisorPartnershipWorkflowService = {
     }
   },
 
-  // ============================================
-  // PRIVATE HELPER METHODS
-  // ============================================
-
   /**
    * Handle accepting a partnership request
    */
@@ -214,13 +208,11 @@ export const SupervisorPartnershipWorkflowService = {
         return ServiceResults.error('Target supervisor no longer has available capacity');
       }
 
-      // Use transaction to ensure atomic updates
       await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(request.projectId);
-        const requestRef = adminDb.collection('supervisor-partnership-requests').doc(requestId);
-        const targetSupervisorRef = adminDb.collection('supervisors').doc(targetSupervisorId);
+        const projectRef = projectRepository.getDocumentRef(request.projectId);
+        const requestRef = supervisorPartnershipRequestRepository.getDocumentRef(requestId);
+        const targetSupervisorRef = supervisorRepository.getDocumentRef(targetSupervisorId);
 
-        // Update project with co-supervisor
         transaction.update(projectRef, {
           coSupervisorId: targetSupervisorId,
           coSupervisorName: request.targetSupervisorName,

@@ -171,8 +171,8 @@ export function toApplication(id: string, data: DocumentData): Application {
     partnerName: data.partnerName,
     partnerEmail: data.partnerEmail,
     partnerId: data.partnerId,
-    appliedByStudentId: data.appliedByStudentId ?? data.studentId ?? '', // Fallback to studentId for backward compatibility
-    // Capacity Tracking (DEPRECATED - kept for backward compatibility)
+    appliedByStudentId: data.appliedByStudentId ?? data.studentId ?? '',
+    // Backward compatibility
     linkedApplicationId: data.linkedApplicationId,
     isLeadApplication: data.isLeadApplication ?? true,
     projectId: data.projectId,

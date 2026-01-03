@@ -15,9 +15,10 @@ import { projectStatusChangeSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { verifyProjectAccess } from '@/lib/middleware/authorization-helpers';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/lib/constants/error-messages';
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { projectRepository } from '@/lib/repositories/project-repository';
 import type { ProjectIdParams } from '@/types/api';
+import type { Project } from '@/types/database';
 
 export const POST = withAuth<ProjectIdParams>(
   async (request: NextRequest, { params }, user) => {
@@ -45,11 +46,10 @@ export const POST = withAuth<ProjectIdParams>(
       const project = authResult.resource;
 
       // Update project status
-      await adminDb.collection('projects').doc(projectId).update({
+      await projectRepository.update(projectId, {
         status,
-        updatedAt: new Date(),
         ...(status === 'completed' && { completedAt: new Date() }),
-      });
+      } as Partial<Project>);
 
       // If project is being completed, cleanup partnerships
       if (status === 'completed' && project.coSupervisorId) {

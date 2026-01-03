@@ -9,9 +9,11 @@ import { NextRequest } from 'next/server';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { capacityChangeRepository } from '@/lib/repositories/capacity-change-repository';
 import type { SupervisorIdParams } from '@/types/api';
+import type { CapacityChange } from '@/types/database';
 
 export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   request: NextRequest,
@@ -54,9 +56,8 @@ export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   }
 
   // Update supervisor capacity
-  await adminDb.collection('supervisors').doc(params.id).update({
-    maxCapacity,
-    updatedAt: new Date()
+  await supervisorRepository.update(params.id, {
+    maxCapacity
   });
 
   logger.info('Admin capacity override', {
@@ -71,7 +72,7 @@ export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
   });
 
   // Log the change for audit trail
-  await adminDb.collection('capacity_changes').add({
+  await capacityChangeRepository.create({
     supervisorId: params.id,
     supervisorName: supervisor.fullName,
     adminId: user.uid,
@@ -80,7 +81,7 @@ export const PATCH = withRoles<SupervisorIdParams>(['admin'], async (
     newMaxCapacity: maxCapacity,
     reason: reason.trim(),
     timestamp: new Date()
-  });
+  } as Omit<CapacityChange, 'id'>);
 
   // Get updated supervisor
   const updatedSupervisor = await supervisorService.getSupervisorById(params.id);
