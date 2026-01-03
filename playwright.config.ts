@@ -24,10 +24,9 @@ export default defineConfig({
   globalTeardown: require.resolve('./e2e/global-teardown.ts'),
   reporter: process.env.CI
     ? [
+        ['github'], // Concise GitHub Actions reporter
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
-        ['list'],
         ['json', { outputFile: 'test-results.json' }],
-        ['github'],
         ['junit', { outputFile: 'test-results.xml' }],
       ]
     : [
@@ -83,8 +82,8 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: process.env.CI ? 180000 : 120000, // Longer timeout in CI for first build
-    stdout: 'pipe',
-    stderr: 'pipe',
+    stdout: process.env.CI ? 'ignore' : 'pipe', // Suppress Next.js output in CI
+    stderr: process.env.CI ? 'ignore' : 'pipe', // Suppress Next.js errors in CI (errors will still show in test failures)
     // Use environment variables from the workflow, with fallbacks
     env: {
       E2E_TEST: process.env.E2E_TEST || 'true',
