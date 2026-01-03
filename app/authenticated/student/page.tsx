@@ -74,7 +74,13 @@ export default function StudentAuthenticated() {
   const userProfile = dashboardData?.profile || null;
   const applications = dashboardData?.applications || [];
   const supervisors = dashboardData?.supervisors || [];
-  const availableStudents = partnershipData?.availableStudents || [];
+  
+  // Deduplicate available students by ID (safety measure to prevent duplicates)
+  const availableStudentsMap = new Map(
+    (partnershipData?.availableStudents || []).map(student => [student.id, student])
+  );
+  const availableStudents = Array.from(availableStudentsMap.values());
+  
   const incomingRequests = partnershipData?.incomingRequests || [];
   const outgoingRequests = partnershipData?.outgoingRequests || [];
   const currentPartner = partnershipData?.currentPartner || null;
