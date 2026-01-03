@@ -44,5 +44,5 @@ runs:
     - name: Install dependencies (if cache miss)
       if: steps.cache-deps.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci
+      run: npm ci --prefer-offline --no-audit
 

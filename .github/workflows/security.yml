@@ -1,0 +1,68 @@
+name: Security Scanning
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
+
+# Prevent overlapping workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run npm audit (moderate and above)
+        continue-on-error: true
+        run: |
+          echo "Running npm audit for moderate and high severity issues..."
+          npm audit --audit-level=moderate || true
+
+      - name: Run npm audit (high severity only)
+        run: |
+          echo "Checking for high severity vulnerabilities..."
+          npm audit --audit-level=high
+
+      - name: Security Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ No high severity vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ High severity vulnerabilities detected. Please review and update dependencies." >> $GITHUB_STEP_SUMMARY
+          fi
+

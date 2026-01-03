@@ -4,6 +4,19 @@ name: E2E Tests
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'app/**'
+      - 'lib/**'
+      - 'e2e/**'
+      - 'playwright.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/e2e-tests.yml'
+
+# Prevent overlapping workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # Configuration constants - Update these values for easy maintenance
 # These values are used throughout the workflow and passed to composite actions
@@ -30,15 +43,6 @@ jobs:
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
 
-      - name: Save dependencies cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
 
   # Test jobs: Run in parallel using matrix strategy
   # Note: Test matrix configuration is also available in .github/workflows/test-matrix.json
@@ -82,7 +86,7 @@ jobs:
         run: |
           if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/playwright" ]; then
             echo "Dependencies not found, installing..."
-            npm ci
+            npm ci --prefer-offline --no-audit
           else
             echo "Dependencies found in cache"
           fi
@@ -138,16 +142,74 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
+      - name: Export environment variables for Playwright
+        shell: bash
+        run: |
+          echo "Ensuring all environment variables are available for Playwright webServer..."
+          # Explicitly export all Firebase-related environment variables
+          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
+          # Export all NEXT_PUBLIC_ variables that are already set
+          env | grep "^NEXT_PUBLIC_" | while IFS= read -r line; do
+            echo "$line" >> $GITHUB_ENV || true
+          done
+          echo "✓ Environment variables exported"
+
       - name: Validate Playwright Config
         shell: bash
         run: |
           echo "Validating Playwright configuration..."
-          npx playwright test --list > /dev/null 2>&1 || {
+          OUTPUT=$(npx playwright test --list 2>&1)
+          if [ $? -ne 0 ]; then
             echo "ERROR: Playwright configuration is invalid!"
-            npx playwright test --list 2>&1 | head -50
+            echo "$OUTPUT"
             exit 1
-          }
+          fi
           echo "✓ Playwright configuration is valid"
+          echo "Found tests:"
+          echo "$OUTPUT" | grep -E "^\s+[0-9]+" | head -20 || echo "$OUTPUT" | head -20
+
+      - name: Health Check Services
+        shell: bash
+        run: |
+          echo "Performing health checks before running tests..."
+          echo ""
+          echo "Checking Firebase Emulators:"
+          if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+            echo "✓ Emulator UI is running on port 4000"
+          else
+            echo "✗ Emulator UI is NOT running on port 4000"
+            exit 1
+          fi
+          if curl -f -s http://localhost:9099 > /dev/null 2>&1 || nc -z localhost 9099 2>/dev/null; then
+            echo "✓ Auth Emulator is running on port 9099"
+          else
+            echo "⚠ Auth Emulator port check (may be normal if not HTTP)"
+          fi
+          if curl -f -s http://localhost:8080 > /dev/null 2>&1 || nc -z localhost 8080 2>/dev/null; then
+            echo "✓ Firestore Emulator is running on port 8080"
+          else
+            echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
+          fi
+          echo ""
+          echo "Waiting for Next.js server to be ready..."
+          MAX_WAIT=60
+          WAIT_COUNT=0
+          while [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+            if curl -f -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✓ Next.js server is running on port 3000"
+              break
+            fi
+            WAIT_COUNT=$((WAIT_COUNT + 1))
+            if [ $WAIT_COUNT -eq $MAX_WAIT ]; then
+              echo "✗ Next.js server did not start within $MAX_WAIT seconds"
+              echo "Checking for Next.js process:"
+              ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js process found"
+              exit 1
+            fi
+            sleep 1
+          done
+          echo "✓ All services are healthy"
 
       - name: Run Tests
         shell: bash
@@ -204,19 +266,32 @@ jobs:
             echo "=========================================="
             cat test-output.log || true
             echo ""
-            echo "Checking if Next.js server is running:"
-            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Next.js server is running" || echo "✗ Next.js server is NOT running"
+            echo "=========================================="
+            echo "Service Health Status:"
+            echo "=========================================="
+            echo "Next.js server:"
+            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "✓ Running on port 3000" || echo "✗ NOT running on port 3000"
             echo ""
-            echo "Checking if emulators are running:"
-            curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ Emulator UI is running" || echo "✗ Emulator UI is NOT running"
+            echo "Firebase Emulators:"
+            curl -f http://localhost:4000 > /dev/null 2>&1 && echo "✓ UI running on port 4000" || echo "✗ UI NOT running on port 4000"
+            nc -z localhost 9099 2>/dev/null && echo "✓ Auth emulator port 9099 open" || echo "✗ Auth emulator port 9099 closed"
+            nc -z localhost 8080 2>/dev/null && echo "✓ Firestore emulator port 8080 open" || echo "✗ Firestore emulator port 8080 closed"
             echo ""
-            echo "Checking Playwright report:"
+            echo "Playwright Report:"
             if [ -d "playwright-report" ]; then
-              echo "✓ Playwright report directory exists"
+              echo "✓ Report directory exists"
+              echo "Report files:"
               ls -la playwright-report/ | head -10
             else
-              echo "✗ Playwright report directory not found"
+              echo "✗ Report directory not found"
             fi
+            echo ""
+            echo "Process Status:"
+            echo "Next.js processes:"
+            ps aux | grep -E "[n]ext|node.*dev" || echo "No Next.js processes found"
+            echo ""
+            echo "Firebase processes:"
+            ps aux | grep -E "[f]irebase|[j]ava.*firebase" || echo "No Firebase processes found"
             exit $TEST_EXIT_CODE
           fi
 
@@ -234,6 +309,25 @@ jobs:
           path: test-output.log
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: Test Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## E2E Test Results - ${{ matrix.suite }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Paths: ${{ matrix.test_paths }}" >> $GITHUB_STEP_SUMMARY
+          if [ -f "test-output.log" ]; then
+            echo "### Test Output" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -50 test-output.log >> $GITHUB_STEP_SUMMARY || true
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ All tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Tests failed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload test artifacts
         if: always()
