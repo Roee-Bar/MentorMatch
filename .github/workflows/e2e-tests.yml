@@ -5,11 +5,30 @@ on:
   pull_request:
     branches: [main]
 
+# Shared environment variables for Firebase emulators
+env:
+  E2E_TEST: 'true'
+  NODE_ENV: 'test'
+  FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+  FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+  NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
+  NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
+  NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
+  NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
+  FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
+  FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
+  FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
 jobs:
-  e2e-tests:
-    name: Run E2E Tests
+  # Setup job: Install dependencies and cache artifacts for reuse by test jobs
+  setup:
+    name: Setup and Cache
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -42,6 +61,67 @@ jobs:
       - name: Install Playwright browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
+
+      - name: Upload dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+  # Test jobs: Run in parallel using matrix strategy
+  test:
+    name: Test ${{ matrix.suite }}
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: Auth + Student
+            test_paths: e2e/tests/auth/ e2e/tests/student/
+            artifact_name: auth-student
+          - suite: Supervisor
+            test_paths: e2e/tests/supervisor/
+            artifact_name: supervisor
+          - suite: Admin
+            test_paths: e2e/tests/admin/
+            artifact_name: admin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Setup Java (required for Firebase Emulators)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Restore dependencies cache
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies (if cache miss)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Start Firebase Emulators
         run: |
@@ -116,43 +196,12 @@ jobs:
           done
           
           echo "✓ Emulator startup complete"
-        env:
-          E2E_TEST: 'true'
-          NODE_ENV: 'test'
-          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
-          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
-          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
-          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
-          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
 
-      - name: Run E2E tests
-        run: npm run test:e2e
+      - name: Run Tests
+        run: npx playwright test ${{ matrix.test_paths }}
         env:
           CI: 'true'
           E2E_BASE_URL: 'http://localhost:3000'
-          E2E_TEST: 'true'
-          NODE_ENV: 'test'
-          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
-          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
-          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
-          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
-          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
 
       - name: Stop Firebase Emulators
         if: always()
@@ -166,7 +215,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: test-results-${{ matrix.artifact_name }}
           path: playwright-report/
           retention-days: 30
 
@@ -174,7 +223,29 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-screenshots
+          name: test-screenshots-${{ matrix.artifact_name }}
           path: test-results/
           retention-days: 7
 
+  # Aggregate results from all test jobs
+  aggregate-results:
+    name: Aggregate Test Results
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    timeout-minutes: 5
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-results-*
+          merge-multiple: true
+          path: all-results/
+
+      - name: Upload combined results
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-test-results
+          path: all-results/
+          retention-days: 30
