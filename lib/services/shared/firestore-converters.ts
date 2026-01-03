@@ -15,6 +15,7 @@ import type {
   Application,
   Project,
   StudentPartnershipRequest,
+  SupervisorPartnershipRequest,
 } from '@/types/database';
 
 // ============================================
@@ -236,6 +237,26 @@ export function toPartnershipRequest(id: string, data: DocumentData): StudentPar
     targetStudentName: data.targetStudentName ?? '',
     targetStudentEmail: data.targetStudentEmail ?? '',
     targetDepartment: data.targetDepartment ?? '',
+    status: data.status ?? 'pending',
+    createdAt: toDateRequired(data.createdAt),
+    respondedAt: toDate(data.respondedAt),
+  };
+}
+
+/**
+ * Convert Firestore document to SupervisorPartnershipRequest
+ * @param id - Document ID
+ * @param data - Document data from Firestore
+ */
+export function toSupervisorPartnershipRequest(id: string, data: DocumentData): SupervisorPartnershipRequest {
+  return {
+    id,
+    requestingSupervisorId: data.requestingSupervisorId ?? '',
+    requestingSupervisorName: data.requestingSupervisorName ?? '',
+    targetSupervisorId: data.targetSupervisorId ?? '',
+    targetSupervisorName: data.targetSupervisorName ?? '',
+    projectId: data.projectId ?? '',
+    projectTitle: data.projectTitle ?? '',
     status: data.status ?? 'pending',
     createdAt: toDateRequired(data.createdAt),
     respondedAt: toDate(data.respondedAt),

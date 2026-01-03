@@ -251,6 +251,58 @@ export const apiClient = {
   },
 
   // ========================================
+  // Supervisor Partnerships API
+  // ========================================
+
+  createSupervisorPartnershipRequest: (data: { targetSupervisorId: string; projectId: string }, token: string) => {
+    return apiFetch('/supervisor-partnerships/request', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  getSupervisorPartnershipRequests: (type: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/requests?type=${type}`, { token });
+  },
+
+  getAvailableSupervisorsForPartnership: (projectId: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/available?projectId=${projectId}`, { token });
+  },
+
+  getActiveSupervisorPartnerships: (projectId: string | undefined, token: string) => {
+    const query = projectId ? `?projectId=${projectId}` : '';
+    return apiFetch(`/supervisor-partnerships/partner${query}`, { token });
+  },
+
+  getPartnersWithCapacity: (projectId: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/partners-with-capacity?projectId=${projectId}`, { token });
+  },
+
+  respondToSupervisorPartnershipRequest: (requestId: string, action: 'accept' | 'reject', token: string) => {
+    return apiFetch(`/supervisor-partnerships/${requestId}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+      token,
+    });
+  },
+
+  cancelSupervisorPartnershipRequest: (requestId: string, token: string) => {
+    return apiFetch(`/supervisor-partnerships/${requestId}`, {
+      method: 'DELETE',
+      token,
+    });
+  },
+
+  unpairCoSupervisor: (data: { projectId: string }, token: string) => {
+    return apiFetch('/supervisor-partnerships/unpair', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  // ========================================
   // Projects API
   // ========================================
   
@@ -266,6 +318,14 @@ export const apiClient = {
     return apiFetch('/projects', {
       method: 'POST',
       body: JSON.stringify(data),
+      token,
+    });
+  },
+
+  updateProjectStatus: (projectId: string, status: 'pending_approval' | 'approved' | 'in_progress' | 'completed', token: string) => {
+    return apiFetch(`/projects/${projectId}/status-change`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
       token,
     });
   },

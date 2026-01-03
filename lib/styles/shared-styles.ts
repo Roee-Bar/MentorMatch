@@ -182,7 +182,7 @@ export const logoutBtnFull = 'flex items-center justify-center gap-3 w-full p-3 
 
 // ============= TABLE PATTERNS =============
 export const tableWrapper = 'overflow-x-auto';
-export const tableBase = 'min-w-full divide-y divide-gray-200 dark:divide-slate-700';
+export const tableBase = 'w-full min-w-full table-fixed divide-y divide-gray-200 dark:divide-slate-700';
 export const tableHeader = 'bg-gray-50 dark:bg-slate-800';
 export const tableHeaderCell = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
 export const tableHeaderCellCenter = 'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';

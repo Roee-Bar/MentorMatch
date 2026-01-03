@@ -5,6 +5,12 @@ service cloud.firestore {
     // Default: Deny all client access
     // All operations go through backend API with Admin SDK
     // Admin SDK bypasses these rules, so this is a safety net
+    // 
+    // Collections managed by API:
+    // - students, supervisors, admins, users
+    // - applications, projects
+    // - partnership_requests (student partnerships)
+    // - supervisor-partnership-requests (supervisor partnerships)
     match /{document=**} {
       allow read, write: if false;
     }
