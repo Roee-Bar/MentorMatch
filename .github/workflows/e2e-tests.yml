@@ -1,5 +1,6 @@
 name: E2E Tests
 
+# Trigger on pull requests targeting main branch
 on:
   pull_request:
     branches: [main]
