@@ -138,6 +138,21 @@ export interface Admin {
   updatedAt: Date;
 }
 
+// ============================================
+// CAPACITY CHANGE TYPE (stored in 'capacity_changes' collection)
+// ============================================
+export interface CapacityChange {
+  id: string; // Firestore document ID
+  supervisorId: string;
+  supervisorName: string;
+  adminId: string;
+  adminEmail: string;
+  oldMaxCapacity: number;
+  newMaxCapacity: number;
+  reason: string;
+  timestamp: Date;
+}
+
 export type AdminPermission = 
   | 'manage_users'
   | 'manage_supervisors'

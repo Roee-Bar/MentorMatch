@@ -102,6 +102,29 @@ export abstract class BaseRepository<T extends { id: string }> {
     }
   }
 
+  async set(
+    id: string,
+    data: Omit<T, 'id'>,
+    timestampFields?: { createdAt?: string; updatedAt?: string }
+  ): Promise<void> {
+    try {
+      const cleanData = this.cleanData(data);
+      const createdAtField = timestampFields?.createdAt || 'createdAt';
+      const updatedAtField = timestampFields?.updatedAt || 'updatedAt';
+      
+      await this.getCollection().doc(id).set({
+        ...cleanData,
+        [createdAtField]: new Date(),
+        [updatedAtField]: new Date(),
+      });
+    } catch (error) {
+      logger.error(`Repository.set failed for ${this.repositoryName}`, error, {
+        data: { id, data, collection: this.collectionName },
+      });
+      throw error;
+    }
+  }
+
   async update(
     id: string,
     data: Partial<T>,

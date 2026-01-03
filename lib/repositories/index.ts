@@ -10,4 +10,5 @@ export * from './project-repository';
 export * from './partnership-request-repository';
 export * from './supervisor-partnership-request-repository';
 export * from './admin-repository';
+export * from './capacity-change-repository';
 
