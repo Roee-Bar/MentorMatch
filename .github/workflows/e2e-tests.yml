@@ -100,9 +100,9 @@ jobs:
         shell: bash
         run: |
           echo "Checking if Playwright can resolve path aliases..."
-          # Try to compile a test file to check for import errors
-          npx tsc --noEmit e2e/fixtures/db-helpers.ts 2>&1 | head -20 || {
-            echo "TypeScript compilation check completed (errors may be expected)"
+          # Use the Playwright tsconfig to verify path resolution
+          npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | head -30 || {
+            echo "TypeScript compilation check completed"
           }
 
       - name: Set test environment variables

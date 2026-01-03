@@ -9,6 +9,8 @@ import { defineConfig, devices } from '@playwright/test';
  * - Firebase Emulator integration
  * - Test retries and timeouts
  * - Screenshot and video capture on failure
+ * 
+ * Note: Uses tsconfig.playwright.json for proper path alias resolution
  */
 export default defineConfig({
   testDir: './e2e/tests',
