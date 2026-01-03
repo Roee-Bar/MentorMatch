@@ -23,7 +23,7 @@ jobs:
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_DEPLOY || 15 }}
+    timeout-minutes: 15
     # Only deploy on pushes to main branch, not PR branches
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
@@ -31,13 +31,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
       - name: Setup Node.js
-        uses: ./.github/actions/setup-node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.VERSIONS_NODE || '20' }}
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --silent
 
       - name: Set build environment variables
         run: |
@@ -53,13 +54,21 @@ jobs:
 
       - name: Deploy Summary
         if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Deployment'
-          status: ${{ job.status }}
-          details: |
-            - Environment: ${{ github.event.inputs.environment || 'production' }}
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            Note: Actual deployment to Vercel is handled by Vercel's GitHub integration.
+        shell: bash
+        run: |
+          echo "## Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Deployment passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment failed.**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Note: Actual deployment to Vercel is handled by Vercel's GitHub integration." >> $GITHUB_STEP_SUMMARY
 

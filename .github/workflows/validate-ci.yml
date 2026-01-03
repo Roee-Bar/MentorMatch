@@ -6,9 +6,8 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/**/*.yml'
-      - '.github/**/*.yaml'
-      - '.github/**/*.js'
+      - '.github/workflows/**/*.yml'
+      - '.github/workflows/**/*.yaml'
 
 jobs:
   validate:
@@ -44,83 +43,12 @@ jobs:
             fi
           done
           
-          # Check action files
-          find .github/actions -name "*.yml" -o -name "*.yaml" | while read -r file; do
-            if [ -f "$file" ]; then
-              echo "Checking $file..."
-              if ! python3 -c "import yaml; yaml.safe_load(open('$file'))" 2>/dev/null; then
-                echo "❌ Invalid YAML: $file"
-                ERROR_COUNT=$((ERROR_COUNT + 1))
-              else
-                echo "✓ Valid YAML: $file"
-              fi
-            fi
-          done
-          
-          # Check config file
-          if [ -f ".github/config/ci-config.yml" ]; then
-            echo "Checking .github/config/ci-config.yml..."
-            if ! python3 -c "import yaml; yaml.safe_load(open('.github/config/ci-config.yml'))" 2>/dev/null; then
-              echo "❌ Invalid YAML: .github/config/ci-config.yml"
-              ERROR_COUNT=$((ERROR_COUNT + 1))
-            else
-              echo "✓ Valid YAML: .github/config/ci-config.yml"
-            fi
-          fi
-          
           if [ $ERROR_COUNT -gt 0 ]; then
             echo "❌ Found $ERROR_COUNT YAML syntax error(s)"
             exit 1
           else
             echo "✓ All YAML files are valid"
           fi
-
-      - name: Validate config structure
-        shell: bash
-        run: |
-          echo "Validating CI configuration structure..."
-          
-          if [ ! -f ".github/config/ci-config.yml" ]; then
-            echo "❌ Configuration file not found: .github/config/ci-config.yml"
-            exit 1
-          fi
-          
-          # Install yaml package for Node.js validation
-          npm install yaml --no-save
-          
-          # Check for required sections using Node.js
-          node << 'EOF'
-          const fs = require('fs');
-          const yaml = require('yaml');
-          
-          try {
-            const config = yaml.parse(fs.readFileSync('.github/config/ci-config.yml', 'utf8'));
-            
-            const requiredSections = ['versions', 'project', 'ports', 'timeouts', 'test'];
-            const missing = requiredSections.filter(section => !config[section]);
-            
-            if (missing.length > 0) {
-              console.error(`❌ Missing required sections: ${missing.join(', ')}`);
-              process.exit(1);
-            }
-            
-            // Check required fields
-            if (!config.versions.node || !config.versions.java) {
-              console.error('❌ Missing required version fields');
-              process.exit(1);
-            }
-            
-            if (!config.project.id) {
-              console.error('❌ Missing project.id');
-              process.exit(1);
-            }
-            
-            console.log('✓ Configuration structure is valid');
-          } catch (error) {
-            console.error(`❌ Error validating config: ${error.message}`);
-            process.exit(1);
-          }
-          EOF
 
       - name: Check for deprecated actions
         shell: bash
@@ -140,38 +68,6 @@ jobs:
           
           echo "✓ Deprecated action check complete"
 
-      - name: Validate action syntax
-        shell: bash
-        run: |
-          echo "Validating action.yml files..."
-          ERROR_COUNT=0
-          
-          find .github/actions -name "action.yml" | while read -r file; do
-            echo "Checking $file..."
-            
-            # Check for required fields
-            if ! grep -q "name:" "$file"; then
-              echo "❌ Missing 'name' field in $file"
-              ERROR_COUNT=$((ERROR_COUNT + 1))
-            fi
-            
-            if ! grep -q "description:" "$file"; then
-              echo "❌ Missing 'description' field in $file"
-              ERROR_COUNT=$((ERROR_COUNT + 1))
-            fi
-            
-            if ! grep -q "runs:" "$file"; then
-              echo "❌ Missing 'runs' field in $file"
-              ERROR_COUNT=$((ERROR_COUNT + 1))
-            fi
-          done
-          
-          if [ $ERROR_COUNT -gt 0 ]; then
-            echo "❌ Found $ERROR_COUNT action validation error(s)"
-            exit 1
-          else
-            echo "✓ All action files are valid"
-          fi
 
       - name: Validation Summary
         if: always()
@@ -180,8 +76,6 @@ jobs:
           echo "## CI/CD Validation Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ YAML syntax validation passed" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Configuration structure validation passed" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Action syntax validation passed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "All CI/CD files are valid!" >> $GITHUB_STEP_SUMMARY
+          echo "All workflow files are valid!" >> $GITHUB_STEP_SUMMARY
 
