@@ -33,5 +33,6 @@ runs:
         echo "NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test" >> $GITHUB_ENV
         echo "FIREBASE_ADMIN_PROJECT_ID=${{ inputs.project-id }}" >> $GITHUB_ENV
         echo "FIREBASE_ADMIN_CLIENT_EMAIL=test@example.com" >> $GITHUB_ENV
-        echo "FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n" >> $GITHUB_ENV
+        # Private key with escaped newlines for GITHUB_ENV
+        printf 'FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\\n-----END PRIVATE KEY-----\\n' >> $GITHUB_ENV
 
