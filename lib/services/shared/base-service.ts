@@ -24,63 +24,22 @@ export type QueryCondition = {
  * @template T - The entity type that must have an 'id' field
  */
 export abstract class BaseService<T extends { id: string }> {
-  /**
-   * The Firestore collection name (e.g., 'applications', 'students')
-   * Must be implemented by subclasses
-   */
   protected abstract collectionName: string;
-
-  /**
-   * The service name for logging (e.g., 'ApplicationService')
-   * Must be implemented by subclasses
-   */
   protected abstract serviceName: string;
-
-  /**
-   * Convert Firestore document to entity type
-   * Must be implemented by subclasses
-   * 
-   * @param id - Document ID
-   * @param data - Document data from Firestore
-   */
   protected abstract toEntity(id: string, data: any): T;
 
-  /**
-   * Validate data before creation (override in subclasses for custom validation)
-   * 
-   * @param data - Entity data to validate
-   * @throws Error if validation fails
-   */
   protected async validateBeforeCreate(data: Omit<T, 'id'>): Promise<void> {
-    // Default: no validation
-    // Subclasses can override for custom validation
+    // Override in subclasses for custom validation
   }
 
-  /**
-   * Validate updates before applying (override in subclasses for custom validation)
-   * 
-   * @param id - Entity ID
-   * @param updates - Updates to validate
-   * @throws Error if validation fails
-   */
   protected async validateBeforeUpdate(id: string, updates: Partial<T>): Promise<void> {
-    // Default: no validation
-    // Subclasses can override for custom validation
+    // Override in subclasses for custom validation
   }
 
-  /**
-   * Get collection reference (for complex multi-query scenarios)
-   * 
-   * @returns Firestore collection reference
-   */
   protected getCollection(): FirebaseFirestore.CollectionReference {
     return adminDb.collection(this.collectionName);
   }
 
-  /**
-   * Get entity by ID
-   * Returns null if not found or on error
-   */
   protected async getById(id: string): Promise<T | null> {
     try {
       const doc = await adminDb.collection(this.collectionName).doc(id).get();
@@ -98,10 +57,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Get entity by ID with ServiceResult for error distinction
-   * Use this when you need to distinguish between "not found" and "error occurred"
-   */
   protected async getByIdWithResult(id: string): Promise<ServiceResult<T | null>> {
     try {
       const doc = await adminDb.collection(this.collectionName).doc(id).get();
@@ -122,10 +77,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Get all entities in the collection
-   * Returns empty array on error
-   */
   protected async getAll(): Promise<T[]> {
     try {
       const querySnapshot = await adminDb.collection(this.collectionName).get();
@@ -139,15 +90,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Query entities with filters (returns ServiceResult for error handling)
-   * Use this when you need to distinguish between "no results" and "error occurred"
-   * 
-   * @param conditions - Array of filter conditions
-   * @param orderBy - Optional sorting configuration
-   * @param limit - Optional limit on results
-   * @returns ServiceResult with array of entities or error
-   */
   protected async queryWithResult(
     conditions: QueryCondition[],
     orderBy?: { field: string; direction: 'asc' | 'desc' },
@@ -185,16 +127,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Query entities with filters
-   * Returns empty array on error (for backward compatibility)
-   * Use `queryWithResult()` if you need to distinguish between "no results" and "error occurred"
-   * 
-   * @param conditions - Array of filter conditions
-   * @param orderBy - Optional sorting configuration
-   * @param limit - Optional limit on results
-   * @returns Array of entities (empty array if error or no results)
-   */
   protected async query(
     conditions: QueryCondition[],
     orderBy?: { field: string; direction: 'asc' | 'desc' },
@@ -219,13 +151,6 @@ export abstract class BaseService<T extends { id: string }> {
     return result.success ? (result.data || []) : [];
   }
 
-  /**
-   * Create new entity
-   * 
-   * @param data - Entity data without id and timestamp fields (timestamp fields are handled internally)
-   * @param timestampFields - Optional custom timestamp field names (defaults to createdAt/updatedAt)
-   * @returns ServiceResult with entity ID on success
-   */
   protected async create(
     data: Omit<T, 'id' | 'createdAt' | 'updatedAt' | 'dateApplied' | 'lastUpdated'>,
     timestampFields?: { createdAt?: string; updatedAt?: string }
@@ -257,14 +182,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Update entity
-   * 
-   * @param id - Entity ID
-   * @param updates - Partial entity data to update
-   * @param timestampField - Optional custom timestamp field name (defaults to updatedAt)
-   * @returns ServiceResult indicating success or failure
-   */
   protected async update(
     id: string,
     updates: Partial<T>,
@@ -295,12 +212,6 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Delete entity
-   * 
-   * @param id - Entity ID to delete
-   * @returns ServiceResult indicating success or failure
-   */
   protected async delete(id: string): Promise<ServiceResult> {
     try {
       await adminDb.collection(this.collectionName).doc(id).delete();
@@ -317,20 +228,12 @@ export abstract class BaseService<T extends { id: string }> {
     }
   }
 
-  /**
-   * Remove undefined values from data (Firestore doesn't accept undefined)
-   * Also handles null values if needed
-   */
   protected cleanData(data: any): any {
     return Object.fromEntries(
       Object.entries(data).filter(([, value]) => value !== undefined)
     );
   }
 
-  /**
-   * Map Firestore documents to a custom type
-   * Useful for methods that return card data or other transformed types
-   */
   protected mapDocuments<U>(
     docs: QueryDocumentSnapshot[],
     mapper: (doc: QueryDocumentSnapshot) => U

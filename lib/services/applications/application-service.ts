@@ -44,12 +44,6 @@ class ApplicationServiceClass extends BaseService<Application> {
     return toApplication(id, data);
   }
 
-  /**
-   * Validate application data before creation
-   * This is an example of using the validateBeforeCreate hook
-   * 
-   * @throws Error if validation fails
-   */
   protected async validateBeforeCreate(data: Omit<Application, 'id'>): Promise<void> {
     // Required fields validation
     if (!data.studentId) {
@@ -71,43 +65,20 @@ class ApplicationServiceClass extends BaseService<Application> {
     }
   }
 
-  /**
-   * Get application by ID
-   * 
-   * @param applicationId - Application ID
-   * @returns Application or null if not found
-   */
   async getApplicationById(applicationId: string): Promise<Application | null> {
     return this.getById(applicationId);
   }
 
-  /**
-   * Get all applications (for admin)
-   * 
-   * @returns Array of all applications
-   */
   async getAllApplications(): Promise<Application[]> {
     return this.getAll();
   }
 
-  /**
-   * Get all applications for a supervisor
-   * 
-   * @param supervisorId - Supervisor ID
-   * @returns Array of applications
-   */
   async getSupervisorApplications(supervisorId: string): Promise<Application[]> {
     return this.query([
       { field: 'supervisorId', operator: '==', value: supervisorId }
     ]);
   }
 
-  /**
-   * Get pending applications for a supervisor
-   * 
-   * @param supervisorId - Supervisor ID
-   * @returns Array of pending applications
-   */
   async getPendingApplications(supervisorId: string): Promise<Application[]> {
     return this.query([
       { field: 'supervisorId', operator: '==', value: supervisorId },
@@ -115,12 +86,6 @@ class ApplicationServiceClass extends BaseService<Application> {
     ]);
   }
 
-  /**
-   * Create new application with custom timestamp fields
-   * 
-   * @param applicationData - Application data (timestamp fields will be set automatically)
-   * @returns ServiceResult with application ID or error
-   */
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
     // Log incoming data for debugging
     logger.service.operation(this.serviceName, 'createApplication', { 
@@ -138,38 +103,17 @@ class ApplicationServiceClass extends BaseService<Application> {
     });
   }
 
-  /**
-   * Update application with custom timestamp field
-   * 
-   * @param applicationId - Application ID
-   * @param updates - Partial application data to update
-   * @returns ServiceResult indicating success or failure
-   */
   async updateApplication(
     applicationId: string, 
     updates: Partial<Application>
   ): Promise<ServiceResult> {
-    // Use custom timestamp field: lastUpdated instead of updatedAt
     return this.update(applicationId, updates, 'lastUpdated');
   }
 
-  /**
-   * Delete application
-   * 
-   * @param applicationId - Application ID to delete
-   * @returns ServiceResult indicating success or failure
-   */
   async deleteApplication(applicationId: string): Promise<ServiceResult> {
     return this.delete(applicationId);
   }
 
-  /**
-   * Get all applications for a student (including applications where student is the partner)
-   * Complex method with multiple queries and deduplication
-   * 
-   * @param studentId - Student ID to get applications for
-   * @returns Array of application card data
-   */
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
       // Query applications where student is the primary applicant
@@ -208,14 +152,6 @@ class ApplicationServiceClass extends BaseService<Application> {
     }
   }
 
-  /**
-   * Update application status with custom logic
-   * 
-   * @param applicationId - Application ID to update
-   * @param status - New status
-   * @param feedback - Optional supervisor feedback
-   * @returns ServiceResult indicating success or failure
-   */
   async updateApplicationStatus(
     applicationId: string,
     status: Application['status'],

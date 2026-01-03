@@ -21,31 +21,14 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
     return toSupervisor(id, data);
   }
 
-  /**
-   * Get supervisor by ID
-   * 
-   * @param supervisorId - Supervisor ID
-   * @returns Supervisor or null if not found
-   */
   async getSupervisorById(supervisorId: string): Promise<Supervisor | null> {
     return this.getById(supervisorId);
   }
 
-  /**
-   * Get all supervisors
-   * 
-   * @returns Array of all supervisors
-   */
   async getAllSupervisors(): Promise<Supervisor[]> {
     return this.getAll();
   }
 
-  /**
-   * Get supervisors by department
-   * 
-   * @param department - Department name
-   * @returns Array of active supervisors in the department
-   */
   async getSupervisorsByDepartment(department: string): Promise<Supervisor[]> {
     return this.query([
       { field: 'department', operator: '==', value: department },
@@ -53,43 +36,18 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
     ]);
   }
 
-  /**
-   * Create new supervisor
-   * 
-   * @param supervisorData - Supervisor data (timestamp fields will be set automatically)
-   * @returns ServiceResult with supervisor ID or error
-   */
   async createSupervisor(supervisorData: Omit<Supervisor, 'id'>): Promise<ServiceResult<string>> {
     return this.create(supervisorData);
   }
 
-  /**
-   * Update supervisor
-   * 
-   * @param supervisorId - Supervisor ID
-   * @param data - Partial supervisor data to update
-   * @returns ServiceResult indicating success or failure
-   */
   async updateSupervisor(supervisorId: string, data: Partial<Supervisor>): Promise<ServiceResult> {
     return this.update(supervisorId, data);
   }
 
-  /**
-   * Delete supervisor
-   * 
-   * @param supervisorId - Supervisor ID to delete
-   * @returns ServiceResult indicating success or failure
-   */
   async deleteSupervisor(supervisorId: string): Promise<ServiceResult> {
     return this.delete(supervisorId);
   }
 
-  /**
-   * Get available supervisors (with capacity)
-   * Returns supervisors that are active, approved, and have availability
-   * 
-   * @returns Array of supervisor card data
-   */
   async getAvailableSupervisors(): Promise<SupervisorCardData[]> {
     try {
       const querySnapshot = await this.getCollection()
