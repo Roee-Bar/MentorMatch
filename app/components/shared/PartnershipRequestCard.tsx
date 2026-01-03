@@ -5,10 +5,8 @@ import type { StudentPartnershipRequest } from '@/types/database';
 import { formatRelativeDate } from '@/lib/utils/date';
 import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
 import BaseRequestCard from './BaseRequestCard';
+import RequestActionButtons from './RequestActionButtons';
 import { 
-  btnSuccess, 
-  btnSecondary, 
-  btnDanger, 
   badgeWarning,
   cardDetailRow,
   textSecondary,
@@ -99,38 +97,15 @@ export default function PartnershipRequestCard({
         </p>
       )}
       renderActions={() => (
-        <>
-          {isIncoming && onAccept && onReject && (
-            <div className="flex gap-2">
-              <button
-                onClick={handleAccept}
-                className={`${btnSuccess} flex-1`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Accepting...' : 'Accept'}
-              </button>
-              <button
-                onClick={handleReject}
-                className={`${btnSecondary} flex-1`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Rejecting...' : 'Reject'}
-              </button>
-            </div>
-          )}
-
-          {!isIncoming && onCancel && (
-            <div>
-              <button
-                onClick={handleCancel}
-                className={`${btnDanger} w-full`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Cancelling...' : 'Cancel Request'}
-              </button>
-            </div>
-          )}
-        </>
+        <RequestActionButtons
+          isIncoming={isIncoming}
+          isLoading={isLoading}
+          status="pending"
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onCancel={handleCancel}
+          variant="student"
+        />
       )}
     />
   );

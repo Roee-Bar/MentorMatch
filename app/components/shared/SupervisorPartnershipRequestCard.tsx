@@ -7,10 +7,8 @@ import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
 import { useRequestCardStatus } from '@/lib/hooks/useRequestCardStatus';
 import BaseRequestCard from './BaseRequestCard';
 import StatusBadge from './StatusBadge';
+import RequestActionButtons from './RequestActionButtons';
 import { 
-  btnSuccess, 
-  btnSecondary, 
-  btnDanger, 
   cardDetailRow,
   textSecondary,
   textMuted,
@@ -118,38 +116,15 @@ export default function SupervisorPartnershipRequestCard({
         </p>
       )}
       renderActions={() => (
-        <>
-          {request.status === 'pending' && isIncoming && (
-            <div className="flex gap-2">
-              <button
-                onClick={handleAccept}
-                className={`${btnSuccess} flex-1`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Accepting...' : 'Accept'}
-              </button>
-              <button
-                onClick={handleReject}
-                className={`${btnSecondary} flex-1`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Rejecting...' : 'Reject'}
-              </button>
-            </div>
-          )}
-
-          {request.status === 'pending' && !isIncoming && onCancel && (
-            <div>
-              <button
-                onClick={handleCancel}
-                className={`${btnDanger} w-full`}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Cancelling...' : 'Cancel Request'}
-              </button>
-            </div>
-          )}
-        </>
+        <RequestActionButtons
+          isIncoming={isIncoming}
+          isLoading={isLoading}
+          status={request.status}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onCancel={handleCancel}
+          variant="supervisor"
+        />
       )}
     />
   );

@@ -11,6 +11,7 @@ import { SupervisorPartnershipRequestService } from './supervisor-partnership-re
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { SupervisorPartnershipRequest } from '@/types/database';
+import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
 
 const SERVICE_NAME = 'SupervisorPartnershipWorkflowService';
 
@@ -27,6 +28,15 @@ export const SupervisorPartnershipWorkflowService = {
     projectId: string
   ): Promise<ServiceResult<string>> {
     try {
+      // Validate self-partnership attempt
+      if (requestingSupervisorId === targetSupervisorId) {
+        logger.warn('Self-partnership attempt blocked', {
+          context: SERVICE_NAME,
+          data: { requestingSupervisorId, targetSupervisorId, projectId }
+        });
+        return ServiceResults.error(ERROR_MESSAGES.SELF_PARTNERSHIP_BLOCKED);
+      }
+
       // Get both supervisor profiles and project
       const [requestingSupervisor, targetSupervisor, project] = await Promise.all([
         SupervisorService.getSupervisorById(requestingSupervisorId),
