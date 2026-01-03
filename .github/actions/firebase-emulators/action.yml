@@ -200,7 +200,9 @@ runs:
           # Check logs periodically for early error detection
           if [ $((i % 3)) -eq 0 ] && [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
             # Check for fatal errors (grep returns non-zero if no match, so we handle that)
-            if grep -qiE "error|failed|exception|fatal" emulator.log 2>/dev/null | grep -vqiE "downloading|installing|extracting|initializing|starting" 2>/dev/null; then
+            # Store result in variable to avoid exit on non-zero
+            ERROR_LINES=$(grep -iE "error|failed|exception|fatal" emulator.log 2>/dev/null | grep -viE "downloading|installing|extracting|initializing|starting" 2>/dev/null || true)
+            if [ -n "$ERROR_LINES" ]; then
               echo "⚠ Potential error detected in logs at $i seconds:"
               tail -20 emulator.log || true
               # Don't exit yet, might be recoverable, but log it
@@ -295,19 +297,35 @@ runs:
           # Check if process is still running first
           # Temporarily disable set -e for process checks
           set +e
-          if ! kill -0 $EMULATOR_PID 2>/dev/null; then
-            set -e
-            echo "✗ Emulator process (PID: $EMULATOR_PID) died during startup"
-            show_logs_and_exit
-          fi
-          
-          # Also check background process
-          if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
-            set -e
-            echo "✗ Background process (PID: $BACKGROUND_PID) died during startup"
-            show_logs_and_exit
-          fi
+          EMULATOR_ALIVE=$(kill -0 $EMULATOR_PID 2>/dev/null && echo "yes" || echo "no")
+          BACKGROUND_ALIVE=$(kill -0 $BACKGROUND_PID 2>/dev/null && echo "yes" || echo "no")
           set -e
+          
+          # Check if any emulator-related processes are still running
+          set +e
+          ANY_EMULATOR_PROCESS=$(ps aux | grep -E "[f]irebase.*emulator|[j]ava.*firebase" | grep -v grep | head -1)
+          set -e
+          
+          # Only fail if both processes are dead AND no emulator processes are running
+          if [ "$EMULATOR_ALIVE" != "yes" ] && [ "$BACKGROUND_ALIVE" != "yes" ] && [ -z "$ANY_EMULATOR_PROCESS" ]; then
+            echo "✗ Both emulator and background processes died, and no emulator processes found"
+            echo "Checking for any remaining emulator processes..."
+            ps aux | grep -E "[f]irebase|[j]ava.*firebase" || echo "No emulator processes found"
+            show_logs_and_exit
+          elif [ "$EMULATOR_ALIVE" != "yes" ] && [ "$BACKGROUND_ALIVE" = "yes" ]; then
+            # Emulator process died but background is still running - might have spawned child
+            echo "⚠ Emulator process (PID: $EMULATOR_PID) not found, but background process is running"
+            echo "This might be normal if emulator spawned child processes. Continuing..."
+          elif [ "$BACKGROUND_ALIVE" != "yes" ] && [ "$EMULATOR_ALIVE" = "yes" ]; then
+            # Background process died but emulator is still running - this is fine
+            echo "⚠ Background process (PID: $BACKGROUND_PID) not found, but emulator process is running"
+            echo "This is normal - background process may have completed. Continuing..."
+          elif [ "$EMULATOR_ALIVE" != "yes" ] && [ "$BACKGROUND_ALIVE" != "yes" ] && [ -n "$ANY_EMULATOR_PROCESS" ]; then
+            # Both PIDs are dead but emulator processes are still running - update PIDs
+            echo "⚠ Original PIDs are dead, but emulator processes are still running"
+            echo "Found process: $ANY_EMULATOR_PROCESS"
+            echo "Continuing with UI check..."
+          fi
           
           # Check if emulator UI is ready
           # Use curl with timeout to avoid hanging
