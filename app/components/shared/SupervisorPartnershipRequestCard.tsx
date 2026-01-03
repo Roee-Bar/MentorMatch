@@ -2,7 +2,7 @@
 // Component for displaying supervisor partnership requests (incoming/outgoing)
 
 import type { SupervisorPartnershipRequest } from '@/types/database';
-import { formatRelativeDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
 import { useRequestCardStatus } from '@/lib/hooks/useRequestCardStatus';
 import BaseRequestCard from './BaseRequestCard';
@@ -94,14 +94,14 @@ export default function SupervisorPartnershipRequestCard({
           <div className={cardDetailRow}>
             <span className={textMuted}>Requested:</span>
             <span className={textValue}>
-              {formatRelativeDate(request.createdAt)}
+              {DateFormatter.formatRelative(request.createdAt)}
             </span>
           </div>
           {request.respondedAt && (
             <div className={cardDetailRow}>
               <span className={textMuted}>Responded:</span>
               <span className={textValue}>
-                {formatRelativeDate(request.respondedAt)}
+                {DateFormatter.formatRelative(request.respondedAt)}
               </span>
             </div>
           )}

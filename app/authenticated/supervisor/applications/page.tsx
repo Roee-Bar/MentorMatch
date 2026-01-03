@@ -17,7 +17,7 @@ import EmptyState from '@/app/components/feedback/EmptyState';
 import FilterButtons from '@/app/components/display/FilterButtons';
 import ApplicationStatusModal from '../_components/ApplicationStatusModal';
 import type { ApplicationStatus } from '@/types/database';
-import { formatFirestoreDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 
 type FilterStatus = 'all' | ApplicationStatus;
 
@@ -121,7 +121,7 @@ export default function SupervisorApplicationsPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredApplications.map((application) => {
-            const dateAppliedStr = formatFirestoreDate(application.dateApplied);
+            const dateAppliedStr = DateFormatter.formatForDisplay(application.dateApplied);
             
             return (
               <ApplicationCard 

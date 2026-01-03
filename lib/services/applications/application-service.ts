@@ -10,6 +10,7 @@ import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 
 /**
  * Helper function to map Firestore document to ApplicationCardData
@@ -22,7 +23,7 @@ const mapDocToApplicationCardData = (doc: QueryDocumentSnapshot): ApplicationCar
     projectTitle: data.projectTitle,
     projectDescription: data.projectDescription,
     supervisorName: data.supervisorName,
-    dateApplied: data.dateApplied?.toDate?.()?.toLocaleDateString() || 'N/A',
+    dateApplied: DateFormatter.formatForTable(data.dateApplied),
     status: data.status,
     responseTime: data.responseTime || '5-7 business days',
     comments: data.supervisorFeedback,

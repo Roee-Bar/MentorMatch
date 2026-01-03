@@ -1,5 +1,7 @@
 'use client';
 
+import { DateFormatter, type DateInput } from '@/lib/utils/date-formatter';
+
 export interface SortConfig {
   column: string;
   direction: 'asc' | 'desc';
@@ -35,15 +37,7 @@ export function getFilteredAndSortedData<T>(
 /**
  * Calculate days pending for an application
  */
-export function calculateDaysPending(submittedAt: Date): number {
-  const now = new Date();
-  const submitted = new Date(submittedAt);
-  const diffTime = now.getTime() - submitted.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
+export function calculateDaysPending(submittedAt: DateInput): number {
+  return DateFormatter.calculateDaysBetween(submittedAt);
 }
-
-
-
-
 

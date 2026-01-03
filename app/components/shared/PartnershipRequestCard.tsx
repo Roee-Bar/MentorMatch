@@ -2,7 +2,7 @@
 // Component for displaying partnership requests (incoming/outgoing)
 
 import type { StudentPartnershipRequest } from '@/types/database';
-import { formatRelativeDate } from '@/lib/utils/date';
+import { DateFormatter } from '@/lib/utils/date-formatter';
 import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
 import BaseRequestCard from './BaseRequestCard';
 import RequestActionButtons from './RequestActionButtons';
@@ -83,7 +83,7 @@ export default function PartnershipRequestCard({
           <div className={cardDetailRow}>
             <span className={textMuted}>Requested:</span>
             <span className={textValue}>
-              {formatRelativeDate(request.createdAt)}
+              {DateFormatter.formatRelative(request.createdAt)}
             </span>
           </div>
         </>
