@@ -36,8 +36,46 @@ jobs:
 
       - name: Start Firebase Emulators
         run: |
-          npx firebase emulators:start --only auth,firestore &
-          sleep 15
+          # Start emulators in background and capture PID
+          # Use nohup to ensure process persists across steps
+          nohup npx firebase emulators:start --only auth,firestore > emulator.log 2>&1 &
+          EMULATOR_PID=$!
+          echo "Started Firebase emulators with PID: $EMULATOR_PID"
+          echo "EMULATOR_PID=$EMULATOR_PID" >> $GITHUB_ENV
+          
+          # Give emulators a moment to initialize
+          sleep 5
+          
+          # Wait for emulator UI to be ready (this indicates all emulators are up)
+          echo "Waiting for Firebase emulators to start..."
+          MAX_ATTEMPTS=60
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+              echo "✓ Firebase emulators are ready!"
+              break
+            fi
+            
+            # Check if process is still running
+            if ! kill -0 $EMULATOR_PID 2>/dev/null; then
+              echo "✗ Emulator process died. Logs:"
+              cat emulator.log
+              exit 1
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "✗ Emulators failed to start within timeout. Logs:"
+              cat emulator.log
+              exit 1
+            fi
+            
+            echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Waiting for emulators..."
+            sleep 2
+          done
+          
+          echo "Emulator startup complete. Final logs:"
+          tail -20 emulator.log
         env:
           E2E_TEST: 'true'
           NODE_ENV: 'test'
@@ -54,40 +92,14 @@ jobs:
           FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
           FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
           FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
-
-      - name: Wait for Firebase Emulators
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:4000; do sleep 2; done'
-
-      - name: Start Next.js dev server
-        run: |
-          npm run dev &
-          sleep 15
-        env:
-          E2E_TEST: 'true'
-          NODE_ENV: 'test'
-          FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
-          NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: 'localhost:8080'
-          NEXT_PUBLIC_FIREBASE_API_KEY: 'test-api-key'
-          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost'
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test'
-          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com'
-          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789'
-          NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test'
-          FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
-          FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
-          FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
-
-      - name: Wait for Next.js server
-        run: |
-          timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
 
       - name: Run E2E tests
         run: npm run test:e2e
         env:
+          CI: 'true'
           E2E_BASE_URL: 'http://localhost:3000'
+          E2E_TEST: 'true'
+          NODE_ENV: 'test'
           FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
           FIRESTORE_EMULATOR_HOST: 'localhost:8080'
           NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: 'localhost:9099'
@@ -101,6 +113,14 @@ jobs:
           FIREBASE_ADMIN_PROJECT_ID: 'demo-test'
           FIREBASE_ADMIN_CLIENT_EMAIL: 'test@example.com'
           FIREBASE_ADMIN_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC\n-----END PRIVATE KEY-----\n'
+
+      - name: Stop Firebase Emulators
+        if: always()
+        run: |
+          if [ -n "$EMULATOR_PID" ]; then
+            kill $EMULATOR_PID 2>/dev/null || true
+          fi
+          pkill -f "firebase emulators" || true
 
       - name: Upload test results
         if: always()

@@ -9,10 +9,22 @@ MentorMatch uses Playwright for end-to-end (E2E) testing. Tests run against Fire
 - Node.js 18+
 - Java Runtime Environment (JRE) - Required for Firebase Emulators
   - macOS: `brew install openjdk` or download from [Oracle](https://www.java.com/)
+    - **Note:** After installing via Homebrew, add to PATH:
+      ```bash
+      echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.zshrc
+      source ~/.zshrc
+      ```
   - Linux: `sudo apt install default-jre` or equivalent
   - Windows: Download from [Oracle](https://www.java.com/)
 - Firebase Tools installed (`npm install -D firebase-tools`)
 - Playwright browsers installed (`npx playwright install`)
+
+### Verify Java Installation
+
+```bash
+java -version
+# Should output: openjdk version "25.0.1" or similar
+```
 
 ## Quick Start
 
