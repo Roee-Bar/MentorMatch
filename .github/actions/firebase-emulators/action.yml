@@ -74,21 +74,45 @@ runs:
           echo "✓ firestore.rules found"
         fi
         
-        # Check if ports are already in use
-        if lsof -i :${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
-          echo "⚠ WARNING: Port ${{ inputs.emulator-ui-port }} is already in use"
-          echo "Processes using port ${{ inputs.emulator-ui-port }}:"
-          lsof -i :${{ inputs.emulator-ui-port }} || true
-        fi
-        if lsof -i :9099 > /dev/null 2>&1; then
-          echo "⚠ WARNING: Port 9099 (Auth emulator) is already in use"
-        fi
-        if lsof -i :8081 > /dev/null 2>&1; then
-          echo "⚠ WARNING: Port 8081 (Firestore emulator) is already in use"
+        # Check if ports are already in use (optional check - lsof may not be available)
+        if command -v lsof > /dev/null 2>&1; then
+          if lsof -i :${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
+            echo "⚠ WARNING: Port ${{ inputs.emulator-ui-port }} is already in use"
+            echo "Processes using port ${{ inputs.emulator-ui-port }}:"
+            lsof -i :${{ inputs.emulator-ui-port }} || true
+          fi
+          if lsof -i :9099 > /dev/null 2>&1; then
+            echo "⚠ WARNING: Port 9099 (Auth emulator) is already in use"
+          fi
+          if lsof -i :8081 > /dev/null 2>&1; then
+            echo "⚠ WARNING: Port 8081 (Firestore emulator) is already in use"
+          fi
+        else
+          echo "⚠ Note: lsof not available, skipping port check"
         fi
         
         echo ""
         echo "Starting emulators..."
+        
+        # Ensure firebase-tools is available
+        echo "Verifying firebase-tools installation..."
+        if ! npx firebase --version > /dev/null 2>&1; then
+          echo "✗ ERROR: Failed to run firebase CLI"
+          echo "Attempting to install firebase-tools..."
+          npm install -g firebase-tools || {
+            echo "✗ ERROR: Failed to install firebase-tools"
+            exit 1
+          }
+        fi
+        FIREBASE_VERSION=$(npx firebase --version 2>&1 || echo "unknown")
+        echo "✓ Firebase CLI version: $FIREBASE_VERSION"
+        
+        # Ensure curl is available for health checks
+        if ! command -v curl > /dev/null 2>&1; then
+          echo "✗ ERROR: curl is not available (required for emulator health checks)"
+          exit 1
+        fi
+        echo "✓ curl is available"
         
         # Clean up any existing emulator.log
         rm -f emulator.log
@@ -96,10 +120,39 @@ runs:
         # Start emulators in background with explicit project
         # Use --project flag to avoid any project detection issues
         # Redirect both stdout and stderr to log file
+        # Temporarily disable set -e for background process
+        set +e
         echo "Running: npx firebase emulators:start --only auth,firestore --project ${{ inputs.project-id }}"
         npx firebase emulators:start --only auth,firestore --project ${{ inputs.project-id }} > emulator.log 2>&1 &
         BACKGROUND_PID=$!
+        set -e
         echo "Background process started with PID: $BACKGROUND_PID"
+        
+        # Immediately check if the process started
+        # Temporarily disable set -e for process check
+        set +e
+        sleep 2
+        PROCESS_ALIVE=$(kill -0 $BACKGROUND_PID 2>/dev/null && echo "yes" || echo "no")
+        set -e
+        
+        if [ "$PROCESS_ALIVE" != "yes" ]; then
+          echo "✗ Background process failed to start or died immediately"
+          if [ -f "emulator.log" ]; then
+            echo "Initial log output:"
+            cat emulator.log
+          else
+            echo "No emulator.log file was created - process may have failed before writing logs"
+            echo "Checking if firebase command is available:"
+            npx firebase --version || echo "Firebase CLI check failed"
+          fi
+          exit 1
+        fi
+        
+        # Show initial log output for debugging
+        if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+          echo "Initial emulator log (first 20 lines):"
+          head -20 emulator.log || true
+        fi
         
         # Function to show logs and exit on error
         show_logs_and_exit() {
@@ -123,94 +176,191 @@ runs:
           exit 1
         }
         
-        # Give emulators time to initialize (increased from 2 to 3 seconds)
-        echo "Waiting for emulators to initialize..."
-        sleep 3
+        # Give emulators time to initialize and download if needed
+        echo "Waiting for emulators to initialize (this may take longer on first run as emulators are downloaded)..."
+        
+        # Wait longer initially to allow for emulator download
+        # Temporarily disable set -e for the wait loop to handle process checks gracefully
+        set +e
+        INITIAL_WAIT=10
+        echo "Waiting $INITIAL_WAIT seconds for initial startup..."
+        for i in $(seq 1 $INITIAL_WAIT); do
+          if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
+            set -e
+            echo "✗ Background process died during initial wait (after $i seconds)"
+            # Check if there are any errors in the log immediately
+            if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+              echo "Emulator log contents:"
+              cat emulator.log
+            else
+              echo "No emulator.log file found or it's empty"
+            fi
+            show_logs_and_exit
+          fi
+          # Check logs periodically for early error detection
+          if [ $((i % 3)) -eq 0 ] && [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+            # Check for fatal errors (grep returns non-zero if no match, so we handle that)
+            if grep -qiE "error|failed|exception|fatal" emulator.log 2>/dev/null | grep -vqiE "downloading|installing|extracting|initializing|starting" 2>/dev/null; then
+              echo "⚠ Potential error detected in logs at $i seconds:"
+              tail -20 emulator.log || true
+              # Don't exit yet, might be recoverable, but log it
+            fi
+          fi
+          sleep 1
+        done
+        set -e
         
         # Check if background process is still running
+        set +e
         if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
-          echo "✗ Background process died immediately after starting"
+          set -e
+          echo "✗ Background process died after initial wait"
           show_logs_and_exit
         fi
+        set -e
         
-        # Check if emulator.log has any immediate errors
-        if [ -f "emulator.log" ]; then
-          # Sanitize error output to remove sensitive data
-          ERROR_LINES=$(grep -i "error\|failed\|exception" emulator.log | head -5 | \
+        # Check if emulator.log exists and has content
+        if [ ! -f "emulator.log" ]; then
+          echo "⚠ WARNING: emulator.log file not created yet"
+        elif [ ! -s "emulator.log" ]; then
+          echo "⚠ WARNING: emulator.log is empty"
+        else
+          echo "✓ Emulator log file exists and has content"
+          # Show first few lines for debugging
+          echo "First 10 lines of emulator.log:"
+          head -10 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || true
+        fi
+        
+        # Check if emulator.log has any critical errors (but ignore download messages)
+        if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+          # Look for critical errors (excluding download/initialization messages)
+          CRITICAL_ERRORS=$(grep -iE "error|failed|exception" emulator.log | \
+            grep -vE "downloading|installing|extracting|initializing|starting" | head -5 | \
             sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
             sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
             sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi')
-          if [ -n "$ERROR_LINES" ]; then
-            echo "$ERROR_LINES"
-            echo "⚠ Potential errors detected in initial logs (may be normal during startup)"
+          if [ -n "$CRITICAL_ERRORS" ]; then
+            echo "⚠ Potential critical errors detected in logs:"
+            echo "$CRITICAL_ERRORS"
           fi
         fi
         
         # Find the actual firebase/java process PID (more reliable)
         # Firebase emulators spawn Java processes, so we need to find those
-        sleep 2
-        EMULATOR_PID=$(ps aux | grep -E "[j]ava.*firebase" | awk '{print $2}' | head -1)
-        if [ -z "$EMULATOR_PID" ]; then
+        # Wait a bit more for processes to spawn
+        echo "Waiting for emulator processes to spawn..."
+        sleep 5
+        
+        # Try multiple times to find the process
+        EMULATOR_PID=""
+        for attempt in 1 2 3; do
+          # Look for Java processes related to Firebase
+          EMULATOR_PID=$(ps aux | grep -E "[j]ava.*firebase|emulator" | grep -v grep | awk '{print $2}' | head -1)
+          if [ -n "$EMULATOR_PID" ]; then
+            break
+          fi
           # Fallback: try to find any firebase process
           EMULATOR_PID=$(ps aux | grep -E "[f]irebase.*emulators" | awk '{print $2}' | head -1)
-        fi
+          if [ -n "$EMULATOR_PID" ]; then
+            break
+          fi
+          if [ $attempt -lt 3 ]; then
+            echo "  Attempt $attempt: Process not found yet, waiting..."
+            sleep 2
+          fi
+        done
         
         if [ -z "$EMULATOR_PID" ]; then
-          echo "✗ Failed to find emulator process after startup"
+          echo "⚠ WARNING: Could not find emulator Java process, but background process is running"
           echo "Background PID $BACKGROUND_PID status:"
           ps -p $BACKGROUND_PID || echo "Background process not found"
-          show_logs_and_exit
+          echo "All processes:"
+          ps aux | grep -E "[f]irebase|[j]ava" | head -10 || true
+          echo "Using background PID as fallback"
+          EMULATOR_PID=$BACKGROUND_PID
+        else
+          echo "✓ Found emulator process with PID: $EMULATOR_PID"
         fi
-        
-        echo "✓ Found emulator process with PID: $EMULATOR_PID"
         echo "EMULATOR_PID=$EMULATOR_PID" >> $GITHUB_ENV
         
         # Wait for emulator UI to be ready (this indicates all emulators are up)
-        echo "Waiting for Firebase emulators to start..."
+        echo "Waiting for Firebase emulator UI to be ready..."
         MAX_ATTEMPTS=${{ inputs.max-attempts }}
         ATTEMPT=0
+        UI_READY=false
+        
         while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
           # Check if process is still running first
+          # Temporarily disable set -e for process checks
+          set +e
           if ! kill -0 $EMULATOR_PID 2>/dev/null; then
+            set -e
             echo "✗ Emulator process (PID: $EMULATOR_PID) died during startup"
             show_logs_and_exit
           fi
           
           # Also check background process
           if ! kill -0 $BACKGROUND_PID 2>/dev/null; then
+            set -e
             echo "✗ Background process (PID: $BACKGROUND_PID) died during startup"
             show_logs_and_exit
           fi
+          set -e
           
           # Check if emulator UI is ready
-          if curl -f -s http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
-            echo "✓ Firebase emulators are ready! (took ~$((ATTEMPT * 1))s)"
+          # Use curl with timeout to avoid hanging
+          if curl -f -s --max-time 2 http://localhost:${{ inputs.emulator-ui-port }} > /dev/null 2>&1; then
+            echo "✓ Firebase emulator UI is ready! (took ~$((ATTEMPT * 1))s)"
             echo "Emulator UI available at: http://localhost:${{ inputs.emulator-ui-port }}"
+            UI_READY=true
             break
           fi
+          
+          # Also check if individual emulators are responding
+          # Check Auth emulator
+          AUTH_READY=false
+          if curl -f -s --max-time 1 http://localhost:9099 > /dev/null 2>&1; then
+            AUTH_READY=true
+          fi
+          
+          # Check Firestore emulator (it might not have HTTP endpoint, so we skip this)
           
           ATTEMPT=$((ATTEMPT + 1))
           
           # Show progress every 5 attempts (more frequent updates)
           if [ $((ATTEMPT % 5)) -eq 0 ]; then
-            echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Still waiting..."
+            echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Still waiting for UI..."
+            if [ "$AUTH_READY" = "true" ]; then
+              echo "    ✓ Auth emulator is responding"
+            else
+              echo "    ⏳ Auth emulator not ready yet"
+            fi
             # Show last few lines of log for debugging (sanitized)
-            if [ -f "emulator.log" ]; then
+            if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
               echo "  Last log lines:"
-              tail -3 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+              tail -5 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
                 sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
                 sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' | \
                 sed 's/^/    /' || true
             fi
           fi
           
-          if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-            echo "✗ Emulators failed to start within timeout ($MAX_ATTEMPTS seconds)"
-            show_logs_and_exit
-          fi
-          
           sleep 1
         done
+        
+        if [ "$UI_READY" != "true" ]; then
+          echo "✗ Emulators failed to start within timeout ($MAX_ATTEMPTS seconds)"
+          echo "Checking emulator status..."
+          if [ -f "emulator.log" ] && [ -s "emulator.log" ]; then
+            echo "Last 20 lines of emulator.log:"
+            tail -20 emulator.log | sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
+              sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
+              sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || true
+          fi
+          show_logs_and_exit
+        fi
         
         echo "✓ Emulator startup complete"
         echo "Emulator processes:"
