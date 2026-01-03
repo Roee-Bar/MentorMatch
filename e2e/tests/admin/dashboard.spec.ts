@@ -14,8 +14,11 @@ test.describe('Admin - Dashboard', () => {
     // Should see dashboard with stats
     await expect(page).toHaveURL(/\/authenticated\/admin/);
     
-    // Check for stat cards
-    const statCards = page.locator('[data-testid="stat-card"], .stat-card');
+    // Wait for stat cards to load
+    const statCards = page.locator('[data-testid="stat-card"]');
+    await expect(statCards.first()).toBeVisible({ timeout: 10000 });
+    
+    // Check that we have stat cards
     const count = await statCards.count();
     expect(count).toBeGreaterThan(0);
   });

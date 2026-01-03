@@ -31,6 +31,7 @@ export default function StatCard({
 
   return (
     <div 
+      data-testid="stat-card"
       className={`${cardBase} ${clickableClasses} ${activeBorderClasses} ${activeBgClasses}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
