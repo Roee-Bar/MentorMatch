@@ -1,767 +1,180 @@
-name: CI Pipeline
+name: CI
 
-# Trigger on push to pull request branches targeting main
-# This ensures only one pipeline runs per push to a PR
+# Trigger on pull requests and pushes to main
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  push:
     branches: [main]
 
 # Prevent overlapping workflow runs
-# Use PR number to ensure only one pipeline runs per PR
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 # Shared environment variables
-# Note: These are defaults. Actual values are loaded from .github/config/ci-config.yml
-# by the load-ci-config action in each job
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '21'
   PROJECT_ID: 'demo-test'
 
 jobs:
-  # Fast checks that run in parallel
+  # Fast checks - run in parallel
   lint:
-    name: Lint Code
+    name: Lint
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_LINT || 5 }}
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
       - name: Setup Node.js
-        uses: ./.github/actions/setup-node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run ESLint
         run: npm run lint
 
-      - name: Lint Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Lint'
-          status: ${{ job.status }}
-
-  build:
-    name: Build Application
+  typecheck:
+    name: Type Check
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_BUILD || 10 }}
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
       - name: Setup Node.js
-        uses: ./.github/actions/setup-node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
-          install-deps: 'false'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: cache-deps
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Install dependencies (if cache miss)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        shell: bash
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Cache TypeScript build info
-        uses: actions/cache@v4
-        id: cache-ts
-        with:
-          path: |
-            *.tsbuildinfo
-            .next/**/*.tsbuildinfo
-          key: ${{ runner.os }}-tsbuildinfo-${{ hashFiles('**/*.ts') }}
-          restore-keys: |
-            ${{ runner.os }}-tsbuildinfo-
-
-      - name: Set build environment variables
-        uses: ./.github/actions/build-env-vars
-        with:
-          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
-
-      - name: Type check
+      - name: Run TypeScript type check
         run: npm run typecheck
 
-      - name: Cache Next.js build
-        uses: actions/cache@v4
-        id: cache-nextjs
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: |
-            .next/cache
-            .next/standalone
-            .next/static
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build application
         run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ env.PROJECT_ID }}
 
-      - name: Handle build failure
-        if: failure()
-        uses: ./.github/actions/error-handler
-        with:
-          error-type: 'build_failed'
-          error-context: 'Application build failed'
-
-      - name: Build Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Build'
-          status: ${{ job.status }}
-          cache-deps-hit: ${{ steps.cache-deps.outputs.cache-hit }}
-          cache-nextjs-hit: ${{ steps.cache-nextjs.outputs.cache-hit }}
-          cache-ts-hit: ${{ steps.cache-ts.outputs.cache-hit }}
-          details: |
-            - Type check: ✅ Passed
-            - Build: ✅ Passed
-
-  security:
-    name: Security Scanning
+  # E2E Tests - runs after fast checks pass
+  test:
+    name: E2E Tests
+    needs: [lint, typecheck, build]
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_SECURITY || 10 }}
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
 
       - name: Setup Node.js
-        uses: ./.github/actions/setup-node
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        continue-on-error: true
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          fail-on-severity: moderate
-        # Note: This step requires Dependency Graph to be enabled in repository settings
-        # If it fails, enable it at: https://github.com/Roee-Bar/MentorMatch/settings/security_analysis
-        # The step is set to continue-on-error so the workflow doesn't fail if Dependency Graph is not enabled
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
 
-      - name: Run npm audit (moderate and above)
-        continue-on-error: true
-        run: |
-          echo "Running npm audit for moderate and high severity issues..."
-          npm audit --audit-level=moderate || true
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Run npm audit (high severity only)
-        continue-on-error: true
-        run: |
-          echo "Checking for high severity vulnerabilities..."
-          if npm audit --audit-level=high; then
-            echo "✅ No high severity vulnerabilities found!"
-          else
-            echo "⚠️ High severity vulnerabilities detected!"
-            echo "Please review and update dependencies when possible."
-            echo "Run 'npm audit' for details."
-          fi
-
-      - name: Security Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Security Scan'
-          status: ${{ job.status }}
-          details: |
-            **Note:** If you see a 'Dependency review is not supported' error, enable the Dependency Graph in repository settings:
-            https://github.com/Roee-Bar/MentorMatch/settings/security_analysis
-
-  # E2E Tests - Only run if relevant files changed
-  e2e-setup:
-    name: E2E Setup
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_E2E_SETUP || 10 }}
-    outputs:
-      should_run: ${{ steps.check-e2e.outputs.should_run }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
-      - name: Check if E2E tests should run
-        id: check-e2e
-        shell: bash
-        run: |
-          # Get the base branch
-          BASE_BRANCH="${{ github.base_ref }}"
-          if [ -z "$BASE_BRANCH" ]; then
-            BASE_BRANCH="main"
-          fi
-          
-          # Fetch base branch to compare
-          git fetch origin $BASE_BRANCH:$BASE_BRANCH || true
-          
-          # Get changed files
-          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...HEAD 2>/dev/null || git diff --name-only origin/$BASE_BRANCH...HEAD 2>/dev/null || echo "")
-          
-          echo "Changed files:"
-          echo "$CHANGED_FILES" | head -20
-          
-          # Check if any relevant files changed
-          if echo "$CHANGED_FILES" | grep -qE "(^app/|^lib/|^e2e/|playwright\.config\.ts|package\.json|package-lock\.json|\.github/workflows/ci\.yml)"; then
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "E2E tests will run - relevant files changed"
-          else
-            echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "E2E tests will be skipped - no relevant files changed"
-          fi
-
-      - name: Setup test environment
-        if: steps.check-e2e.outputs.should_run == 'true'
-        uses: ./.github/actions/setup-test-environment
-        with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
-          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
-          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
-
-      - name: Setup Playwright browsers
-        if: steps.check-e2e.outputs.should_run == 'true'
-        uses: ./.github/actions/setup-playwright
-
-  fast-e2e-tests:
-    name: Fast E2E Tests
-    needs: [lint, build, e2e-setup]
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_FAST_E2E || 5 }}
-    if: needs.e2e-setup.outputs.should_run == 'true'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
-      - name: Setup test environment
-        uses: ./.github/actions/setup-test-environment
-        with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
-          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
-          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
-
-      - name: Setup Playwright browsers
-        uses: ./.github/actions/setup-playwright
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: cache-deps
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
-      - name: Install dependencies (if cache miss)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        shell: bash
-        run: npm ci --prefer-offline --no-audit
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
       - name: Set test environment variables
-        uses: ./.github/actions/test-env-vars
-        with:
-          project-id: ${{ env.PROJECT_ID }}
-          base-url: 'http://localhost:3000'
+        run: |
+          echo "E2E_TEST=true" >> $GITHUB_ENV
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "CI=true" >> $GITHUB_ENV
+          echo "FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "FIREBASE_ADMIN_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
 
       - name: Start Firebase Emulators
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: start
-          project-id: ${{ env.PROJECT_ID }}
-          max-attempts: '30'
-          emulator-ui-port: '4000'
-
-      - name: Setup Playwright environment variables
-        uses: ./.github/actions/setup-env-vars
-        with:
-          context: 'playwright'
-          project-id: ${{ env.PROJECT_ID }}
-          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
-
-      - name: Health Check Services
-        uses: ./.github/actions/health-check-services
-
-      - name: Run Fast Tests
-        shell: bash
         run: |
-          echo "Running fast E2E tests (@fast and @smoke tags only)..."
-          set -o pipefail
-          # Use grep to filter tests - Playwright supports regex
-          TEST_TAG_PATTERN="${{ env.TEST_TAGS_FAST || '(@fast|@smoke)' }}"
-          TEST_TIMEOUT="${{ env.TEST_PLAYWRIGHT_TIMEOUT_CI_MS || '300000' }}"
-          npx playwright test --grep "$TEST_TAG_PATTERN" --timeout=$TEST_TIMEOUT 2>&1 | tee test-output.log
-          TEST_EXIT_CODE=${PIPESTATUS[0]}
+          echo "Starting Firebase emulators..."
+          npx firebase emulators:start --only auth,firestore &
           
-          if [ $TEST_EXIT_CODE -ne 0 ]; then
-            echo ""
-            echo "=========================================="
-            echo "Fast tests failed with exit code: $TEST_EXIT_CODE"
-            echo "=========================================="
-            if [ -f "test-output.log" ]; then
-              cat test-output.log
+          # Wait for emulator UI to be ready (port 4000)
+          echo "Waiting for emulators to be ready..."
+          for i in {1..60}; do
+            if curl -f http://localhost:4000 > /dev/null 2>&1; then
+              echo "Emulators are ready!"
+              break
             fi
-            exit $TEST_EXIT_CODE
-          fi
-          
-          echo "✓ Fast tests completed successfully"
+            if [ $i -eq 60 ]; then
+              echo "ERROR: Emulators failed to start within timeout"
+              pkill -f "firebase emulators" || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+        env:
+          CI: true
 
       - name: Stop Firebase Emulators
         if: always()
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: stop
-
-      - name: Test Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Fast E2E Tests'
-          status: ${{ job.status }}
-          details: |
-            - Running @fast and @smoke tagged tests only
-            - Quick feedback for critical path tests
-
-  load-matrix:
-    name: Load Test Matrix
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Read test matrix
-        id: set-matrix
         run: |
-          {
-            echo 'matrix<<MATRIX_EOF'
-            cat .github/workflows/test-matrix.json
-            echo 'MATRIX_EOF'
-          } >> $GITHUB_OUTPUT
+          echo "Stopping Firebase emulators..."
+          pkill -f "firebase emulators" || true
+          # Wait a bit for cleanup
+          sleep 2
+          # Ensure all Java processes related to Firebase are stopped
+          pkill -f "java.*firebase" || true
 
-  e2e-tests:
-    name: E2E Test - ${{ matrix.suite }}
-    needs: [lint, build, security, e2e-setup, load-matrix]
-    runs-on: ubuntu-latest
-    timeout-minutes: ${{ env.TIMEOUTS_E2E || 15 }}
-    if: needs.e2e-setup.outputs.should_run == 'true'
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.load-matrix.outputs.matrix) }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
-      - name: Setup test environment
-        uses: ./.github/actions/setup-test-environment
-        with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
-          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
-          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
-
-      - name: Setup Playwright browsers
-        uses: ./.github/actions/setup-playwright
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        id: cache-playwright
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: cache-deps
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
-      - name: Verify dependencies
-        shell: bash
-        run: |
-          if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/playwright" ]; then
-            echo "Dependencies not found, installing..."
-            npm ci --prefer-offline --no-audit
-          else
-            echo "Dependencies found in cache"
-          fi
-
-      - name: Type check
-        shell: bash
-        run: |
-          echo "Running TypeScript type check..."
-          if ! npm run typecheck; then
-            echo "ERROR: TypeScript type check failed!"
-            echo "This may cause test failures. Fix type errors before running tests."
-            exit 1
-          fi
-          echo "✓ TypeScript type check passed"
-
-      - name: Handle type check failure
-        if: failure()
-        uses: ./.github/actions/error-handler
-        with:
-          error-type: 'type_check_failed'
-          error-context: 'TypeScript type check failed before running E2E tests'
-      
-      - name: Verify Playwright can resolve imports
-        shell: bash
-        run: |
-          echo "Checking if Playwright can resolve path aliases..."
-          set +e  # Don't exit on error immediately
-          npx tsc --project tsconfig.playwright.json --noEmit > /tmp/tsc-imports.log 2>&1
-          TSC_IMPORT_EXIT=$?
-          set -e  # Re-enable exit on error
-          
-          # Output for visibility (sanitized)
-          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-imports.log | \
-            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
-            cat /tmp/tsc-imports.log
-          
-          if [ $TSC_IMPORT_EXIT -ne 0 ]; then
-            echo "WARNING: TypeScript compilation check found issues"
-            echo "This may indicate path alias resolution problems"
-            echo "Continuing with tests..."
-          else
-            echo "✓ Path alias resolution check passed"
-          fi
-
-      - name: Set test environment variables
-        uses: ./.github/actions/test-env-vars
-        with:
-          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
-          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
-
-      - name: Start Firebase Emulators
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: start
-          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
-          max-attempts: ${{ env.TEST_EMULATORS_MAX_ATTEMPTS_FULL || '60' }}
-          emulator-ui-port: ${{ env.PORTS_EMULATOR_UI || '4000' }}
-
-      - name: Setup Playwright environment variables
-        uses: ./.github/actions/setup-env-vars
-        with:
-          context: 'playwright'
-          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
-          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
-
-      - name: Validate Playwright Config
-        shell: bash
-        run: |
-          set -o pipefail  # Make pipelines return the exit code of the first failing command
-          echo "Validating Playwright configuration..."
-          
-          # Validate TypeScript config file syntax using the Playwright tsconfig
-          echo "Checking config file TypeScript syntax..."
-          set +e  # Don't exit on error immediately
-          npx tsc --project tsconfig.playwright.json --noEmit > /tmp/tsc-output.log 2>&1
-          TSC_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
-          
-          # Output to console for visibility (sanitized)
-          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/tsc-output.log | \
-            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
-            cat /tmp/tsc-output.log
-          
-          if [ $TSC_EXIT_CODE -ne 0 ]; then
-            # Check if there are actual TypeScript errors (not just warnings)
-            if grep -q "error TS" /tmp/tsc-output.log; then
-              echo "ERROR: TypeScript errors in Playwright configuration"
-              grep "error TS" /tmp/tsc-output.log | head -10 | \
-                sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi'
-              exit 1
-            else
-              echo "⚠️ TypeScript check had warnings but no errors - continuing"
-            fi
-          else
-            echo "✓ Config file TypeScript syntax is valid"
-          fi
-          
-          # Try to list tests - this validates the config structure
-          # Note: This may attempt to start webServer, so we handle errors gracefully
-          echo "Validating Playwright config structure..."
-          set +e  # Don't exit on error immediately
-          timeout 30 npx playwright test --list > /tmp/playwright-list.log 2>&1
-          EXIT_CODE=$?
-          set -e  # Re-enable exit on error
-          
-          # Output for debugging (sanitized)
-          sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' /tmp/playwright-list.log | \
-            sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
-            cat /tmp/playwright-list.log
-          
-          if [ $EXIT_CODE -eq 0 ]; then
-            echo "✓ Playwright configuration is valid"
-            echo "Found tests:"
-            grep -E "^\s+[0-9]+" /tmp/playwright-list.log | head -20 || tail -20 /tmp/playwright-list.log
-          else
-            # Check if it's a webServer or connection error (expected before services are ready)
-            if grep -qiE "(webServer|ECONNREFUSED|ECONNRESET|timeout|starting|Unable to start)" /tmp/playwright-list.log; then
-              echo "⚠️ WebServer not ready yet (expected at this stage)"
-              echo "Config structure is valid - webServer will start during test execution"
-            elif [ $EXIT_CODE -eq 124 ]; then
-              echo "⚠️ Test listing timed out (webServer may be starting)"
-              echo "Config structure appears valid - continuing with tests"
-            else
-              # It's likely a real config error - fail the step
-              echo "ERROR: Playwright validation failed with non-webServer error:"
-              head -30 /tmp/playwright-list.log | \
-                sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' | \
-                sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-                sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi'
-              echo ""
-              echo "This appears to be a configuration error, not a webServer issue."
-              exit 1
-            fi
-          fi
-          echo "✓ Config validation complete - proceeding with tests"
-
-      - name: Health Check Services
-        uses: ./.github/actions/health-check-services
-
-      - name: Run Tests
-        uses: ./.github/actions/run-e2e-tests
-        with:
-          test-paths: ${{ matrix.test_paths }}
-          suite-name: ${{ matrix.suite }}
-          shard: ${{ matrix.shard }}
-          shards: ${{ matrix.shards }}
-          grep: ${{ matrix.grep }}
-
-      - name: Analyze Test Results
-        if: always()
-        uses: ./.github/actions/test-analytics
-
-      - name: Analyze Test Failures
-        if: failure()
-        uses: ./.github/actions/analyze-test-failures
-
-      - name: Stop Firebase Emulators
-        if: always()
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: stop
-
-      - name: Upload test output logs
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-output-${{ matrix.artifact_name }}
-          path: test-output.log
+          name: playwright-report
+          path: playwright-report/
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Test Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: "E2E Test - ${{ matrix.suite }}"
-          status: ${{ job.status }}
-          details: |
-            - Test Paths: ${{ matrix.test_paths }}
-
-      - name: Upload test artifacts
-        if: always()
-        uses: ./.github/actions/upload-test-artifacts
-        with:
-          artifact-name: ${{ matrix.artifact_name }}
-
-  # Aggregate E2E test results
-  e2e-aggregate:
-    name: Aggregate E2E Test Results
-    needs: [e2e-setup, e2e-tests]
-    runs-on: ubuntu-latest
-    if: always() && needs.e2e-setup.outputs.should_run == 'true'
-    timeout-minutes: ${{ env.TIMEOUTS_E2E_AGGREGATE || 5 }}
-
-    steps:
-      - name: Download all test results
-        uses: actions/download-artifact@v4
-        with:
-          pattern: test-results-*
-          merge-multiple: true
-          path: all-results/
-
-      - name: Upload combined results
+      - name: Upload test videos
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: all-test-results
-          path: all-results/
-          retention-days: 30
+          name: test-videos
+          path: test-results/
+          retention-days: 7
           if-no-files-found: ignore
-
-  # Performance tests - optional, runs after E2E suite
-  performance-tests:
-    name: Performance Tests
-    needs: [e2e-setup, e2e-tests]
-    runs-on: ubuntu-latest
-    if: always() && needs.e2e-setup.outputs.should_run == 'true'
-    timeout-minutes: ${{ env.TIMEOUTS_PERFORMANCE || 10 }}
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Load CI Configuration
-        uses: ./.github/actions/load-ci-config
-
-      - name: Setup test environment
-        uses: ./.github/actions/setup-test-environment
-        with:
-          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
-          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
-          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
-
-      - name: Setup Playwright browsers
-        uses: ./.github/actions/setup-playwright
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        id: cache-deps
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
-      - name: Install dependencies (if cache miss)
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        shell: bash
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Set test environment variables
-        uses: ./.github/actions/test-env-vars
-        with:
-          project-id: ${{ env.PROJECT_ID }}
-          base-url: 'http://localhost:3000'
-
-      - name: Start Firebase Emulators
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: start
-          project-id: ${{ env.PROJECT_ID }}
-          max-attempts: '30'
-          emulator-ui-port: '4000'
-
-      - name: Setup Playwright environment variables
-        uses: ./.github/actions/setup-env-vars
-        with:
-          context: 'playwright'
-          project-id: ${{ env.PROJECT_ID }}
-          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
-
-      - name: Health Check Services
-        uses: ./.github/actions/health-check-services
-
-      - name: Run Performance Tests
-        shell: bash
-        run: |
-          echo "Running performance tests..."
-          npx playwright test e2e/tests/performance/ --grep "@performance" || true
-          # Don't fail the job if performance tests fail - they're informational
-
-      - name: Stop Firebase Emulators
-        if: always()
-        uses: ./.github/actions/firebase-emulators
-        with:
-          action: stop
-
-      - name: Performance Test Summary
-        if: always()
-        uses: ./.github/actions/job-summary
-        with:
-          job-name: 'Performance Tests'
-          status: ${{ job.status }}
-          details: |
-            - Performance tests completed
-            - Check test results for performance metrics
-
-  # Final summary job
-  ci-summary:
-    name: CI Pipeline Summary
-    needs: [lint, build, security, e2e-setup]
-    runs-on: ubuntu-latest
-    if: always()
-    timeout-minutes: ${{ env.TIMEOUTS_CI_SUMMARY || 2 }}
-
-    steps:
-      - name: Generate Summary
-        shell: bash
-        run: |
-          echo "# CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Job Status" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
-          
-          # Check E2E status
-          E2E_SHOULD_RUN="${{ needs.e2e-setup.outputs.should_run }}"
-          if [ "$E2E_SHOULD_RUN" == "true" ]; then
-            echo "| E2E Tests | See individual test jobs above |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "| E2E Tests | skipped (no relevant files changed) |" >> $GITHUB_STEP_SUMMARY
-          fi
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Determine overall status
-          LINT_STATUS="${{ needs.lint.result }}"
-          BUILD_STATUS="${{ needs.build.result }}"
-          SECURITY_STATUS="${{ needs.security.result }}"
-          
-          if [ "$LINT_STATUS" == "success" ] && [ "$BUILD_STATUS" == "success" ] && [ "$SECURITY_STATUS" == "success" ]; then
-            if [ "$E2E_SHOULD_RUN" != "true" ]; then
-              echo "✅ **All CI checks passed!**" >> $GITHUB_STEP_SUMMARY
-              echo "E2E tests were skipped as no relevant files changed." >> $GITHUB_STEP_SUMMARY
-            else
-              echo "✅ **Fast checks passed!**" >> $GITHUB_STEP_SUMMARY
-              echo "E2E tests are running. Check individual test jobs for results." >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "❌ **Some CI checks failed. Please review the logs above.**" >> $GITHUB_STEP_SUMMARY
-          fi
-
