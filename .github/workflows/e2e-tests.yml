@@ -30,7 +30,7 @@ jobs:
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
 
-      - name: Upload dependencies cache
+      - name: Save dependencies cache
         uses: actions/cache@v4
         with:
           path: |
@@ -91,25 +91,44 @@ jobs:
         shell: bash
         run: |
           echo "Running TypeScript type check..."
-          npm run typecheck || {
-            echo "TypeScript errors found. This may cause test failures."
-            echo "Continuing anyway to see test errors..."
-          }
+          if ! npm run typecheck; then
+            echo "ERROR: TypeScript type check failed!"
+            echo "This may cause test failures. Fix type errors before running tests."
+            exit 1
+          fi
+          echo "✓ TypeScript type check passed"
       
       - name: Verify Playwright can resolve imports
         shell: bash
         run: |
           echo "Checking if Playwright can resolve path aliases..."
           # Use the Playwright tsconfig to verify path resolution
-          npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | head -30 || {
-            echo "TypeScript compilation check completed"
-          }
+          if ! npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | head -30; then
+            echo "WARNING: TypeScript compilation check found issues"
+            echo "This may indicate path alias resolution problems"
+            echo "Continuing with tests..."
+          else
+            echo "✓ Path alias resolution check passed"
+          fi
 
       - name: Set test environment variables
         uses: ./.github/actions/test-env-vars
         with:
           project-id: 'demo-test'
           base-url: 'http://localhost:3000'
+
+      - name: Verify Firebase configuration
+        shell: bash
+        run: |
+          echo "Verifying Firebase configuration..."
+          if [ ! -f "firebase.json" ]; then
+            echo "ERROR: firebase.json not found!"
+            exit 1
+          fi
+          if [ ! -f "firestore.rules" ]; then
+            echo "WARNING: firestore.rules not found"
+          fi
+          echo "✓ Firebase configuration verified"
 
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
@@ -150,8 +169,13 @@ jobs:
           echo ""
           echo "Checking test files exist:"
           # Split test_paths by space and check each path
+          # Trim whitespace and filter empty strings
           TEST_PATHS_ARRAY=()
           for path in ${{ matrix.test_paths }}; do
+            # Trim leading/trailing whitespace
+            path=$(echo "$path" | xargs)
+            # Skip empty paths
+            [ -z "$path" ] && continue
             if [ -d "$path" ] || [ -f "$path" ]; then
               echo "✓ Found: $path"
               ls -la "$path" | head -5
@@ -212,6 +236,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload test artifacts
+        if: always()
         uses: ./.github/actions/upload-test-artifacts
         with:
           artifact-name: ${{ matrix.artifact_name }}

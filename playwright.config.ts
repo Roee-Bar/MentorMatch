@@ -37,7 +37,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-    }
+    },
     // Uncomment to add more browsers
     // {
     //   name: 'firefox',

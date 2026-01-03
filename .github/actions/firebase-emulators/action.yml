@@ -101,8 +101,22 @@ runs:
       if: inputs.action == 'stop'
       shell: bash
       run: |
+        echo "Stopping Firebase emulators..."
+        # Try to kill by PID if available
         if [ -n "$EMULATOR_PID" ]; then
+          echo "Killing emulator process PID: $EMULATOR_PID"
           kill $EMULATOR_PID 2>/dev/null || true
+          sleep 1
         fi
+        # Kill any remaining firebase/java processes
         pkill -f "firebase emulators" || true
+        pkill -f "java.*firebase" || true
+        # Wait a moment for processes to terminate
+        sleep 1
+        # Verify cleanup
+        if pgrep -f "firebase emulators" > /dev/null; then
+          echo "Warning: Some emulator processes may still be running"
+        else
+          echo "✓ All emulator processes stopped"
+        fi
 
