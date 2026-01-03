@@ -28,6 +28,19 @@ runs:
         echo "Performing health checks before running tests..."
         echo ""
         
+        # Check required tools are available
+        if ! command -v curl &> /dev/null; then
+          echo "ERROR: curl is not installed or not in PATH"
+          exit 1
+        fi
+        
+        HAS_NC=false
+        if command -v nc &> /dev/null; then
+          HAS_NC=true
+        else
+          echo "WARNING: nc (netcat) is not installed, skipping port checks"
+        fi
+        
         FAILED_CHECKS=0
         
         echo "Checking Firebase Emulators:"
@@ -38,16 +51,18 @@ runs:
           FAILED_CHECKS=$((FAILED_CHECKS + 1))
         fi
         
-        if nc -z localhost ${{ inputs.auth-emulator-port }} 2>/dev/null; then
-          echo "✓ Auth Emulator is running on port ${{ inputs.auth-emulator-port }}"
-        else
-          echo "⚠ Auth Emulator port check (may be normal if not HTTP)"
-        fi
-        
-        if nc -z localhost ${{ inputs.firestore-emulator-port }} 2>/dev/null; then
-          echo "✓ Firestore Emulator is running on port ${{ inputs.firestore-emulator-port }}"
-        else
-          echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
+        if [ "$HAS_NC" = true ]; then
+          if nc -z localhost ${{ inputs.auth-emulator-port }} 2>/dev/null; then
+            echo "✓ Auth Emulator is running on port ${{ inputs.auth-emulator-port }}"
+          else
+            echo "⚠ Auth Emulator port check (may be normal if not HTTP)"
+          fi
+          
+          if nc -z localhost ${{ inputs.firestore-emulator-port }} 2>/dev/null; then
+            echo "✓ Firestore Emulator is running on port ${{ inputs.firestore-emulator-port }}"
+          else
+            echo "⚠ Firestore Emulator port check (may be normal if not HTTP)"
+          fi
         fi
         
         echo ""

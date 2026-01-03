@@ -285,8 +285,15 @@ jobs:
         shell: bash
         run: |
           echo "Checking if Playwright can resolve path aliases..."
-          # Use the Playwright tsconfig to verify path resolution
-          if ! npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | head -30; then
+          set +e  # Don't exit on error immediately
+          npx tsc --project tsconfig.playwright.json --noEmit > /tmp/tsc-imports.log 2>&1
+          TSC_IMPORT_EXIT=$?
+          set -e  # Re-enable exit on error
+          
+          # Output for visibility
+          cat /tmp/tsc-imports.log
+          
+          if [ $TSC_IMPORT_EXIT -ne 0 ]; then
             echo "WARNING: TypeScript compilation check found issues"
             echo "This may indicate path alias resolution problems"
             echo "Continuing with tests..."
@@ -330,9 +337,12 @@ jobs:
           # Validate TypeScript config file syntax using the Playwright tsconfig
           echo "Checking config file TypeScript syntax..."
           set +e  # Don't exit on error immediately
-          npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | tee /tmp/tsc-output.log
+          npx tsc --project tsconfig.playwright.json --noEmit > /tmp/tsc-output.log 2>&1
           TSC_EXIT_CODE=$?
           set -e  # Re-enable exit on error
+          
+          # Output to console for visibility
+          cat /tmp/tsc-output.log
           
           if [ $TSC_EXIT_CODE -ne 0 ]; then
             # Check if there are actual TypeScript errors (not just warnings)
@@ -351,29 +361,32 @@ jobs:
           # Note: This may attempt to start webServer, so we handle errors gracefully
           echo "Validating Playwright config structure..."
           set +e  # Don't exit on error immediately
-          OUTPUT=$(timeout 30 npx playwright test --list 2>&1)
+          timeout 30 npx playwright test --list > /tmp/playwright-list.log 2>&1
           EXIT_CODE=$?
           set -e  # Re-enable exit on error
+          
+          # Output for debugging
+          cat /tmp/playwright-list.log
           
           if [ $EXIT_CODE -eq 0 ]; then
             echo "✓ Playwright configuration is valid"
             echo "Found tests:"
-            echo "$OUTPUT" | grep -E "^\s+[0-9]+" | head -20 || echo "$OUTPUT" | tail -20
+            grep -E "^\s+[0-9]+" /tmp/playwright-list.log | head -20 || tail -20 /tmp/playwright-list.log
           else
             # Check if it's a webServer or connection error (expected before services are ready)
-            if echo "$OUTPUT" | grep -qiE "(webServer|ECONNREFUSED|ECONNRESET|timeout|starting|Unable to start)"; then
+            if grep -qiE "(webServer|ECONNREFUSED|ECONNRESET|timeout|starting|Unable to start)" /tmp/playwright-list.log; then
               echo "⚠️ WebServer not ready yet (expected at this stage)"
               echo "Config structure is valid - webServer will start during test execution"
             elif [ $EXIT_CODE -eq 124 ]; then
               echo "⚠️ Test listing timed out (webServer may be starting)"
               echo "Config structure appears valid - continuing with tests"
             else
-              # It's likely a real config error - show it but don't fail if it's just webServer
-              echo "⚠️ Playwright validation had issues:"
-              echo "$OUTPUT" | head -20
+              # It's likely a real config error - fail the step
+              echo "ERROR: Playwright validation failed with non-webServer error:"
+              head -30 /tmp/playwright-list.log
               echo ""
-              echo "Note: If this is webServer-related, tests will still run."
-              echo "If this is a config error, tests will fail with more details."
+              echo "This appears to be a configuration error, not a webServer issue."
+              exit 1
             fi
           fi
           echo "✓ Config validation complete - proceeding with tests"

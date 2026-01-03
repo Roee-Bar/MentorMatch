@@ -55,8 +55,8 @@ runs:
     - name: Run Tests
       shell: bash
       run: |
-        # Reconstruct array from stored string
-        eval "TEST_PATHS_ARRAY=($TEST_PATHS_STR)"
+        # Safely reconstruct array from stored string
+        read -ra TEST_PATHS_ARRAY <<< "$TEST_PATHS_STR"
         
         echo "Starting tests with paths: ${TEST_PATHS_ARRAY[*]}"
         echo ""
