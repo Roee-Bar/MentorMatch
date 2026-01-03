@@ -101,46 +101,26 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
-      - name: Verify Emulators Ready
-        shell: bash
-        run: |
-          echo "Verifying Firebase emulators are ready..."
-          # Wait a bit more for emulators to fully initialize
-          sleep 3
-          # Check Auth emulator (HTTP endpoint)
-          if curl -f -s http://localhost:9099 > /dev/null 2>&1; then
-            echo "✓ Auth emulator is ready"
-          else
-            echo "⚠ Auth emulator HTTP check failed (may still be starting)"
-          fi
-          # Check Emulator UI (already verified by firebase-emulators action, but double-check)
-          if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
-            echo "✓ Emulator UI is ready"
-          else
-            echo "✗ Emulator UI not responding"
-            exit 1
-          fi
-          # Firestore uses gRPC, not HTTP, so we can't check it with curl
-          # The firebase-emulators action already verified the UI is up, which means emulators are ready
-          echo "✓ All emulators are ready (Firestore uses gRPC, verified via UI)"
-
       - name: Run Tests
         shell: bash
         run: |
           echo "Running tests for: ${{ matrix.suite }}"
           echo "Test paths: ${{ matrix.test_paths }}"
-          echo "Environment check:"
+          echo ""
+          echo "Environment variables:"
           echo "  E2E_TEST=$E2E_TEST"
           echo "  CI=$CI"
+          echo "  NODE_ENV=$NODE_ENV"
+          echo "  E2E_BASE_URL=$E2E_BASE_URL"
           echo "  FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST"
           echo "  FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST"
           echo "  NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID"
-          npx playwright test ${{ matrix.test_paths }} || {
-            echo "Tests failed with exit code $?"
-            echo "Checking if Next.js server started..."
-            curl -f http://localhost:3000 > /dev/null 2>&1 && echo "Next.js server is running" || echo "Next.js server is NOT running"
-            exit 1
-          }
+          echo ""
+          echo "Verifying Playwright installation:"
+          npx playwright --version || echo "Playwright not found"
+          echo ""
+          echo "Starting tests..."
+          npx playwright test ${{ matrix.test_paths }}
 
       - name: Stop Firebase Emulators
         if: always()
