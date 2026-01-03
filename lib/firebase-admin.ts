@@ -33,14 +33,19 @@ if (!admin.apps.length) {
   try {
     if (hasFullCredentials) {
       // Initialize with full credentials
+      // TypeScript narrowing: we know these are defined due to hasFullCredentials check
+      const certProjectId = projectId as string;
+      const certClientEmail = clientEmail as string;
+      const certPrivateKey = privateKey as string;
+      
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId!,
-          clientEmail!,
+          projectId: certProjectId,
+          clientEmail: certClientEmail,
           // Replace escaped newlines with actual newlines
-          privateKey: privateKey!.replace(/\\n/g, '\n'),
+          privateKey: certPrivateKey.replace(/\\n/g, '\n'),
         }),
-        projectId: projectId!,
+        projectId: certProjectId,
       });
 
       logger.firebase.init();
