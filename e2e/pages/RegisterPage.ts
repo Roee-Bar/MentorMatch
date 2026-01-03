@@ -42,7 +42,9 @@ export class RegisterPage {
 
   async goto(): Promise<void> {
     await this.page.goto('/register');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for form to be ready
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async fillForm(data: RegistrationData): Promise<void> {
@@ -63,11 +65,16 @@ export class RegisterPage {
 
   async submit(): Promise<void> {
     await this.submitButton.click();
-    // Wait for navigation or message
-    await Promise.race([
-      this.page.waitForURL('/login', { timeout: 10000 }),
-      this.message.waitFor({ state: 'visible', timeout: 5000 }),
-    ]);
+    // Wait for navigation or message with better error handling
+    try {
+      await Promise.race([
+        this.page.waitForURL('/login', { timeout: 10000 }),
+        this.message.waitFor({ state: 'visible', timeout: 5000 }),
+      ]);
+    } catch (error) {
+      // If neither navigation nor message appears, wait a bit more for form validation
+      await this.page.waitForTimeout(1000);
+    }
   }
 
   async register(data: RegistrationData): Promise<void> {

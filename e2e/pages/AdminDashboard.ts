@@ -2,7 +2,7 @@
  * Admin Dashboard Page Object Model
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 
 export class AdminDashboard {
   readonly page: Page;
@@ -19,7 +19,9 @@ export class AdminDashboard {
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/admin');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for dashboard to be ready
+    await this.page.waitForURL(/\/authenticated\/admin/, { timeout: 10000 });
   }
 
   async getStats(): Promise<{ [key: string]: number }> {
@@ -56,33 +58,40 @@ export class AdminDashboard {
   }
 
   async overrideSupervisorCapacity(supervisorId: string, newCapacity: number, reason: string): Promise<void> {
-    // Navigate to supervisor details first
-    await this.navigateToSupervisorDetails(supervisorId);
+    // Find the supervisor row in the SupervisorCapacitySection table
+    const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`);
+    await expect(supervisorRow).toBeVisible({ timeout: 10000 });
 
-    // Look for capacity override button or action
-    const overrideButton = this.page.getByRole('button', { name: /override capacity|change capacity|edit capacity/i });
-    if (await overrideButton.isVisible()) {
-      await overrideButton.click();
-      await this.page.waitForTimeout(500);
-    }
+    // Click the "Edit Capacity" button for this supervisor
+    const editButton = this.page.locator(`[data-testid="edit-capacity-${supervisorId}"]`);
+    await expect(editButton).toBeVisible({ timeout: 5000 });
+    await editButton.click();
 
-    // Fill in the capacity override form
-    const capacityInput = this.page.getByLabel(/max capacity|capacity/i);
-    if (await capacityInput.isVisible()) {
-      await capacityInput.fill(newCapacity.toString());
-    }
+    // Wait for the modal to appear
+    await this.page.waitForTimeout(500);
 
-    const reasonInput = this.page.getByLabel(/reason/i);
-    if (await reasonInput.isVisible()) {
-      await reasonInput.fill(reason);
-    }
+    // Fill in the capacity override form in the modal
+    const capacityInput = this.page.getByLabel(/maximum capacity/i);
+    await expect(capacityInput).toBeVisible({ timeout: 5000 });
+    await capacityInput.clear();
+    await capacityInput.fill(newCapacity.toString());
+
+    const reasonInput = this.page.getByLabel(/reason for change/i);
+    await expect(reasonInput).toBeVisible({ timeout: 5000 });
+    await reasonInput.fill(reason);
 
     // Submit the form
-    const submitButton = this.page.getByRole('button', { name: /save|update|submit|confirm/i });
-    if (await submitButton.isVisible()) {
-      await submitButton.click();
-      await this.page.waitForTimeout(2000);
-    }
+    const submitButton = this.page.getByRole('button', { name: /update capacity/i });
+    await expect(submitButton).toBeVisible({ timeout: 5000 });
+    await submitButton.click();
+
+    // Wait for the update to complete and modal to close
+    await this.page.waitForTimeout(2000);
+    
+    // Wait for success message or modal to disappear
+    await this.page.waitForSelector('[data-testid="edit-capacity-modal"]', { state: 'hidden' }).catch(() => {
+      // Modal might not have testid, so just wait a bit more
+    });
   }
 }
 

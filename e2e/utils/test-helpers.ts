@@ -10,8 +10,8 @@ import { Page } from '@playwright/test';
  * Wait for page to be fully loaded
  */
 export async function waitForPageLoad(page: Page): Promise<void> {
-  await page.waitForLoadState('networkidle');
   await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('load');
 }
 
 /**
@@ -98,12 +98,12 @@ export async function waitForNavigation(
   page: Page,
   urlPattern?: string | RegExp
 ): Promise<void> {
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   if (urlPattern) {
     if (typeof urlPattern === 'string') {
-      await page.waitForURL((url) => url.href.includes(urlPattern));
+      await page.waitForURL((url) => url.href.includes(urlPattern), { timeout: 10000 });
     } else {
-      await page.waitForURL(urlPattern);
+      await page.waitForURL(urlPattern, { timeout: 10000 });
     }
   }
 }

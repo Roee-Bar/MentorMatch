@@ -19,7 +19,9 @@ export class StudentDashboard {
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/student');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for navigation links to be ready
+    await this.page.waitForURL(/\/authenticated\/student/, { timeout: 10000 });
   }
 
   async navigateToSupervisors(): Promise<void> {

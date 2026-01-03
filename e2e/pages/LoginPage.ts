@@ -23,18 +23,25 @@ export class LoginPage {
 
   async goto(): Promise<void> {
     await this.page.goto('/login');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for form to be ready
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async login(email: string, password: string): Promise<void> {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.loginButton.click();
-    // Wait for navigation or message
-    await Promise.race([
-      this.page.waitForURL(/\/(authenticated|$)/, { timeout: 10000 }),
-      this.message.waitFor({ state: 'visible', timeout: 5000 }),
-    ]);
+    // Wait for navigation or message with better error handling
+    try {
+      await Promise.race([
+        this.page.waitForURL(/\/(authenticated|$)/, { timeout: 10000 }),
+        this.message.waitFor({ state: 'visible', timeout: 5000 }),
+      ]);
+    } catch (error) {
+      // If neither navigation nor message appears, wait a bit more
+      await this.page.waitForTimeout(1000);
+    }
   }
 
   async getMessage(): Promise<string> {

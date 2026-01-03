@@ -30,6 +30,9 @@ test.describe('Admin - Capacity Override', () => {
       await expect(successMessage).toBeVisible();
     }
 
+    // Wait a bit for database to be updated (Firestore eventual consistency)
+    await page.waitForTimeout(1000);
+
     // Verify supervisor's maxCapacity updated in database
     const supervisorDoc = await adminDb.collection('supervisors').doc(supervisor.id).get();
     expect(supervisorDoc.exists).toBeTruthy();
@@ -64,27 +67,29 @@ test.describe('Admin - Capacity Override', () => {
     });
 
     await dashboard.goto();
-    await dashboard.navigateToSupervisorDetails(supervisor.id);
 
-    // Verify initial capacity is displayed
-    // Use or() to try testid first, then fallback to text selector
-    const capacityDisplay = page.locator('[data-testid="capacity"]').or(page.locator('text=/capacity/i'));
-    if (await capacityDisplay.isVisible()) {
-      const capacityText = await capacityDisplay.textContent();
-      expect(capacityText).toContain('3');
-    }
+    // Verify initial capacity is displayed in the table
+    const supervisorRow = page.locator(`[data-testid="supervisor-row-${supervisor.id}"]`);
+    await expect(supervisorRow).toBeVisible({ timeout: 10000 });
+    
+    // Check that initial capacity (3) is shown in the table
+    const initialCapacityCell = supervisorRow.locator('td').nth(3); // Current / Max column
+    await expect(initialCapacityCell).toContainText('3', { timeout: 5000 });
 
     // Override capacity
     await dashboard.overrideSupervisorCapacity(supervisor.id, 8, 'Test override');
 
-    // Wait for UI to update
-    await page.waitForTimeout(2000);
+    // Reload the page to see updated capacity
+    await dashboard.goto();
+    
+    // Wait for the page to load
+    await page.waitForLoadState('domcontentloaded');
 
-    // Verify updated capacity is displayed (if UI shows it)
-    if (await capacityDisplay.isVisible()) {
-      const updatedCapacityText = await capacityDisplay.textContent();
-      expect(updatedCapacityText).toContain('8');
-    }
+    // Verify updated capacity is displayed in the table
+    const updatedRow = page.locator(`[data-testid="supervisor-row-${supervisor.id}"]`);
+    await expect(updatedRow).toBeVisible({ timeout: 10000 });
+    const updatedCapacityCell = updatedRow.locator('td').nth(3); // Current / Max column
+    await expect(updatedCapacityCell).toContainText('8', { timeout: 5000 });
   });
 });
 

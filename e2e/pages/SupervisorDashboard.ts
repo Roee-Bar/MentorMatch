@@ -20,7 +20,9 @@ export class SupervisorDashboard {
 
   async goto(): Promise<void> {
     await this.page.goto('/authenticated/supervisor');
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState('domcontentloaded');
+    // Wait for navigation links to be ready
+    await this.page.waitForURL(/\/authenticated\/supervisor/, { timeout: 10000 });
   }
 
   async navigateToApplications(): Promise<void> {
@@ -40,7 +42,8 @@ export class SupervisorDashboard {
     } else {
       // Fallback: try navigating via URL
       await this.page.goto('/authenticated/supervisor/projects');
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForURL(/\/authenticated\/supervisor\/projects/, { timeout: 10000 });
     }
   }
 
