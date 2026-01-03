@@ -24,6 +24,8 @@ jobs:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
     timeout-minutes: ${{ env.TIMEOUTS_DEPLOY || 15 }}
+    # Only deploy on pushes to main branch, not PR branches
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code

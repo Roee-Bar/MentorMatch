@@ -1,13 +1,16 @@
 name: CI Pipeline
 
-# Trigger on pull requests targeting main branch
+# Trigger on push to pull request branches targeting main
+# This ensures only one pipeline runs per push to a PR
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches: [main]
 
 # Prevent overlapping workflow runs
+# Use PR number to ensure only one pipeline runs per PR
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 # Shared environment variables
