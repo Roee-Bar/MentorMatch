@@ -6,12 +6,43 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 import { SupervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { ProjectService } from '@/lib/services/projects/project-service';
-import { toSupervisor } from '@/lib/services/shared/firestore-converters';
+import { toProject } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, Project } from '@/types/database';
 
 const SERVICE_NAME = 'SupervisorPartnershipPairingService';
+
+// ============================================
+// PRIVATE HELPER FUNCTIONS
+// ============================================
+
+/**
+ * Shared transaction logic to remove co-supervisor from a project
+ * Updates both the project and the co-supervisor's capacity atomically
+ */
+async function _removeCoSupervisorFromProject(
+  projectId: string,
+  coSupervisorId: string
+): Promise<void> {
+  await adminDb.runTransaction(async (transaction) => {
+    const projectRef = adminDb.collection('projects').doc(projectId);
+    const coSupervisorRef = adminDb.collection('supervisors').doc(coSupervisorId);
+
+    // Remove co-supervisor from project
+    transaction.update(projectRef, {
+      coSupervisorId: null,
+      coSupervisorName: null,
+      updatedAt: new Date()
+    });
+
+    // Decrease co-supervisor capacity
+    transaction.update(coSupervisorRef, {
+      currentCapacity: FieldValue.increment(-1),
+      updatedAt: new Date()
+    });
+  });
+}
 
 // ============================================
 // SUPERVISOR PARTNERSHIP PAIRING OPERATIONS
@@ -40,27 +71,7 @@ export const SupervisorPartnershipPairingService = {
         .where('status', '!=', 'completed');
 
       const snapshot = await query.get();
-      return snapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          projectCode: data.projectCode ?? '',
-          studentIds: data.studentIds ?? [],
-          studentNames: data.studentNames ?? [],
-          supervisorId: data.supervisorId ?? '',
-          supervisorName: data.supervisorName ?? '',
-          coSupervisorId: data.coSupervisorId,
-          coSupervisorName: data.coSupervisorName,
-          title: data.title ?? '',
-          description: data.description ?? '',
-          status: data.status ?? 'pending_approval',
-          phase: data.phase ?? 'A',
-          createdAt: data.createdAt?.toDate() ?? new Date(),
-          updatedAt: data.updatedAt?.toDate() ?? new Date(),
-          approvedAt: data.approvedAt?.toDate(),
-          completedAt: data.completedAt?.toDate(),
-        } as Project;
-      });
+      return snapshot.docs.map(doc => toProject(doc.id, doc.data()));
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getActivePartnerships', error, { supervisorId, projectId });
       return [];
@@ -126,24 +137,8 @@ export const SupervisorPartnershipPairingService = {
 
       const coSupervisorId = project.coSupervisorId;
 
-      // Use transaction to ensure atomic updates
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(projectId);
-        const coSupervisorRef = adminDb.collection('supervisors').doc(coSupervisorId);
-
-        // Remove co-supervisor from project
-        transaction.update(projectRef, {
-          coSupervisorId: null,
-          coSupervisorName: null,
-          updatedAt: new Date()
-        });
-
-        // Decrease co-supervisor capacity
-        transaction.update(coSupervisorRef, {
-          currentCapacity: FieldValue.increment(-1),
-          updatedAt: new Date()
-        });
-      });
+      // Use shared transaction helper to remove co-supervisor
+      await _removeCoSupervisorFromProject(projectId, coSupervisorId);
 
       return ServiceResults.success(undefined, 'Co-supervisor removed successfully');
     } catch (error) {
@@ -173,24 +168,8 @@ export const SupervisorPartnershipPairingService = {
 
       const coSupervisorId = project.coSupervisorId;
 
-      // Use transaction to ensure atomic updates
-      await adminDb.runTransaction(async (transaction) => {
-        const projectRef = adminDb.collection('projects').doc(projectId);
-        const coSupervisorRef = adminDb.collection('supervisors').doc(coSupervisorId);
-
-        // Remove co-supervisor from project
-        transaction.update(projectRef, {
-          coSupervisorId: null,
-          coSupervisorName: null,
-          updatedAt: new Date()
-        });
-
-        // Decrease co-supervisor capacity
-        transaction.update(coSupervisorRef, {
-          currentCapacity: FieldValue.increment(-1),
-          updatedAt: new Date()
-        });
-      });
+      // Use shared transaction helper to remove co-supervisor
+      await _removeCoSupervisorFromProject(projectId, coSupervisorId);
 
       return ServiceResults.success(undefined, 'Partnerships cleaned up successfully');
     } catch (error) {
