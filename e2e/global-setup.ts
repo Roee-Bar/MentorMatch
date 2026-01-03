@@ -11,7 +11,7 @@ async function globalSetup() {
     process.env.E2E_TEST = 'true';
   }
   if (!process.env.NODE_ENV || process.env.NODE_ENV !== 'test') {
-    process.env.NODE_ENV = 'test';
+    (process.env as { NODE_ENV?: string }).NODE_ENV = 'test';
   }
   
   // Ensure Firebase emulator environment variables are set
