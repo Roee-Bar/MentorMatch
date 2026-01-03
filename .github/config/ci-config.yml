@@ -1,0 +1,112 @@
+# CI/CD Pipeline Configuration
+# This is the single source of truth for all CI/CD settings
+# Update values here to change behavior across all workflows
+
+# Runtime Versions
+versions:
+  node: '20'
+  java: '21'
+  java_distribution: 'temurin'  # Options: temurin, zulu, etc.
+
+# Project Configuration
+project:
+  id: 'demo-test'
+  test_base_url: 'http://localhost:3000'
+
+# Service Ports
+ports:
+  nextjs: 3000
+  emulator_ui: 4000
+  auth_emulator: 9099
+  firestore_emulator: 8081
+
+# Job Timeouts (in minutes)
+timeouts:
+  lint: 5
+  build: 10
+  security: 10
+  e2e_setup: 10
+  fast_e2e: 5
+  e2e: 15
+  performance: 10
+  e2e_aggregate: 5
+  ci_summary: 2
+  deploy: 15
+
+# Test Configuration
+test:
+  # Test tag patterns (regex)
+  tags:
+    fast: '@fast|@smoke'
+    smoke: '@smoke'
+    regression: '@regression'
+    performance: '@performance'
+    critical: '@critical'
+    slow: '@slow'
+    flaky: '@flaky'
+  
+  # Playwright Configuration
+  playwright:
+    retries_ci: 2
+    retries_local: 0
+    workers_ci: 4
+    timeout_ci_ms: 240000  # 4 minutes (accounts for webServer startup ~180s)
+    timeout_local_ms: 60000  # 1 minute
+    webserver_timeout_ci_ms: 180000  # 3 minutes for first build
+    webserver_timeout_local_ms: 120000  # 2 minutes
+    action_timeout_ms: 5000
+    navigation_timeout_ms: 15000
+    expect_timeout_ms: 10000
+  
+  # Firebase Emulator Configuration
+  emulators:
+    max_attempts_fast: '30'
+    max_attempts_full: '60'
+    services: 'auth,firestore'
+
+# Cache Configuration
+cache:
+  # Cache key prefixes
+  key_prefixes:
+    deps: '${{ runner.os }}-deps'
+    playwright: '${{ runner.os }}-playwright'
+    nextjs: '${{ runner.os }}-nextjs'
+    typescript: '${{ runner.os }}-tsbuildinfo'
+  
+  # Cache paths
+  paths:
+    node_modules: 'node_modules'
+    playwright_browsers: '~/.cache/ms-playwright'
+    nextjs_cache: |
+      .next/cache
+      .next/standalone
+      .next/static
+    typescript_buildinfo: |
+      *.tsbuildinfo
+      .next/**/*.tsbuildinfo
+
+# Firebase Test Environment Variables (defaults)
+firebase_test:
+  api_key: 'test-api-key'
+  auth_domain: 'localhost'
+  storage_bucket_suffix: '.appspot.com'
+  messaging_sender_id: '123456789'
+  app_id: '1:123456789:web:test'
+
+# Artifact Retention (in days)
+artifacts:
+  test_reports: 30
+  test_screenshots: 7
+  test_output: 7
+  test_metrics: 30
+
+# Environment Variable Names (for reference)
+env_vars:
+  e2e_test: 'E2E_TEST'
+  node_env: 'NODE_ENV'
+  ci: 'CI'
+  e2e_base_url: 'E2E_BASE_URL'
+  firebase_auth_emulator_host: 'FIREBASE_AUTH_EMULATOR_HOST'
+  firestore_emulator_host: 'FIRESTORE_EMULATOR_HOST'
+  firebase_admin_project_id: 'FIREBASE_ADMIN_PROJECT_ID'
+

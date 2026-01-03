@@ -1,5 +1,5 @@
 name: 'Job Summary'
-description: 'Generate a standardized job summary'
+description: 'Generate a standardized job summary with config values, cache metrics, and troubleshooting links'
 
 inputs:
   job-name:
@@ -12,6 +12,22 @@ inputs:
     description: 'Additional details to include (markdown supported)'
     required: false
     default: ''
+  cache-deps-hit:
+    description: 'Whether dependencies cache was hit'
+    required: false
+    default: ''
+  cache-nextjs-hit:
+    description: 'Whether Next.js cache was hit'
+    required: false
+    default: ''
+  cache-ts-hit:
+    description: 'Whether TypeScript cache was hit'
+    required: false
+    default: ''
+  cache-playwright-hit:
+    description: 'Whether Playwright cache was hit'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -20,13 +36,94 @@ runs:
       shell: bash
       run: |
         echo "## ${{ inputs.job-name }} Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Status indicator
         if [ "${{ inputs.status }}" == "success" ]; then
-          echo "✅ ${{ inputs.job-name }} passed!" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **${{ inputs.job-name }} passed!**" >> $GITHUB_STEP_SUMMARY
         else
-          echo "❌ ${{ inputs.job-name }} failed. Please check the logs above." >> $GITHUB_STEP_SUMMARY
+          echo "❌ **${{ inputs.job-name }} failed.**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📖 [Troubleshooting Guide](https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md)" >> $GITHUB_STEP_SUMMARY
         fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Configuration values (if available)
+        if [ -n "$VERSIONS_NODE" ] || [ -n "$NODE_VERSION" ]; then
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Node.js | \`${VERSIONS_NODE:-${NODE_VERSION:-N/A}}\` |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$VERSIONS_JAVA" ] || [ -n "$JAVA_VERSION" ]; then
+            echo "| Java | \`${VERSIONS_JAVA:-${JAVA_VERSION:-N/A}}\` |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -n "$PROJECT_ID" ]; then
+            echo "| Project ID | \`${PROJECT_ID}\` |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Cache metrics
+        CACHE_COUNT=0
+        if [ -n "${{ inputs.cache-deps-hit }}" ] || [ -n "${{ inputs.cache-nextjs-hit }}" ] || [ -n "${{ inputs.cache-ts-hit }}" ] || [ -n "${{ inputs.cache-playwright-hit }}" ]; then
+          echo "### Cache Performance" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Cache Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ inputs.cache-deps-hit }}" ]; then
+            CACHE_COUNT=$((CACHE_COUNT + 1))
+            if [ "${{ inputs.cache-deps-hit }}" == "true" ]; then
+              echo "| Dependencies | ✅ Hit |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Dependencies | ❌ Miss |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -n "${{ inputs.cache-nextjs-hit }}" ]; then
+            CACHE_COUNT=$((CACHE_COUNT + 1))
+            if [ "${{ inputs.cache-nextjs-hit }}" == "true" ]; then
+              echo "| Next.js | ✅ Hit |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Next.js | ❌ Miss |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -n "${{ inputs.cache-ts-hit }}" ]; then
+            CACHE_COUNT=$((CACHE_COUNT + 1))
+            if [ "${{ inputs.cache-ts-hit }}" == "true" ]; then
+              echo "| TypeScript | ✅ Hit |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| TypeScript | ❌ Miss |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          if [ -n "${{ inputs.cache-playwright-hit }}" ]; then
+            CACHE_COUNT=$((CACHE_COUNT + 1))
+            if [ "${{ inputs.cache-playwright-hit }}" == "true" ]; then
+              echo "| Playwright | ✅ Hit |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Playwright | ❌ Miss |" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Additional details
         if [ -n "${{ inputs.details }}" ]; then
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "${{ inputs.details }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Performance metrics link (if test job)
+        if echo "${{ inputs.job-name }}" | grep -qiE "(test|e2e)"; then
+          echo "### Test Analytics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check test artifacts for detailed metrics and performance data." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
         fi
 

@@ -1,0 +1,68 @@
+# Dependency Manifest
+# This file tracks all external dependencies used in CI/CD pipelines
+# Use the check-updates script to verify for newer versions
+
+# GitHub Actions
+actions:
+  checkout:
+    version: 'v4'
+    latest: ''  # Updated by check-updates script
+    url: 'https://github.com/actions/checkout'
+  
+  cache:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/cache'
+  
+  setup-node:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/setup-node'
+  
+  setup-java:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/setup-java'
+  
+  upload-artifact:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/upload-artifact'
+  
+  download-artifact:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/download-artifact'
+  
+  dependency-review-action:
+    version: 'v4'
+    latest: ''
+    url: 'https://github.com/actions/dependency-review-action'
+
+# Runtime Tools
+tools:
+  node:
+    version: '20'
+    latest: ''
+    url: 'https://nodejs.org/'
+    lts: true
+  
+  java:
+    version: '21'
+    latest: ''
+    url: 'https://adoptium.net/'
+    distribution: 'temurin'
+  
+  firebase-tools:
+    version: '^15.1.0'
+    latest: ''
+    url: 'https://www.npmjs.com/package/firebase-tools'
+  
+  playwright:
+    version: '^1.57.0'
+    latest: ''
+    url: 'https://www.npmjs.com/package/@playwright/test'
+
+# Last updated: Auto-updated by check-updates script
+last_checked: ''
+

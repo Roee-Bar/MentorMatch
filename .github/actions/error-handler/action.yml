@@ -1,0 +1,164 @@
+name: 'Error Handler'
+description: 'Generate formatted error messages with troubleshooting steps and documentation links'
+
+inputs:
+  error-type:
+    description: 'Type of error (emulator_startup_failed, test_timeout, dependency_install_failed, type_check_failed, build_failed, config_error)'
+    required: true
+  error-context:
+    description: 'Additional context about the error'
+    required: false
+    default: ''
+  error-details:
+    description: 'Detailed error message or log excerpt'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate error message
+      shell: bash
+      run: |
+        ERROR_TYPE="${{ inputs.error-type }}"
+        ERROR_CONTEXT="${{ inputs.error-context }}"
+        ERROR_DETAILS="${{ inputs.error-details }}"
+        
+        # Create error message based on type
+        case "$ERROR_TYPE" in
+          emulator_startup_failed)
+            TITLE="❌ Firebase Emulator Startup Failed"
+            DESCRIPTION="The Firebase emulators failed to start. This is usually due to Java issues, port conflicts, or configuration problems."
+            TROUBLESHOOTING=(
+              "1. **Check Java installation**: Ensure Java 21+ is installed and in PATH"
+              "2. **Check port availability**: Verify ports 4000, 9099, and 8081 are not in use"
+              "3. **Review emulator logs**: Check the emulator.log file for specific errors"
+              "4. **Verify firebase.json**: Ensure firebase.json exists and is valid"
+              "5. **Check network connectivity**: Emulators may need to download components on first run"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#emulator-startup-failed"
+            QUICK_FIX="Try restarting the emulators or checking if Java is properly installed: \`java -version\`"
+            ;;
+            
+          test_timeout)
+            TITLE="⏱️ Test Execution Timeout"
+            DESCRIPTION="Tests exceeded the maximum execution time. This may indicate slow tests, resource constraints, or hanging operations."
+            TROUBLESHOOTING=(
+              "1. **Check test performance**: Review slow tests in test analytics"
+              "2. **Increase timeout**: Consider increasing timeout in ci-config.yml if tests are legitimately slow"
+              "3. **Check for hanging operations**: Look for tests waiting on network requests or database operations"
+              "4. **Review test logs**: Check test-output.log for specific failures"
+              "5. **Verify service health**: Ensure Next.js and Firebase emulators are running"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#test-timeout"
+            QUICK_FIX="Check if services are running: \`curl http://localhost:3000\` and \`curl http://localhost:4000\`"
+            ;;
+            
+          dependency_install_failed)
+            TITLE="📦 Dependency Installation Failed"
+            DESCRIPTION="Failed to install npm dependencies. This may be due to network issues, corrupted cache, or package conflicts."
+            TROUBLESHOOTING=(
+              "1. **Clear cache**: Try clearing the node_modules cache"
+              "2. **Check network**: Verify npm registry is accessible"
+              "3. **Review package.json**: Check for version conflicts or invalid package versions"
+              "4. **Try manual install**: Run \`npm ci\` locally to reproduce the issue"
+              "5. **Check package-lock.json**: Ensure it's up to date and not corrupted"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#dependency-install-failed"
+            QUICK_FIX="Try clearing cache and reinstalling: \`rm -rf node_modules package-lock.json && npm install\`"
+            ;;
+            
+          type_check_failed)
+            TITLE="🔍 TypeScript Type Check Failed"
+            DESCRIPTION="TypeScript compilation found type errors. Fix type errors before proceeding."
+            TROUBLESHOOTING=(
+              "1. **Review type errors**: Check the error output for specific type mismatches"
+              "2. **Run locally**: Execute \`npm run typecheck\` to see all errors"
+              "3. **Check imports**: Verify all imports are correctly typed"
+              "4. **Update types**: Ensure @types packages are up to date"
+              "5. **Review recent changes**: Check if recent code changes introduced type errors"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#type-check-failed"
+            QUICK_FIX="Run \`npm run typecheck\` locally to see all type errors and fix them"
+            ;;
+            
+          build_failed)
+            TITLE="🏗️ Build Failed"
+            DESCRIPTION="The application build process failed. This may be due to compilation errors, missing dependencies, or configuration issues."
+            TROUBLESHOOTING=(
+              "1. **Check build logs**: Review the build output for specific errors"
+              "2. **Verify dependencies**: Ensure all dependencies are installed"
+              "3. **Check environment variables**: Verify required env vars are set"
+              "4. **Test locally**: Run \`npm run build\` locally to reproduce"
+              "5. **Review recent changes**: Check if recent code changes broke the build"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#build-failed"
+            QUICK_FIX="Try building locally: \`npm run build\` to see detailed error messages"
+            ;;
+            
+          config_error)
+            TITLE="⚙️ Configuration Error"
+            DESCRIPTION="A configuration file or setting is invalid or missing."
+            TROUBLESHOOTING=(
+              "1. **Check config file**: Verify .github/config/ci-config.yml exists and is valid YAML"
+              "2. **Validate syntax**: Ensure all required fields are present"
+              "3. **Check file paths**: Verify all referenced files exist"
+              "4. **Review documentation**: See docs/TROUBLESHOOTING.md for config requirements"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md#config-error"
+            QUICK_FIX="Validate YAML syntax: \`yamllint .github/config/ci-config.yml\`"
+            ;;
+            
+          *)
+            TITLE="❌ Unknown Error"
+            DESCRIPTION="An unexpected error occurred."
+            TROUBLESHOOTING=(
+              "1. **Review logs**: Check the full error output"
+              "2. **Check documentation**: See docs/TROUBLESHOOTING.md"
+              "3. **Contact support**: If the issue persists, create an issue"
+            )
+            DOCS_LINK="https://github.com/Roee-Bar/MentorMatch/blob/main/docs/TROUBLESHOOTING.md"
+            QUICK_FIX="Review the error logs for more details"
+            ;;
+        esac
+        
+        # Generate formatted error message
+        {
+          echo "## $TITLE"
+          echo ""
+          echo "$DESCRIPTION"
+          echo ""
+          if [ -n "$ERROR_CONTEXT" ]; then
+            echo "**Context:** $ERROR_CONTEXT"
+            echo ""
+          fi
+          if [ -n "$ERROR_DETAILS" ]; then
+            echo "**Error Details:**"
+            echo "\`\`\`"
+            echo "$ERROR_DETAILS" | head -20
+            echo "\`\`\`"
+            echo ""
+          fi
+          echo "### Troubleshooting Steps"
+          echo ""
+          for step in "${TROUBLESHOOTING[@]}"; do
+            echo "$step"
+          done
+          echo ""
+          echo "### Quick Fix"
+          echo ""
+          echo "$QUICK_FIX"
+          echo ""
+          echo "### Documentation"
+          echo ""
+          echo "For more details, see: [$DOCS_LINK]($DOCS_LINK)"
+        } >> $GITHUB_STEP_SUMMARY
+        
+        # Also output to console
+        echo "=========================================="
+        echo "$TITLE"
+        echo "=========================================="
+        echo "$DESCRIPTION"
+        echo ""
+        echo "See the job summary for troubleshooting steps and documentation links."
+

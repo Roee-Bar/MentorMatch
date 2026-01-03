@@ -160,12 +160,13 @@ runs:
           echo "=========================================="
           echo "Emulator startup failed. Full logs:"
           echo "=========================================="
+          ERROR_LOG=""
           if [ -f "emulator.log" ]; then
             # Sanitize log output to remove sensitive data
-            sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' emulator.log | \
+            ERROR_LOG=$(sed -E 's/(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)=[^[:space:]]*/&=[REDACTED]/gi' emulator.log | \
             sed -E 's/-----BEGIN[^-]*-----/-----BEGIN [REDACTED]-----/gi' | \
-            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi' || \
-            cat emulator.log
+            sed -E 's/-----END[^-]*-----/-----END [REDACTED]-----/gi')
+            echo "$ERROR_LOG"
           else
             echo "No emulator.log file found"
           fi
@@ -173,6 +174,12 @@ runs:
           echo "Process status:"
           ps aux | grep -E "[f]irebase|[j]ava" || echo "No firebase/java processes found"
           echo "=========================================="
+          
+          # Export error details for error handler
+          echo "EMULATOR_ERROR_LOG<<EOF" >> $GITHUB_ENV
+          echo "$ERROR_LOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
           exit 1
         }
         
@@ -409,6 +416,14 @@ runs:
         echo "✓ Emulator startup complete"
         echo "Emulator processes:"
         ps aux | grep -E "[f]irebase|[j]ava.*firebase" | head -5 || true
+
+    - name: Handle emulator startup error
+      if: failure() && inputs.action == 'start'
+      uses: ./.github/actions/error-handler
+      with:
+        error-type: 'emulator_startup_failed'
+        error-context: 'Firebase emulators failed to start after ${{ inputs.max-attempts }} attempts'
+        error-details: ${{ env.EMULATOR_ERROR_LOG || 'Check emulator.log for details' }}
 
     - name: Stop Firebase Emulators
       if: inputs.action == 'stop'

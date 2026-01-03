@@ -23,16 +23,19 @@ jobs:
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: ${{ env.TIMEOUTS_DEPLOY || 15 }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
-          node-version: '20'
+          node-version: ${{ env.VERSIONS_NODE || '20' }}
 
       - name: Set build environment variables
         uses: ./.github/actions/build-env-vars

@@ -11,6 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 # Shared environment variables
+# Note: These are defaults. Actual values are loaded from .github/config/ci-config.yml
+# by the load-ci-config action in each job
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '21'
@@ -21,16 +23,19 @@ jobs:
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: ${{ env.TIMEOUTS_LINT || 5 }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
 
       - name: Run ESLint
         run: npm run lint
@@ -45,16 +50,19 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ env.TIMEOUTS_BUILD || 10 }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
           install-deps: 'false'
 
       - name: Cache dependencies
@@ -85,7 +93,7 @@ jobs:
       - name: Set build environment variables
         uses: ./.github/actions/build-env-vars
         with:
-          project-id: ${{ env.PROJECT_ID }}
+          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
 
       - name: Type check
         run: npm run typecheck
@@ -105,32 +113,42 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Handle build failure
+        if: failure()
+        uses: ./.github/actions/error-handler
+        with:
+          error-type: 'build_failed'
+          error-context: 'Application build failed'
+
       - name: Build Summary
         if: always()
         uses: ./.github/actions/job-summary
         with:
           job-name: 'Build'
           status: ${{ job.status }}
+          cache-deps-hit: ${{ steps.cache-deps.outputs.cache-hit }}
+          cache-nextjs-hit: ${{ steps.cache-nextjs.outputs.cache-hit }}
+          cache-ts-hit: ${{ steps.cache-ts.outputs.cache-hit }}
           details: |
             - Type check: ✅ Passed
             - Build: ✅ Passed
-            - Cache hit (dependencies): ${{ steps.cache-deps.outputs.cache-hit == 'true' && '✅' || '❌' }}
-            - Cache hit (Next.js): ${{ steps.cache-nextjs.outputs.cache-hit == 'true' && '✅' || '❌' }}
-            - Cache hit (TypeScript): ${{ steps.cache-ts.outputs.cache-hit == 'true' && '✅' || '❌' }}
 
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ env.TIMEOUTS_SECURITY || 10 }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup Node.js
         uses: ./.github/actions/setup-node
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
@@ -173,7 +191,7 @@ jobs:
   e2e-setup:
     name: E2E Setup
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: ${{ env.TIMEOUTS_E2E_SETUP || 10 }}
     outputs:
       should_run: ${{ steps.check-e2e.outputs.should_run }}
     steps:
@@ -181,6 +199,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
 
       - name: Check if E2E tests should run
         id: check-e2e
@@ -214,9 +235,9 @@ jobs:
         if: steps.check-e2e.outputs.should_run == 'true'
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          java-version: ${{ env.JAVA_VERSION }}
-          java-distribution: 'temurin'
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
+          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
 
       - name: Setup Playwright browsers
         if: steps.check-e2e.outputs.should_run == 'true'
@@ -226,19 +247,22 @@ jobs:
     name: Fast E2E Tests
     needs: [lint, build, e2e-setup]
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: ${{ env.TIMEOUTS_FAST_E2E || 5 }}
     if: needs.e2e-setup.outputs.should_run == 'true'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          java-version: ${{ env.JAVA_VERSION }}
-          java-distribution: 'temurin'
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
+          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
@@ -271,16 +295,12 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
-      - name: Export environment variables for Playwright
-        shell: bash
-        run: |
-          echo "Ensuring all environment variables are available for Playwright webServer..."
-          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
-          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
-          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
-            echo "$line" >> $GITHUB_ENV || true
-          done
-          echo "✓ Environment variables exported"
+      - name: Setup Playwright environment variables
+        uses: ./.github/actions/setup-env-vars
+        with:
+          context: 'playwright'
+          project-id: ${{ env.PROJECT_ID }}
+          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
 
       - name: Health Check Services
         uses: ./.github/actions/health-check-services
@@ -291,7 +311,9 @@ jobs:
           echo "Running fast E2E tests (@fast and @smoke tags only)..."
           set -o pipefail
           # Use grep to filter tests - Playwright supports regex
-          npx playwright test --grep "(@fast|@smoke)" --timeout=300000 2>&1 | tee test-output.log
+          TEST_TAG_PATTERN="${{ env.TEST_TAGS_FAST || '(@fast|@smoke)' }}"
+          TEST_TIMEOUT="${{ env.TEST_PLAYWRIGHT_TIMEOUT_CI_MS || '300000' }}"
+          npx playwright test --grep "$TEST_TAG_PATTERN" --timeout=$TEST_TIMEOUT 2>&1 | tee test-output.log
           TEST_EXIT_CODE=${PIPESTATUS[0]}
           
           if [ $TEST_EXIT_CODE -ne 0 ]; then
@@ -344,7 +366,7 @@ jobs:
     name: E2E Test - ${{ matrix.suite }}
     needs: [lint, build, security, e2e-setup, load-matrix]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: ${{ env.TIMEOUTS_E2E || 15 }}
     if: needs.e2e-setup.outputs.should_run == 'true'
     strategy:
       fail-fast: false
@@ -354,12 +376,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          java-version: ${{ env.JAVA_VERSION }}
-          java-distribution: 'temurin'
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
+          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
@@ -402,6 +427,13 @@ jobs:
             exit 1
           fi
           echo "✓ TypeScript type check passed"
+
+      - name: Handle type check failure
+        if: failure()
+        uses: ./.github/actions/error-handler
+        with:
+          error-type: 'type_check_failed'
+          error-context: 'TypeScript type check failed before running E2E tests'
       
       - name: Verify Playwright can resolve imports
         shell: bash
@@ -429,30 +461,23 @@ jobs:
       - name: Set test environment variables
         uses: ./.github/actions/test-env-vars
         with:
-          project-id: ${{ env.PROJECT_ID }}
-          base-url: 'http://localhost:3000'
+          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
+          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
 
       - name: Start Firebase Emulators
         uses: ./.github/actions/firebase-emulators
         with:
           action: start
-          project-id: ${{ env.PROJECT_ID }}
-          max-attempts: '60'
-          emulator-ui-port: '4000'
+          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
+          max-attempts: ${{ env.TEST_EMULATORS_MAX_ATTEMPTS_FULL || '60' }}
+          emulator-ui-port: ${{ env.PORTS_EMULATOR_UI || '4000' }}
 
-      - name: Export environment variables for Playwright
-        shell: bash
-        run: |
-          echo "Ensuring all environment variables are available for Playwright webServer..."
-          # Explicitly export all Firebase-related environment variables
-          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
-          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
-          # Export all NEXT_PUBLIC_ variables that are already set
-          # Filter out any variables that might contain sensitive data (safety check)
-          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
-            echo "$line" >> $GITHUB_ENV || true
-          done
-          echo "✓ Environment variables exported"
+      - name: Setup Playwright environment variables
+        uses: ./.github/actions/setup-env-vars
+        with:
+          context: 'playwright'
+          project-id: ${{ env.PROJECT_ID || env.PROJECT_ID }}
+          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
 
       - name: Validate Playwright Config
         shell: bash
@@ -539,6 +564,7 @@ jobs:
           suite-name: ${{ matrix.suite }}
           shard: ${{ matrix.shard }}
           shards: ${{ matrix.shards }}
+          grep: ${{ matrix.grep }}
 
       - name: Analyze Test Results
         if: always()
@@ -584,7 +610,7 @@ jobs:
     needs: [e2e-setup, e2e-tests]
     runs-on: ubuntu-latest
     if: always() && needs.e2e-setup.outputs.should_run == 'true'
-    timeout-minutes: 5
+    timeout-minutes: ${{ env.TIMEOUTS_E2E_AGGREGATE || 5 }}
 
     steps:
       - name: Download all test results
@@ -608,18 +634,21 @@ jobs:
     needs: [e2e-setup, e2e-tests]
     runs-on: ubuntu-latest
     if: always() && needs.e2e-setup.outputs.should_run == 'true'
-    timeout-minutes: 10
+    timeout-minutes: ${{ env.TIMEOUTS_PERFORMANCE || 10 }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load CI Configuration
+        uses: ./.github/actions/load-ci-config
+
       - name: Setup test environment
         uses: ./.github/actions/setup-test-environment
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          java-version: ${{ env.JAVA_VERSION }}
-          java-distribution: 'temurin'
+          node-version: ${{ env.VERSIONS_NODE || env.NODE_VERSION }}
+          java-version: ${{ env.VERSIONS_JAVA || env.JAVA_VERSION }}
+          java-distribution: ${{ env.VERSIONS_JAVA_DISTRIBUTION || 'temurin' }}
 
       - name: Setup Playwright browsers
         uses: ./.github/actions/setup-playwright
@@ -651,14 +680,12 @@ jobs:
           max-attempts: '30'
           emulator-ui-port: '4000'
 
-      - name: Export environment variables for Playwright
-        shell: bash
-        run: |
-          echo "FIREBASE_AUTH_EMULATOR_HOST=$FIREBASE_AUTH_EMULATOR_HOST" >> $GITHUB_ENV
-          echo "FIRESTORE_EMULATOR_HOST=$FIRESTORE_EMULATOR_HOST" >> $GITHUB_ENV
-          env | grep "^NEXT_PUBLIC_" | grep -vE "(PRIVATE_KEY|SECRET|PASSWORD|CREDENTIAL|API_KEY|AUTH_TOKEN)" | while IFS= read -r line; do
-            echo "$line" >> $GITHUB_ENV || true
-          done
+      - name: Setup Playwright environment variables
+        uses: ./.github/actions/setup-env-vars
+        with:
+          context: 'playwright'
+          project-id: ${{ env.PROJECT_ID }}
+          base-url: ${{ env.PROJECT_TEST_BASE_URL || 'http://localhost:3000' }}
 
       - name: Health Check Services
         uses: ./.github/actions/health-check-services
@@ -692,7 +719,7 @@ jobs:
     needs: [lint, build, security, e2e-setup]
     runs-on: ubuntu-latest
     if: always()
-    timeout-minutes: 2
+    timeout-minutes: ${{ env.TIMEOUTS_CI_SUMMARY || 2 }}
 
     steps:
       - name: Generate Summary

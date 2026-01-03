@@ -1,5 +1,5 @@
 name: 'Build Environment Variables'
-description: 'Set up Firebase environment variables for builds'
+description: 'Set up Firebase environment variables for builds (DEPRECATED: Use setup-env-vars with context=build instead)'
 
 inputs:
   project-id:
@@ -30,22 +30,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set build environment variables
-      shell: bash
-      run: |
-        echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ inputs.project-id }}" >> $GITHUB_ENV
-        echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ inputs.api-key }}" >> $GITHUB_ENV
-        echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ inputs.auth-domain }}" >> $GITHUB_ENV
-        
-        # Use provided storage bucket or generate from project-id
-        # Handle empty string input properly
-        STORAGE_BUCKET="${{ inputs.storage-bucket }}"
-        if [ -z "$STORAGE_BUCKET" ] || [ "$STORAGE_BUCKET" == "" ]; then
-          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ inputs.project-id }}.appspot.com" >> $GITHUB_ENV
-        else
-          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$STORAGE_BUCKET" >> $GITHUB_ENV
-        fi
-        
-        echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ inputs.messaging-sender-id }}" >> $GITHUB_ENV
-        echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ inputs.app-id }}" >> $GITHUB_ENV
+    - name: Set build environment variables (using unified action)
+      uses: ./.github/actions/setup-env-vars
+      with:
+        context: 'build'
+        project-id: ${{ inputs.project-id }}
+        api-key: ${{ inputs.api-key }}
+        auth-domain: ${{ inputs.auth-domain }}
+        storage-bucket: ${{ inputs.storage-bucket }}
+        messaging-sender-id: ${{ inputs.messaging-sender-id }}
+        app-id: ${{ inputs.app-id }}
 
