@@ -38,32 +38,47 @@ export const PartnershipRequestService = {
     type: 'incoming' | 'outgoing' | 'all'
   ): Promise<StudentPartnershipRequest[]> {
     try {
+      if (type === 'all') {
+        // For 'all', query both incoming and outgoing requests separately
+        const [incomingSnapshot, outgoingSnapshot] = await Promise.all([
+          adminDb.collection('partnership_requests')
+            .where('status', '==', 'pending')
+            .where('targetStudentId', '==', studentId)
+            .get(),
+          adminDb.collection('partnership_requests')
+            .where('status', '==', 'pending')
+            .where('requesterId', '==', studentId)
+            .get()
+        ]);
+
+        // Merge and deduplicate by request ID
+        const requestMap = new Map<string, StudentPartnershipRequest>();
+        
+        incomingSnapshot.docs.forEach(doc => {
+          const request = toPartnershipRequest(doc.id, doc.data());
+          requestMap.set(request.id, request);
+        });
+        
+        outgoingSnapshot.docs.forEach(doc => {
+          const request = toPartnershipRequest(doc.id, doc.data());
+          requestMap.set(request.id, request);
+        });
+
+        return Array.from(requestMap.values());
+      }
+
+      // For 'incoming' or 'outgoing', use a single query
       let query = adminDb.collection('partnership_requests')
         .where('status', '==', 'pending');
 
       if (type === 'incoming') {
         query = query.where('targetStudentId', '==', studentId);
-      } else if (type === 'outgoing') {
+      } else {
         query = query.where('requesterId', '==', studentId);
       }
-      // For 'all', we need to do two queries and merge
       
       const snapshot = await query.get();
-      const requests = snapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
-
-      // If type is 'all', also fetch outgoing requests
-      if (type === 'all') {
-        const outgoingQuery = adminDb.collection('partnership_requests')
-          .where('status', '==', 'pending')
-          .where('requesterId', '==', studentId);
-        
-        const outgoingSnapshot = await outgoingQuery.get();
-        const outgoingRequests = outgoingSnapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
-
-        return [...requests, ...outgoingRequests];
-      }
-
-      return requests;
+      return snapshot.docs.map(doc => toPartnershipRequest(doc.id, doc.data()));
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getByStudent', error, { studentId, type });
       return [];

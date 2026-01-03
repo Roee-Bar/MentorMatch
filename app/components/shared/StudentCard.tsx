@@ -157,7 +157,7 @@ export default function StudentCard({
       </div>
 
       {/* Action Buttons */}
-      {showRequestButton && !isCurrentPartner && student.partnershipStatus === 'none' && (
+      {showRequestButton && !isCurrentPartner && student.partnershipStatus !== 'paired' && (
         <div className={cardActionsSection}>
           <button
             onClick={handleRequestPartnership}

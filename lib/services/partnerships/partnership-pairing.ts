@@ -18,12 +18,14 @@ const SERVICE_NAME = 'PartnershipPairingService';
 export const PartnershipPairingService = {
   /**
    * Get available students for partnership (not paired, excluding current user)
+   * Note: This method is less comprehensive than StudentService.getAvailablePartners
+   * which also filters out students with existing pending requests
    */
   async getAvailableStudents(currentUserId: string): Promise<Student[]> {
     try {
       const studentsRef = adminDb.collection('students');
       const snapshot = await studentsRef
-        .where('partnershipStatus', '==', 'none')
+        .where('partnershipStatus', '!=', 'paired')
         .get();
       
       return snapshot.docs
