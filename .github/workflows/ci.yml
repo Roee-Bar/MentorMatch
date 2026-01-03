@@ -55,6 +55,32 @@ jobs:
         uses: ./.github/actions/setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
+          install-deps: 'false'
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Install dependencies (if cache miss)
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: bash
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Cache TypeScript build info
+        uses: actions/cache@v4
+        id: cache-ts
+        with:
+          path: |
+            *.tsbuildinfo
+            .next/**/*.tsbuildinfo
+          key: ${{ runner.os }}-tsbuildinfo-${{ hashFiles('**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-tsbuildinfo-
 
       - name: Set build environment variables
         uses: ./.github/actions/build-env-vars
@@ -63,6 +89,16 @@ jobs:
 
       - name: Type check
         run: npm run typecheck
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        id: cache-nextjs
+        with:
+          path: |
+            .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
 
       - name: Build application
         run: npm run build
@@ -76,6 +112,9 @@ jobs:
           details: |
             - Type check: ✅ Passed
             - Build: ✅ Passed
+            - Cache hit (dependencies): ${{ steps.cache-deps.outputs.cache-hit == 'true' && '✅' || '❌' }}
+            - Cache hit (Next.js): ${{ steps.cache-nextjs.outputs.cache-hit == 'true' && '✅' || '❌' }}
+            - Cache hit (TypeScript): ${{ steps.cache-ts.outputs.cache-hit == 'true' && '✅' || '❌' }}
 
   security:
     name: Security Scanning
@@ -285,11 +324,17 @@ jobs:
       - name: Validate Playwright Config
         shell: bash
         run: |
+          set -o pipefail  # Make pipelines return the exit code of the first failing command
           echo "Validating Playwright configuration..."
           
           # Validate TypeScript config file syntax using the Playwright tsconfig
           echo "Checking config file TypeScript syntax..."
-          if ! npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | tee /tmp/tsc-output.log; then
+          set +e  # Don't exit on error immediately
+          npx tsc --project tsconfig.playwright.json --noEmit 2>&1 | tee /tmp/tsc-output.log
+          TSC_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+          
+          if [ $TSC_EXIT_CODE -ne 0 ]; then
             # Check if there are actual TypeScript errors (not just warnings)
             if grep -q "error TS" /tmp/tsc-output.log; then
               echo "ERROR: TypeScript errors in Playwright configuration"
@@ -298,8 +343,9 @@ jobs:
             else
               echo "⚠️ TypeScript check had warnings but no errors - continuing"
             fi
+          else
+            echo "✓ Config file TypeScript syntax is valid"
           fi
-          echo "✓ Config file TypeScript syntax is valid"
           
           # Try to list tests - this validates the config structure
           # Note: This may attempt to start webServer, so we handle errors gracefully
