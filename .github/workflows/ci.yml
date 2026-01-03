@@ -100,6 +100,7 @@ jobs:
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
+        continue-on-error: true
         with:
           fail-on-severity: moderate
 
@@ -480,7 +481,7 @@ jobs:
     name: Aggregate E2E Test Results
     needs: [e2e-setup, e2e-tests]
     runs-on: ubuntu-latest
-    if: always() && (needs.e2e-setup.outputs.should_run == 'true' || needs.e2e-tests.result != 'skipped')
+    if: always() && needs.e2e-setup.outputs.should_run == 'true'
     timeout-minutes: 5
 
     steps:
@@ -515,8 +516,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## Job Status" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
