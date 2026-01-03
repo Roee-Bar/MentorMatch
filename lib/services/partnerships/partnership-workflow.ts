@@ -88,16 +88,9 @@ export const PartnershipWorkflowService = {
         requestId = requestRef.id;
         transaction.set(requestRef, requestData);
 
-        // Update both students' partnership status
-        transaction.update(requesterRef, {
-          partnershipStatus: 'pending_sent',
-          updatedAt: new Date()
-        });
-
-        transaction.update(targetRef, {
-          partnershipStatus: 'pending_received',
-          updatedAt: new Date()
-        });
+        // Note: No longer updating partnershipStatus here
+        // Status is only set to 'paired' when request is accepted
+        // Pending request state is tracked in partnership_requests collection
       });
 
       return ServiceResults.success(requestId, 'Partnership request created successfully');
@@ -172,17 +165,36 @@ export const PartnershipWorkflowService = {
       // Update request status
       await PartnershipRequestService.updateStatus(requestId, 'cancelled');
 
-      // Reset both students' partnership status
-      await Promise.all([
-        adminDb.collection('students').doc(requesterId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        }),
-        adminDb.collection('students').doc(request.targetStudentId).update({
-          partnershipStatus: 'none',
-          updatedAt: new Date()
-        })
+      // Check for other pending requests before resetting status
+      const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
+        PartnershipRequestService.getByStudent(requesterId, 'outgoing'),
+        PartnershipRequestService.getByStudent(request.targetStudentId, 'incoming')
       ]);
+
+      // Only reset status to 'none' if no other pending requests exist
+      const updates: Promise<void>[] = [];
+      
+      if (requesterOtherRequests.length === 0) {
+        updates.push(
+          adminDb.collection('students').doc(requesterId).update({
+            partnershipStatus: 'none',
+            updatedAt: new Date()
+          })
+        );
+      }
+
+      if (targetOtherRequests.length === 0) {
+        updates.push(
+          adminDb.collection('students').doc(request.targetStudentId).update({
+            partnershipStatus: 'none',
+            updatedAt: new Date()
+          })
+        );
+      }
+
+      if (updates.length > 0) {
+        await Promise.all(updates);
+      }
 
       return ServiceResults.success(undefined, 'Partnership request cancelled');
     } catch (error) {
@@ -199,6 +211,7 @@ export const PartnershipWorkflowService = {
 
   /**
    * Validate that student has correct partnership status for operation
+   * Only blocks if student is already paired - allows multiple pending requests
    */
   _validatePartnershipStatus(
     studentData: FirebaseFirestore.DocumentData | undefined, 
@@ -206,23 +219,17 @@ export const PartnershipWorkflowService = {
   ): void {
     const status = studentData?.partnershipStatus;
     
-    if (status === 'none') return;
-    
-    if (role === 'requester') {
-      if (status === 'paired') {
+    // Only block if already paired - allow multiple pending requests
+    if (status === 'paired') {
+      if (role === 'requester') {
         throw new Error('You are already paired with another student');
-      } else if (status === 'pending_sent') {
-        throw new Error('You already have a pending outgoing request. Cancel it before sending another.');
       } else {
-        throw new Error('You cannot send a request at this time');
-      }
-    } else {
-      if (status === 'paired') {
         throw new Error('Target student is already paired');
-      } else {
-        throw new Error('Target student cannot receive requests at this time');
       }
     }
+    
+    // All other statuses (none, pending_sent, pending_received) are allowed
+    // Pending request state is now tracked in partnership_requests collection
   },
 
   /**
@@ -250,14 +257,13 @@ export const PartnershipWorkflowService = {
       const requesterData = requesterSnap.data();
       const targetData = targetSnap.data();
 
-      // Verify requester has correct status
-      if (requesterData?.partnershipStatus !== 'pending_sent') {
-        throw new Error('Requester is no longer in pending state');
+      // Verify both students are not already paired
+      if (requesterData?.partnershipStatus === 'paired') {
+        throw new Error('Requester is already paired with another student');
       }
 
-      // Verify target has correct status
-      if (targetData?.partnershipStatus !== 'pending_received') {
-        throw new Error('You are no longer in pending state');
+      if (targetData?.partnershipStatus === 'paired') {
+        throw new Error('You are already paired with another student');
       }
 
       // Update both students to paired
@@ -298,26 +304,44 @@ export const PartnershipWorkflowService = {
     // Use transaction to ensure atomic rejection
     await adminDb.runTransaction(async (transaction) => {
       const requestRef = adminDb.collection('partnership_requests').doc(requestId);
-      const requesterRef = adminDb.collection('students').doc(request.requesterId);
-      const targetRef = adminDb.collection('students').doc(targetStudentId);
 
       // Update request status
       transaction.update(requestRef, {
         status: 'rejected',
         respondedAt: new Date()
       });
-
-      // Reset both students' partnership status
-      transaction.update(requesterRef, {
-        partnershipStatus: 'none',
-        updatedAt: new Date()
-      });
-
-      transaction.update(targetRef, {
-        partnershipStatus: 'none',
-        updatedAt: new Date()
-      });
     });
+
+    // Check for other pending requests before resetting status (outside transaction)
+    const [requesterOtherRequests, targetOtherRequests] = await Promise.all([
+      PartnershipRequestService.getByStudent(request.requesterId, 'outgoing'),
+      PartnershipRequestService.getByStudent(targetStudentId, 'incoming')
+    ]);
+
+    // Only reset status to 'none' if no other pending requests exist
+    const updates: Promise<void>[] = [];
+    
+    if (requesterOtherRequests.length === 0) {
+      updates.push(
+        adminDb.collection('students').doc(request.requesterId).update({
+          partnershipStatus: 'none',
+          updatedAt: new Date()
+        })
+      );
+    }
+
+    if (targetOtherRequests.length === 0) {
+      updates.push(
+        adminDb.collection('students').doc(targetStudentId).update({
+          partnershipStatus: 'none',
+          updatedAt: new Date()
+        })
+      );
+    }
+
+    if (updates.length > 0) {
+      await Promise.all(updates);
+    }
 
     return ServiceResults.success(undefined, 'Partnership request rejected');
   },

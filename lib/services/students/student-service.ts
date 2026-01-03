@@ -6,6 +6,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { toStudent } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
+import { PartnershipRequestService } from '@/lib/services/partnerships/partnership-request-service';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student } from '@/types/database';
 
@@ -56,26 +57,35 @@ export const StudentService = {
   // Get available partners (students without partners, excluding current user)
   async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
     try {
-      // Query for students with available partnership statuses (none, pending_sent, pending_received)
-      // Excludes students with 'paired' status
+      // Query for students who are not paired (allows multiple pending requests)
       const querySnapshot = await adminDb.collection('students')
-        .where('partnershipStatus', 'in', ['none', 'pending_sent', 'pending_received'])
+        .where('partnershipStatus', '!=', 'paired')
         .get();
       
-      // Filter out the current user, deduplicate by student ID, and return
+      // Filter out the current user and students with existing pending requests
       const studentMap = new Map<string, Student>();
       
-      querySnapshot.docs
+      // Check for existing requests in parallel for all students
+      const students = querySnapshot.docs
         .filter(doc => doc.id !== excludeStudentId)
-        .forEach(doc => {
-          const student = toStudent(doc.id, doc.data());
-          // Use student ID as key to ensure uniqueness
-          if (!studentMap.has(student.id)) {
-            studentMap.set(student.id, student);
-          }
-        });
+        .map(doc => toStudent(doc.id, doc.data()));
       
-      return Array.from(studentMap.values());
+      // Filter out students who already have a pending request with the current user
+      const availableStudents: Student[] = [];
+      
+      for (const student of students) {
+        const existingCheck = await PartnershipRequestService.checkExistingRequest(
+          excludeStudentId,
+          student.id
+        );
+        
+        // Only include if no existing request (in either direction)
+        if (!existingCheck.exists) {
+          availableStudents.push(student);
+        }
+      }
+      
+      return availableStudents;
     } catch (error) {
       logger.service.error(SERVICE_NAME, 'getAvailablePartners', error, { excludeStudentId });
       return [];
