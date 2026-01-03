@@ -123,11 +123,13 @@ jobs:
         continue-on-error: true
         run: |
           echo "Checking for high severity vulnerabilities..."
-          npm audit --audit-level=high || {
+          if npm audit --audit-level=high; then
+            echo "✅ No high severity vulnerabilities found!"
+          else
             echo "⚠️ High severity vulnerabilities detected!"
             echo "Please review and update dependencies when possible."
-            exit 0
-          }
+            echo "Run 'npm audit' for details."
+          fi
 
       - name: Security Summary
         if: always()
