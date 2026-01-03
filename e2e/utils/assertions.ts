@@ -29,7 +29,8 @@ export async function expectErrorMessage(page: Page, message?: string): Promise<
   const errorElement = page.locator(errorSelector).first();
   
   // Wait for error element to be visible with a reasonable timeout
-  await expect(errorElement).toBeVisible({ timeout: 10000 });
+  // Use a shorter timeout to avoid hanging when browser validation prevents form submission
+  await expect(errorElement).toBeVisible({ timeout: 8000 });
   
   if (message) {
     await expect(errorElement).toContainText(message, { ignoreCase: true });

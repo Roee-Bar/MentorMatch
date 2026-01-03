@@ -46,6 +46,7 @@ test.describe('User Login', () => {
     await loginPage.login(email, 'WrongPassword123!');
 
     // Should show error message - wait for it with timeout
+    // Don't wait for navigation since login will fail
     await expectErrorMessage(page, undefined);
     const message = await loginPage.getMessage();
     expect(message.toLowerCase()).toMatch(/invalid|incorrect|error|password/i);
@@ -58,16 +59,31 @@ test.describe('User Login', () => {
     
     // Try to submit with empty email - browser validation may prevent this
     await loginPage.passwordInput.fill('TestPassword123!');
-    await loginPage.loginButton.click();
     
-    // Wait a bit for any validation or error to appear
-    await page.waitForTimeout(1000);
+    // Check if email field has required attribute (browser validation)
+    const emailRequired = await loginPage.emailInput.getAttribute('required');
     
-    // Browser validation should show error or prevent submission
-    // Check that we're still on login page or error is shown
-    const isOnLoginPage = page.url().includes('/login');
-    const hasError = await loginPage.isMessageVisible();
-    expect(isOnLoginPage || hasError).toBeTruthy();
+    if (emailRequired !== null) {
+      // Browser validation will prevent submission
+      await loginPage.loginButton.click();
+      
+      // Wait for browser validation message or check that form didn't submit
+      await page.waitForTimeout(500);
+      
+      // Should still be on login page (form didn't submit)
+      await expect(page).toHaveURL(/\/login/);
+    } else {
+      // If no browser validation, try to submit and check for error
+      await loginPage.loginButton.click();
+      
+      // Wait for either error message or stay on login page
+      try {
+        await expectErrorMessage(page, undefined);
+      } catch {
+        // If no error message, should still be on login page
+        await expect(page).toHaveURL(/\/login/);
+      }
+    }
   });
 
   test('should show error when password is empty', async ({ page }) => {
@@ -81,15 +97,31 @@ test.describe('User Login', () => {
     
     // Try to submit with empty password - browser validation may prevent this
     await loginPage.emailInput.fill(email);
-    await loginPage.loginButton.click();
     
-    // Wait a bit for any validation or error to appear
-    await page.waitForTimeout(1000);
-
-    // Browser validation should show error or prevent submission
-    const isOnLoginPage = page.url().includes('/login');
-    const hasError = await loginPage.isMessageVisible();
-    expect(isOnLoginPage || hasError).toBeTruthy();
+    // Check if password field has required attribute (browser validation)
+    const passwordRequired = await loginPage.passwordInput.getAttribute('required');
+    
+    if (passwordRequired !== null) {
+      // Browser validation will prevent submission
+      await loginPage.loginButton.click();
+      
+      // Wait for browser validation message or check that form didn't submit
+      await page.waitForTimeout(500);
+      
+      // Should still be on login page (form didn't submit)
+      await expect(page).toHaveURL(/\/login/);
+    } else {
+      // If no browser validation, try to submit and check for error
+      await loginPage.loginButton.click();
+      
+      // Wait for either error message or stay on login page
+      try {
+        await expectErrorMessage(page, undefined);
+      } catch {
+        // If no error message, should still be on login page
+        await expect(page).toHaveURL(/\/login/);
+      }
+    }
   });
 });
 

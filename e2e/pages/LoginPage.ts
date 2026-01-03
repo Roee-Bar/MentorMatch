@@ -40,15 +40,22 @@ export class LoginPage {
     await this.loginButton.click();
     
     // Wait for navigation or message with better error handling
+    // Use Promise.race with shorter timeouts to avoid hanging
     try {
       await Promise.race([
-        this.page.waitForURL(/\/(authenticated|$)/, { timeout: 10000 }),
+        this.page.waitForURL(/\/(authenticated|$)/, { timeout: 8000 }),
         this.message.waitFor({ state: 'visible', timeout: 5000 }),
       ]);
     } catch (error) {
-      // If neither navigation nor message appears, wait a bit more
-      // This handles cases where browser validation prevents submission
-      await this.page.waitForTimeout(1000);
+      // If neither navigation nor message appears within timeout,
+      // check if we're still on login page (browser validation may have prevented submission)
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes('/authenticated')) {
+        // Still on login page - form may not have submitted due to browser validation
+        // Don't throw error, let the test handle the assertion
+        return;
+      }
+      // If we navigated, that's fine - don't throw
     }
   }
 
