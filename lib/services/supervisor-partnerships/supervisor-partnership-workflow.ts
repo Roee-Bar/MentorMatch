@@ -6,7 +6,7 @@ import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
-import { ProjectService } from '@/lib/services/projects/project-service';
+import { projectService } from '@/lib/services/projects/project-service';
 import { SupervisorPartnershipRequestService } from './supervisor-partnership-request-service';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
@@ -41,7 +41,7 @@ export const SupervisorPartnershipWorkflowService = {
       const [requestingSupervisor, targetSupervisor, project] = await Promise.all([
         supervisorService.getSupervisorById(requestingSupervisorId),
         supervisorService.getSupervisorById(targetSupervisorId),
-        ProjectService.getProjectById(projectId)
+        projectService.getProjectById(projectId)
       ]);
 
       if (!requestingSupervisor || !targetSupervisor) {
@@ -196,7 +196,7 @@ export const SupervisorPartnershipWorkflowService = {
     try {
       // Get project and target supervisor to validate capacity
       const [project, targetSupervisor] = await Promise.all([
-        ProjectService.getProjectById(request.projectId),
+        projectService.getProjectById(request.projectId),
         supervisorService.getSupervisorById(targetSupervisorId)
       ]);
 
