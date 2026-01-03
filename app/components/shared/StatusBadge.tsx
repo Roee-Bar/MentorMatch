@@ -33,7 +33,7 @@ const badgeStyles = {
 
 interface StatusBadgeProps {
   status: string;
-  variant?: 'application' | 'availability' | 'partnership' | 'matchStatus' | 'custom';
+  variant?: 'application' | 'availability' | 'partnership' | 'matchStatus' | 'supervisorPartnership' | 'custom';
   customLabel?: string;
   customClassName?: string;
   className?: string;
@@ -76,6 +76,14 @@ export default function StatusBadge({
     unmatched: { style: badgeStyles.gray, label: 'Unmatched' },
   };
 
+  // Supervisor partnership status mappings
+  const supervisorPartnershipMappings = {
+    pending: { style: badgeStyles.warning, label: 'Pending' },
+    accepted: { style: badgeStyles.success, label: 'Accepted' },
+    rejected: { style: badgeStyles.info, label: 'Rejected' },
+    cancelled: { style: badgeStyles.info, label: 'Cancelled' },
+  };
+
   const getMappings = () => {
     switch (variant) {
       case 'application':
@@ -86,6 +94,8 @@ export default function StatusBadge({
         return partnershipMappings;
       case 'matchStatus':
         return matchStatusMappings;
+      case 'supervisorPartnership':
+        return supervisorPartnershipMappings;
       case 'custom':
         return {};
       default:

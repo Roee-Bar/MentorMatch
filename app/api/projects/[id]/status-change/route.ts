@@ -14,6 +14,7 @@ import { withAuth } from '@/lib/middleware/apiHandler';
 import { validateRequest, projectStatusChangeSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { adminDb } from '@/lib/firebase-admin';
+import { logger } from '@/lib/logger';
 import type { ProjectIdParams } from '@/types/api';
 
 export const POST = withAuth<ProjectIdParams>(
@@ -55,7 +56,7 @@ export const POST = withAuth<ProjectIdParams>(
       
       if (!cleanupResult.success) {
         // Log error but don't fail the request - status change succeeded
-        console.error('Failed to cleanup partnerships:', cleanupResult.error);
+        logger.service.error('ProjectStatusChange', 'cleanupPartnerships', cleanupResult.error, { projectId });
       }
     }
 

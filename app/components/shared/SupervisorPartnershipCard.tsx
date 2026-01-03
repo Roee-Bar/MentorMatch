@@ -22,7 +22,8 @@ import {
   textDescription,
   linkEmailWithTruncate,
   capacityAvailable,
-  capacityUnavailable
+  capacityUnavailable,
+  infoBoxGray
 } from '@/lib/styles/shared-styles';
 
 interface SupervisorPartnershipCardProps {
@@ -154,7 +155,7 @@ export default function SupervisorPartnershipCard({
       )}
 
       {!hasCapacity && (
-        <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-700 rounded-xl">
+        <div className={`mt-4 ${infoBoxGray}`}>
           <p className={`text-sm ${textMuted}`}>
             No available capacity
           </p>

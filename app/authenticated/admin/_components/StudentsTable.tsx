@@ -5,6 +5,7 @@ import type { Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
 import { formatFirestoreDate } from '@/lib/utils/date';
 import StatusBadge from '@/app/components/shared/StatusBadge';
+import { STUDENTS_TABLE_WIDTHS } from '../_utils/tableConfig';
 import { emptyStateContainer, sortableHeaderButton, linkEmail } from '@/lib/styles/shared-styles';
 
 interface StudentsTableProps {
@@ -39,7 +40,7 @@ export default function StudentsTable({
     <Table.Container>
       <Table.Header>
         <tr>
-          <Table.HeaderCell className="w-[20%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.name}>
             <button
               onClick={() => onSort('name')}
               className={sortableHeaderButton}
@@ -47,7 +48,7 @@ export default function StudentsTable({
               Name {getSortIcon('name')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[12%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.studentId}>
             <button
               onClick={() => onSort('studentId')}
               className={sortableHeaderButton}
@@ -55,7 +56,7 @@ export default function StudentsTable({
               Student ID {getSortIcon('studentId')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[25%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.email}>
             <button
               onClick={() => onSort('email')}
               className={sortableHeaderButton}
@@ -63,7 +64,7 @@ export default function StudentsTable({
               Email {getSortIcon('email')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[18%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.department}>
             <button
               onClick={() => onSort('department')}
               className={sortableHeaderButton}
@@ -71,7 +72,7 @@ export default function StudentsTable({
               Department {getSortIcon('department')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[12%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.status}>
             <button
               onClick={() => onSort('matchStatus')}
               className={sortableHeaderButton}
@@ -79,7 +80,7 @@ export default function StudentsTable({
               Status {getSortIcon('matchStatus')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell className="w-[13%]">
+          <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.registered}>
             <button
               onClick={() => onSort('registrationDate')}
               className={sortableHeaderButton}
@@ -92,18 +93,18 @@ export default function StudentsTable({
       <Table.Body>
         {data.map((student) => (
           <Table.Row key={student.id}>
-            <Table.Cell className="w-[20%]">{student.fullName}</Table.Cell>
-            <Table.Cell className="w-[12%]">{student.studentId}</Table.Cell>
-            <Table.Cell className="w-[25%]">
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.name}>{student.fullName}</Table.Cell>
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.studentId}>{student.studentId}</Table.Cell>
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.email}>
               <a href={`mailto:${student.email}`} className={linkEmail}>
                 {student.email}
               </a>
             </Table.Cell>
-            <Table.Cell className="w-[18%]">{student.department}</Table.Cell>
-            <Table.Cell className="w-[12%]">
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.department}>{student.department}</Table.Cell>
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.status}>
               <StatusBadge status={student.matchStatus} variant="matchStatus" />
             </Table.Cell>
-            <Table.Cell className="w-[13%]">{formatFirestoreDate(student.registrationDate)}</Table.Cell>
+            <Table.Cell className={STUDENTS_TABLE_WIDTHS.registered}>{formatFirestoreDate(student.registrationDate)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

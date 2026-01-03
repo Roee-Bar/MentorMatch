@@ -2,6 +2,8 @@
 // Component for displaying partnership requests (incoming/outgoing)
 
 import type { StudentPartnershipRequest } from '@/types/database';
+import { formatRelativeDate } from '@/lib/utils/date';
+import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
 import { 
   cardHover, 
   btnSuccess, 
@@ -45,39 +47,12 @@ export default function PartnershipRequestCard({
   const displayStudentId = isIncoming ? request.requesterStudentId : '';
   const displayDepartment = isIncoming ? request.requesterDepartment : request.targetDepartment;
 
-  const formatDate = (date: Date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
-    return d.toLocaleDateString();
-  };
-
-  const handleAccept = () => {
-    if (onAccept) {
-      onAccept(request.id);
-    }
-  };
-
-  const handleReject = () => {
-    if (onReject) {
-      onReject(request.id);
-    }
-  };
-
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel(request.id);
-    }
-  };
+  const { handleAccept, handleReject, handleCancel } = useRequestCardActions({
+    requestId: request.id,
+    onAccept,
+    onReject,
+    onCancel,
+  });
 
   return (
     <div className={`${cardHover} ${borderLeftAccentBlue}`}>
@@ -115,7 +90,7 @@ export default function PartnershipRequestCard({
         <div className={cardDetailRow}>
           <span className={textMuted}>Requested:</span>
           <span className={textValue}>
-            {formatDate(request.createdAt)}
+            {formatRelativeDate(request.createdAt)}
           </span>
         </div>
       </div>

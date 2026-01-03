@@ -2,14 +2,14 @@
 // Component for displaying supervisor partnership requests (incoming/outgoing)
 
 import type { SupervisorPartnershipRequest } from '@/types/database';
+import { formatRelativeDate } from '@/lib/utils/date';
+import { useRequestCardActions } from '@/lib/hooks/useRequestCardActions';
+import { useRequestCardStatus } from '@/lib/hooks/useRequestCardStatus';
 import { 
   cardHover, 
   btnSuccess, 
   btnSecondary, 
   btnDanger, 
-  badgeWarning,
-  badgeSuccess,
-  badgeInfo,
   cardHeader,
   cardDetailRow,
   textSecondary,
@@ -44,52 +44,18 @@ export default function SupervisorPartnershipRequestCard({
   const displayName = isIncoming ? request.requestingSupervisorName : request.targetSupervisorName;
   const projectTitle = request.projectTitle;
 
-  const formatDate = (date: Date) => {
-    const d = new Date(date);
-    const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const { handleAccept, handleReject, handleCancel } = useRequestCardActions({
+    requestId: request.id,
+    onAccept,
+    onReject,
+    onCancel,
+  });
 
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
-    return d.toLocaleDateString();
-  };
-
-  const getStatusBadge = () => {
-    if (request.status === 'accepted') {
-      return <span className={badgeSuccess}>Accepted</span>;
-    }
-    if (request.status === 'rejected') {
-      return <span className={badgeInfo}>Rejected</span>;
-    }
-    if (request.status === 'cancelled') {
-      return <span className={badgeInfo}>Cancelled</span>;
-    }
-    return <span className={badgeWarning}>{isIncoming ? 'Incoming' : 'Outgoing'}</span>;
-  };
-
-  const handleAccept = () => {
-    if (onAccept) {
-      onAccept(request.id);
-    }
-  };
-
-  const handleReject = () => {
-    if (onReject) {
-      onReject(request.id);
-    }
-  };
-
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel(request.id);
-    }
-  };
+  const { statusBadge } = useRequestCardStatus({
+    status: request.status,
+    type,
+    variant: 'supervisor',
+  });
 
   return (
     <div className={`${cardHover} ${borderLeftAccentBlue}`}>
@@ -100,7 +66,7 @@ export default function SupervisorPartnershipRequestCard({
             <h3 className={headingLg}>
               {displayName}
             </h3>
-            {getStatusBadge()}
+            {statusBadge}
           </div>
           <p className={`text-sm font-medium ${textSecondary} mb-1`}>Project: {projectTitle}</p>
         </div>
@@ -119,14 +85,14 @@ export default function SupervisorPartnershipRequestCard({
         <div className={cardDetailRow}>
           <span className={textMuted}>Requested:</span>
           <span className={textValue}>
-            {formatDate(request.createdAt)}
+            {formatRelativeDate(request.createdAt)}
           </span>
         </div>
         {request.respondedAt && (
           <div className={cardDetailRow}>
             <span className={textMuted}>Responded:</span>
             <span className={textValue}>
-              {formatDate(request.respondedAt)}
+              {formatRelativeDate(request.respondedAt)}
             </span>
           </div>
         )}
@@ -143,7 +109,7 @@ export default function SupervisorPartnershipRequestCard({
       </div>
 
       {/* Action Buttons */}
-      {request.status === 'pending' && isIncoming && onAccept && onReject && (
+      {request.status === 'pending' && isIncoming && (
         <div className="flex gap-2">
           <button
             onClick={handleAccept}
