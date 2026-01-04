@@ -9,7 +9,7 @@ import type { Student } from '@/types/database';
 import { waitForNetworkIdle, waitForAnimations } from '../../utils/test-stability';
 import { authenticatedRequest } from '../../utils/auth-helpers';
 
-test.describe('Supervisor - Applications @supervisor @regression', () => {
+test.describe('Supervisor - Applications @supervisor @smoke @regression', () => {
   let sharedStudent: { uid: string; student: Student } | undefined;
 
   test.beforeAll(async () => {

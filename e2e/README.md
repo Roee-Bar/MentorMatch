@@ -20,7 +20,6 @@ e2e/
 │   ├── auth/         # Authentication tests
 │   │   ├── login.spec.ts
 │   │   ├── register.spec.ts
-│   │   ├── logout.spec.ts
 │   │   └── protected-routes.spec.ts
 │   ├── student/      # Student flow tests
 │   │   ├── supervisors.spec.ts
@@ -28,10 +27,10 @@ e2e/
 │   │   └── partnerships.spec.ts
 │   ├── supervisor/   # Supervisor flow tests
 │   │   ├── applications.spec.ts
-│   │   └── capacity.spec.ts
+│   │   ├── partnerships.spec.ts
+│   │   └── projects.spec.ts
 │   └── admin/        # Admin flow tests
-│       ├── dashboard.spec.ts
-│       └── management.spec.ts
+│       └── dashboard.spec.ts
 └── utils/            # Test utilities
     ├── firebase-helpers.ts  # Firebase emulator utilities
     ├── test-helpers.ts      # General test helpers

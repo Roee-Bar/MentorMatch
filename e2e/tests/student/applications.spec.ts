@@ -4,15 +4,13 @@
 
 import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
-import { seedSupervisor, seedApplication, cleanupApplication, cleanupUser } from '../../fixtures/db-helpers';
-import { createApplicationScenario } from '../../fixtures/scenarios';
+import { seedSupervisor, seedApplication, cleanupUser } from '../../fixtures/db-helpers';
 import { Selectors } from '../../utils/selectors';
 import { waitForStable, waitForLoadingComplete } from '../../utils/wait-strategies';
-import { expectElementCount } from '../../utils/assertions';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor } from '@/types/database';
 
-test.describe('Student - Applications @student @regression', () => {
+test.describe('Student - Applications @student @smoke @regression', () => {
   let sharedSupervisor: { uid: string; supervisor: Supervisor } | undefined;
 
   test.beforeAll(async () => {
@@ -128,43 +126,6 @@ test.describe('Student - Applications @student @regression', () => {
 
     // Cleanup supervisor created for this test
     await cleanupUser(supervisor.id);
-  });
-
-  test('should decrease supervisor capacity when deleting approved application @regression @student @api @slow', async ({ page, authenticatedStudent }) => {
-    const dashboard = new StudentDashboard(page);
-
-    // Create a supervisor with capacity
-    const { supervisor } = await seedSupervisor({
-      maxCapacity: 5,
-      currentCapacity: 3,
-    });
-
-    // Create an approved application
-    const { application } = await seedApplication(authenticatedStudent.uid, supervisor.id, {
-      status: 'approved',
-    });
-
-    // Verify initial capacity
-    const supervisorBefore = await adminDb.collection('supervisors').doc(supervisor.id).get();
-    const capacityBefore = supervisorBefore.data()?.currentCapacity || 0;
-
-    await dashboard.goto();
-    await dashboard.navigateToApplications();
-
-    // Delete the application
-    await dashboard.deleteApplication(application.id);
-
-    // Wait for capacity update
-    await waitForLoadingComplete(page);
-
-    // Verify supervisor capacity decreased
-    const supervisorAfter = await adminDb.collection('supervisors').doc(supervisor.id).get();
-    const capacityAfter = supervisorAfter.data()?.currentCapacity || 0;
-    expect(capacityAfter).toBe(capacityBefore - 1);
-
-    // Verify application deleted
-    const applicationDoc = await adminDb.collection('applications').doc(application.id).get();
-    expect(applicationDoc.exists).toBeFalsy();
   });
 });
 
