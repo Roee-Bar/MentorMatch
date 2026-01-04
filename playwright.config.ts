@@ -31,7 +31,7 @@ export default defineConfig({
       ]
     : [
         ['html', { outputFolder: 'playwright-report', open: 'never' }],
-        ['list'],
+        process.env.PLAYWRIGHT_VERBOSE === 'true' ? ['list'] : ['dot'], // Use 'dot' for minimal output, 'list' for verbose
         ['json', { outputFile: 'test-results.json' }],
       ],
   
@@ -88,8 +88,8 @@ export default defineConfig({
       url: 'http://localhost:3000/api/health',
       reuseExistingServer: true,
       timeout: 120000,
-      stdout: 'pipe',
-      stderr: 'pipe',
+      stdout: 'ignore',
+      stderr: 'ignore',
       // Use environment variables from the workflow, with fallbacks
       env: {
         E2E_TEST: process.env.E2E_TEST || 'true',

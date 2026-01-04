@@ -14,6 +14,12 @@ async function globalSetup() {
     (process.env as { NODE_ENV?: string }).NODE_ENV = 'test';
   }
   
+  // CRITICAL: Set project ID FIRST before any Firebase Admin SDK initialization
+  // This prevents the Admin SDK from reading .firebaserc or Application Default Credentials
+  // The project ID MUST be 'demo-test' to match emulator configuration
+  process.env.FIREBASE_ADMIN_PROJECT_ID = 'demo-test';
+  process.env.GCLOUD_PROJECT = 'demo-test';
+  
   // Ensure Firebase emulator environment variables are set
   if (!process.env.FIREBASE_AUTH_EMULATOR_HOST) {
     process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
@@ -21,20 +27,17 @@ async function globalSetup() {
   if (!process.env.FIRESTORE_EMULATOR_HOST) {
     process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8081';
   }
-  if (!process.env.FIREBASE_ADMIN_PROJECT_ID) {
-    process.env.FIREBASE_ADMIN_PROJECT_ID = 'demo-test';
-  }
   
   // Force client SDK to use demo-test in test mode
   // This ensures both client and admin SDK use the same project ID
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'demo-test';
   process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'demo-test.appspot.com';
   
-  // Prevent Firebase Admin SDK from using Application Default Credentials
-  // This is important when running tests with emulators
-  process.env.GCLOUD_PROJECT = process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test';
-  
-  console.log('Global setup complete. Environment variables configured for emulator mode.');
+  if (process.env.PLAYWRIGHT_VERBOSE === 'true') {
+    console.log('Global setup complete. Environment variables configured for emulator mode.');
+    console.log('Project ID:', process.env.FIREBASE_ADMIN_PROJECT_ID);
+    console.log('GCLOUD_PROJECT:', process.env.GCLOUD_PROJECT);
+  }
 }
 
 export default globalSetup;

@@ -30,6 +30,7 @@
     "test:e2e:supervisor": "playwright test --grep '@supervisor'",
     "test:e2e:admin": "playwright test --grep '@admin'",
     "test:e2e:auth": "playwright test --grep '@auth'",
+    "test:e2e:verbose": "PLAYWRIGHT_VERBOSE=true playwright test",
     "emulators:start": "FIREBASE_EMULATOR_DEBUG_LOG=/dev/null _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' firebase emulators:start",
     "emulators:exec": "firebase emulators:exec --only auth,firestore"
   },

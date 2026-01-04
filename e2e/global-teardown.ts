@@ -12,7 +12,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 async function globalTeardown() {
-  console.log('Running global teardown...');
+  const verbose = process.env.PLAYWRIGHT_VERBOSE === 'true';
+  
+  if (verbose) {
+    console.log('Running global teardown...');
+  }
   
   // Verify test isolation - check for any leaked test data
   // This is a placeholder - in a real scenario, you might check the database
@@ -20,7 +24,7 @@ async function globalTeardown() {
   try {
     // Check if Firebase emulators are still running
     const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST;
-    if (emulatorHost) {
+    if (emulatorHost && verbose) {
       console.log(`Firestore emulator host: ${emulatorHost}`);
       // In a real implementation, you might query for test data here
       // and log warnings if any is found
@@ -34,7 +38,9 @@ async function globalTeardown() {
   try {
     // Placeholder for cleanup operations
     // In a real scenario, you might delete temporary test files here
-    console.log('Test artifacts cleanup completed');
+    if (verbose) {
+      console.log('Test artifacts cleanup completed');
+    }
   } catch (error) {
     console.warn('Error during test artifacts cleanup:', error);
   }
@@ -46,7 +52,9 @@ async function globalTeardown() {
     if (fs.existsSync(logPath)) {
       try {
         fs.unlinkSync(logPath);
-        console.log(`Cleaned up ${logFile}`);
+        if (verbose) {
+          console.log(`Cleaned up ${logFile}`);
+        }
       } catch (error) {
         console.warn(`Could not delete ${logFile}:`, error);
       }
@@ -54,11 +62,13 @@ async function globalTeardown() {
   });
   
   // Log test execution summary
-  console.log('Global teardown complete');
-  console.log('Test execution summary:');
-  console.log(`  - Environment: ${process.env.NODE_ENV || 'unknown'}`);
-  console.log(`  - E2E Test Mode: ${process.env.E2E_TEST || 'unknown'}`);
-  console.log(`  - CI Mode: ${process.env.CI || 'false'}`);
+  if (verbose) {
+    console.log('Global teardown complete');
+    console.log('Test execution summary:');
+    console.log(`  - Environment: ${process.env.NODE_ENV || 'unknown'}`);
+    console.log(`  - E2E Test Mode: ${process.env.E2E_TEST || 'unknown'}`);
+    console.log(`  - CI Mode: ${process.env.CI || 'false'}`);
+  }
 }
 
 export default globalTeardown;
