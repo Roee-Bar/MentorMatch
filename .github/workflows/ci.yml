@@ -135,30 +135,64 @@ jobs:
           echo "NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
           echo "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
           echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ env.PROJECT_ID }}.appspot.com" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test" >> $GITHUB_ENV
           echo "FIREBASE_ADMIN_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "GCLOUD_PROJECT=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_E2E_TEST=true" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_NODE_ENV=test" >> $GITHUB_ENV
 
       - name: Start Firebase Emulators
         run: |
           echo "::group::Starting Firebase Emulators"
-          _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' \
-          FIREBASE_EMULATOR_DEBUG_LOG=/dev/null \
-          npx firebase emulators:start --only auth,firestore > /tmp/firebase-emulator.log 2>&1 &
+          _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' FIREBASE_EMULATOR_DEBUG_LOG=/dev/null npx firebase emulators:start --only auth,firestore > /tmp/firebase-emulator.log 2>&1 &
+          EMULATOR_PID=$!
+          echo "Started emulators with PID: $EMULATOR_PID"
           echo "::endgroup::"
           
           echo "Waiting for emulators to be ready..."
-          timeout 120 bash -c 'until curl -f http://localhost:4000 > /dev/null 2>&1; do sleep 2; done' || {
-            echo "::error::Emulators failed to start within timeout"
+          
+          # Wait for Emulator UI (port 4000)
+          echo "Checking Emulator UI (port 4000)..."
+          timeout 60 bash -c 'until curl -f http://localhost:4000 > /dev/null 2>&1; do sleep 2; done' || {
+            echo "::error::Emulator UI failed to start within timeout"
             echo "::group::Firebase Emulator Logs"
             cat /tmp/firebase-emulator.log || true
             echo "::endgroup::"
+            pkill -f "firebase emulators" || true
             exit 1
           }
-          echo "✓ Emulators are ready!"
+          
+          # Wait for Auth Emulator (port 9099) - check for ready status
+          echo "Checking Auth Emulator (port 9099)..."
+          timeout 60 bash -c 'until curl -s http://localhost:9099 | grep -q "ready"; do sleep 2; done' || {
+            echo "::error::Auth Emulator failed to start within timeout"
+            echo "::group::Firebase Emulator Logs"
+            cat /tmp/firebase-emulator.log || true
+            echo "::endgroup::"
+            pkill -f "firebase emulators" || true
+            exit 1
+          }
+          
+          # Wait for Firestore Emulator (port 8081) - check for "Ok" response
+          echo "Checking Firestore Emulator (port 8081)..."
+          timeout 60 bash -c 'until curl -s http://localhost:8081 | grep -q "Ok"; do sleep 2; done' || {
+            echo "::error::Firestore Emulator failed to start within timeout"
+            echo "::group::Firebase Emulator Logs"
+            cat /tmp/firebase-emulator.log || true
+            echo "::endgroup::"
+            pkill -f "firebase emulators" || true
+            exit 1
+          }
+          
+          echo "✓ All emulators are ready!"
+          echo "  - Emulator UI: http://localhost:4000"
+          echo "  - Auth Emulator: http://localhost:9099"
+          echo "  - Firestore Emulator: http://localhost:8081"
 
       - name: Run E2E Tests
         run: npm run test:e2e
-        env:
-          CI: true
         continue-on-error: false
 
       - name: Stop Firebase Emulators

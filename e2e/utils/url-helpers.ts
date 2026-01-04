@@ -17,9 +17,10 @@ export async function waitForAnyURL(
 ): Promise<void> {
   const startTime = Date.now();
   const checkInterval = 200;
+  let currentUrl = '';
 
   while (Date.now() - startTime < timeout) {
-    const currentUrl = page.url();
+    currentUrl = page.url();
 
     for (const pattern of patterns) {
       let matches = false;

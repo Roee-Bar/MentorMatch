@@ -19,15 +19,28 @@ The E2E tests use Playwright and require Firebase emulators to be running. The t
 
 **Note:** The test suite has been condensed to focus on critical smoke tests (~7 tests) covering core functionality to reduce execution time.
 
+## ⚠️ CRITICAL: Next.js Server Must Use Test Environment Variables
+
+**IMPORTANT:** The Next.js dev server **MUST** be started with test environment variables to connect to Firebase emulators. Starting it with just `npm run dev` will cause it to use production Firebase settings, which will cause **ALL tests to fail**.
+
+**Always verify test mode before running tests:**
+```bash
+curl -s http://localhost:3000/api/health | jq .testMode
+# Must return: true
+```
+
+See Step 1b below for the correct command to start the server.
+
 ## Quick Start & Common Issues
 
 **Most Common Issues:**
 
-1. **Java not found** → See Step 0 below (add Java to PATH)
-2. **Ports already in use** → Emulators may already be running - verify with `curl http://localhost:4000`
-3. **Emulators not detected** → The setup script may not detect already-running emulators - verify manually
-4. **Next.js server not ready** → Start the dev server manually before running tests to avoid authentication timeouts
-5. **Authentication timeouts** → Ensure both emulators AND Next.js server are running and ready before tests
+1. **Server not in test mode (CRITICAL)** → Server must be started with test environment variables (see Step 1b)
+2. **Java not found** → See Step 0 below (add Java to PATH)
+3. **Ports already in use** → Emulators may already be running - verify with `curl http://localhost:4000`
+4. **Emulators not detected** → The setup script may not detect already-running emulators - verify manually
+5. **Next.js server not ready** → Start the dev server manually before running tests to avoid authentication timeouts
+6. **Authentication timeouts** → Ensure both emulators AND Next.js server are running and ready before tests
 
 **Quick Verification Commands:**
 
@@ -41,7 +54,8 @@ curl http://localhost:9099 && echo "✓ Auth Emulator running"
 curl http://localhost:8081 && echo "✓ Firestore Emulator running"
 
 # Check if Next.js server is running (CRITICAL for avoiding timeouts)
-curl http://localhost:3000/api/health && echo "✓ Next.js server running" || echo "✗ Next.js server NOT running - start it manually!"
+# Also verify it's in test mode (should show "testMode": true)
+curl -s http://localhost:3000/api/health | jq -r '.testMode // "unknown"' | grep -q "true" && echo "✓ Next.js server running in TEST MODE" || echo "✗ Next.js server NOT running or NOT in test mode - restart with test env vars!"
 ```
 
 If all checks pass, you can proceed directly to running tests (Step 2).
@@ -156,16 +170,45 @@ If all three commands return successfully, the emulators are ready for testing.
 
 **Important:** Keep this terminal window open and running. The emulators must remain active while running tests.
 
-### Step 1b: Start Next.js Dev Server (RECOMMENDED - Prevents Timeout Issues)
+### Step 1b: Start Next.js Dev Server with Test Environment Variables (CRITICAL)
 
-**CRITICAL:** To avoid authentication timeout errors and connection issues, start the Next.js dev server manually before running tests. While Playwright can start it automatically, starting it manually ensures it's fully ready before tests begin.
+**CRITICAL:** The Next.js dev server **MUST** be started with test environment variables to connect to Firebase emulators. Starting it with just `npm run dev` will cause it to use production Firebase settings, which will cause all tests to fail.
 
 **Open a second terminal window** (keep the emulators running in Terminal 1) and navigate to the project directory:
 
 ```bash
 cd /path/to/MentorMatch
+```
+
+**Start the server with test environment variables:**
+
+```bash
+E2E_TEST=true \
+NODE_ENV=test \
+FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
+FIRESTORE_EMULATOR_HOST=localhost:8081 \
+NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \
+NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081 \
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-test \
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=demo-test.appspot.com \
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 \
+NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test \
+FIREBASE_ADMIN_PROJECT_ID=demo-test \
+GCLOUD_PROJECT=demo-test \
+NEXT_PUBLIC_E2E_TEST=true \
+NEXT_PUBLIC_NODE_ENV=test \
 npm run dev
 ```
+
+**Alternative: Create a helper script** (recommended for convenience):
+
+You can create a file `scripts/dev-test.sh` with the above command, or add this to your `package.json`:
+
+```json
+"dev:test": "E2E_TEST=true NODE_ENV=test FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 FIRESTORE_EMULATOR_HOST=localhost:8081 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081 NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-test NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=demo-test.appspot.com NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test FIREBASE_ADMIN_PROJECT_ID=demo-test GCLOUD_PROJECT=demo-test NEXT_PUBLIC_E2E_TEST=true NEXT_PUBLIC_NODE_ENV=test next dev"
+```
+
+Then you can simply run: `npm run dev:test`
 
 **What to expect:**
 - The server will start compiling
@@ -176,22 +219,29 @@ npm run dev
 - **Wait at least 10-15 seconds** after seeing "Ready" before running tests
 - The server needs time to fully initialize and connect to Firebase emulators
 
-**Verify the server is ready:**
-Before running tests, verify the server is fully operational:
+**Verify the server is ready and in test mode:**
+Before running tests, verify the server is fully operational AND connected to emulators:
 
 ```bash
-# Check if the server responds (should return a response)
-curl http://localhost:3000/api/health
+# Check if the server responds and is in test mode (CRITICAL)
+curl -s http://localhost:3000/api/health | jq .
 
 # Check if the main page loads (should return HTML)
 curl http://localhost:3000 | head -5
 ```
 
 **Expected responses:**
-- Health endpoint: Should return a response (may be JSON or HTML)
+- Health endpoint: Should return JSON with:
+  - `"testMode": true` ← **CRITICAL: Must be true!**
+  - `"firebase.projectId": "demo-test"` ← **Must be demo-test, not production project ID**
+  - `"firebase.authEmulatorHost": "localhost:9099"`
+  - `"firebase.firestoreEmulatorHost": "localhost:8081"`
 - Main page: HTML content starting with `<!DOCTYPE html>` or similar
 
+**If `testMode` is `false` or missing:** The server is NOT using emulators. Stop it and restart with the test environment variables from above.
+
 **Why this is important:**
+- **CRITICAL:** Without test environment variables, the server connects to production Firebase instead of emulators, causing all tests to fail
 - Prevents "Authentication not complete within 20000ms" errors
 - Ensures the server is connected to Firebase emulators before tests run
 - Reduces flaky test failures due to timing issues
@@ -343,13 +393,14 @@ The Next.js dev server may not be ready when Playwright tries to start tests aut
    curl http://localhost:3000/api/health
    ```
 
-2. **If the server is not running, start it manually (RECOMMENDED):**
+2. **If the server is not running, start it manually with test environment variables (REQUIRED):**
    - Open a **separate terminal window** (Terminal 2)
    - Navigate to the project directory
-   - Run: `npm run dev`
+   - **CRITICAL:** Use the command from Step 1b with all test environment variables (see above)
+   - **DO NOT** use `npm run dev` alone - it will connect to production Firebase!
    - **Wait for the "Ready" message** (usually takes 10-30 seconds)
    - **Wait an additional 10-15 seconds** after "Ready" to ensure full initialization
-   - Verify it's accessible: `curl http://localhost:3000/api/health`
+   - Verify it's in test mode: `curl -s http://localhost:3000/api/health | jq .testMode` (should return `true`)
    - Then run tests in another terminal: `npm run test:e2e`
 
 3. **Verify the server is fully ready:**
@@ -363,7 +414,8 @@ The Next.js dev server may not be ready when Playwright tries to start tests aut
 
 4. **If tests still fail with authentication timeouts:**
    - Ensure Firebase emulators are running (Step 1a)
-   - Restart the Next.js dev server: Stop it (Ctrl+C) and start again (`npm run dev`)
+   - **CRITICAL:** Verify the server is in test mode: `curl -s http://localhost:3000/api/health | jq .testMode` (must be `true`)
+   - If `testMode` is `false`, stop the server (Ctrl+C) and restart with test environment variables (see Step 1b)
    - Wait longer after "Ready" message (30+ seconds)
    - Check server logs for connection errors to Firebase emulators
    - Verify emulator ports match your configuration (Auth: 9099, Firestore: 8081)
@@ -479,6 +531,64 @@ Error: Could not start Emulator UI, port taken.
    - Update environment variables in `e2e/config/env.ts` to match
    - This is rarely needed for normal development
 
+### Next.js Server Not Using Emulators (CRITICAL)
+
+**Problem:** Tests fail because the Next.js server is connected to production Firebase instead of emulators.
+
+**Symptoms:**
+- Health endpoint shows `"testMode": false` or missing `testMode` field
+- Health endpoint shows `"firebase.projectId": "mentormatch-ba0d1"` (production project) instead of `"demo-test"`
+- All authentication tests fail
+- API endpoints return errors or connect to production Firebase
+- Tests fail with errors like "User not found" or "Permission denied" even though users exist in emulators
+
+**Root Cause:**
+The Next.js dev server was started without test environment variables. By default, `npm run dev` uses production Firebase configuration, which prevents the server from connecting to emulators.
+
+**Solution:**
+
+1. **Check if server is in test mode:**
+   ```bash
+   curl -s http://localhost:3000/api/health | jq .testMode
+   ```
+   - Should return: `true`
+   - If it returns `false` or `null`, the server is NOT using emulators
+
+2. **Stop the current server:**
+   - Press `Ctrl+C` in the terminal where the server is running
+   - Or kill the process: `lsof -ti:3000 | xargs kill -9`
+
+3. **Restart with test environment variables:**
+   - Use the command from Step 1b (see above)
+   - **DO NOT** use `npm run dev` alone
+   - Wait for "Ready" message, then verify test mode:
+     ```bash
+     curl -s http://localhost:3000/api/health | jq .
+     ```
+   - Expected output should show:
+     ```json
+     {
+       "status": "ok",
+       "testMode": true,
+       "firebase": {
+         "projectId": "demo-test",
+         "authEmulatorHost": "localhost:9099",
+         "firestoreEmulatorHost": "localhost:8081"
+       }
+     }
+     ```
+
+4. **If testMode is still false after restart:**
+   - Check that all environment variables are set correctly
+   - Verify emulators are running (Step 1a)
+   - Check server logs for Firebase connection errors
+   - Ensure no `.env.local` or `.env` files are overriding test variables
+
+**Prevention:**
+- Always use the test environment variables command from Step 1b
+- Consider creating a `dev:test` npm script (see Step 1b for example)
+- Verify test mode before running tests: `curl -s http://localhost:3000/api/health | jq .testMode`
+
 ## Test Configuration
 
 The test configuration is in `playwright.config.ts`. Key settings:
@@ -493,13 +603,14 @@ The test configuration is in `playwright.config.ts`. Key settings:
 ## Best Practices
 
 1. **Start emulators first:** Always start Firebase emulators before running tests (Step 1a)
-2. **Start Next.js server manually:** Always start the dev server manually (Step 1b) before running tests to avoid authentication timeouts
-3. **Wait and verify:** Wait 10-15 seconds after starting each service and verify they're ready using the curl commands before running tests
-4. **Keep services running:** Start emulators and dev server once and keep them running while developing/running tests multiple times
-5. **Verify readiness:** Use the verification commands in Steps 1a and 1b to ensure all services are ready before running tests
-6. **Use UI mode for debugging:** Use `npm run test:e2e:ui` when debugging test failures
-7. **Run specific tests:** When working on a feature, run only relevant tests to save time
-8. **Check test reports:** After test runs, check the HTML report for detailed failure information
+2. **Start Next.js server with test env vars:** Always start the dev server with test environment variables (Step 1b) - **CRITICAL:** Never use `npm run dev` alone
+3. **Verify test mode:** Always verify the server is in test mode before running tests: `curl -s http://localhost:3000/api/health | jq .testMode` (must be `true`)
+4. **Wait and verify:** Wait 10-15 seconds after starting each service and verify they're ready using the curl commands before running tests
+5. **Keep services running:** Start emulators and dev server once and keep them running while developing/running tests multiple times
+6. **Verify readiness:** Use the verification commands in Steps 1a and 1b to ensure all services are ready AND in test mode before running tests
+7. **Use UI mode for debugging:** Use `npm run test:e2e:ui` when debugging test failures
+8. **Run specific tests:** When working on a feature, run only relevant tests to save time
+9. **Check test reports:** After test runs, check the HTML report for detailed failure information
 
 ## Viewing Test Results
 
@@ -540,15 +651,17 @@ During testing, the following setup was verified to work successfully:
    - **Workaround:** If emulators are already running and accessible, skip `npm run test:setup` and proceed directly to running tests
    - **Issue:** Authentication timeout errors ("Authentication not complete within 20000ms")
    - **Solution:** Start Next.js dev server manually before running tests (Step 1b) and wait for it to be fully ready
-   - **Prevention:** Always verify both emulators AND Next.js server are running before executing tests
+   - **Issue:** Server not using emulators (CRITICAL - causes all tests to fail)
+   - **Solution:** Server must be started with test environment variables (see Step 1b). Verify with: `curl -s http://localhost:3000/api/health | jq .testMode` (must be `true`)
+   - **Prevention:** Always verify both emulators AND Next.js server are running AND in test mode before executing tests
 
 **Recommended Workflow:**
 
 1. Check if emulators are already running (Step 1)
 2. If not running, ensure Java is in PATH (Step 0) and start emulators (Step 1a)
 3. Verify emulators are ready (verification commands in Step 1a)
-4. **Start Next.js dev server manually (Step 1b)** - This prevents authentication timeout errors
-5. Verify Next.js server is ready (verification commands in Step 1b)
+4. **Start Next.js dev server with test environment variables (Step 1b)** - **CRITICAL:** Must use test env vars, not just `npm run dev`
+5. Verify Next.js server is ready AND in test mode (verification commands in Step 1b) - **Must show `testMode: true`**
 6. Run tests (Step 2)
 
 ## Complete Workflow Example
@@ -566,12 +679,14 @@ npm run test:setup
 # Keep this terminal open
 ```
 
-**Terminal 2:** Start Next.js dev server manually (Step 1b) - **RECOMMENDED to prevent timeout issues:**
+**Terminal 2:** Start Next.js dev server with test environment variables (Step 1b) - **REQUIRED:**
 ```bash
 cd /path/to/MentorMatch
-npm run dev
+# CRITICAL: Use test environment variables (see Step 1b for full command)
+E2E_TEST=true NODE_ENV=test FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 FIRESTORE_EMULATOR_HOST=localhost:8081 NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081 NEXT_PUBLIC_FIREBASE_PROJECT_ID=demo-test NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=demo-test.appspot.com NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789 NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:test FIREBASE_ADMIN_PROJECT_ID=demo-test GCLOUD_PROJECT=demo-test NEXT_PUBLIC_E2E_TEST=true NEXT_PUBLIC_NODE_ENV=test npm run dev
 # Wait for "Ready" message, then wait additional 10-15 seconds
-# Verify: curl http://localhost:3000/api/health
+# Verify test mode: curl -s http://localhost:3000/api/health | jq .testMode
+# Should return: true
 # Keep this terminal open
 ```
 
