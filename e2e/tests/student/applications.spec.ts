@@ -34,7 +34,7 @@ test.describe('Student - Applications @student @smoke', () => {
     }
   });
 
-  test('should display student applications @smoke @student', async ({ page, authenticatedStudent }) => {
+  test('should display student applications @smoke @student @failing', async ({ page, authenticatedStudent }) => {
     if (!sharedSupervisor) {
       throw new Error('sharedSupervisor was not initialized in beforeAll');
     }

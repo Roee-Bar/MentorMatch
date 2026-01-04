@@ -8,7 +8,7 @@ import { seedSupervisor } from '../../fixtures/db-helpers';
 import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Student - Browse Supervisors @student @smoke', () => {
-  test('should display list of supervisors @smoke @fast', async ({ page, authenticatedStudent }) => {
+  test('should display list of supervisors @smoke @fast @failing', async ({ page, authenticatedStudent }) => {
     const dashboard = new StudentDashboard(page);
 
     // Create a test supervisor

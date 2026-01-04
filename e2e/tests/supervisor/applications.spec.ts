@@ -33,7 +33,7 @@ test.describe('Supervisor - Applications @supervisor @smoke', () => {
     }
   });
 
-  test('should display pending applications @smoke @fast', async ({ page, authenticatedSupervisor }) => {
+  test('should display pending applications @smoke @fast @failing', async ({ page, authenticatedSupervisor }) => {
     if (!sharedStudent) {
       throw new Error('sharedStudent was not initialized in beforeAll');
     }

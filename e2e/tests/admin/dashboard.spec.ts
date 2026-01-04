@@ -7,7 +7,7 @@ import { AdminDashboard } from '../../pages/AdminDashboard';
 import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Admin - Dashboard @admin @smoke', () => {
-  test('should display dashboard statistics @smoke @fast', async ({ page, authenticatedAdmin }) => {
+  test('should display dashboard statistics @smoke @fast @failing', async ({ page, authenticatedAdmin }) => {
     const dashboard = new AdminDashboard(page);
 
     await dashboard.goto();

@@ -9,7 +9,7 @@ import { seedStudent, seedAdmin } from '../../fixtures/db-helpers';
 import { adminAuth } from '@/lib/firebase-admin';
 
 test.describe('User Profile API Verification', () => {
-  test('should fetch user profile via API with valid token', async ({ page }) => {
+  test('should fetch user profile via API with valid token @failing', async ({ page }) => {
     // Seed a student in test process (for reference)
     const { student } = await seedStudent();
     
@@ -60,7 +60,7 @@ test.describe('User Profile API Verification', () => {
     expect(data.data.role).toBe('student');
   });
 
-  test('should fail with invalid token', async ({ page }) => {
+  test('should fail with invalid token @failing', async ({ page }) => {
     const { uid } = await seedStudent();
     
     // Make API call with invalid token
@@ -74,7 +74,7 @@ test.describe('User Profile API Verification', () => {
     expect(response.status()).toBe(401);
   });
 
-  test('should fail without token', async ({ page }) => {
+  test('should fail without token @failing', async ({ page }) => {
     const { uid } = await seedStudent();
     
     // Make API call without token
@@ -87,7 +87,7 @@ test.describe('User Profile API Verification', () => {
     expect(response.status()).toBe(401);
   });
 
-  test('should allow admin to fetch any user profile', async ({ page }) => {
+  test('should allow admin to fetch any user profile @failing', async ({ page }) => {
     // Seed an admin and a student in test process (for reference)
     const { admin } = await seedAdmin();
     const { student } = await seedStudent();

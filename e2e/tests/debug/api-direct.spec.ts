@@ -7,7 +7,7 @@ import { seedStudent } from '../../fixtures/db-helpers';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 
 test.describe('Direct API Test', () => {
-  test('should verify test database is accessible from API context', async ({ page }) => {
+  test('should verify test database is accessible from API context @failing', async ({ page }) => {
     // Seed a student in test process (for reference)
     const { student } = await seedStudent();
     

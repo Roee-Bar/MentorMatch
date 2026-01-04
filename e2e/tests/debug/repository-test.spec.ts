@@ -7,7 +7,7 @@ import { seedStudent } from '../../fixtures/db-helpers';
 import { userRepository } from '@/lib/repositories/user-repository';
 
 test.describe('Repository Test', () => {
-  test('should find user by id using repository', async () => {
+  test('should find user by id using repository @passed', async () => {
     // Seed a student
     const { uid, student } = await seedStudent();
     

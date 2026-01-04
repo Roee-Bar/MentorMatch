@@ -9,7 +9,7 @@ import { verifyAuth } from '@/lib/middleware/auth';
 import { NextRequest } from 'next/server';
 
 test.describe('Auth Middleware Test', () => {
-  test('should verify auth with valid token', async () => {
+  test('should verify auth with valid token @passed', async () => {
     // Seed a student
     const { uid, student } = await seedStudent();
     

@@ -10,7 +10,7 @@ import { seedStudent } from '../../fixtures/db-helpers';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 test.describe('Test Database Verification', () => {
-  test('should create and retrieve user from test database', async () => {
+  test('should create and retrieve user from test database @passed', async () => {
     // Seed a student
     const { uid, student } = await seedStudent();
     
@@ -37,7 +37,7 @@ test.describe('Test Database Verification', () => {
     expect(studentData?.email).toBe(student.email);
   });
 
-  test('should create custom token and verify it', async () => {
+  test('should create custom token and verify it @passed', async () => {
     // Seed a student
     const { uid } = await seedStudent();
     
@@ -52,7 +52,7 @@ test.describe('Test Database Verification', () => {
     expect(decodedToken.uid).toBe(uid);
   });
 
-  test('should query users collection', async () => {
+  test('should query users collection @passed', async () => {
     // Seed multiple students
     const { uid: uid1 } = await seedStudent({ email: 'test1@example.com' });
     const { uid: uid2 } = await seedStudent({ email: 'test2@example.com' });

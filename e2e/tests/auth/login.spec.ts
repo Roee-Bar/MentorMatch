@@ -6,7 +6,7 @@ import { test, expect } from '../../fixtures/auth';
 import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('User Login @auth @smoke @critical', () => {
-  test('should successfully authenticate and access student dashboard @smoke @critical @fast', async ({ page, authenticatedStudent }) => {
+  test('should successfully authenticate and access student dashboard @smoke @critical @fast @failing', async ({ page, authenticatedStudent }) => {
     // Auth fixture already handles authentication
     // Verify we're on the student dashboard
     await expect(page).toHaveURL(/\/authenticated\/student/);

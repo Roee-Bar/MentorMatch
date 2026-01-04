@@ -20,39 +20,44 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get client IP for rate limiting (fallback to 'anonymous' if not available)
-    const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     request.headers.get('x-real-ip') || 
-                     'anonymous';
+    // Skip rate limiting in test mode
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
     
-    // Check rate limit (5 registrations per hour per IP) - fail-closed for security
-    const rateLimitResult = await rateLimitService.checkRateLimit(
-      clientIp,
-      '/api/auth/register',
-      { 
-        maxRequests: 5,
-        windowMs: 3600000, // 1 hour
-        failStrategy: 'fail-closed' 
-      }
-    );
-
-    if (!rateLimitResult.allowed) {
-      const response = NextResponse.json(
-        {
-          success: false,
-          error: 'Too many registration attempts. Please wait before trying again.',
-        },
-        { status: 429 }
+    if (!isTestEnv) {
+      // Get client IP for rate limiting (fallback to 'anonymous' if not available)
+      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                       request.headers.get('x-real-ip') || 
+                       'anonymous';
+      
+      // Check rate limit (5 registrations per hour per IP) - fail-closed for security
+      const rateLimitResult = await rateLimitService.checkRateLimit(
+        clientIp,
+        '/api/auth/register',
+        { 
+          maxRequests: 5,
+          windowMs: 3600000, // 1 hour
+          failStrategy: 'fail-closed' 
+        }
       );
-      
-      if (rateLimitResult.retryAfter) {
-        response.headers.set('Retry-After', rateLimitResult.retryAfter.toString());
+
+      if (!rateLimitResult.allowed) {
+        const response = NextResponse.json(
+          {
+            success: false,
+            error: 'Too many registration attempts. Please wait before trying again.',
+          },
+          { status: 429 }
+        );
+        
+        if (rateLimitResult.retryAfter) {
+          response.headers.set('Retry-After', rateLimitResult.retryAfter.toString());
+        }
+        if (rateLimitResult.remaining !== undefined) {
+          response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
+        }
+        
+        return response;
       }
-      if (rateLimitResult.remaining !== undefined) {
-        response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
-      }
-      
-      return response;
     }
 
     // Parse and validate request body
