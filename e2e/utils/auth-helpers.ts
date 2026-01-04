@@ -60,19 +60,34 @@ export async function verifyAuthenticationComplete(
   }
 
   // Get current auth state for better error message
-  const authState = await page.evaluate(async () => {
+  const authState = await page.evaluate(() => {
     try {
-      const { auth } = await import('@/lib/firebase');
+      // Check localStorage for auth state (don't try to import Firebase)
+      const authKeys = Object.keys(window.localStorage).filter(key => 
+        key.startsWith('firebase:authUser:')
+      );
+      if (authKeys.length > 0) {
+        const authKey = authKeys[0];
+        const authState = JSON.parse(window.localStorage.getItem(authKey) || '{}');
+        return {
+          authAvailable: true,
+          currentUser: !!authState.uid,
+          currentUserId: authState.uid || null,
+          hasToken: !!authState.stsTokenManager?.accessToken,
+        };
+      }
       return {
-        authAvailable: !!auth,
-        currentUser: auth?.currentUser !== null,
-        currentUserId: auth?.currentUser?.uid || null,
+        authAvailable: false,
+        currentUser: false,
+        currentUserId: null,
+        hasToken: false,
       };
     } catch (error: any) {
       return {
         authAvailable: false,
         currentUser: false,
         currentUserId: null,
+        hasToken: false,
         error: error?.message || 'Unknown error',
       };
     }
@@ -80,6 +95,7 @@ export async function verifyAuthenticationComplete(
     authAvailable: false,
     currentUser: false,
     currentUserId: null,
+    hasToken: false,
     error: 'Failed to check auth state',
   }));
 
@@ -149,92 +165,19 @@ export async function ensureAuthenticated(
  */
 export async function getAuthToken(page: Page): Promise<string | null> {
   try {
-    // Access the Firebase auth instance from the app's module
-    // The app uses modular SDK, so we import it directly in the browser context
-    const token = await page.evaluate(async () => {
+    // Get token from localStorage (where Firebase stores it)
+    // The app's Firebase SDK should have synced the auth state by now
+    const token = await page.evaluate(() => {
       try {
-        // Import Firebase auth from the app's module
-        // We need to use dynamic import to access the module
-        // The app exports auth from '@/lib/firebase'
-        
-        // First, check if auth state exists in localStorage
-        const projectId = 'demo-test'; // Test project ID
+        const projectId = 'demo-test';
         const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
         const authStateStr = window.localStorage.getItem(authKey);
         
-        if (!authStateStr) {
-          // No auth state found
-          return null;
-        }
-        
-        try {
+        if (authStateStr) {
           const authState = JSON.parse(authStateStr);
-          const accessToken = authState?.stsTokenManager?.accessToken;
-          
-          if (accessToken) {
-            // We have the access token (ID token) directly from localStorage
-            return accessToken;
-          }
-        } catch (e) {
-          // Failed to parse auth state
+          // Return the ID token (accessToken in Firebase's format)
+          return authState?.stsTokenManager?.accessToken || null;
         }
-        
-        // If we don't have the token in localStorage, try to get it from Firebase SDK
-        // We need to access the auth instance from the app
-        // Since we can't directly import from '@/lib/firebase', we'll use a workaround
-        
-        // Try to access auth via window if the app exposes it
-        const windowAuth = (window as any).__FIREBASE_AUTH__;
-        if (windowAuth) {
-          const currentUser = windowAuth.currentUser;
-          if (currentUser) {
-            try {
-              return await currentUser.getIdToken();
-            } catch (e) {
-              // Token refresh failed
-            }
-          }
-        }
-        
-        // Last resort: try to dynamically import and use Firebase auth
-        // This requires the app to be loaded and Firebase initialized
-        try {
-          // Wait a bit for Firebase to initialize
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          // Try to get auth instance from Firebase app
-          // We'll use the Firebase SDK directly if available
-          const { getAuth } = await import('firebase/auth');
-          const { getApps, initializeApp } = await import('firebase/app');
-          
-          // Get or initialize the app
-          const apps = getApps();
-          let app;
-          if (apps.length > 0) {
-            app = apps[0];
-          } else {
-            // Initialize with test config
-            app = initializeApp({
-              apiKey: 'test-api-key',
-              authDomain: 'localhost',
-              projectId: 'demo-test',
-              storageBucket: 'demo-test.appspot.com',
-              messagingSenderId: '123456789',
-              appId: '1:123456789:web:test'
-            });
-          }
-          
-          const auth = getAuth(app);
-          const currentUser = auth.currentUser;
-          
-          if (currentUser) {
-            return await currentUser.getIdToken();
-          }
-        } catch (e) {
-          // Failed to import or use Firebase SDK
-          console.warn('Failed to get token via Firebase SDK:', e);
-        }
-        
         return null;
       } catch (error) {
         console.error('Error in getAuthToken evaluate:', error);
@@ -247,16 +190,15 @@ export async function getAuthToken(page: Page): Promise<string | null> {
       return token;
     }
     
-    // Wait a bit and try again (sometimes Firebase needs time to initialize)
+    // Wait a bit and retry (sometimes Firebase needs time to sync)
     await page.waitForTimeout(1000);
     
-    // Retry: get token from localStorage directly
-    const retryToken = await page.evaluate(async () => {
+    // Retry once more
+    const retryToken = await page.evaluate(() => {
       try {
         const projectId = 'demo-test';
         const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
         const authStateStr = window.localStorage.getItem(authKey);
-        
         if (authStateStr) {
           const authState = JSON.parse(authStateStr);
           return authState?.stsTokenManager?.accessToken || null;
