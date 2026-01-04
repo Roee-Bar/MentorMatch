@@ -1,34 +1,30 @@
 'use client';
 
-import { useState } from 'react';
-import { useStudentDashboard, useApplicationActions, useModalScroll } from '@/lib/hooks';
+import { useState, useEffect } from 'react';
+import { usePartnershipActions } from '@/lib/hooks';
 import { useBrowseEntities, type ApiResponse } from '@/lib/hooks/useBrowseEntities';
 import { apiClient } from '@/lib/api/client';
 import { ROUTES } from '@/lib/routes';
-import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import ApplicationModal from '../../_components/ApplicationModal';
+import StudentCard from '@/app/components/shared/StudentCard';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
-import SupervisorFilters, { FilterValues } from './SupervisorFilters';
-import type { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
+import StudentFilters, { FilterValues } from './StudentFilters';
+import type { Student } from '@/types/database';
 import { textTertiary, textMuted } from '@/lib/styles/shared-styles';
 
-export default function BrowseSupervisorsClient() {
+export default function BrowseStudentsClient() {
   // UI states
-  const [showApplicationModal, setShowApplicationModal] = useState(false);
-  const [selectedSupervisor, setSelectedSupervisor] = useState<SupervisorCardData | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch function for supervisors
-  const fetchSupervisors = async (filters: FilterValues, token: string): Promise<ApiResponse<SupervisorCardData>> => {
-    const response = await apiClient.getSupervisors(token, {
+  // Fetch function for students
+  const fetchStudents = async (filters: FilterValues, token: string): Promise<ApiResponse<Student>> => {
+    const response = await apiClient.getAvailablePartners(token, {
       search: filters.search || undefined,
       department: filters.department !== 'all' ? filters.department : undefined,
-      availability: filters.availability !== 'all' ? filters.availability : undefined,
-      expertise: filters.expertise || undefined,
+      skills: filters.skills || undefined,
       interests: filters.interests || undefined,
     });
     return response;
@@ -38,8 +34,7 @@ export default function BrowseSupervisorsClient() {
   const filterToParams = (filters: FilterValues) => ({
     search: filters.search || undefined,
     department: filters.department !== 'all' ? filters.department : undefined,
-    availability: filters.availability !== 'all' ? filters.availability : undefined,
-    expertise: filters.expertise || undefined,
+    skills: filters.skills || undefined,
     interests: filters.interests || undefined,
   });
 
@@ -47,15 +42,14 @@ export default function BrowseSupervisorsClient() {
   const paramsToFilters = (searchParams: URLSearchParams): FilterValues => ({
     search: searchParams.get('search') || '',
     department: searchParams.get('department') || 'all',
-    availability: searchParams.get('availability') || 'all',
-    expertise: searchParams.get('expertise') || '',
+    skills: searchParams.get('skills') || '',
     interests: searchParams.get('interests') || '',
   });
 
   // Use browse entities hook
   const {
-    entities: supervisors,
-    displayedEntities: displayedSupervisors,
+    entities: students,
+    displayedEntities: displayedStudents,
     loading,
     loadingMore,
     error,
@@ -65,27 +59,22 @@ export default function BrowseSupervisorsClient() {
     setLoadMoreRef,
     isAuthLoading,
     userId,
-  } = useBrowseEntities<FilterValues, SupervisorCardData>({
-    fetchFn: fetchSupervisors,
+  } = useBrowseEntities<FilterValues, Student>({
+    fetchFn: fetchStudents,
     initialFilters: {
       search: '',
       department: 'all',
-      availability: 'all',
-      expertise: '',
+      skills: '',
       interests: '',
     },
-    route: ROUTES.AUTHENTICATED.STUDENT_SUPERVISORS,
+    route: ROUTES.AUTHENTICATED.STUDENT_STUDENTS,
     expectedRole: 'student',
     filterToParams,
     paramsToFilters,
   });
 
-  // Get student profile for ApplicationModal
-  const { data: dashboardData } = useStudentDashboard(userId);
-  const userProfile = dashboardData?.profile || null;
-
-  // Application actions
-  const applicationActions = useApplicationActions({
+  // Partnership actions
+  const partnershipActions = usePartnershipActions({
     userId,
     onRefresh: () => {
       // Trigger refetch by updating filters (hook will handle the fetch)
@@ -100,35 +89,6 @@ export default function BrowseSupervisorsClient() {
       setTimeout(() => {}, 5000); 
     }
   });
-
-  // Handle apply button click
-  const handleApply = (supervisorId: string) => {
-    const supervisor = supervisors.find(s => s.id === supervisorId);
-    if (supervisor) {
-      setSelectedSupervisor(supervisor);
-      setShowApplicationModal(true);
-    }
-  };
-
-  // Handle application submission
-  const handleSubmitApplication = async (applicationData: ApplicationSubmitData) => {
-    if (!selectedSupervisor?.id) {
-      return;
-    }
-
-    try {
-      await applicationActions.submitApplication({
-        ...applicationData,
-        supervisorId: selectedSupervisor.id,
-      });
-      setShowApplicationModal(false);
-    } catch {
-      // Error handled by applicationActions hook
-    }
-  };
-
-  // Scroll to modal when it opens
-  useModalScroll({ isOpen: showApplicationModal });
 
   if (isAuthLoading) {
     return <LoadingSpinner message="Loading..." />;
@@ -154,47 +114,47 @@ export default function BrowseSupervisorsClient() {
 
       {/* Header */}
       <PageHeader
-        title="Browse Supervisors"
-        description="Find and apply to supervisors for your final project"
+        title="Browse Students"
+        description="Find potential partners for your final project"
       />
 
       {/* Filters */}
-      <SupervisorFilters
+      <StudentFilters
         filters={filters as FilterValues}
         onFilterChange={handleFilterChange}
-        resultCount={supervisors.length}
+        resultCount={students.length}
       />
 
       {/* Loading State */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <LoadingSpinner message="Loading supervisors..." />
+          <LoadingSpinner message="Loading students..." />
         </div>
-      ) : displayedSupervisors.length === 0 ? (
+      ) : displayedStudents.length === 0 ? (
         /* Empty State */
         <EmptyState
-          message="No supervisors match your criteria"
+          message="No students match your criteria"
           action={{
             label: 'Clear Filters',
             onClick: () => handleFilterChange({
               search: '',
               department: 'all',
-              availability: 'all',
-              expertise: '',
+              skills: '',
               interests: '',
             })
           }}
         />
       ) : (
-        /* Supervisors Grid */
+        /* Students Grid */
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {displayedSupervisors.map((supervisor) => (
-              <SupervisorCard
-                key={supervisor.id}
-                supervisor={supervisor}
-                onApply={handleApply}
-                showApplyButton={supervisor.availabilityStatus !== 'unavailable'}
+            {displayedStudents.map((student) => (
+              <StudentCard
+                key={student.id}
+                student={student}
+                onRequestPartnership={partnershipActions.requestPartnership}
+                showRequestButton={true}
+                isLoading={partnershipActions.isLoading(`partnership-${student.id}`)}
               />
             ))}
           </div>
@@ -214,23 +174,12 @@ export default function BrowseSupervisorsClient() {
           )}
 
           {/* End of List */}
-          {!hasMore && displayedSupervisors.length > 0 && (
+          {!hasMore && displayedStudents.length > 0 && (
             <div className={`text-center py-8 ${textMuted} text-sm`}>
-              Showing all {supervisors.length} supervisor{supervisors.length !== 1 ? 's' : ''}
+              Showing all {students.length} student{students.length !== 1 ? 's' : ''}
             </div>
           )}
         </>
-      )}
-
-      {/* Application Modal */}
-      {showApplicationModal && selectedSupervisor && (
-        <ApplicationModal
-          isOpen={showApplicationModal}
-          onClose={() => setShowApplicationModal(false)}
-          supervisor={selectedSupervisor}
-          studentProfile={userProfile}
-          onSubmit={handleSubmitApplication}
-        />
       )}
     </PageLayout>
   );

@@ -7,8 +7,14 @@ import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
 import { toStudent } from '@/lib/services/shared/firestore-converters';
 import { PartnershipRequestService } from '@/lib/services/partnerships/partnership-request-service';
+import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
-import type { Student } from '@/types/database';
+import type { Student, StudentFilterParams } from '@/types/database';
+import {
+  filterBySearchTerm,
+  filterByDepartment,
+  filterByCommaSeparatedField,
+} from '@/lib/utils/filter-helpers';
 
 // ============================================
 // STUDENT SERVICE CLASS
@@ -63,6 +69,36 @@ class StudentServiceClass extends BaseService<Student> {
     } catch (error) {
       logger.service.error(this.serviceName, 'getAvailablePartners', error, { excludeStudentId });
       return [];
+    }
+  }
+
+  async getFilteredAvailablePartners(excludeStudentId: string, filters: StudentFilterParams): Promise<ServiceResult<Student[]>> {
+    try {
+      // Get base available partners
+      let students = await this.getAvailablePartners(excludeStudentId);
+
+      // Filter by search term (name, skills, interests)
+      students = filterBySearchTerm(students, filters.search, (student) => [
+        student.fullName,
+        student.skills || '',
+        student.interests || '',
+      ]);
+
+      // Filter by department
+      students = filterByDepartment(students, filters.department, (student) => student.department);
+
+      // Filter by skills (any match)
+      students = filterByCommaSeparatedField(students, filters.skills, (student) => student.skills);
+
+      // Filter by interests (any match)
+      students = filterByCommaSeparatedField(students, filters.interests, (student) => student.interests);
+
+      return ServiceResults.success(students);
+    } catch (error) {
+      logger.service.error(this.serviceName, 'getFilteredAvailablePartners', error, { excludeStudentId, filters });
+      return ServiceResults.error(
+        error instanceof Error ? error.message : 'Failed to fetch students'
+      );
     }
   }
 

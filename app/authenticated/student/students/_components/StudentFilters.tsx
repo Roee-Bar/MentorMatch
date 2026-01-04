@@ -1,20 +1,16 @@
 'use client';
 
 import GenericFilters, { FilterFieldConfig } from '@/app/components/filters/GenericFilters';
-import { DEPARTMENTS, AVAILABILITY_FILTER_OPTIONS } from '@/lib/constants';
-
-// Availability options without 'all' for FormSelect (uses placeholder for "all")
-const AVAILABILITY_OPTIONS = AVAILABILITY_FILTER_OPTIONS.filter(opt => opt.value !== 'all');
+import { DEPARTMENTS } from '@/lib/constants';
 
 export interface FilterValues {
   search: string;
   department: string;
-  availability: string;
-  expertise: string;
+  skills: string;
   interests: string;
 }
 
-interface SupervisorFiltersProps {
+interface StudentFiltersProps {
   filters: FilterValues;
   onFilterChange: (filters: FilterValues) => void;
   resultCount?: number;
@@ -25,7 +21,7 @@ const filterFields: FilterFieldConfig[] = [
     name: 'search',
     type: 'search',
     label: 'Search',
-    placeholder: 'Search by name, bio, expertise...',
+    placeholder: 'Search by name, skills, interests...',
   },
   {
     name: 'department',
@@ -37,27 +33,18 @@ const filterFields: FilterFieldConfig[] = [
     defaultValue: 'all',
   },
   {
-    name: 'availability',
-    type: 'select',
-    label: 'Availability',
-    options: [...AVAILABILITY_OPTIONS],
-    placeholder: 'All Availability',
-    className: 'min-w-[160px]',
-    defaultValue: 'all',
-  },
-  {
-    name: 'expertise',
+    name: 'skills',
     type: 'text',
-    label: 'Expertise Areas',
-    placeholder: 'e.g., Machine Learning, Python',
+    label: 'Skills',
+    placeholder: 'e.g., Python, React, Machine Learning',
     helperText: 'Separate multiple with commas',
     className: 'flex-1 min-w-[200px]',
   },
   {
     name: 'interests',
     type: 'text',
-    label: 'Research Interests',
-    placeholder: 'e.g., AI, Data Science',
+    label: 'Interests',
+    placeholder: 'e.g., AI, Web Development, Data Science',
     helperText: 'Separate multiple with commas',
     className: 'flex-1 min-w-[200px]',
   },
@@ -66,24 +53,24 @@ const filterFields: FilterFieldConfig[] = [
 const clearFiltersValue: FilterValues = {
   search: '',
   department: 'all',
-  availability: 'all',
-  expertise: '',
+  skills: '',
   interests: '',
 };
 
-export default function SupervisorFilters({
+export default function StudentFilters({
   filters,
   onFilterChange,
   resultCount,
-}: SupervisorFiltersProps) {
+}: StudentFiltersProps) {
   return (
     <GenericFilters
       filters={filters}
       onFilterChange={onFilterChange}
       resultCount={resultCount}
-      entityName="supervisor"
+      entityName="student"
       fields={filterFields}
       clearFiltersValue={clearFiltersValue}
     />
   );
 }
+

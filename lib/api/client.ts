@@ -6,6 +6,7 @@
 
 import type {
   SupervisorFilterParams,
+  StudentFilterParams,
   RegistrationData,
   Supervisor,
   Application,
@@ -16,6 +17,7 @@ import type {
   CreateProjectData,
   ApplicationStatus,
 } from '@/types/database';
+import { buildApiQueryString } from '@/lib/api/query-builder';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -96,14 +98,19 @@ export const apiClient = {
   // ========================================
   
   getSupervisors: (token: string, params?: SupervisorFilterParams) => {
-    const query = new URLSearchParams();
-    if (params?.department) query.append('department', params.department);
-    if (params?.search) query.append('search', params.search);
-    if (params?.availability) query.append('availability', params.availability);
-    if (params?.expertise) query.append('expertise', params.expertise);
-    if (params?.interests) query.append('interests', params.interests);
-    
-    return apiFetch(`/supervisors?${query.toString()}`, { token });
+    return apiFetch(
+      buildApiQueryString(
+        {
+          search: params?.search,
+          department: params?.department,
+          availability: params?.availability,
+          expertise: params?.expertise,
+          interests: params?.interests,
+        },
+        '/supervisors'
+      ),
+      { token }
+    );
   },
 
   getSupervisorById: (id: string, token: string) => {
@@ -208,8 +215,19 @@ export const apiClient = {
   // Student Partnerships API
   // ========================================
   
-  getAvailablePartners: (token: string) => {
-    return apiFetch('/students/available-partners', { token });
+  getAvailablePartners: (token: string, params?: StudentFilterParams) => {
+    return apiFetch(
+      buildApiQueryString(
+        {
+          search: params?.search,
+          department: params?.department,
+          skills: params?.skills,
+          interests: params?.interests,
+        },
+        '/students/available-partners'
+      ),
+      { token }
+    );
   },
 
   createPartnershipRequest: (data: { targetStudentId: string }, token: string) => {

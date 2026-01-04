@@ -9,6 +9,12 @@ import { toSupervisor } from '@/lib/services/shared/firestore-converters';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, SupervisorCardData, SupervisorFilterParams } from '@/types/database';
+import {
+  filterBySearchTerm,
+  filterByDepartment,
+  filterByArrayField,
+  filterByEnum,
+} from '@/lib/utils/filter-helpers';
 
 // ============================================
 // SUPERVISOR SERVICE CLASS
@@ -82,59 +88,25 @@ class SupervisorServiceClass extends BaseService<Supervisor> {
       // Get base data
       let supervisors = await this.getAvailableSupervisors();
 
-      // Normalize filter values
-      const search = filters.search?.toLowerCase().trim();
-      const department = filters.department;
-      const availability = filters.availability;
-      const expertise = filters.expertise?.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-      const interests = filters.interests?.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
-
       // Filter by search term (name, bio, expertise, research interests)
-      if (search) {
-        supervisors = supervisors.filter(supervisor => {
-          const nameMatch = supervisor.name.toLowerCase().includes(search);
-          const bioMatch = supervisor.bio?.toLowerCase().includes(search) ?? false;
-          const expertiseMatch = supervisor.expertiseAreas.some(area => 
-            area.toLowerCase().includes(search)
-          );
-          const interestsMatch = supervisor.researchInterests.some(interest => 
-            interest.toLowerCase().includes(search)
-          );
-          return nameMatch || bioMatch || expertiseMatch || interestsMatch;
-        });
-      }
+      supervisors = filterBySearchTerm(supervisors, filters.search, (supervisor) => [
+        supervisor.name,
+        supervisor.bio || '',
+        ...supervisor.expertiseAreas,
+        ...supervisor.researchInterests,
+      ]);
 
       // Filter by department
-      if (department && department !== 'all') {
-        supervisors = supervisors.filter(supervisor => 
-          supervisor.department.toLowerCase() === department.toLowerCase()
-        );
-      }
+      supervisors = filterByDepartment(supervisors, filters.department, (supervisor) => supervisor.department);
 
       // Filter by availability status
-      if (availability && availability !== 'all') {
-        supervisors = supervisors.filter(supervisor => 
-          supervisor.availabilityStatus === availability
-        );
-      }
+      supervisors = filterByEnum(supervisors, filters.availability, (supervisor) => supervisor.availabilityStatus);
 
       // Filter by expertise areas (any match)
-      if (expertise && expertise.length > 0) {
-        supervisors = supervisors.filter(supervisor => 
-          supervisor.expertiseAreas.some(area => 
-            expertise.some(exp => area.toLowerCase().includes(exp))
-          )
-        );
-      }
+      supervisors = filterByArrayField(supervisors, filters.expertise, (supervisor) => supervisor.expertiseAreas);
 
       // Filter by research interests (any match)
-      if (interests && interests.length > 0) {
-        supervisors = supervisors.filter(supervisor => 
-          supervisor.researchInterests.some(interest => 
-            interests.some(int => interest.toLowerCase().includes(int))
-          )
-        );
-      }
+      supervisors = filterByArrayField(supervisors, filters.interests, (supervisor) => supervisor.researchInterests);
 
       return ServiceResults.success(supervisors);
     } catch (error) {

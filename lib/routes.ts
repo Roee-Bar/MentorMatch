@@ -7,6 +7,7 @@ export const ROUTES = {
   AUTHENTICATED: {
     STUDENT: '/authenticated/student',
     STUDENT_SUPERVISORS: '/authenticated/student/supervisors',
+    STUDENT_STUDENTS: '/authenticated/student/students',
     STUDENT_PROFILE: '/authenticated/student/profile',
     STUDENT_PROFILE_EDIT: '/authenticated/student/profile/edit',
     SUPERVISOR: '/authenticated/supervisor',
