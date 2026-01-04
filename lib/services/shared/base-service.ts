@@ -1,32 +1,21 @@
 // lib/services/shared/base-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Base service class providing common CRUD operations
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { ServiceResults } from './types';
 import type { ServiceResult } from './types';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
-
-/**
- * Query condition type for better type safety and readability
- */
-export type QueryCondition = {
-  field: string;
-  operator: FirebaseFirestore.WhereFilterOp;
-  value: any;
-};
+import type { BaseRepository } from '@/lib/repositories/base-repository';
+import type { RepositoryFilter, RepositorySort } from '@/lib/repositories/base-repository';
 
 /**
  * Base service class that provides common CRUD operations
  * All services should extend this class to reduce code duplication
+ * Now uses repositories for data access instead of direct Firestore calls
  * 
  * @template T - The entity type that must have an 'id' field
  */
 export abstract class BaseService<T extends { id: string }> {
-  protected abstract collectionName: string;
   protected abstract serviceName: string;
-  protected abstract toEntity(id: string, data: any): T;
+  protected abstract repository: BaseRepository<T>;
 
   protected async validateBeforeCreate(data: Omit<T, 'id'>): Promise<void> {
     // Override in subclasses for custom validation
@@ -36,41 +25,21 @@ export abstract class BaseService<T extends { id: string }> {
     // Override in subclasses for custom validation
   }
 
-  protected getCollection(): FirebaseFirestore.CollectionReference {
-    return adminDb.collection(this.collectionName);
-  }
-
   protected async getById(id: string): Promise<T | null> {
     try {
-      const doc = await adminDb.collection(this.collectionName).doc(id).get();
-      if (doc.exists) {
-        return this.toEntity(doc.id, doc.data()!);
-      }
-      return null;
+      return await this.repository.findById(id);
     } catch (error) {
-      logger.service.error(this.serviceName, 'getById', error, { 
-        id,
-        collection: this.collectionName,
-        operation: 'getById'
-      });
+      logger.service.error(this.serviceName, 'getById', error, { id });
       return null;
     }
   }
 
   protected async getByIdWithResult(id: string): Promise<ServiceResult<T | null>> {
     try {
-      const doc = await adminDb.collection(this.collectionName).doc(id).get();
-      if (doc.exists) {
-        const entity = this.toEntity(doc.id, doc.data()!);
-        return ServiceResults.success(entity);
-      }
-      return ServiceResults.success(null);
+      const entity = await this.repository.findById(id);
+      return ServiceResults.success(entity);
     } catch (error) {
-      logger.service.error(this.serviceName, 'getByIdWithResult', error, { 
-        id,
-        collection: this.collectionName,
-        operation: 'getByIdWithResult'
-      });
+      logger.service.error(this.serviceName, 'getByIdWithResult', error, { id });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to get entity by ID'
       );
@@ -79,45 +48,24 @@ export abstract class BaseService<T extends { id: string }> {
 
   protected async getAll(): Promise<T[]> {
     try {
-      const querySnapshot = await adminDb.collection(this.collectionName).get();
-      return querySnapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+      return await this.repository.findAll();
     } catch (error) {
-      logger.service.error(this.serviceName, 'getAll', error, {
-        collection: this.collectionName,
-        operation: 'getAll'
-      });
+      logger.service.error(this.serviceName, 'getAll', error);
       return [];
     }
   }
 
   protected async queryWithResult(
-    conditions: QueryCondition[],
-    orderBy?: { field: string; direction: 'asc' | 'desc' },
+    conditions: RepositoryFilter[],
+    orderBy?: RepositorySort,
     limit?: number
   ): Promise<ServiceResult<T[]>> {
     try {
-      let query: FirebaseFirestore.Query = adminDb.collection(this.collectionName);
-      
-      conditions.forEach(condition => {
-        query = query.where(condition.field, condition.operator, condition.value);
-      });
-      
-      if (orderBy) {
-        query = query.orderBy(orderBy.field, orderBy.direction);
-      }
-      
-      if (limit) {
-        query = query.limit(limit);
-      }
-      
-      const snapshot = await query.get();
-      const results = snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
+      const results = await this.repository.findAll(conditions, orderBy, limit);
       return ServiceResults.success(results);
     } catch (error) {
       logger.service.error(this.serviceName, 'queryWithResult', error, { 
         conditions,
-        collection: this.collectionName,
-        operation: 'queryWithResult',
         orderBy,
         limit
       });
@@ -128,24 +76,17 @@ export abstract class BaseService<T extends { id: string }> {
   }
 
   protected async query(
-    conditions: QueryCondition[],
-    orderBy?: { field: string; direction: 'asc' | 'desc' },
+    conditions: RepositoryFilter[],
+    orderBy?: RepositorySort,
     limit?: number
   ): Promise<T[]> {
     const result = await this.queryWithResult(conditions, orderBy, limit);
     if (!result.success) {
-      // Log warning so errors aren't completely silent
       logger.service.warn(
         this.serviceName,
         'query',
         `Query failed, returning empty array: ${result.error}`,
-        {
-          conditions,
-          collection: this.collectionName,
-          operation: 'query',
-          orderBy,
-          limit
-        }
+        { conditions, orderBy, limit }
       );
     }
     return result.success ? (result.data || []) : [];
@@ -156,26 +97,12 @@ export abstract class BaseService<T extends { id: string }> {
     timestampFields?: { createdAt?: string; updatedAt?: string }
   ): Promise<ServiceResult<string>> {
     try {
-      // Validate before creation
       await this.validateBeforeCreate(data as Omit<T, 'id'>);
       
-      const cleanData = this.cleanData(data);
-      const createdAtField = timestampFields?.createdAt || 'createdAt';
-      const updatedAtField = timestampFields?.updatedAt || 'updatedAt';
-      
-      const docRef = await adminDb.collection(this.collectionName).add({
-        ...cleanData,
-        [createdAtField]: new Date(),
-        [updatedAtField]: new Date(),
-      });
-      
-      return ServiceResults.success(docRef.id, `${this.serviceName} created successfully`);
+      const id = await this.repository.create(data as Omit<T, 'id'>, timestampFields);
+      return ServiceResults.success(id, `${this.serviceName} created successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'create', error, { 
-        data,
-        collection: this.collectionName,
-        operation: 'create'
-      });
+      logger.service.error(this.serviceName, 'create', error, { data });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to create entity'
       );
@@ -188,24 +115,11 @@ export abstract class BaseService<T extends { id: string }> {
     timestampField?: string
   ): Promise<ServiceResult> {
     try {
-      // Validate before update
       await this.validateBeforeUpdate(id, updates);
-      
-      const cleanUpdates = this.cleanData(updates);
-      const updatedAtField = timestampField || 'updatedAt';
-      
-      await adminDb.collection(this.collectionName).doc(id).update({
-        ...cleanUpdates,
-        [updatedAtField]: new Date(),
-      });
-      
+      await this.repository.update(id, updates, timestampField);
       return ServiceResults.success(undefined, `${this.serviceName} updated successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'update', error, { 
-        id,
-        collection: this.collectionName,
-        operation: 'update'
-      });
+      logger.service.error(this.serviceName, 'update', error, { id, updates });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to update entity'
       );
@@ -214,31 +128,14 @@ export abstract class BaseService<T extends { id: string }> {
 
   protected async delete(id: string): Promise<ServiceResult> {
     try {
-      await adminDb.collection(this.collectionName).doc(id).delete();
+      await this.repository.delete(id);
       return ServiceResults.success(undefined, `${this.serviceName} deleted successfully`);
     } catch (error) {
-      logger.service.error(this.serviceName, 'delete', error, { 
-        id,
-        collection: this.collectionName,
-        operation: 'delete'
-      });
+      logger.service.error(this.serviceName, 'delete', error, { id });
       return ServiceResults.error(
         error instanceof Error ? error.message : 'Failed to delete entity'
       );
     }
-  }
-
-  protected cleanData(data: any): any {
-    return Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value !== undefined)
-    );
-  }
-
-  protected mapDocuments<U>(
-    docs: QueryDocumentSnapshot[],
-    mapper: (doc: QueryDocumentSnapshot) => U
-  ): U[] {
-    return docs.map(mapper);
   }
 }
 

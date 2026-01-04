@@ -2,13 +2,14 @@
  * Application Workflow Service
  * 
  * Business logic for application status management, resubmission, and validation.
- * SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
  */
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { applicationService } from '@/lib/services/applications/application-service';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
+import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
+import { applicationRepository } from '@/lib/repositories/application-repository';
 import { serviceEvents } from '@/lib/services/shared/events';
 import type { Application, ApplicationStatus } from '@/types/database';
 
@@ -52,13 +53,12 @@ export const ApplicationWorkflowService = {
       // Check if capacity needs to be updated
       const isApproving = newStatus === 'approved' && previousStatus !== 'approved';
       const isUnapproving = previousStatus === 'approved' && newStatus !== 'approved';
-      // For new single-application model, always update capacity (no need to check isLeadApplication)
       // For backward compatibility with old linked applications, only update if it's a lead or has no link
       const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
       
       if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
         await adminDb.runTransaction(async (transaction) => {
-          const supervisorRef = adminDb.collection('supervisors').doc(application.supervisorId);
+          const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
           const supervisorSnap = await transaction.get(supervisorRef);
 
           if (!supervisorSnap.exists) {
@@ -90,7 +90,7 @@ export const ApplicationWorkflowService = {
           }
 
           // Update application status
-          const applicationRef = adminDb.collection('applications').doc(applicationId);
+          const applicationRef = applicationRepository.getDocumentRef(applicationId);
           const updateData: Record<string, unknown> = {
             status: newStatus,
             lastUpdated: new Date(),
@@ -184,8 +184,7 @@ export const ApplicationWorkflowService = {
       };
 
       // Update the application
-      const applicationRef = adminDb.collection('applications').doc(applicationId);
-      await applicationRef.update(updateData);
+      await applicationRepository.update(applicationId, updateData as Partial<Application>);
 
       // Get supervisor email for event
       const supervisor = await supervisorService.getSupervisorById(application.supervisorId);
@@ -228,32 +227,36 @@ export const ApplicationWorkflowService = {
   ): Promise<{ isDuplicate: boolean; existingApplicationId?: string }> {
     try {
       // Check if student already has an application to this supervisor
-      const studentApplicationsSnapshot = await adminDb
-        .collection('applications')
-        .where('studentId', '==', studentId)
-        .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'approved'])
-        .get();
+      const studentApplications = await applicationRepository.findAll([
+        { field: 'studentId', operator: '==', value: studentId },
+        { field: 'supervisorId', operator: '==', value: supervisorId }
+      ]);
 
-      if (!studentApplicationsSnapshot.empty) {
+      const pendingOrApprovedStudentApps = studentApplications.filter(
+        app => app.status === 'pending' || app.status === 'approved'
+      );
+
+      if (pendingOrApprovedStudentApps.length > 0) {
         return { 
           isDuplicate: true, 
-          existingApplicationId: studentApplicationsSnapshot.docs[0].id 
+          existingApplicationId: pendingOrApprovedStudentApps[0].id 
         };
       }
 
       // Check if student is already a partner in an application to this supervisor
-      const partnerApplicationsSnapshot = await adminDb
-        .collection('applications')
-        .where('partnerId', '==', studentId)
-        .where('supervisorId', '==', supervisorId)
-        .where('status', 'in', ['pending', 'approved'])
-        .get();
+      const partnerApplications = await applicationRepository.findAll([
+        { field: 'partnerId', operator: '==', value: studentId },
+        { field: 'supervisorId', operator: '==', value: supervisorId }
+      ]);
 
-      if (!partnerApplicationsSnapshot.empty) {
+      const pendingOrApprovedPartnerApps = partnerApplications.filter(
+        app => app.status === 'pending' || app.status === 'approved'
+      );
+
+      if (pendingOrApprovedPartnerApps.length > 0) {
         return { 
           isDuplicate: true, 
-          existingApplicationId: partnerApplicationsSnapshot.docs[0].id 
+          existingApplicationId: pendingOrApprovedPartnerApps[0].id 
         };
       }
 

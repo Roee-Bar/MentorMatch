@@ -1,22 +1,13 @@
 // lib/services/projects/project-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Project management services
 
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toProject } from '@/lib/services/shared/firestore-converters';
+import { projectRepository } from '@/lib/repositories/project-repository';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Project } from '@/types/database';
 
-// ============================================
-// PROJECT SERVICE CLASS
-// ============================================
 class ProjectServiceClass extends BaseService<Project> {
-  protected collectionName = 'projects';
   protected serviceName = 'ProjectService';
-  
-  protected toEntity(id: string, data: any): Project {
-    return toProject(id, data);
-  }
+  protected repository = projectRepository;
 
   async getProjectById(projectId: string): Promise<Project | null> {
     return this.getById(projectId);
@@ -42,5 +33,4 @@ class ProjectServiceClass extends BaseService<Project> {
   }
 }
 
-// Create singleton instance and export
 export const projectService = new ProjectServiceClass();

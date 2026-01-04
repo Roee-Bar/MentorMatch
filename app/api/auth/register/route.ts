@@ -5,9 +5,13 @@
  */
 
 import { NextRequest } from 'next/server';
-import { adminAuth, adminDb } from '@/lib/firebase-admin';
+import { adminAuth } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
+import { userRepository } from '@/lib/repositories/user-repository';
+import { studentRepository } from '@/lib/repositories/student-repository';
+import type { BaseUser } from '@/types/database';
+import type { Student } from '@/types/database';
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,17 +34,15 @@ export async function POST(request: NextRequest) {
     });
 
     // Create user document in 'users' collection
-    await adminDb.collection('users').doc(userRecord.uid).set({
-      userId: userRecord.uid,
+    await userRepository.set(userRecord.uid, {
       email: data.email,
       name: `${data.firstName} ${data.lastName}`,
       role: 'student',
       department: data.department,
-      createdAt: new Date(),
-    });
+    } as Omit<BaseUser, 'id'>);
 
     // Create complete student profile in 'students' collection
-    await adminDb.collection('students').doc(userRecord.uid).set({
+    await studentRepository.set(userRecord.uid, {
       // Personal Information
       firstName: data.firstName,
       lastName: data.lastName,
@@ -57,7 +59,7 @@ export async function POST(request: NextRequest) {
       preferredTopics: data.preferredTopics || '',
       
       // Partner Information - NEW PARTNERSHIP SYSTEM
-      partnerId: null,
+      partnerId: undefined,
       partnershipStatus: 'none',
       
       // DEPRECATED - Keep for backwards compatibility (set to defaults)
@@ -73,9 +75,9 @@ export async function POST(request: NextRequest) {
       
       // Timestamps
       registrationDate: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+      createdAt: new Date(), // Will be overwritten by repository, but required by type
+      updatedAt: new Date(), // Will be overwritten by repository, but required by type
+    } as Omit<Student, 'id'>);
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 

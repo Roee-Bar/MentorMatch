@@ -1,52 +1,18 @@
 // lib/services/applications/application-service.ts
-// SERVER-ONLY: This file must ONLY be imported in API routes (server-side)
-// Application management services
 
-import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { BaseService } from '@/lib/services/shared/base-service';
-import { toApplication } from '@/lib/services/shared/firestore-converters';
+import { applicationRepository } from '@/lib/repositories/application-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Application, ApplicationCardData } from '@/types/database';
-import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { DateFormatter } from '@/lib/utils/date-formatter';
 
-/**
- * Helper function to map Firestore document to ApplicationCardData
- * Eliminates code duplication in getStudentApplications
- */
-const mapDocToApplicationCardData = (doc: QueryDocumentSnapshot): ApplicationCardData => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    projectTitle: data.projectTitle,
-    projectDescription: data.projectDescription,
-    supervisorName: data.supervisorName,
-    dateApplied: DateFormatter.formatForTable(data.dateApplied),
-    status: data.status,
-    responseTime: data.responseTime || '5-7 business days',
-    comments: data.supervisorFeedback,
-    hasPartner: data.hasPartner,
-    partnerName: data.partnerName,
-    studentName: data.studentName,
-    studentEmail: data.studentEmail,
-  } as ApplicationCardData;
-};
-
-// ============================================
-// APPLICATION SERVICE CLASS
-// ============================================
 class ApplicationServiceClass extends BaseService<Application> {
-  protected collectionName = 'applications';
   protected serviceName = 'ApplicationService';
-  
-  protected toEntity(id: string, data: any): Application {
-    return toApplication(id, data);
-  }
+  protected repository = applicationRepository;
 
   protected async validateBeforeCreate(data: Omit<Application, 'id'>): Promise<void> {
-    // Required fields validation
     if (!data.studentId) {
       throw new Error('Student ID is required');
     }
@@ -60,7 +26,6 @@ class ApplicationServiceClass extends BaseService<Application> {
       throw new Error('Project description is required');
     }
 
-    // Status validation - new applications should start as 'pending'
     if (data.status && data.status !== 'pending') {
       throw new Error('New applications must have status "pending"');
     }
@@ -88,16 +53,13 @@ class ApplicationServiceClass extends BaseService<Application> {
   }
 
   async createApplication(applicationData: Omit<Application, 'id'>): Promise<ServiceResult<string>> {
-    // Log incoming data for debugging
     logger.service.operation(this.serviceName, 'createApplication', { 
       supervisorId: applicationData.supervisorId,
       studentId: applicationData.studentId 
     });
     
-    // Exclude timestamp fields - they will be set by base create() method
     const { dateApplied, lastUpdated, ...dataWithoutTimestamps } = applicationData;
     
-    // Use custom timestamp fields: dateApplied/lastUpdated instead of createdAt/updatedAt
     return this.create(dataWithoutTimestamps, {
       createdAt: 'dateApplied',
       updatedAt: 'lastUpdated'
@@ -117,28 +79,27 @@ class ApplicationServiceClass extends BaseService<Application> {
 
   async getStudentApplications(studentId: string): Promise<ApplicationCardData[]> {
     try {
-      // Query applications where student is the primary applicant
-      const primaryQuerySnapshot = await this.getCollection()
-        .where('studentId', '==', studentId)
-        .get();
+      const primaryApplications = await this.repository.findByStudentId(studentId);
+      const partnerApplications = await this.repository.findByPartnerId(studentId);
       
-      // Query applications where student is the partner
-      const partnerQuerySnapshot = await this.getCollection()
-        .where('partnerId', '==', studentId)
-        .get();
-      
-      // Combine and deduplicate results (in case an application has both studentId and partnerId matching)
       const applicationMap = new Map<string, ApplicationCardData>();
       
-      // Process primary applications
-      primaryQuerySnapshot.docs.forEach((doc) => {
-        applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
-      });
-      
-      // Process partner applications (only add if not already in map)
-      partnerQuerySnapshot.docs.forEach((doc) => {
-        if (!applicationMap.has(doc.id)) {
-          applicationMap.set(doc.id, mapDocToApplicationCardData(doc));
+      [...primaryApplications, ...partnerApplications].forEach(app => {
+        if (!applicationMap.has(app.id)) {
+          applicationMap.set(app.id, {
+            id: app.id,
+            projectTitle: app.projectTitle,
+            projectDescription: app.projectDescription,
+            supervisorName: app.supervisorName,
+            dateApplied: DateFormatter.formatForTable(app.dateApplied),
+            status: app.status,
+            responseTime: app.responseTime || '5-7 business days',
+            comments: app.supervisorFeedback,
+            hasPartner: app.hasPartner,
+            partnerName: app.partnerName,
+            studentName: app.studentName,
+            studentEmail: app.studentEmail,
+          });
         }
       });
       
@@ -159,9 +120,8 @@ class ApplicationServiceClass extends BaseService<Application> {
     feedback?: string
   ): Promise<ServiceResult> {
     try {
-      const updateData: Record<string, unknown> = {
+      const updateData: Partial<Application> = {
         status,
-        lastUpdated: new Date(),
       };
       
       if (feedback) {
@@ -172,7 +132,7 @@ class ApplicationServiceClass extends BaseService<Application> {
         updateData.responseDate = new Date();
       }
 
-      await this.getCollection().doc(applicationId).update(updateData);
+      await this.repository.update(applicationId, updateData);
       return ServiceResults.success(undefined, 'Application status updated successfully');
     } catch (error) {
       logger.service.error(this.serviceName, 'updateApplicationStatus', error, { applicationId, status });
@@ -183,5 +143,4 @@ class ApplicationServiceClass extends BaseService<Application> {
   }
 }
 
-// Create singleton instance and export
 export const applicationService = new ApplicationServiceClass();
