@@ -41,7 +41,7 @@ export default function SupervisorCard({
   };
 
   return (
-    <div className={cardHover}>
+    <div className={cardHover} data-testid={`supervisor-card-${supervisor.id}`}>
       {/* Header with Name and Availability */}
       <div className={cardHeader}>
         <div className="flex-1">

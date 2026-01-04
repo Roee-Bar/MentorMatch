@@ -39,6 +39,21 @@ docs/testing/
 # playwright MCP screenshots
 .playwright-mcp/
 
+# Playwright test artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
+*.webm
+*.png
+*.jpg
+*.jpeg
+
+# Firebase emulator data
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
 # local env files
 .env*.local
 .env

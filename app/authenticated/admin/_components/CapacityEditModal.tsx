@@ -94,6 +94,7 @@ export default function CapacityEditModal({
     <div 
       className={modalBackdrop}
       onClick={handleBackdropClick}
+      data-testid="edit-capacity-modal"
     >
       <div className={modalContainer}>
         <h2 className={`${headingXl} mb-4`}>

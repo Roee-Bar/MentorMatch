@@ -50,6 +50,7 @@ const FormTextArea: React.FC<FormTextAreaProps> = ({
         maxLength={maxLength}
         disabled={disabled}
         className={textareaStyles}
+        data-testid={`form-textarea-${name}`}
       />
       <div className="flex items-center justify-between mt-1">
         {helperText && (

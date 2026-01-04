@@ -1,0 +1,288 @@
+name: CI
+
+# Trigger on pull requests and pushes to main
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Prevent overlapping workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# Shared environment variables
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '21'
+  PROJECT_ID: 'demo-test'
+
+jobs:
+  # Fast checks - run in parallel
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Run ESLint
+        run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Run TypeScript type check
+        run: npm run typecheck
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ env.PROJECT_ID }}
+
+  # E2E Tests - runs after fast checks pass
+  test:
+    name: E2E Tests
+    needs: [lint, typecheck, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        continue-on-error: false
+
+      - name: Set test environment variables
+        run: |
+          echo "E2E_TEST=true" >> $GITHUB_ENV
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "CI=true" >> $GITHUB_ENV
+          echo "FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
+          echo "FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST=localhost:9099" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST=localhost:8081" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+          echo "FIREBASE_ADMIN_PROJECT_ID=${{ env.PROJECT_ID }}" >> $GITHUB_ENV
+
+      - name: Start Firebase Emulators
+        run: |
+          echo "::group::Starting Firebase Emulators"
+          npx firebase emulators:start --only auth,firestore > /tmp/firebase-emulator.log 2>&1 &
+          echo "::endgroup::"
+          
+          echo "Waiting for emulators to be ready..."
+          for i in {1..60}; do
+            if curl -f http://localhost:4000 > /dev/null 2>&1; then
+              echo "✓ Emulators are ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "::error::Emulators failed to start within timeout"
+              echo "::group::Firebase Emulator Logs"
+              cat /tmp/firebase-emulator.log || true
+              echo "::endgroup::"
+              pkill -f "firebase emulators" || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Start Next.js Server
+        run: |
+          echo "::group::Starting Next.js Development Server"
+          # Start server in background and capture PID
+          npm run dev > /tmp/nextjs-server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Started server with PID: $SERVER_PID"
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          echo "::endgroup::"
+          
+          # Give server a moment to start
+          sleep 5
+          
+          # Check if process is still running
+          if ! kill -0 $SERVER_PID 2>/dev/null; then
+            echo "::error::Server process died immediately after startup"
+            echo "::group::Next.js Server Logs"
+            cat /tmp/nextjs-server.log || true
+            echo "::endgroup::"
+            exit 1
+          fi
+          
+          echo "Waiting for Next.js server to be ready..."
+          for i in {1..90}; do
+            # Check if process is still running
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "::error::Server process died during startup"
+              echo "::group::Next.js Server Logs"
+              cat /tmp/nextjs-server.log || true
+              echo "::endgroup::"
+              exit 1
+            fi
+            
+            # Check if server is responding
+            if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
+              echo "✓ Next.js server is ready!"
+              echo "Server is responding at http://localhost:3000"
+              break
+            fi
+            
+            if [ $i -eq 90 ]; then
+              echo "::error::Next.js server failed to start within timeout"
+              echo "::group::Next.js Server Logs"
+              cat /tmp/nextjs-server.log || true
+              echo "::endgroup::"
+              echo "::group::Server Process Check"
+              ps aux | grep -E "next|node.*dev" || echo "No server processes found"
+              echo "::endgroup::"
+              echo "::group::Port Check"
+              lsof -i :3000 || echo "Port 3000 is not in use"
+              echo "::endgroup::"
+              pkill -f "next dev" || true
+              exit 1
+            fi
+            
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "Still waiting... ($i/90) - Server logs so far:"
+              tail -20 /tmp/nextjs-server.log || true
+            fi
+            sleep 2
+          done
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+        env:
+          CI: true
+        continue-on-error: false
+
+      - name: Stop Next.js Server
+        if: always()
+        run: |
+          echo "Stopping Next.js server..."
+          # Try to kill by PID if available
+          if [ -n "$SERVER_PID" ]; then
+            kill $SERVER_PID 2>/dev/null || true
+          fi
+          # Also kill by process name to ensure cleanup
+          pkill -f "next dev" || true
+          pkill -f "node.*next" || true
+          sleep 2
+          # Verify server is stopped
+          if lsof -i :3000 > /dev/null 2>&1; then
+            echo "Warning: Port 3000 is still in use after cleanup attempt"
+            lsof -i :3000 || true
+          else
+            echo "✓ Server stopped successfully"
+          fi
+
+      - name: Debug Server Issues on Failure
+        if: failure()
+        run: |
+          echo "::group::Next.js Server Process Info"
+          ps aux | grep -E "next|node.*dev" | head -20 || echo "No Next.js processes found"
+          echo "::endgroup::"
+          
+          echo "::group::Port Status"
+          lsof -i :3000 || echo "Port 3000 is not in use"
+          echo "::endgroup::"
+          
+          echo "::group::Network Connections"
+          netstat -tuln | grep -E ":3000|:9099|:8081" || echo "No relevant network connections found"
+          echo "::endgroup::"
+          
+          echo "::group::Firebase Emulator Status"
+          curl -s http://localhost:4000 || echo "Firebase emulator UI not accessible"
+          echo "::endgroup::"
+          
+          echo "::group::Health Check Test"
+          curl -v http://localhost:3000/api/health 2>&1 || echo "Health check failed"
+          echo "::endgroup::"
+
+      - name: Stop Firebase Emulators
+        if: always()
+        run: |
+          echo "Stopping Firebase emulators..."
+          pkill -f "firebase emulators" || true
+          sleep 2
+          pkill -f "java.*firebase" || true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-videos
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore

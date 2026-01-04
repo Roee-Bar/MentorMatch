@@ -101,7 +101,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <form onSubmit={handleRegistration} noValidate className={cardFormSection}>
+        <form onSubmit={handleRegistration} noValidate className={cardFormSection} data-testid="register-form">
         
         {/* Account Information Section */}
         <FormSection title="Account Information" />
@@ -248,6 +248,7 @@ export default function RegisterPage() {
           type="submit"
           disabled={loading}
           className={`${btnPrimaryFullWidth} py-4`}
+          data-testid="register-submit-button"
         >
           {loading ? 'Creating Account...' : 'Complete Registration'}
         </button>

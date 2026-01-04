@@ -60,6 +60,7 @@ const FormInput: React.FC<FormInputProps> = ({
         pattern={pattern}
         disabled={disabled}
         className={inputStyles}
+        data-testid={`form-input-${name}`}
       />
       {helperText && (
         <small className={helperStyles}>{helperText}</small>
