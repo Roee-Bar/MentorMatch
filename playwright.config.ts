@@ -72,7 +72,7 @@ export default defineConfig({
   // Playwright will manage the server lifecycle in both CI and local development
   // The health check endpoint (/api/health) is used to verify server readiness
   webServer: {
-    command: 'npm run dev',
+    command: 'node scripts/ensure-port-free.js && npm run dev',
     url: 'http://localhost:3000/api/health',
     reuseExistingServer: !process.env.CI, // Only reuse in local dev, not CI
     timeout: 120000,

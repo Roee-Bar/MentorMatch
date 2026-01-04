@@ -5,6 +5,7 @@
  */
 
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 /**
  * Wait for Firebase Emulator to be ready
@@ -45,7 +46,7 @@ export async function clearFirestoreData(): Promise<void> {
       if (snapshot.empty) continue;
 
       const batch = adminDb.batch();
-      snapshot.docs.forEach((doc) => {
+      snapshot.docs.forEach((doc: QueryDocumentSnapshot) => {
         batch.delete(doc.ref);
       });
       await batch.commit();

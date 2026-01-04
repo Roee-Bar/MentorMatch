@@ -85,7 +85,7 @@ export class InMemoryAuthStore {
       this.users.delete(uid);
       this.emailToUid.delete(user.email);
       // Clean up tokens
-      for (const [token, authToken] of this.tokens.entries()) {
+      for (const [token, authToken] of Array.from(this.tokens.entries())) {
         if (authToken.uid === uid) {
           this.tokens.delete(token);
         }

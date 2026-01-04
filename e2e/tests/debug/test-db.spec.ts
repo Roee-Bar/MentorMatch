@@ -7,6 +7,7 @@
 import { test, expect } from '@playwright/test';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { seedStudent } from '../../fixtures/db-helpers';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 test.describe('Test Database Verification', () => {
   test('should create and retrieve user from test database', async () => {
@@ -61,8 +62,8 @@ test.describe('Test Database Verification', () => {
     expect(usersSnapshot.docs.length).toBeGreaterThanOrEqual(2);
     
     // Find our test users
-    const user1 = usersSnapshot.docs.find(doc => doc.id === uid1);
-    const user2 = usersSnapshot.docs.find(doc => doc.id === uid2);
+    const user1 = usersSnapshot.docs.find((doc: QueryDocumentSnapshot) => doc.id === uid1);
+    const user2 = usersSnapshot.docs.find((doc: QueryDocumentSnapshot) => doc.id === uid2);
     
     expect(user1).toBeTruthy();
     expect(user2).toBeTruthy();

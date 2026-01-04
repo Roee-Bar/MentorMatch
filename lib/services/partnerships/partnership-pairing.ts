@@ -10,6 +10,7 @@ import { ServiceResults } from '@/lib/services/shared/types';
 import { executeBatchUpdates } from './utils/batch-utils';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'PartnershipPairingService';
 
@@ -57,7 +58,7 @@ export const PartnershipPairingService = {
     studentId2: string
   ): Promise<ServiceResult> {
     try {
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const student1Ref = studentRepository.getDocumentRef(studentId1);
         const student2Ref = studentRepository.getDocumentRef(studentId2);
 
@@ -88,7 +89,7 @@ export const PartnershipPairingService = {
    */
   async unpairStudents(studentId1: string, studentId2: string): Promise<ServiceResult> {
     try {
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const student1Ref = studentRepository.getDocumentRef(studentId1);
         const student2Ref = studentRepository.getDocumentRef(studentId2);
 

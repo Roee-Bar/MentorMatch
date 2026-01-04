@@ -10,6 +10,7 @@ import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { StudentPartnershipRequest } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'PartnershipWorkflowService';
 
@@ -45,7 +46,7 @@ export const PartnershipWorkflowService = {
       // Use transaction to atomically check and update student statuses
       let requestId = '';
       
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const requesterRef = studentRepository.getDocumentRef(requesterId);
         const targetRef = studentRepository.getDocumentRef(targetStudentId);
 
@@ -233,7 +234,7 @@ export const PartnershipWorkflowService = {
   ): Promise<ServiceResult> {
     // Use transaction to prevent race conditions
     try {
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const requesterRef = studentRepository.getDocumentRef(request.requesterId);
         const targetRef = studentRepository.getDocumentRef(targetStudentId);
         const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
@@ -306,7 +307,7 @@ export const PartnershipWorkflowService = {
 
     // Use transaction to ensure atomic rejection
     try {
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
         transaction.update(requestRef, {

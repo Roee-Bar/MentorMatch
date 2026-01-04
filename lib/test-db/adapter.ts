@@ -98,6 +98,10 @@ export class TestFirestore {
     return testFirestore.batch();
   }
 
+  async runTransaction<T>(updateFunction: (transaction: any) => Promise<T>): Promise<T> {
+    return testFirestore.runTransaction(updateFunction);
+  }
+
   clearAll(): void {
     testFirestore.clearAll();
   }

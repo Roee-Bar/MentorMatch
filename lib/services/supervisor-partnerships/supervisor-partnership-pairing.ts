@@ -10,6 +10,7 @@ import { projectRepository } from '@/lib/repositories/project-repository';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Supervisor, Project } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'SupervisorPartnershipPairingService';
 
@@ -22,7 +23,7 @@ async function _removeCoSupervisorFromProject(
   coSupervisorId: string
 ): Promise<void> {
   try {
-    await adminDb.runTransaction(async (transaction) => {
+    await adminDb.runTransaction(async (transaction: Transaction) => {
       const projectRef = projectRepository.getDocumentRef(projectId);
       const coSupervisorRef = supervisorRepository.getDocumentRef(coSupervisorId);
 

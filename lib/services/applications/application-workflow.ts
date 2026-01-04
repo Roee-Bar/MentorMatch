@@ -12,6 +12,7 @@ import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { applicationRepository } from '@/lib/repositories/application-repository';
 import { serviceEvents } from '@/lib/services/shared/events';
 import type { Application, ApplicationStatus } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'ApplicationWorkflowService';
 
@@ -58,7 +59,7 @@ export const ApplicationWorkflowService = {
       
       if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
         try {
-          await adminDb.runTransaction(async (transaction) => {
+          await adminDb.runTransaction(async (transaction: Transaction) => {
             const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
             const supervisorSnap = await transaction.get(supervisorRef);
 

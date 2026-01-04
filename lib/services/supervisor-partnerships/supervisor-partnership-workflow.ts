@@ -13,6 +13,7 @@ import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { SupervisorPartnershipRequest } from '@/types/database';
 import { ERROR_MESSAGES } from '@/lib/constants/error-messages';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'SupervisorPartnershipWorkflowService';
 
@@ -80,7 +81,7 @@ export const SupervisorPartnershipWorkflowService = {
       // Create request document
       let requestId = '';
       
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const requestRef = supervisorPartnershipRequestRepository.getNewDocumentRef();
         requestId = requestRef.id;
 
@@ -208,7 +209,7 @@ export const SupervisorPartnershipWorkflowService = {
         return ServiceResults.error('Target supervisor no longer has available capacity');
       }
 
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const projectRef = projectRepository.getDocumentRef(request.projectId);
         const requestRef = supervisorPartnershipRequestRepository.getDocumentRef(requestId);
         const targetSupervisorRef = supervisorRepository.getDocumentRef(targetSupervisorId);

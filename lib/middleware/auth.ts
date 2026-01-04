@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { userService } from '@/lib/services/users/user-service';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 
 export interface AuthResult {
   authenticated: boolean;
@@ -39,13 +40,13 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // In test mode, we use custom tokens directly (no ID token conversion needed)
     const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
     
-    let decodedToken: { uid: string; email: string; [key: string]: any };
+    let decodedToken: DecodedIdToken;
     if (isTestEnv) {
       // In test mode, verify custom token directly
-      decodedToken = await adminAuth.verifyIdToken(token);
+      decodedToken = await adminAuth.verifyIdToken(token) as DecodedIdToken;
     } else {
       // In production, verify ID token with revocation check
-      decodedToken = await adminAuth.verifyIdToken(token, true);
+      decodedToken = await adminAuth.verifyIdToken(token, true) as DecodedIdToken;
     }
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)

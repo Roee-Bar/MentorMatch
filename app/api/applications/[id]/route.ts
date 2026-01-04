@@ -22,6 +22,12 @@ import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { applicationRepository } from '@/lib/repositories/application-repository';
 import type { ApplicationIdParams } from '@/types/api';
 import type { Application, UserRole } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
+
+// Type guard for Transaction
+function isTransaction(obj: any): obj is Transaction {
+  return obj && typeof obj.get === 'function' && typeof obj.set === 'function';
+}
 
 export const GET = withAuth<ApplicationIdParams, Application>(
   async (request: NextRequest, { params, cachedResource }, user) => {

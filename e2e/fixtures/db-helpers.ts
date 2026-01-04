@@ -7,6 +7,7 @@
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import type { Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest } from '@/types/database';
 import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData } from './test-data';
+import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 /**
  * Seed a test student in Firestore
@@ -305,7 +306,7 @@ export async function cleanupAllTestData(): Promise<void> {
     const snapshot = await adminDb.collection(collection).get();
     const batch = adminDb.batch();
     
-    snapshot.docs.forEach((doc) => {
+    snapshot.docs.forEach((doc: QueryDocumentSnapshot) => {
       batch.delete(doc.ref);
     });
     

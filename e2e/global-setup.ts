@@ -12,7 +12,10 @@ async function globalSetup() {
   }
   
   // Set test environment variables
-  process.env.NODE_ENV = 'test';
+  // NODE_ENV is set by the test script, just ensure E2E_TEST is set
+  if (!process.env.E2E_TEST) {
+    process.env.E2E_TEST = 'true';
+  }
   process.env.E2E_TEST = 'true';
   process.env.NEXT_PUBLIC_NODE_ENV = 'test';
   process.env.NEXT_PUBLIC_E2E_TEST = 'true';

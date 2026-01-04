@@ -62,18 +62,21 @@ class TestDocumentReference implements DocumentReference {
   ) {}
 
   async get(): Promise<DocumentSnapshot> {
-    const data = testDatabase.get(this.collectionName, this.id);
-    return {
-      id: this.id,
-      data: () => {
-        if (!data) return undefined;
-        // Remove the id field from data since it's already in the snapshot
-        // But keep all other fields including userId if present
-        const { id: _, ...dataWithoutId } = data;
-        return dataWithoutId as DocumentData;
-      },
-      exists: data !== null,
-    };
+    // Ensure this is truly async
+    return Promise.resolve().then(() => {
+      const data = testDatabase.get(this.collectionName, this.id);
+      return {
+        id: this.id,
+        data: () => {
+          if (!data) return undefined;
+          // Remove the id field from data since it's already in the snapshot
+          // But keep all other fields including userId if present
+          const { id: _, ...dataWithoutId } = data;
+          return dataWithoutId as DocumentData;
+        },
+        exists: data !== null,
+      };
+    });
   }
 
   async set(data: DocumentData): Promise<void> {
@@ -232,6 +235,53 @@ class TestWriteBatch implements WriteBatch {
 }
 
 /**
+ * Test Transaction - mimics Firebase Firestore Transaction
+ */
+class TestTransaction {
+  private operations: Array<{
+    type: 'get' | 'set' | 'update' | 'delete';
+    ref: DocumentReference;
+    data?: DocumentData | Partial<DocumentData>;
+  }> = [];
+
+  async get(ref: DocumentReference): Promise<DocumentSnapshot> {
+    // In a real transaction, this would read the current state
+    // For test purposes, we just return the current document
+    return await ref.get();
+  }
+
+  async getAll(...refs: DocumentReference[]): Promise<DocumentSnapshot[]> {
+    return Promise.all(refs.map(ref => ref.get()));
+  }
+
+  set(ref: DocumentReference, data: DocumentData): void {
+    this.operations.push({ type: 'set', ref, data });
+  }
+
+  update(ref: DocumentReference, data: Partial<DocumentData>): void {
+    this.operations.push({ type: 'update', ref, data });
+  }
+
+  delete(ref: DocumentReference): void {
+    this.operations.push({ type: 'delete', ref });
+  }
+
+  async commit(): Promise<void> {
+    // Execute all operations
+    for (const op of this.operations) {
+      if (op.type === 'set') {
+        await op.ref.set(op.data!);
+      } else if (op.type === 'update') {
+        await op.ref.update(op.data!);
+      } else if (op.type === 'delete') {
+        await op.ref.delete();
+      }
+    }
+    this.operations = [];
+  }
+}
+
+/**
  * In-memory Firestore implementation
  */
 export class InMemoryFirestore {
@@ -241,6 +291,13 @@ export class InMemoryFirestore {
 
   batch(): WriteBatch {
     return new TestWriteBatch();
+  }
+
+  async runTransaction<T>(updateFunction: (transaction: TestTransaction) => Promise<T>): Promise<T> {
+    const transaction = new TestTransaction();
+    const result = await updateFunction(transaction);
+    await transaction.commit();
+    return result;
   }
 
   clearAll(): void {
