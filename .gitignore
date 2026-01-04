@@ -53,6 +53,7 @@ docs/testing/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+.emulator-pid
 
 # local env files
 .env*.local
