@@ -4,7 +4,7 @@
 // Custom hook for fetching stat card table data (students and applications)
 
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
+import { getAuthToken } from '@/lib/firebase';
 import { apiClient } from '@/lib/api/client';
 import type { Student, Application } from '@/types/database';
 import type { StatCardType } from './useStatCardTables';
@@ -43,7 +43,7 @@ export function useStatCardData(activeStatCard: StatCardType): UseStatCardDataRe
       setStudentsLoading(true);
       setStudentsError(null);
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = await getAuthToken();
         if (!token) return;
         const response = await apiClient.getStudents(token);
         const data = response.data || [];
@@ -67,7 +67,7 @@ export function useStatCardData(activeStatCard: StatCardType): UseStatCardDataRe
       setApplicationsLoading(true);
       setApplicationsError(null);
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = await getAuthToken();
         if (!token) return;
         const response = await apiClient.getApplications(token);
         const data = response.data || [];

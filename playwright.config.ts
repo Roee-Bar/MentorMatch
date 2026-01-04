@@ -1,5 +1,4 @@
 import { defineConfig, devices } from '@playwright/test';
-import { getTestEnvVars } from './e2e/config/env';
 
 /**
  * Playwright E2E Test Configuration
@@ -7,7 +6,7 @@ import { getTestEnvVars } from './e2e/config/env';
  * This configuration sets up Playwright for end-to-end testing of MentorMatch.
  * It includes:
  * - Automatic Next.js dev server startup (via webServer)
- * - Firebase Emulator integration
+ * - In-memory test database (no emulators needed)
  * - Test retries and timeouts
  * - Screenshot and video capture on failure
  * 
@@ -71,7 +70,6 @@ export default defineConfig({
 
   // Configure web server to start Next.js dev server automatically
   // Playwright will manage the server lifecycle in both CI and local development
-  // Firebase Emulators should be started separately using: npm run test:setup
   // The health check endpoint (/api/health) is used to verify server readiness
   webServer: {
     command: 'npm run dev',
@@ -80,15 +78,19 @@ export default defineConfig({
     timeout: 120000,
     stdout: process.env.CI ? 'pipe' : 'ignore',
     stderr: process.env.CI ? 'pipe' : 'ignore',
-    // Use centralized environment variables
-    env: getTestEnvVars({
-      // Add any additional env vars needed for Next.js dev server
+    // Minimal test environment variables - in-memory database is used automatically
+    env: {
+      NODE_ENV: 'test',
+      E2E_TEST: 'true',
+      NEXT_PUBLIC_NODE_ENV: 'test',
+      NEXT_PUBLIC_E2E_TEST: 'true',
       NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'localhost',
-      // Required for Firebase client to detect test mode and connect to emulators
-      NEXT_PUBLIC_E2E_TEST: 'true',
-      NEXT_PUBLIC_NODE_ENV: 'test',
-    }),
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'demo-test',
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'demo-test.appspot.com',
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '123456789',
+      NEXT_PUBLIC_FIREBASE_APP_ID: '1:123456789:web:test',
+    },
   },
 });
 

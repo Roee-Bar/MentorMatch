@@ -2,7 +2,7 @@
 
 import { useState, useEffect, DependencyList, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '@/lib/firebase';
+import { getAuthToken } from '@/lib/firebase';
 import { ROUTES } from '@/lib/routes';
 
 interface RetryOptions {
@@ -54,7 +54,7 @@ export function useAuthenticatedFetch<T>(
       }
       setError(null);
       
-      const token = await auth.currentUser?.getIdToken();
+      const token = await getAuthToken();
       if (!token) {
         router.push(ROUTES.LOGIN);
         return;

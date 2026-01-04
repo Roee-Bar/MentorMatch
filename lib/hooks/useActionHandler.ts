@@ -12,7 +12,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
+import { getAuthToken } from '@/lib/firebase';
 
 export interface ActionConfig {
   userId: string | null;
@@ -92,7 +92,7 @@ export function useActionHandler<TActions extends Record<string, ActionDefinitio
       setLoading(key, true);
 
       try {
-        const token = await auth.currentUser?.getIdToken();
+        const token = await getAuthToken();
         if (!token) {
           throw new Error('Not authenticated');
         }

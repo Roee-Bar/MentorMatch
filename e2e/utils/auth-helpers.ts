@@ -165,19 +165,68 @@ export async function ensureAuthenticated(
  */
 export async function getAuthToken(page: Page): Promise<string | null> {
   try {
-    // Get token from localStorage (where Firebase stores it)
-    // The app's Firebase SDK should have synced the auth state by now
-    const token = await page.evaluate(() => {
+    // Get token from Firebase SDK's currentUser (preferred method)
+    // Also check localStorage and sessionStorage as fallbacks
+    const token = await page.evaluate(async () => {
       try {
+        // First, try to get token from Firebase SDK's currentUser
+        // This works when we use signInWithCustomToken
+        try {
+          const { getAuth } = await import('firebase/auth');
+          const { getApps } = await import('firebase/app');
+          
+          const apps = getApps();
+          if (apps.length > 0) {
+            const auth = getAuth(apps[0]);
+            // Wait a bit for auth state to be available
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            if (auth.currentUser) {
+              try {
+                const idToken = await auth.currentUser.getIdToken(false);
+                if (idToken) {
+                  return idToken;
+                }
+              } catch (e) {
+                // Token retrieval failed, try to refresh
+                try {
+                  const idToken = await auth.currentUser.getIdToken(true);
+                  if (idToken) {
+                    return idToken;
+                  }
+                } catch (refreshError) {
+                  // Token refresh failed, continue to fallbacks
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Firebase SDK not available or error, continue to fallbacks
+        }
+        
+        // Fallback 1: Check localStorage (legacy Firebase SDK format)
         const projectId = 'demo-test';
         const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
         const authStateStr = window.localStorage.getItem(authKey);
         
         if (authStateStr) {
-          const authState = JSON.parse(authStateStr);
-          // Return the ID token (accessToken in Firebase's format)
-          return authState?.stsTokenManager?.accessToken || null;
+          try {
+            const authState = JSON.parse(authStateStr);
+            // Return the ID token (accessToken in Firebase's format)
+            if (authState?.stsTokenManager?.accessToken) {
+              return authState.stsTokenManager.accessToken;
+            }
+          } catch (e) {
+            // Invalid JSON, continue
+          }
         }
+        
+        // Fallback 2: Check sessionStorage (REST API fallback method)
+        const testToken = sessionStorage.getItem('__test_id_token__');
+        if (testToken) {
+          return testToken;
+        }
+        
         return null;
       } catch (error) {
         console.error('Error in getAuthToken evaluate:', error);
@@ -191,18 +240,66 @@ export async function getAuthToken(page: Page): Promise<string | null> {
     }
     
     // Wait a bit and retry (sometimes Firebase needs time to sync)
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(1500);
     
-    // Retry once more
-    const retryToken = await page.evaluate(() => {
+    // Retry once more with longer wait
+    const retryToken = await page.evaluate(async () => {
       try {
+        // Try Firebase SDK again with longer wait
+        try {
+          const { getAuth } = await import('firebase/auth');
+          const { getApps } = await import('firebase/app');
+          
+          const apps = getApps();
+          if (apps.length > 0) {
+            const auth = getAuth(apps[0]);
+            // Wait longer for auth state
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            if (auth.currentUser) {
+              try {
+                const idToken = await auth.currentUser.getIdToken(false);
+                if (idToken) {
+                  return idToken;
+                }
+              } catch (e) {
+                // Try refresh
+                try {
+                  const idToken = await auth.currentUser.getIdToken(true);
+                  if (idToken) {
+                    return idToken;
+                  }
+                } catch (refreshError) {
+                  // Continue to fallbacks
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Continue to fallbacks
+        }
+        
+        // Check localStorage
         const projectId = 'demo-test';
         const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
         const authStateStr = window.localStorage.getItem(authKey);
         if (authStateStr) {
-          const authState = JSON.parse(authStateStr);
-          return authState?.stsTokenManager?.accessToken || null;
+          try {
+            const authState = JSON.parse(authStateStr);
+            if (authState?.stsTokenManager?.accessToken) {
+              return authState.stsTokenManager.accessToken;
+            }
+          } catch (e) {
+            // Invalid JSON
+          }
         }
+        
+        // Check sessionStorage
+        const testToken = sessionStorage.getItem('__test_id_token__');
+        if (testToken) {
+          return testToken;
+        }
+        
         return null;
       } catch (e) {
         return null;

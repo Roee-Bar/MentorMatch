@@ -1,15 +1,11 @@
 /**
  * Global Teardown for E2E Tests
  * 
- * Performs cleanup operations after all tests complete.
- * Cleans up emulator log files.
- * 
- * Note: Firebase emulators are managed separately and should be stopped manually
- * or kept running during development.
+ * Cleans up in-memory test database after all tests complete.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import { testDatabase } from '@/lib/test-db';
+import { testAuthStore } from '@/lib/test-db/auth-store';
 
 async function globalTeardown() {
   const verbose = process.env.PLAYWRIGHT_VERBOSE === 'true';
@@ -18,24 +14,12 @@ async function globalTeardown() {
     console.log('Running global teardown...');
   }
   
-  // Clean up emulator log files
-  const logFiles = ['firestore-debug.log', 'firebase-debug.log', 'ui-debug.log'];
-  logFiles.forEach(logFile => {
-    const logPath = path.join(process.cwd(), logFile);
-    if (fs.existsSync(logPath)) {
-      try {
-        fs.unlinkSync(logPath);
-        if (verbose) {
-          console.log(`Cleaned up ${logFile}`);
-        }
-      } catch (error) {
-        // Ignore errors - file might be locked or already deleted
-      }
-    }
-  });
+  // Clear in-memory database
+  testDatabase.clearAll();
+  testAuthStore.clear();
   
   if (verbose) {
-    console.log('Global teardown complete');
+    console.log('Global teardown complete - in-memory database cleared');
   }
 }
 

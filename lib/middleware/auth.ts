@@ -36,18 +36,58 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     }
     
     // Verify Firebase token using Admin SDK
-    // In test mode with emulators, verifyIdToken should work with emulator tokens
-    // Note: In emulator mode, we don't check revocation (second param = false)
+    // In test mode, we use custom tokens directly (no ID token conversion needed)
     const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
-    const decodedToken = await adminAuth.verifyIdToken(token, !isTestEnv); // Only check revocation in production
+    
+    let decodedToken: { uid: string; email: string; [key: string]: any };
+    if (isTestEnv) {
+      // In test mode, verify custom token directly
+      decodedToken = await adminAuth.verifyIdToken(token);
+    } else {
+      // In production, verify ID token with revocation check
+      decodedToken = await adminAuth.verifyIdToken(token, true);
+    }
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+    if (isTestEnv) {
+      console.log('[TEST AUTH] Verifying token for uid:', decodedToken.uid);
+    }
+    
+    if (isTestEnv) {
+      console.log('[TEST AUTH] Attempting to get user profile for uid:', decodedToken.uid);
+    }
+    
     const profile = await userService.getUserById(decodedToken.uid);
     
     if (!profile) {
       // Log this case specifically as it's a common issue
+      if (isTestEnv) {
+        console.error('[TEST AUTH] User profile not found for uid:', decodedToken.uid);
+        // Try to check if user exists in test DB directly
+        try {
+          const { testDb } = await import('@/lib/test-db/adapter');
+          const userDoc = await testDb.collection('users').doc(decodedToken.uid).get();
+          console.error('[TEST AUTH] Direct DB check - doc exists:', userDoc.exists);
+          if (userDoc.exists) {
+            const docData = userDoc.data();
+            console.error('[TEST AUTH] Direct DB check - doc data:', JSON.stringify(docData, null, 2));
+            console.error('[TEST AUTH] Direct DB check - doc id:', userDoc.id);
+          } else {
+            // Check all users in collection
+            const allUsers = await testDb.collection('users').get();
+            console.error('[TEST AUTH] All users in DB:', allUsers.docs.map(d => ({ id: d.id, data: d.data() })));
+          }
+        } catch (dbError: any) {
+          console.error('[TEST AUTH] Error checking test DB:', dbError?.message || dbError);
+        }
+      }
       console.warn(`User profile not found for uid: ${decodedToken.uid}`);
       return { authenticated: false, user: null };
+    }
+    
+    if (isTestEnv) {
+      console.log('[TEST AUTH] User profile found:', { uid: profile.id, email: profile.email, role: profile.role });
     }
 
     return {

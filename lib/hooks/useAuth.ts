@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
-import { auth } from '@/lib/firebase';
+import { auth, getAuthToken } from '@/lib/firebase';
 import { BaseUser } from '@/types/database';
 import { ROUTES } from '@/lib/routes';
 
@@ -106,7 +106,7 @@ export function useAuth(options?: UseAuthOptions): UseAuthReturn {
 
   // Helper to get current user's token
   const getToken = useCallback(async (): Promise<string> => {
-    const token = await auth.currentUser?.getIdToken();
+    const token = await getAuthToken();
     if (!token) {
       throw new Error('Not authenticated');
     }

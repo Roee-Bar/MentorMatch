@@ -1,7 +1,7 @@
 /**
  * Database Helpers for E2E Tests
  * 
- * Utilities for seeding and cleaning up test data in Firebase Emulator.
+ * Utilities for seeding and cleaning up test data in in-memory test database.
  */
 
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
