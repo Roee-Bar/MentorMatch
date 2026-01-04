@@ -24,11 +24,21 @@ if (missingEnvVars.length > 0) {
   );
 }
 
+// In test mode, force 'demo-test' to match admin SDK configuration
+// This ensures both client and admin SDK use the same project ID for token verification
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+const projectId = isTestEnv 
+  ? 'demo-test'  // Force demo-test in test mode to match admin SDK
+  : (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'test-project');
+const storageBucket = isTestEnv
+  ? 'demo-test.appspot.com'  // Match project ID
+  : (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'test-project.appspot.com');
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'test.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'test-project',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'test-project.appspot.com',
+  projectId,
+  storageBucket,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:abc123',
 }
