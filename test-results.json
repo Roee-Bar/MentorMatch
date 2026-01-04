@@ -1,0 +1,737 @@
+{
+  "config": {
+    "configFile": "/Users/roeebar/Desktop/RB/MentorMatch/playwright.config.ts",
+    "rootDir": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/global-setup.ts",
+    "globalTeardown": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 4
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report",
+          "open": "never"
+        }
+      ],
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/roeebar/Desktop/RB/MentorMatch/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 4
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 4,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:3000/api/health",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe",
+      "env": {
+        "E2E_TEST": "true",
+        "NODE_ENV": "test",
+        "CI": "false",
+        "FIREBASE_AUTH_EMULATOR_HOST": "localhost:9099",
+        "FIRESTORE_EMULATOR_HOST": "localhost:8081",
+        "NEXT_PUBLIC_E2E_TEST": "true",
+        "NEXT_PUBLIC_NODE_ENV": "test",
+        "NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST": "localhost:9099",
+        "NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST": "localhost:8081",
+        "NEXT_PUBLIC_FIREBASE_API_KEY": "test-api-key",
+        "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "localhost",
+        "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "demo-test",
+        "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "demo-test.appspot.com",
+        "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "123456789",
+        "NEXT_PUBLIC_FIREBASE_APP_ID": "1:123456789:web:test",
+        "FIREBASE_ADMIN_PROJECT_ID": "demo-test"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "auth/login.spec.ts",
+      "file": "auth/login.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "User Login @auth @smoke @critical",
+          "file": "auth/login.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should successfully login with valid credentials @smoke @critical @fast",
+              "ok": false,
+              "tags": [
+                "auth",
+                "smoke",
+                "critical",
+                "smoke",
+                "critical",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 37782,
+                      "error": {
+                        "message": "Error: URL wait timeout after 15000ms. Expected pattern: /\\/authenticated\\/student/. Current URL: http://localhost:3000/login. Original error: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
+                        "stack": "Error: URL wait timeout after 15000ms. Expected pattern: /\\/authenticated\\/student/. Current URL: http://localhost:3000/login. Original error: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at waitForURL (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts:176:11)\n    at waitForRoleBasedRedirect (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/navigation-helpers.ts:61:3)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:25:5",
+                        "location": {
+                          "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts",
+                          "column": 11,
+                          "line": 176
+                        },
+                        "snippet": "   at ../utils/wait-strategies.ts:176\n\n  174 |     const currentUrl = page.url();\n  175 |     const patternStr = typeof urlPattern === 'string' ? urlPattern : urlPattern.toString();\n> 176 |     throw new Error(\n      |           ^\n  177 |       `URL wait timeout after ${timeout}ms. ` +\n  178 |       `Expected pattern: ${patternStr}. ` +\n  179 |       `Current URL: ${currentUrl}. ` +"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts",
+                            "column": 11,
+                            "line": 176
+                          },
+                          "message": "Error: URL wait timeout after 15000ms. Expected pattern: /\\/authenticated\\/student/. Current URL: http://localhost:3000/login. Original error: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n\n   at ../utils/wait-strategies.ts:176\n\n  174 |     const currentUrl = page.url();\n  175 |     const patternStr = typeof urlPattern === 'string' ? urlPattern : urlPattern.toString();\n> 176 |     throw new Error(\n      |           ^\n  177 |       `URL wait timeout after ${timeout}ms. ` +\n  178 |       `Expected pattern: ${patternStr}. ` +\n  179 |       `Current URL: ${currentUrl}. ` +\n    at waitForURL (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts:176:11)\n    at waitForRoleBasedRedirect (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/navigation-helpers.ts:61:3)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:25:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:01.217Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-f0019-entials-smoke-critical-fast-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-f0019-entials-smoke-critical-fast-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-f0019-entials-smoke-critical-fast-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts",
+                        "column": 11,
+                        "line": 176
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "231ca1f0f4db3e4958c3-08ad9d4558d6e5505cab",
+              "file": "auth/login.spec.ts",
+              "line": 13,
+              "column": 7
+            },
+            {
+              "title": "should show error with invalid email @regression @fast",
+              "ok": false,
+              "tags": [
+                "auth",
+                "smoke",
+                "critical",
+                "regression",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 16040,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n\n    at expectErrorMessage (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts:45:30)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:35:29",
+                        "location": {
+                          "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                          "column": 30,
+                          "line": 45
+                        },
+                        "snippet": "   at ../utils/assertions.ts:45\n\n  43 |   // Wait for error element to be visible with a reasonable timeout\n  44 |   // Use a shorter timeout to avoid hanging when browser validation prevents form submission\n> 45 |   await expect(errorElement).toBeVisible({ timeout: 8000 });\n     |                              ^\n  46 |   \n  47 |   if (message) {\n  48 |     await expect(errorElement).toContainText(message, { ignoreCase: true });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                            "column": 30,
+                            "line": 45
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n\n\n   at ../utils/assertions.ts:45\n\n  43 |   // Wait for error element to be visible with a reasonable timeout\n  44 |   // Use a shorter timeout to avoid hanging when browser validation prevents form submission\n> 45 |   await expect(errorElement).toBeVisible({ timeout: 8000 });\n     |                              ^\n  46 |   \n  47 |   if (message) {\n  48 |     await expect(errorElement).toContainText(message, { ignoreCase: true });\n    at expectErrorMessage (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts:45:30)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:35:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:01.211Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-94857-valid-email-regression-fast-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-94857-valid-email-regression-fast-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-94857-valid-email-regression-fast-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                        "column": 30,
+                        "line": 45
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "231ca1f0f4db3e4958c3-30c5a422c6ebb6698ac2",
+              "file": "auth/login.spec.ts",
+              "line": 28,
+              "column": 7
+            },
+            {
+              "title": "should show error with invalid password @regression @fast",
+              "ok": false,
+              "tags": [
+                "auth",
+                "smoke",
+                "critical",
+                "regression",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 16000,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n\n    at expectErrorMessage (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts:45:30)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:52:29",
+                        "location": {
+                          "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                          "column": 30,
+                          "line": 45
+                        },
+                        "snippet": "   at ../utils/assertions.ts:45\n\n  43 |   // Wait for error element to be visible with a reasonable timeout\n  44 |   // Use a shorter timeout to avoid hanging when browser validation prevents form submission\n> 45 |   await expect(errorElement).toBeVisible({ timeout: 8000 });\n     |                              ^\n  46 |   \n  47 |   if (message) {\n  48 |     await expect(errorElement).toContainText(message, { ignoreCase: true });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                            "column": 30,
+                            "line": 45
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\nExpected: visible\nTimeout: 8000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 8000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"error-message\"]:not(#__next-route-announcer__), [data-testid=\"error\"]:not(#__next-route-announcer__), [role=\"alert\"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)').first()\u001b[22m\n\n\n   at ../utils/assertions.ts:45\n\n  43 |   // Wait for error element to be visible with a reasonable timeout\n  44 |   // Use a shorter timeout to avoid hanging when browser validation prevents form submission\n> 45 |   await expect(errorElement).toBeVisible({ timeout: 8000 });\n     |                              ^\n  46 |   \n  47 |   if (message) {\n  48 |     await expect(errorElement).toContainText(message, { ignoreCase: true });\n    at expectErrorMessage (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts:45:30)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:52:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:01.220Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-35f4c-id-password-regression-fast-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-35f4c-id-password-regression-fast-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-login-User-Login-auth-35f4c-id-password-regression-fast-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/assertions.ts",
+                        "column": 30,
+                        "line": 45
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "231ca1f0f4db3e4958c3-83d7e99656122d9d9bfb",
+              "file": "auth/login.spec.ts",
+              "line": 40,
+              "column": 7
+            },
+            {
+              "title": "should show error when email is empty @regression @ui",
+              "ok": true,
+              "tags": [
+                "auth",
+                "smoke",
+                "critical",
+                "regression",
+                "ui"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 7024,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:01.212Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "231ca1f0f4db3e4958c3-f1f07bd29dacb79d9d1c",
+              "file": "auth/login.spec.ts",
+              "line": 57,
+              "column": 7
+            },
+            {
+              "title": "should show error when password is empty @regression @ui",
+              "ok": true,
+              "tags": [
+                "auth",
+                "smoke",
+                "critical",
+                "regression",
+                "ui"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 2287,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:08.995Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "231ca1f0f4db3e4958c3-a5328fcff15a7eb32854",
+              "file": "auth/login.spec.ts",
+              "line": 92,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "auth/register.spec.ts",
+      "file": "auth/register.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "User Registration @auth @regression",
+          "file": "auth/register.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should successfully register a new student @smoke @fast",
+              "ok": false,
+              "tags": [
+                "auth",
+                "regression",
+                "smoke",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 9106,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"success\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"success\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:23:35",
+                        "location": {
+                          "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                          "column": 35,
+                          "line": 23
+                        },
+                        "snippet": "  21 |     await expect(page).toHaveURL('/login');\n  22 |     const message = await loginPage.getMessage();\n> 23 |     expect(message.toLowerCase()).toContain('success');\n     |                                   ^\n  24 |   });\n  25 |\n  26 |   test('should show error when passwords do not match @regression @ui @fast', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                            "column": 35,
+                            "line": 23
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"success\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\n\n  21 |     await expect(page).toHaveURL('/login');\n  22 |     const message = await loginPage.getMessage();\n> 23 |     expect(message.toLowerCase()).toContain('success');\n     |                                   ^\n  24 |   });\n  25 |\n  26 |   test('should show error when passwords do not match @regression @ui @fast', async ({ page }) => {\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:23:35"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:11.295Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-ae9b9-er-a-new-student-smoke-fast-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-ae9b9-er-a-new-student-smoke-fast-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-ae9b9-er-a-new-student-smoke-fast-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                        "column": 35,
+                        "line": 23
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a2e1e1ccab58a85dc6a-0ca11e9a06762f625d1c",
+              "file": "auth/register.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "should show error when passwords do not match @regression @ui @fast",
+              "ok": true,
+              "tags": [
+                "auth",
+                "regression",
+                "regression",
+                "ui",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 5367,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:19.053Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7a2e1e1ccab58a85dc6a-e0d9576e6fad2fa2d34d",
+              "file": "auth/register.spec.ts",
+              "line": 26,
+              "column": 7
+            },
+            {
+              "title": "should show error when password is too short @regression @ui @fast",
+              "ok": true,
+              "tags": [
+                "auth",
+                "regression",
+                "regression",
+                "ui",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5247,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:19.053Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7a2e1e1ccab58a85dc6a-0c7cfdf0d12e66d28f7a",
+              "file": "auth/register.spec.ts",
+              "line": 43,
+              "column": 7
+            },
+            {
+              "title": "should show error when required fields are missing @regression @ui @fast",
+              "ok": true,
+              "tags": [
+                "auth",
+                "regression",
+                "regression",
+                "ui",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 3,
+                      "status": "passed",
+                      "duration": 1153,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:21.234Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7a2e1e1ccab58a85dc6a-898e043af346d2c4df78",
+              "file": "auth/register.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "should show error when email is already registered @regression @api @fast",
+              "ok": false,
+              "tags": [
+                "auth",
+                "regression",
+                "regression",
+                "api",
+                "fast"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 11874,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/email|already|exists/i\u001b[39m\nReceived string:  \u001b[31m\"creating your account...\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/email|already|exists/i\u001b[39m\nReceived string:  \u001b[31m\"creating your account...\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:88:35",
+                        "location": {
+                          "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                          "column": 35,
+                          "line": 88
+                        },
+                        "snippet": "  86 |     await expectErrorMessage(page);\n  87 |     const message = await registerPage.getMessage();\n> 88 |     expect(message.toLowerCase()).toMatch(/email|already|exists/i);\n     |                                   ^\n  89 |   });\n  90 | });\n  91 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                            "column": 35,
+                            "line": 88
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/email|already|exists/i\u001b[39m\nReceived string:  \u001b[31m\"creating your account...\"\u001b[39m\n\n  86 |     await expectErrorMessage(page);\n  87 |     const message = await registerPage.getMessage();\n> 88 |     expect(message.toLowerCase()).toMatch(/email|already|exists/i);\n     |                                   ^\n  89 |   });\n  90 | });\n  91 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:88:35"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-01-04T08:20:22.613Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-1b3ea-istered-regression-api-fast-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-1b3ea-istered-regression-api-fast-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/roeebar/Desktop/RB/MentorMatch/test-results/auth-register-User-Registr-1b3ea-istered-regression-api-fast-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts",
+                        "column": 35,
+                        "line": 88
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "7a2e1e1ccab58a85dc6a-037bb6d70587ac788189",
+              "file": "auth/register.spec.ts",
+              "line": 72,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-01-04T08:19:54.624Z",
+    "duration": 45269.873999999996,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  }
+}

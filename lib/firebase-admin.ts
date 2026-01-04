@@ -13,11 +13,16 @@ let hasLoggedMinimalConfigWarning = false;
 
 // Initialize Firebase Admin SDK only if not already initialized
 if (!admin.apps.length) {
-  const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
   const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
   const isCI = process.env.CI === 'true';
+  
+  // In test mode, ALWAYS use 'demo-test' as project ID to match emulator configuration
+  // This prevents the Admin SDK from reading .firebaserc or Application Default Credentials
+  const projectId = isTestEnv 
+    ? 'demo-test'  // Force demo-test in test mode
+    : process.env.FIREBASE_ADMIN_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
   // IMPORTANT: Set emulator environment variables BEFORE initialization
   // Firebase Admin SDK reads these at initialization time
@@ -29,9 +34,19 @@ if (!admin.apps.length) {
     process.env.FIRESTORE_EMULATOR_HOST = firestoreEmulatorHost;
     process.env.FIREBASE_AUTH_EMULATOR_HOST = authEmulatorHost;
     
+    // CRITICAL: Set GCLOUD_PROJECT to prevent Admin SDK from reading .firebaserc or ADC
+    // This ensures custom tokens are created with the correct project ID
+    process.env.GCLOUD_PROJECT = 'demo-test';
+    process.env.FIREBASE_ADMIN_PROJECT_ID = 'demo-test';
+    
     logger.debug('Configured Firebase Admin SDK for emulator', { 
       context: 'Firebase',
-      data: { firestoreEmulatorHost, authEmulatorHost }
+      data: { 
+        firestoreEmulatorHost, 
+        authEmulatorHost,
+        projectId: 'demo-test',
+        gcloudProject: process.env.GCLOUD_PROJECT
+      }
     });
   }
 
@@ -93,10 +108,15 @@ if (!admin.apps.length) {
         }
       }
       
+      // In test mode, always use 'demo-test' to ensure token audience matches
+      const finalProjectId = isTestEnv ? 'demo-test' : (projectId || 'demo-test');
       admin.initializeApp({
-        projectId: projectId || 'demo-test',
+        projectId: finalProjectId,
       });
-      logger.debug('Initialized with minimal config', { context: 'Firebase' });
+      logger.debug('Initialized with minimal config', { 
+        context: 'Firebase',
+        data: { projectId: finalProjectId, isTestEnv }
+      });
     }
   } catch (error) {
     logger.firebase.error('Initialization', error);
@@ -114,10 +134,15 @@ if (!admin.apps.length) {
             logger.warn('Initialization failed, attempting fallback with minimal config', { context: 'Firebase' });
           }
         }
+        // In test mode, always use 'demo-test' to ensure token audience matches
+        const finalProjectId = isTestEnv ? 'demo-test' : (projectId || 'demo-test');
         admin.initializeApp({
-          projectId: projectId || 'demo-test',
+          projectId: finalProjectId,
         });
-        logger.debug('Fallback initialization succeeded', { context: 'Firebase' });
+        logger.debug('Fallback initialization succeeded', { 
+          context: 'Firebase',
+          data: { projectId: finalProjectId, isTestEnv }
+        });
       } catch (fallbackError) {
         logger.firebase.error('Fallback initialization also failed', fallbackError);
         // Only throw in development to help debug
@@ -139,10 +164,18 @@ if (!admin.apps.length) {
 if (!admin.apps.length) {
   // Last resort: initialize with minimal config
   try {
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+    // In test mode, always use 'demo-test' to ensure token audience matches
+    const finalProjectId = isTestEnv 
+      ? 'demo-test' 
+      : (process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test');
     admin.initializeApp({
-      projectId: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
+      projectId: finalProjectId,
     });
-    logger.debug('Emergency initialization with minimal config', { context: 'Firebase' });
+    logger.debug('Emergency initialization with minimal config', { 
+      context: 'Firebase',
+      data: { projectId: finalProjectId, isTestEnv }
+    });
   } catch (error) {
     logger.firebase.error('Emergency initialization failed', error);
     // This should never happen, but if it does, we need to throw
