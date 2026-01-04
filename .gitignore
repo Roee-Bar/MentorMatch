@@ -29,6 +29,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firestore-debug.log
 
 # testing documentation
 docs/testing/
@@ -38,6 +39,10 @@ docs/testing/
 
 # playwright MCP screenshots
 .playwright-mcp/
+
+# playwright test results and reports
+playwright-report/
+test-results/
 
 # local env files
 .env*.local

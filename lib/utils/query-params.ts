@@ -56,3 +56,32 @@ export function getRequiredQueryParam(
   return value;
 }
 
+/**
+ * Build a query string from filter parameters
+ * Only includes non-empty values in the query string
+ * 
+ * @param params - Object with filter parameters (values can be string or undefined)
+ * @returns Query string (without leading '?')
+ * 
+ * @example
+ * ```typescript
+ * const query = buildFilterQueryString({
+ *   search: 'test',
+ *   department: 'CS',
+ *   skills: undefined
+ * });
+ * // Returns: "search=test&department=CS"
+ * ```
+ */
+export function buildFilterQueryString(
+  params: Record<string, string | undefined>
+): string {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      query.append(key, value);
+    }
+  });
+  return query.toString();
+}
+

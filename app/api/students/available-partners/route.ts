@@ -10,7 +10,7 @@ import { studentService } from '@/lib/services/students/student-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import type { StudentFilterParams } from '@/types/database';
-import { isServiceSuccess } from '@/lib/services/shared/types';
+import { getOptionalQueryParam } from '@/lib/utils/query-params';
 
 export const GET = withRoles<Record<string, string>>(['student'], async (request: NextRequest, context, user) => {
   // Check if student already has a partner - if so, return empty array immediately
@@ -20,29 +20,21 @@ export const GET = withRoles<Record<string, string>>(['student'], async (request
   }
   
   // Parse filter parameters from query string
-  const searchParams = request.nextUrl.searchParams;
+  const { searchParams } = new URL(request.url);
   const filters: StudentFilterParams = {
-    search: searchParams.get('search') || undefined,
-    department: searchParams.get('department') || undefined,
-    skills: searchParams.get('skills') || undefined,
-    interests: searchParams.get('interests') || undefined,
+    search: getOptionalQueryParam(searchParams, 'search'),
+    department: getOptionalQueryParam(searchParams, 'department'),
+    skills: getOptionalQueryParam(searchParams, 'skills'),
+    interests: getOptionalQueryParam(searchParams, 'interests'),
   };
 
-  // Check if any filters are provided
-  const hasFilters = filters.search || filters.department || filters.skills || filters.interests;
+  // Always use filtered method - it handles empty filters gracefully
+  const result = await studentService.getFilteredAvailablePartners(user.uid, filters);
 
-  if (hasFilters) {
-    // Use filtered method
-    const result = await studentService.getFilteredAvailablePartners(user.uid, filters);
-    if (isServiceSuccess(result)) {
-      return ApiResponse.successWithCount(result.data || []);
-    } else {
-      return ApiResponse.error(result.error || 'Failed to fetch students');
-    }
-  } else {
-    // No filters, use original method for backward compatibility
-    const students = await studentService.getAvailablePartners(user.uid);
-    return ApiResponse.successWithCount(students);
+  if (!result.success) {
+    return ApiResponse.error(result.error || 'Failed to fetch students');
   }
+
+  return ApiResponse.successWithCount(result.data || []);
 });
 

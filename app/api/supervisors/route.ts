@@ -13,6 +13,7 @@ import { NextRequest } from 'next/server';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { getOptionalQueryParam } from '@/lib/utils/query-params';
 
 export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Get query parameters
@@ -20,11 +21,11 @@ export const GET = withAuth<Record<string, string>>(async (request: NextRequest,
   
   // Build filter params from query string
   const filters = {
-    search: searchParams.get('search') || undefined,
-    department: searchParams.get('department') || undefined,
-    availability: searchParams.get('availability') || undefined,
-    expertise: searchParams.get('expertise') || undefined,
-    interests: searchParams.get('interests') || undefined,
+    search: getOptionalQueryParam(searchParams, 'search'),
+    department: getOptionalQueryParam(searchParams, 'department'),
+    availability: getOptionalQueryParam(searchParams, 'availability'),
+    expertise: getOptionalQueryParam(searchParams, 'expertise'),
+    interests: getOptionalQueryParam(searchParams, 'interests'),
   };
 
   // Delegate filtering to service layer

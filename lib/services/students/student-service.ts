@@ -10,6 +10,11 @@ import { PartnershipRequestService } from '@/lib/services/partnerships/partnersh
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { Student, StudentFilterParams } from '@/types/database';
+import {
+  filterBySearchTerm,
+  filterByDepartment,
+  filterByCommaSeparatedField,
+} from '@/lib/utils/filter-helpers';
 
 // ============================================
 // STUDENT SERVICE CLASS
@@ -72,50 +77,21 @@ class StudentServiceClass extends BaseService<Student> {
       // Get base available partners
       let students = await this.getAvailablePartners(excludeStudentId);
 
-      // Normalize filter values
-      const search = filters.search?.toLowerCase().trim();
-      const department = filters.department;
-      const skills = filters.skills?.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-      const interests = filters.interests?.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
-
       // Filter by search term (name, skills, interests)
-      if (search) {
-        students = students.filter(student => {
-          const nameMatch = student.fullName.toLowerCase().includes(search);
-          const skillsMatch = student.skills?.toLowerCase().includes(search) ?? false;
-          const interestsMatch = student.interests?.toLowerCase().includes(search) ?? false;
-          return nameMatch || skillsMatch || interestsMatch;
-        });
-      }
+      students = filterBySearchTerm(students, filters.search, (student) => [
+        student.fullName,
+        student.skills || '',
+        student.interests || '',
+      ]);
 
       // Filter by department
-      if (department && department !== 'all') {
-        students = students.filter(student => 
-          student.department.toLowerCase() === department.toLowerCase()
-        );
-      }
+      students = filterByDepartment(students, filters.department, (student) => student.department);
 
       // Filter by skills (any match)
-      if (skills && skills.length > 0) {
-        students = students.filter(student => {
-          if (!student.skills) return false;
-          const studentSkills = student.skills.split(',').map(s => s.trim().toLowerCase());
-          return skills.some(filterSkill => 
-            studentSkills.some(skill => skill.includes(filterSkill))
-          );
-        });
-      }
+      students = filterByCommaSeparatedField(students, filters.skills, (student) => student.skills);
 
       // Filter by interests (any match)
-      if (interests && interests.length > 0) {
-        students = students.filter(student => {
-          if (!student.interests) return false;
-          const studentInterests = student.interests.split(',').map(i => i.trim().toLowerCase());
-          return interests.some(filterInterest => 
-            studentInterests.some(interest => interest.includes(filterInterest))
-          );
-        });
-      }
+      students = filterByCommaSeparatedField(students, filters.interests, (student) => student.interests);
 
       return ServiceResults.success(students);
     } catch (error) {
