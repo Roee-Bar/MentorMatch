@@ -23,12 +23,24 @@ export default function Home() {
           
           for (let attempt = 0; attempt < maxRetries; attempt++) {
             try {
+              // #region agent log
+              const isTestEnv = typeof window !== 'undefined' && (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
+              if (isTestEnv) {
+                fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:24',message:'getUserProfile attempt',data:{uid:user.uid,attempt:attempt+1,maxRetries,hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+              }
+              // #endregion
               const profilePromise = getUserProfile(user.uid, token)
               const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Profile fetch timeout')), 10000) // Increased timeout
               )
               
               profile = await Promise.race([profilePromise, timeoutPromise])
+              
+              // #region agent log
+              if (isTestEnv) {
+                fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:33',message:'getUserProfile result',data:{success:profile?.success,hasData:!!profile?.data,hasRole:!!profile?.data?.role,error:profile?.error},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+              }
+              // #endregion
               
               if (profile?.success && profile?.data?.role) {
                 break // Success, exit retry loop
@@ -39,6 +51,11 @@ export default function Home() {
                 console.warn(`Profile fetch failed (attempt ${attempt + 1}/${maxRetries}):`, profile.error || 'Unknown error')
               }
             } catch (error: any) {
+              // #region agent log
+              if (isTestEnv) {
+                fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/page.tsx:42',message:'getUserProfile exception',data:{attempt:attempt+1,error:error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+              }
+              // #endregion
               console.warn(`Profile fetch error (attempt ${attempt + 1}/${maxRetries}):`, error?.message || error)
               profile = null
             }

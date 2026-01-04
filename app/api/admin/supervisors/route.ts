@@ -10,6 +10,8 @@ import { supervisorService } from '@/lib/services/supervisors/supervisor-service
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withRoles<Record<string, string>>(['admin'], async (
   request: NextRequest,
   context,

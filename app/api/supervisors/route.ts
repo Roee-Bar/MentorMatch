@@ -15,6 +15,8 @@ import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Get query parameters
   const { searchParams } = new URL(request.url);

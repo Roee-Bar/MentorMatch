@@ -7,6 +7,8 @@ import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
     const students = await studentService.getAllStudents();

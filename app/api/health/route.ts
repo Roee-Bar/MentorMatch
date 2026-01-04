@@ -9,8 +9,14 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/health/route.ts:12',message:'Health endpoint entry',data:{isTestEnv:process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true'},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
   
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/health/route.ts:15',message:'Health endpoint before response',data:{isTestEnv},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   return NextResponse.json(
     { 
       status: 'ok', 

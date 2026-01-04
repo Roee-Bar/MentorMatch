@@ -15,6 +15,7 @@ export interface AuthResult {
     uid: string;
     email: string | undefined;
     role: string;
+    emailVerified?: boolean;
   } | null;
 }
 
@@ -23,6 +24,9 @@ export interface AuthResult {
  */
 export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:25',message:'verifyAuth entry',data:{hasAuthHeader:!!request.headers.get('authorization')},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -40,10 +44,23 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // In test mode, we use custom tokens directly (no ID token conversion needed)
     const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
     
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:44',message:'Before verifyIdToken',data:{isTestEnv,tokenLength:token.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     let decodedToken: DecodedIdToken;
     if (isTestEnv) {
       // In test mode, verify custom token directly
-      decodedToken = await adminAuth.verifyIdToken(token) as DecodedIdToken;
+      try {
+        decodedToken = await adminAuth.verifyIdToken(token) as DecodedIdToken;
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:48',message:'verifyIdToken success',data:{uid:decodedToken.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+      } catch (verifyError: any) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:52',message:'verifyIdToken error',data:{error:verifyError?.message,code:verifyError?.code},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        throw verifyError;
+      }
     } else {
       // In production, verify ID token with revocation check
       decodedToken = await adminAuth.verifyIdToken(token, true) as DecodedIdToken;
@@ -71,7 +88,21 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       }
     }
     
-    const profile = await userService.getUserById(decodedToken.uid);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:75',message:'Before getUserById',data:{uid:decodedToken.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    let profile;
+    try {
+      profile = await userService.getUserById(decodedToken.uid);
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:79',message:'getUserById success',data:{profile:profile?{id:profile.id,email:profile.email,role:profile.role}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+    } catch (serviceError: any) {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:83',message:'getUserById error',data:{error:serviceError?.message,stack:serviceError?.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      throw serviceError;
+    }
     
     if (isTestEnv) {
       console.log('[TEST AUTH] userService.getUserById result:', profile ? { id: profile.id, email: profile.email, role: profile.role } : null);
@@ -98,15 +129,22 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       console.log('[TEST AUTH] User profile found:', { uid: profile.id, email: profile.email, role: profile.role });
     }
 
+    // Check email verification status
+    const emailVerified = decodedToken.email_verified || false;
+
     return {
       authenticated: true,
       user: {
         uid: decodedToken.uid,
         email: decodedToken.email,
         role: profile.role,
+        emailVerified, // Include verification status in user object
       },
     };
   } catch (error: any) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:110',message:'verifyAuth catch block',data:{error:error?.message,code:error?.code,stack:error?.stack?.substring(0,300)},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     // Provide more detailed error logging
     const errorMessage = error?.message || 'Unknown error';
     const errorCode = error?.code || 'unknown';
@@ -161,6 +199,31 @@ export async function requireOwnerOrAdmin(request: NextRequest, resourceUserId: 
   
   if (!isOwner && !isAdmin) {
     return { authorized: false, status: 403, error: 'Forbidden', user: authResult.user };
+  }
+  
+  return { authorized: true, status: 200, user: authResult.user };
+}
+
+/**
+ * Verify user is authenticated and has verified their email
+ * @param request - Next.js request object
+ * @returns Authorization result with email verification check
+ */
+export async function requireVerifiedEmail(request: NextRequest): Promise<AuthorizationResult> {
+  const authResult = await verifyAuth(request);
+  
+  if (!authResult.authenticated || !authResult.user) {
+    return { authorized: false, status: 401, error: 'Unauthorized', user: null };
+  }
+  
+  // Check if email is verified
+  if (!authResult.user.emailVerified) {
+    return { 
+      authorized: false, 
+      status: 403, 
+      error: 'Email verification required. Please verify your email address to access this resource.', 
+      user: authResult.user 
+    };
   }
   
   return { authorized: true, status: 200, user: authResult.user };

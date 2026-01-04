@@ -65,7 +65,9 @@ export class TestAuth {
   async verifyIdToken(token: string): Promise<{ uid: string; email: string; [key: string]: any }> {
     const authToken = testAuthStore.verifyToken(token);
     if (!authToken) {
-      throw new Error('Invalid token');
+      const error: any = new Error('Invalid token');
+      error.code = 'auth/argument-error';
+      throw error;
     }
     return {
       uid: authToken.uid,

@@ -19,6 +19,8 @@ const requestTypeSchema = z.object({
   type: z.enum(['incoming', 'outgoing', 'all']).default('all'),
 });
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
     const params = await extractQueryParams(request, requestTypeSchema);

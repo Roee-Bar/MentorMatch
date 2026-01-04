@@ -205,6 +205,12 @@ export class InMemoryDatabase {
   }
 }
 
-// Singleton instance for test database
-export const testDatabase = new InMemoryDatabase();
+// Singleton instance - use global to ensure single instance across Next.js module boundaries
+const globalForTestDb = global as unknown as { testDatabase: InMemoryDatabase | undefined };
+
+if (!globalForTestDb.testDatabase) {
+  globalForTestDb.testDatabase = new InMemoryDatabase();
+}
+
+export const testDatabase = globalForTestDb.testDatabase;
 

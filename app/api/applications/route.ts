@@ -17,6 +17,8 @@ import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import type { Application } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withRoles<Record<string, string>>(['admin'], async (request: NextRequest, context, user) => {
   const applications = await applicationService.getAllApplications();
   return ApiResponse.successWithCount(applications);

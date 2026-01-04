@@ -8,13 +8,83 @@
 import { logger } from '@/lib/logger';
 import { escapeHtml } from '@/lib/utils/html-escape';
 import { applicationService } from '@/lib/services/applications/application-service';
-import { resend, FROM_EMAIL } from './resend-client';
+import { resend, FROM_EMAIL, isResendAvailable } from './resend-client';
 import { getStatusMessage } from './email-config';
 import { generateStatusChangeEmailHTML } from './templates';
 import { getApplicationStatusChangeRecipients, type EmailRecipient } from '@/lib/services/shared/notification-helpers';
 import type { ApplicationStatusChangedEvent } from '@/lib/services/shared/events';
 
 const SERVICE_NAME = 'EmailService';
+
+// ============================================
+// EMAIL VALIDATION
+// ============================================
+
+/**
+ * Validate email format
+ * @param email - Email address to validate
+ * @returns true if email format is valid
+ */
+function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// ============================================
+// RETRY LOGIC
+// ============================================
+
+/**
+ * Retry a function with exponential backoff
+ * @param fn - Function to retry
+ * @param maxRetries - Maximum number of retry attempts (default: 3)
+ * @returns Result of the function
+ * @throws Last error if all retries fail
+ */
+async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3
+): Promise<T> {
+  let lastError: Error | unknown;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      // Don't retry on certain errors (validation, auth, etc.)
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        if (
+          errorMessage.includes('invalid') ||
+          errorMessage.includes('unauthorized') ||
+          errorMessage.includes('forbidden') ||
+          errorMessage.includes('not found')
+        ) {
+          throw error;
+        }
+      }
+      
+      // If this is the last attempt, throw the error
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Calculate delay: 2^attempt seconds (2s, 4s, 8s)
+      const delayMs = Math.pow(2, attempt) * 1000;
+      
+      logger.debug(`Email send attempt ${attempt} failed, retrying in ${delayMs}ms`, {
+        context: SERVICE_NAME,
+        data: { attempt, maxRetries, error: error instanceof Error ? error.message : String(error) },
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+  
+  throw lastError;
+}
 
 // ============================================
 // EMAIL SERVICE
@@ -145,19 +215,34 @@ export const EmailService = {
       return;
     }
 
+    // Validate email format
+    if (!validateEmail(recipient.email)) {
+      logger.warn('Invalid email format, skipping send', {
+        context: SERVICE_NAME,
+        data: {
+          recipient: recipient.email,
+          applicationId: event.applicationId,
+        },
+      });
+      return;
+    }
+
     const statusInfo = getStatusMessage(event.newStatus);
 
     try {
       const html = generateStatusChangeEmailHTML(recipient.name, event, statusInfo);
 
-      await resend.emails.send({
-        from: FROM_EMAIL,
-        to: recipient.email,
-        subject: `${statusInfo.subject} - ${escapeHtml(event.projectTitle)}`,
-        html,
+      // Use retry logic for transient failures
+      await retryWithBackoff(async () => {
+        await resend.emails.send({
+          from: FROM_EMAIL,
+          to: recipient.email,
+          subject: `${statusInfo.subject} - ${escapeHtml(event.projectTitle)}`,
+          html,
+        });
       });
 
-      logger.debug('Status change email sent successfully', {
+      logger.info('Status change email sent successfully', {
         context: SERVICE_NAME,
         data: {
           recipient: recipient.email,
@@ -171,6 +256,73 @@ export const EmailService = {
         applicationId: event.applicationId,
       });
       throw error; // Re-throw so Promise.allSettled can track it
+    }
+  },
+
+  /**
+   * Send critical email (e.g., verification emails)
+   * Throws errors instead of silently failing
+   * @param recipient - Email recipient
+   * @param subject - Email subject
+   * @param html - Email HTML content
+   * @param context - Additional context for logging
+   */
+  async sendCriticalEmail(
+    recipient: { email: string; name: string },
+    subject: string,
+    html: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
+    // Validate email service is available
+    if (!isResendAvailable()) {
+      const error = new Error('Email service unavailable: RESEND_API_KEY not configured');
+      logger.error('Cannot send critical email: email service unavailable', error, {
+        context: SERVICE_NAME,
+        data: {
+          recipient: recipient.email,
+          ...context,
+        },
+      });
+      throw error;
+    }
+
+    // Validate email format
+    if (!validateEmail(recipient.email)) {
+      const error = new Error(`Invalid email address: ${recipient.email}`);
+      logger.error('Cannot send critical email: invalid email format', error, {
+        context: SERVICE_NAME,
+        data: {
+          recipient: recipient.email,
+          ...context,
+        },
+      });
+      throw error;
+    }
+
+    try {
+      // Use retry logic for transient failures
+      await retryWithBackoff(async () => {
+        await resend!.emails.send({
+          from: FROM_EMAIL,
+          to: recipient.email,
+          subject,
+          html,
+        });
+      });
+
+      logger.info('Critical email sent successfully', {
+        context: SERVICE_NAME,
+        data: {
+          recipient: recipient.email,
+          ...context,
+        },
+      });
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'sendCriticalEmail', error, {
+        recipient: recipient.email,
+        ...context,
+      });
+      throw error; // Re-throw for critical emails
     }
   },
 };

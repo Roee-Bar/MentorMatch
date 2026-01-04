@@ -10,11 +10,25 @@ import { adminAuth } from '@/lib/firebase-admin';
 
 test.describe('User Profile API Verification', () => {
   test('should fetch user profile via API with valid token', async ({ page }) => {
-    // Seed a student
-    const { uid, student } = await seedStudent();
+    // Seed a student in test process (for reference)
+    const { student } = await seedStudent();
     
-    // Create custom token
-    const token = await adminAuth.createCustomToken(uid);
+    // Create user and token in server process via API
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'student',
+        userData: {
+          email: student.email,
+          fullName: student.fullName,
+          department: student.department,
+          ...student,
+        },
+      },
+    });
+    
+    const seedData = await seedResponse.json();
+    expect(seedData.success).toBe(true);
+    const { uid, token, email } = seedData.data;
     
     // Set token in sessionStorage
     await page.goto('/', { waitUntil: 'domcontentloaded' });
@@ -22,7 +36,7 @@ test.describe('User Profile API Verification', () => {
       sessionStorage.setItem('__test_id_token__', token);
       sessionStorage.setItem('__test_local_id__', uid);
       sessionStorage.setItem('__test_email__', email);
-    }, { token, uid, email: student.email });
+    }, { token, uid, email });
     
     // Make API call to get user profile
     const response = await page.request.get(`http://localhost:3000/api/users/${uid}`, {
@@ -45,7 +59,7 @@ test.describe('User Profile API Verification', () => {
     expect(data.success).toBe(true);
     expect(data.data).toBeTruthy();
     expect(data.data.id).toBe(uid);
-    expect(data.data.email).toBe(student.email);
+    expect(data.data.email).toBe(email);
     expect(data.data.role).toBe('student');
   });
 
@@ -77,12 +91,43 @@ test.describe('User Profile API Verification', () => {
   });
 
   test('should allow admin to fetch any user profile', async ({ page }) => {
-    // Seed an admin and a student
-    const { uid: adminUid } = await seedAdmin();
-    const { uid: studentUid, student } = await seedStudent();
+    // Seed an admin and a student in test process (for reference)
+    const { admin } = await seedAdmin();
+    const { student } = await seedStudent();
     
-    // Create token for admin
-    const adminToken = await adminAuth.createCustomToken(adminUid);
+    // Create admin user and token in server process via API
+    const adminSeedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'admin',
+        userData: {
+          email: admin.email,
+          fullName: admin.fullName,
+          department: admin.department,
+          ...admin,
+        },
+      },
+    });
+    
+    const adminSeedData = await adminSeedResponse.json();
+    expect(adminSeedData.success).toBe(true);
+    const { token: adminToken } = adminSeedData.data;
+    
+    // Create student user in server process via API
+    const studentSeedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'student',
+        userData: {
+          email: student.email,
+          fullName: student.fullName,
+          department: student.department,
+          ...student,
+        },
+      },
+    });
+    
+    const studentSeedData = await studentSeedResponse.json();
+    expect(studentSeedData.success).toBe(true);
+    const { uid: studentUid } = studentSeedData.data;
     
     // Make API call as admin to fetch student profile
     const response = await page.request.get(`http://localhost:3000/api/users/${studentUid}`, {

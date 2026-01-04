@@ -131,7 +131,7 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
       });
       // Use transaction to ensure atomicity when updating supervisor capacity
       try {
-        await adminDb.runTransaction(async (transaction) => {
+        await adminDb.runTransaction(async (transaction: Transaction) => {
           const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
           const supervisorSnap = await transaction.get(supervisorRef);
 

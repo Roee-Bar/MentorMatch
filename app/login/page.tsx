@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signIn } from '@/lib/auth'
@@ -9,7 +9,7 @@ import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
 import { btnPrimaryFullWidth, linkPrimary, textMuted, heading2xl } from '@/lib/styles/shared-styles'
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -109,5 +109,23 @@ export default function LoginPage() {
         </p>
       </div>
     </AuthLayout>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout backHref="/">
+        <h1 className={`${heading2xl} mt-4 mb-2.5`}>
+          Welcome Back
+        </h1>
+        <p className={`${textMuted} mb-8 text-sm`}>
+          Login to your MentorMatch account
+        </p>
+        <div>Loading...</div>
+      </AuthLayout>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

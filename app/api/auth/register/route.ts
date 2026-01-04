@@ -10,8 +10,12 @@ import { validateRegistration } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { userRepository } from '@/lib/repositories/user-repository';
 import { studentRepository } from '@/lib/repositories/student-repository';
+import { EmailVerificationService } from '@/lib/services/auth/email-verification-service';
+import { logger } from '@/lib/logger';
 import type { BaseUser } from '@/types/database';
 import type { Student } from '@/types/database';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,7 +85,33 @@ export async function POST(request: NextRequest) {
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 
-    return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
+    // Send verification email (non-blocking - account is created even if email fails)
+    try {
+      await EmailVerificationService.sendVerificationEmail(
+        userRecord.uid,
+        data.email,
+        `${data.firstName} ${data.lastName}`
+      );
+      logger.info('Verification email sent after registration', {
+        context: 'Register',
+        data: { userId: userRecord.uid, email: data.email },
+      });
+    } catch (emailError) {
+      // Log error but don't fail registration - account is already created
+      logger.error('Failed to send verification email after registration', emailError, {
+        context: 'Register',
+        data: { userId: userRecord.uid, email: data.email },
+      });
+      // Continue with registration success - user can request resend later if needed
+    }
+
+    return ApiResponse.created(
+      { 
+        userId: userRecord.uid,
+        message: 'Registration successful. Please check your email to verify your account.',
+      }, 
+      'Registration successful'
+    );
 
   } catch (error: any) {
     console.error('Registration error:', error);

@@ -175,6 +175,10 @@ FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE K
 # Resend Email Configuration
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 RESEND_FROM_EMAIL=onboarding@resend.dev  # Optional, defaults to onboarding@resend.dev if not set
+
+# Application URL (for email verification links)
+NEXT_PUBLIC_APP_URL=http://localhost:3000  # For development
+# NEXT_PUBLIC_APP_URL=https://yourdomain.com  # For production
 ```
 
 ## Security
