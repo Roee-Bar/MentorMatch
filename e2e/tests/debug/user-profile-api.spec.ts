@@ -18,9 +18,6 @@ test.describe('User Profile API Verification', () => {
       data: {
         role: 'student',
         userData: {
-          email: student.email,
-          fullName: student.fullName,
-          department: student.department,
           ...student,
         },
       },
@@ -100,9 +97,6 @@ test.describe('User Profile API Verification', () => {
       data: {
         role: 'admin',
         userData: {
-          email: admin.email,
-          fullName: admin.fullName,
-          department: admin.department,
           ...admin,
         },
       },
@@ -117,9 +111,6 @@ test.describe('User Profile API Verification', () => {
       data: {
         role: 'student',
         userData: {
-          email: student.email,
-          fullName: student.fullName,
-          department: student.department,
           ...student,
         },
       },

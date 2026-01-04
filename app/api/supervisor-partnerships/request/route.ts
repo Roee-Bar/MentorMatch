@@ -32,6 +32,6 @@ export const POST = withAuth<Record<string, string>>(
       )
     );
   },
-  { allowedRoles: ['supervisor'] }
+  { allowedRoles: ['supervisor'], requireVerifiedEmail: true }
 );
 

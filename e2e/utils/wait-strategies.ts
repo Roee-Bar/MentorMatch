@@ -63,13 +63,15 @@ export async function waitForStable(
 }
 
 /**
- * Wait for network to be idle
+ * Wait for page to load (replaced networkidle with load state)
+ * Note: networkidle was removed as it's unreliable and times out on background requests
  */
 export async function waitForNetworkIdle(
   page: Page,
   idleTime: number = TestConfig.timeouts.networkIdle
 ): Promise<void> {
-  await page.waitForLoadState('networkidle', { timeout: TestConfig.timeouts.navigation });
+  // Use load state instead of networkidle - more reliable
+  await page.waitForLoadState('load', { timeout: TestConfig.timeouts.navigation });
   
   // Additional wait to ensure no pending requests
   let lastRequestTime = Date.now();
@@ -184,6 +186,8 @@ export async function waitForURL(
 
 /**
  * Wait for page to be fully loaded
+ * Removed networkidle - unreliable, times out on background requests
+ * Use waitForElement() for specific elements instead
  */
 export async function waitForPageLoad(
   page: Page,
@@ -191,7 +195,8 @@ export async function waitForPageLoad(
 ): Promise<void> {
   await page.waitForLoadState('domcontentloaded', { timeout });
   await page.waitForLoadState('load', { timeout });
-  await page.waitForLoadState('networkidle', { timeout: timeout / 2 });
+  // Removed networkidle - unreliable, times out on background requests
+  // Use waitForElement() for specific elements instead
 }
 
 /**

@@ -31,6 +31,6 @@ export const PUT = withAuth<UserIdParams>(
     
     return ApiResponse.successMessage('User updated successfully');
   },
-  { requireOwnerOrAdmin: true }
+  { requireOwnerOrAdmin: true, requireVerifiedEmail: true }
 );
 

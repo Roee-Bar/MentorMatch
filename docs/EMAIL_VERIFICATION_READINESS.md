@@ -2,6 +2,63 @@
 
 This document provides a comprehensive checklist to ensure the email verification system is ready for production use.
 
+## Architecture Overview
+
+The email verification system uses Firebase Auth for secure link generation and Resend for email delivery. The system includes:
+
+- **Server-side service** (`EmailVerificationService`) for generating verification links and sending emails
+- **Client-side hook** (`useEmailVerification`) for managing verification status
+- **Verification page** (`/verify-email`) for handling verification results
+- **API endpoints** for checking status and resending emails
+- **Metrics tracking** for monitoring verification rates
+
+### System Architecture
+
+```mermaid
+graph TB
+    User[User Registration] --> RegisterAPI[Registration API]
+    RegisterAPI --> FirebaseAuth[Firebase Auth]
+    RegisterAPI --> EmailService[Email Verification Service]
+    EmailService --> Resend[Resend Email Service]
+    Resend --> Email[Verification Email]
+    Email --> UserClick[User Clicks Link]
+    UserClick --> VerifyPage[Verify Email Page]
+    VerifyPage --> FirebaseAuth
+    FirebaseAuth --> Success[Verification Success]
+    Success --> LoginPage[Login Page]
+    
+    User --> ResendAPI[Resend Verification API]
+    ResendAPI[Resend API] --> EmailService
+    ResendAPI --> RateLimit[Rate Limiter]
+    
+    VerifyPage --> Metrics[Metrics Tracking]
+    EmailService --> Metrics
+```
+
+### Verification Flow Sequence
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant RegisterAPI
+    participant EmailService
+    participant Resend
+    participant Firebase
+    participant VerifyPage
+    
+    User->>RegisterAPI: Register with email
+    RegisterAPI->>Firebase: Create user (emailVerified: false)
+    RegisterAPI->>EmailService: Send verification email
+    EmailService->>Firebase: Generate verification link
+    EmailService->>Resend: Send email with link
+    Resend->>User: Email delivered
+    User->>VerifyPage: Click verification link
+    VerifyPage->>Firebase: Verify action code
+    Firebase->>VerifyPage: Verification result
+    VerifyPage->>User: Show success/error
+    VerifyPage->>LoginPage: Redirect to login
+```
+
 ## Pre-Deployment Checklist
 
 ### 1. Environment Variables Configuration
@@ -107,13 +164,16 @@ curl -X POST http://localhost:3000/api/auth/register \
 
 **Steps:**
 1. Click verification link from email
-2. Verify redirect to `/login?verified=true`
+2. Verify redirect to `/verify-email` page
 3. Check user's `emailVerified` status is now `true`
+4. Verify redirect to `/login?verified=true` after success
 
 **Expected Results:**
-- ✅ Link redirects correctly
+- ✅ Link redirects to `/verify-email` page
+- ✅ Page shows appropriate success/error state
 - ✅ User's email is verified in Firebase Auth
 - ✅ Link expires after 1 hour (test with expired link)
+- ✅ Auto-redirect to login after 3 seconds on success
 
 **Manual Verification:**
 ```bash
@@ -211,66 +271,211 @@ export async function GET(request: NextRequest) {
 
 ## Monitoring & Alerts
 
+### Metrics Tracking
+
+The system automatically tracks the following metrics (logged via `EmailVerificationService`):
+
+1. **`verification_email_sent`** - When a verification email is sent
+2. **`verification_attempted`** - When a user clicks a verification link
+3. **`verification_succeeded`** - When verification completes successfully
+4. **`verification_failed`** - When verification fails (with error code)
+5. **`verification_expired`** - When an expired link is used
+6. **`verification_invalid`** - When an invalid link is used
+7. **`verification_already_verified`** - When already verified email is verified again
+8. **`resend_requested`** - When a user requests a new verification email
+
 ### Key Metrics to Monitor:
 
 1. **Email Delivery Rate:**
-   - Track successful email sends vs failures
+   - Track `verification_email_sent` vs actual deliveries
    - Monitor Resend dashboard for bounces
+   - Target: >95% delivery rate
 
 2. **Verification Rate:**
+   - Calculate: `verification_succeeded / verification_email_sent`
    - Track percentage of users who verify email
    - Monitor time to verification
+   - Target: >80% verification rate
 
 3. **Error Rates:**
+   - Monitor `verification_failed` events
+   - Track `verification_expired` and `verification_invalid` separately
    - Monitor email sending failures
-   - Track verification link errors
+   - Target: <5% failure rate
+
+4. **Resend Rate:**
+   - Track `resend_requested` frequency
+   - Monitor rate limit hits
+   - Identify users needing multiple resends
+
+### Metrics Query Examples
+
+```typescript
+// Example: Query logs for verification metrics
+// Search logs for: "Metric: verification_email_sent"
+// Search logs for: "Metric: verification_succeeded"
+// Calculate success rate from these metrics
+```
 
 ### Recommended Alerts:
 
 - Alert if email delivery rate drops below 95%
-- Alert if verification email failures exceed threshold
+- Alert if verification success rate drops below 70%
+- Alert if verification email failures exceed 10% threshold
 - Alert if Resend API key becomes invalid
+- Alert if rate limit is frequently hit (indicates issues)
 
 ## Troubleshooting Guide
 
-### Issue: Emails Not Sending
+### Common Issues and Solutions
+
+#### Issue: Emails Not Sending
+
+**Symptoms:**
+- Registration succeeds but no email received
+- Server logs show email service errors
+- Users report not receiving verification emails
 
 **Check:**
 1. `RESEND_API_KEY` is set and valid
-2. Resend account is active
-3. Check server logs for errors
+2. Resend account is active and not suspended
+3. Check server logs for `EmailVerificationService` errors
 4. Verify email service is not rate-limited
+5. Check Resend dashboard for delivery status
 
 **Debug:**
 ```typescript
-// Add to registration route temporarily
+// Check email service availability
+import { isResendAvailable } from '@/lib/services/email/resend-client';
 console.log('Resend available:', isResendAvailable());
-console.log('From email:', FROM_EMAIL);
 ```
 
-### Issue: Verification Links Not Working
+**Solution:**
+- Verify `RESEND_API_KEY` in environment variables
+- Check Resend account status and billing
+- Review server logs for specific error messages
+- Test email sending with `npm run test:email`
+
+#### Issue: Verification Links Not Working
+
+**Symptoms:**
+- Users click link but see error page
+- Link redirects to wrong page
+- "Invalid link" or "Expired link" errors
 
 **Check:**
-1. `NEXT_PUBLIC_APP_URL` is set correctly
+1. `NEXT_PUBLIC_APP_URL` is set correctly (required in production)
 2. Firebase authorized domains include your domain
 3. Link hasn't expired (1 hour limit)
-4. User is clicking link in same browser session
+4. Link format is correct (contains `mode` and `oobCode` parameters)
+5. Verification page (`/verify-email`) is accessible
 
-### Issue: Users Can Access Without Verification
+**Debug:**
+```bash
+# Check environment variable
+echo $NEXT_PUBLIC_APP_URL
+
+# Test verification page
+curl http://localhost:3000/verify-email?mode=verifyEmail&oobCode=test
+```
+
+**Solution:**
+- Ensure `NEXT_PUBLIC_APP_URL` matches your domain exactly
+- Add domain to Firebase authorized domains
+- Check verification page logs for specific errors
+- Verify link hasn't expired (generate new one if needed)
+
+#### Issue: Verification Status Not Updating
+
+**Symptoms:**
+- User verifies email but status still shows unverified
+- Verification banner doesn't disappear
+- Status check returns incorrect value
 
 **Check:**
-1. Protected routes use `requireVerifiedEmail()`
+1. Firebase Auth token includes `emailVerified` claim
+2. User reload is called after verification
+3. Polling mechanism is working (checks every 2 seconds for 30 seconds)
+4. Auth state listener is active
+
+**Debug:**
+```typescript
+// Check user verification status
+const user = auth.currentUser;
+await user?.reload();
+console.log('Email verified:', user?.emailVerified);
+```
+
+**Solution:**
+- Ensure user reloads after verification
+- Check polling mechanism in `useEmailVerification` hook
+- Verify auth state listener is properly set up
+- Check for errors in browser console
+
+#### Issue: Users Can Access Without Verification
+
+**Symptoms:**
+- Unverified users can access protected routes
+- `requireVerifiedEmail` not working
+- API returns 200 instead of 403
+
+**Check:**
+1. Protected routes use `requireVerifiedEmail()` or `requireVerifiedEmail: true` in `withAuth`
 2. `verifyAuth` correctly reads `emailVerified` from token
 3. Firebase token includes email verification status
+4. Middleware is applied correctly
 
 **Fix:**
 ```typescript
 // Ensure protected routes check verification
-const authResult = await requireVerifiedEmail(request);
-if (!authResult.authorized) {
-  return ApiResponse.error(authResult.error, authResult.status);
+import { requireVerifiedEmail } from '@/lib/middleware/auth';
+
+export async function GET(request: NextRequest) {
+  const authResult = await requireVerifiedEmail(request);
+  if (!authResult.authorized) {
+    return ApiResponse.error(authResult.error, authResult.status);
+  }
+  // ... rest of handler
 }
+
+// Or use withAuth wrapper
+export const GET = withAuth(
+  async (req, context, user) => { ... },
+  { requireVerifiedEmail: true }
+);
 ```
+
+#### Issue: Rate Limiting Too Aggressive
+
+**Symptoms:**
+- Users hit rate limit after 1-2 resend requests
+- Rate limit errors appear too frequently
+
+**Check:**
+1. Rate limit configuration (currently 3 requests per hour)
+2. Rate limit key includes user ID
+3. Rate limit storage is working correctly
+
+**Solution:**
+- Adjust rate limit in `rate-limit.ts` if needed
+- Check rate limit storage implementation
+- Verify rate limit headers are returned correctly
+
+#### Issue: Environment Variable Validation Failing
+
+**Symptoms:**
+- Production deployment fails
+- Error: "NEXT_PUBLIC_APP_URL is required in production"
+
+**Check:**
+1. `NEXT_PUBLIC_APP_URL` is set in production environment
+2. Variable name is correct (case-sensitive)
+3. No trailing slashes in URL
+
+**Solution:**
+- Set `NEXT_PUBLIC_APP_URL` in production environment variables
+- Verify in deployment platform (Vercel, etc.)
+- Ensure URL format is correct: `https://yourdomain.com` (no trailing slash)
 
 ## Quick Verification Script
 
@@ -334,6 +539,52 @@ Once all checks pass:
 
 ---
 
-**Last Updated:** [Current Date]
-**Status:** Ready for Testing
+## Architecture Details
+
+### Components
+
+1. **EmailVerificationService** (`lib/services/auth/email-verification-service.ts`)
+   - Generates Firebase verification links
+   - Sends verification emails via Resend
+   - Tracks verification metrics
+   - Validates environment configuration
+
+2. **Verification Page** (`app/verify-email/page.tsx`)
+   - Handles verification link clicks
+   - Shows success/error states
+   - Auto-redirects to login on success
+   - Handles expired/invalid links
+
+3. **Verification Hook** (`lib/hooks/useEmailVerification.ts`)
+   - Manages verification status state
+   - Polls for status updates (30s max)
+   - Provides resend functionality
+   - Listens to auth state changes
+
+4. **API Endpoints:**
+   - `POST /api/auth/resend-verification` - Resend verification email
+   - `GET /api/auth/verify-email` - Check verification status
+
+### Error Handling
+
+The system handles the following error scenarios:
+
+- **Expired Links:** Shows clear message with option to resend
+- **Invalid Links:** Detects already-used or malformed links
+- **Already Verified:** Gracefully handles re-verification attempts
+- **Network Errors:** Provides retry guidance
+- **User Disabled:** Shows appropriate error message
+
+### Status Refresh Mechanism
+
+The verification status is refreshed using:
+- **Polling:** Checks every 2 seconds for up to 30 seconds after resend
+- **Exponential Backoff:** Polling interval increases gradually
+- **Auth State Listener:** Automatically updates on auth state changes
+- **Manual Refresh:** `refreshStatus()` function available
+
+---
+
+**Last Updated:** December 2024
+**Status:** Production Ready
 

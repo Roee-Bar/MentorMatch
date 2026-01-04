@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { onAuthChange, getUserProfile } from '@/lib/auth';
 import { User } from 'firebase/auth';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
+import VerificationBanner from '@/app/components/feedback/VerificationBanner';
+import { useEmailVerification } from '@/lib/hooks/useEmailVerification';
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
@@ -15,6 +17,9 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  
+  // Email verification status
+  const { isVerified, isChecking: isCheckingVerification, resendVerificationEmail, isResending } = useEmailVerification();
 
   useEffect(() => {
     const isTestEnv = typeof window !== 'undefined' && 
@@ -91,5 +96,19 @@ export default function AuthenticatedLayout({ children }: AuthenticatedLayoutPro
     return <LoadingSpinner message="Loading..." />;
   }
 
-  return <div className="min-h-screen bg-gray-50 dark:bg-slate-900">{children}</div>;
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+      {/* Email Verification Banner - shown when user is not verified */}
+      {!isCheckingVerification && !isVerified && user && (
+        <div className="container mx-auto px-4 pt-4">
+          <VerificationBanner
+            email={user.email || undefined}
+            onResend={resendVerificationEmail}
+            isResending={isResending}
+          />
+        </div>
+      )}
+      {children}
+    </div>
+  );
 }

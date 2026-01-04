@@ -33,6 +33,14 @@ export const ERROR_MESSAGES = {
   
   // Business Logic Errors
   SELF_PARTNERSHIP_BLOCKED: 'You cannot send a partnership request to yourself',
+  
+  // Email Verification Errors
+  VERIFICATION_EXPIRED: 'This verification link has expired. Please request a new verification email.',
+  VERIFICATION_INVALID: 'This verification link is invalid or has already been used. Please request a new verification email.',
+  VERIFICATION_ALREADY_VERIFIED: 'Your email address has already been verified. You can now log in.',
+  VERIFICATION_NETWORK_ERROR: 'A network error occurred while verifying your email. Please check your connection and try again.',
+  VERIFICATION_FAILED: 'Failed to verify your email address. Please try again or request a new verification email.',
+  VERIFICATION_USER_DISABLED: 'Your account has been disabled. Please contact support for assistance.',
 } as const;
 
 /**
@@ -45,5 +53,7 @@ export const SUCCESS_MESSAGES = {
   REQUEST_CANCELLED: 'Request cancelled successfully',
   CO_SUPERVISOR_REMOVED: 'Co-supervisor removed successfully',
   PROJECT_STATUS_UPDATED: 'Project status updated successfully',
+  EMAIL_VERIFIED: 'Your email address has been verified successfully! You can now log in.',
+  VERIFICATION_EMAIL_SENT: 'Verification email sent successfully. Please check your inbox.',
 } as const;
 

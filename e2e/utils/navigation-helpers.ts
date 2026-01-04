@@ -27,7 +27,7 @@ export async function waitForRoleBasedRedirect(
     
     if (url.includes(expectedPath)) {
       // Wait for navigation to complete
-      await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
+      await page.waitForLoadState('load', { timeout: 2000 }).catch(() => {});
       return;
     }
 

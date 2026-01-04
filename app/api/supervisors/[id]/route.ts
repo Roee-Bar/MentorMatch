@@ -62,7 +62,7 @@ export const PUT = withAuth<SupervisorIdParams>(
 
     return ApiResponse.successMessage('Supervisor updated successfully');
   },
-  { requireOwnerOrAdmin: true }
+  { requireOwnerOrAdmin: true, requireVerifiedEmail: true }
 );
 
 

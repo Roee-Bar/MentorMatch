@@ -75,3 +75,95 @@ Tests use an in-memory database instead of Firebase emulators:
 - **No separate processes** - everything runs in one command
 - **Fast and reliable** - no network calls or timing issues
 - **Automatic cleanup** - database is cleared after each test run
+
+## Test Patterns
+
+The test suite follows established patterns for reliability and maintainability:
+
+### Authentication Fixtures
+
+All authenticated tests use auth fixtures instead of form-based login:
+
+```typescript
+import { test, expect } from '../../fixtures/auth';
+
+test('my test', async ({ page, authenticatedStudent }) => {
+  // User is already authenticated
+  // authenticatedStudent provides: uid, email, password, student
+});
+```
+
+**Why**: Form-based login has complex redirect chains and timing issues. Auth fixtures use `signInWithCustomToken` for reliable, fast authentication.
+
+### API Fallback Pattern
+
+UI tests include API fallbacks to verify business logic even if UI isn't ready:
+
+```typescript
+const listVisible = await applicationsList.first().isVisible({ timeout: 10000 }).catch(() => false);
+if (!listVisible) {
+  // Fallback to API verification
+  const response = await authenticatedRequest(page, 'GET', '/api/applications');
+  const data = await response.json();
+  expect(Array.isArray(data)).toBeTruthy();
+  return; // Test passes
+}
+```
+
+**Why**: Tests business logic even when UI isn't implemented or has timing issues. More resilient to UI changes.
+
+### Database Verification
+
+State change tests verify changes directly in the database:
+
+```typescript
+// After UI action
+const projectDoc = await adminDb.collection('projects').doc(projectId).get();
+expect(projectDoc.data()?.status).toBe('completed');
+```
+
+**Why**: More reliable than waiting for UI updates. Catches backend issues that UI might not show.
+
+### Shared Data Setup
+
+Tests that need shared data use `beforeAll`/`afterAll`:
+
+```typescript
+let sharedData: Type | undefined;
+
+test.beforeAll(async () => {
+  try {
+    sharedData = await seedData();
+  } catch (error) {
+    console.error('Failed to seed:', error);
+    throw error;
+  }
+});
+
+test.afterAll(async () => {
+  if (sharedData?.uid) {
+    try {
+      await cleanupUser(sharedData.uid);
+    } catch (error) {
+      console.error('Failed to cleanup:', error);
+      // Don't throw - cleanup errors shouldn't fail suite
+    }
+  }
+});
+```
+
+**Why**: Reduces test setup time and ensures cleanup even if tests fail.
+
+### Wait Strategies
+
+Tests use `load` state instead of `networkidle`:
+
+```typescript
+// Good
+await page.waitForLoadState('load', { timeout: 10000 });
+
+// Avoid
+await page.waitForLoadState('networkidle', { timeout: 10000 }); // Unreliable
+```
+
+**Why**: `networkidle` times out when background requests continue. `load` is more reliable and faster.

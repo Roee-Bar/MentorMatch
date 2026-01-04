@@ -140,6 +140,6 @@ export const POST = withAuth<Record<string, string>>(
 
   return ApiResponse.created({ applicationId }, 'Application created successfully');
   },
-  { allowedRoles: ['student'] }
+  { allowedRoles: ['student'], requireVerifiedEmail: true }
 );
 

@@ -70,7 +70,7 @@ export const PUT = withAuth<StudentIdParams>(
 
     return ApiResponse.successMessage('Student updated successfully');
   },
-  { requireOwnerOrAdmin: true }
+  { requireOwnerOrAdmin: true, requireVerifiedEmail: true }
 );
 
 

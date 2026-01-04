@@ -45,6 +45,6 @@ export const POST = withAuth<Record<string, string>>(
 
   return ApiResponse.created({ requestId: result.data }, 'Partnership request sent successfully');
   },
-  { allowedRoles: ['student'] }
+  { allowedRoles: ['student'], requireVerifiedEmail: true }
 );
 

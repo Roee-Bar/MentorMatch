@@ -45,7 +45,8 @@ export const POST = withAuth<ApplicationIdParams, Application>(
     },
     requireResourceAccess: async (user, context, application) => {
       return canModifyApplication(user.uid, application, user.role as UserRole);
-    }
+    },
+    requireVerifiedEmail: true
   }
 );
 

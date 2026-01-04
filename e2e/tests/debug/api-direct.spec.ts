@@ -16,9 +16,6 @@ test.describe('Direct API Test', () => {
       data: {
         role: 'student',
         userData: {
-          email: student.email,
-          fullName: student.fullName,
-          department: student.department,
           ...student,
         },
       },

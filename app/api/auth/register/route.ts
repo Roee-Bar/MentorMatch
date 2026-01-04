@@ -86,12 +86,16 @@ export async function POST(request: NextRequest) {
     console.log(`User registered successfully: ${userRecord.uid}`);
 
     // Send verification email (non-blocking - account is created even if email fails)
+    let emailSent = false;
+    let warning: string | undefined;
+    
     try {
       await EmailVerificationService.sendVerificationEmail(
         userRecord.uid,
         data.email,
         `${data.firstName} ${data.lastName}`
       );
+      emailSent = true;
       logger.info('Verification email sent after registration', {
         context: 'Register',
         data: { userId: userRecord.uid, email: data.email },
@@ -102,13 +106,16 @@ export async function POST(request: NextRequest) {
         context: 'Register',
         data: { userId: userRecord.uid, email: data.email },
       });
-      // Continue with registration success - user can request resend later if needed
+      // Set warning message for user
+      warning = 'Account created successfully, but verification email could not be sent. Please use "Resend Verification Email" from your dashboard.';
     }
 
     return ApiResponse.created(
       { 
         userId: userRecord.uid,
         message: 'Registration successful. Please check your email to verify your account.',
+        emailSent,
+        ...(warning && { warning }),
       }, 
       'Registration successful'
     );

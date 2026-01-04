@@ -27,6 +27,16 @@ function LoginForm() {
     }
   }, [searchParams, router])
 
+  // Check for email verification success message from URL
+  useEffect(() => {
+    const verified = searchParams.get('verified')
+    if (verified === 'true') {
+      setMessage('Email verified successfully! You can now log in.')
+      // Clean up URL
+      router.replace('/login', { scroll: false })
+    }
+  }, [searchParams, router])
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)

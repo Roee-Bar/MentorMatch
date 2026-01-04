@@ -46,6 +46,9 @@ export interface AuthOptions<TParams = Record<string, string>, TCached = undefin
   
   /** Name of the resource for better error messages (e.g., "Application", "Partnership") */
   resourceName?: string;
+  
+  /** User must have verified their email address */
+  requireVerifiedEmail?: boolean;
 }
 
 /**
@@ -136,6 +139,17 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
     }
     
     const user = authResult.user;
+    
+    // Check email verification requirement first (before other authorization checks)
+    if (options?.requireVerifiedEmail) {
+      // Allow admins to bypass verification for support cases
+      if (user.role !== 'admin' && !user.emailVerified) {
+        return ApiResponse.error(
+          'Email verification required. Please verify your email address to access this resource.',
+          403
+        );
+      }
+    }
     
     // Apply authorization checks if options provided
     if (options) {
