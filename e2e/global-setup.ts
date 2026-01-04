@@ -116,10 +116,17 @@ async function startEmulators(): Promise<void> {
     'auth,firestore'
   ];
   
+  // Prepare environment for emulator process
+  // Remove NO_COLOR if FORCE_COLOR is set to prevent warnings
+  const emulatorEnv = { ...process.env };
+  if (emulatorEnv.FORCE_COLOR && emulatorEnv.NO_COLOR) {
+    delete emulatorEnv.NO_COLOR;
+  }
+  
   emulatorProcess = spawn(emulatorCommand, emulatorArgs, {
     stdio: verbose ? 'inherit' : 'ignore',
     env: {
-      ...process.env,
+      ...emulatorEnv,
       FIREBASE_EMULATOR_DEBUG_LOG: '/dev/null',
       _JAVA_OPTIONS: '-XX:+IgnoreUnrecognizedVMOptions',
     },
@@ -142,6 +149,12 @@ async function startEmulators(): Promise<void> {
 }
 
 async function globalSetup() {
+  // Unset NO_COLOR if FORCE_COLOR is set to prevent Node.js warnings
+  // This resolves the conflict when both environment variables are present
+  if (process.env.FORCE_COLOR && process.env.NO_COLOR) {
+    delete process.env.NO_COLOR;
+  }
+  
   // Ensure test environment variables are set
   if (!process.env.E2E_TEST) {
     process.env.E2E_TEST = 'true';
