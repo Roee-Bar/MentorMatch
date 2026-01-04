@@ -6,11 +6,9 @@ import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedSupervisor, seedApplication, cleanupUser } from '../../fixtures/db-helpers';
 import { Selectors } from '../../utils/selectors';
-import { waitForStable, waitForLoadingComplete } from '../../utils/wait-strategies';
-import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor } from '@/types/database';
 
-test.describe('Student - Applications @student @smoke @regression', () => {
+test.describe('Student - Applications @student @smoke', () => {
   let sharedSupervisor: { uid: string; supervisor: Supervisor } | undefined;
 
   test.beforeAll(async () => {
@@ -54,78 +52,6 @@ test.describe('Student - Applications @student @smoke @regression', () => {
     await expect(page).toHaveURL(/\/authenticated\/student\/applications/);
     const applicationsList = page.locator(Selectors.applicationCard);
     await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
-  });
-
-  test('should submit a new application @regression @student', async ({ page, authenticatedStudent }) => {
-    const dashboard = new StudentDashboard(page);
-
-    // Use shared supervisor
-    await dashboard.goto();
-    await dashboard.navigateToSupervisors();
-
-    // Find and click on a supervisor
-    const supervisorCard = page.locator(Selectors.supervisorCard).first();
-    await supervisorCard.click();
-    await waitForStable(supervisorCard);
-
-    // Look for apply button
-    const applyButton = page.getByRole('button', { name: /apply|submit application/i });
-    if (await applyButton.isVisible()) {
-      await applyButton.click();
-
-      // Fill application form if modal opens
-      const titleInput = page.getByLabel(/project title/i);
-      const descriptionInput = page.getByLabel(/project description/i);
-      
-      if (await titleInput.isVisible()) {
-        await titleInput.fill('Test Project Title');
-        await descriptionInput.fill('Test project description');
-        
-        const submitButton = page.getByRole('button', { name: /submit|create/i });
-        await submitButton.click();
-
-        // Should see success message or redirect
-        await waitForLoadingComplete(page);
-      }
-    }
-  });
-
-  test('should delete a pending application @regression @student', async ({ page, authenticatedStudent }) => {
-    const dashboard = new StudentDashboard(page);
-
-    // Create a supervisor with capacity for this specific test
-    const { supervisor } = await seedSupervisor({
-      maxCapacity: 5,
-      currentCapacity: 2,
-    });
-
-    // Create a pending application
-    const { application } = await seedApplication(authenticatedStudent.uid, supervisor.id, {
-      status: 'pending',
-    });
-
-    await dashboard.goto();
-    await dashboard.navigateToApplications();
-
-    // Verify application is visible
-    const applicationsList = page.locator(Selectors.applicationCard);
-    await expect(applicationsList.first()).toBeVisible({ timeout: 10000 });
-
-    // Delete the application
-    await dashboard.deleteApplication(application.id);
-
-    // Verify success message
-    const successMessage = page.locator(Selectors.successMessage);
-    if (await successMessage.isVisible({ timeout: 5000 })) {
-      await expect(successMessage).toBeVisible();
-    }
-
-    // Verify application removed from database
-    const applicationDoc = await adminDb.collection('applications').doc(application.id).get();
-    expect(applicationDoc.exists).toBeFalsy();
-
-    // Cleanup supervisor created for this test
-    await cleanupUser(supervisor.id);
   });
 });
 

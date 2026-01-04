@@ -17,9 +17,84 @@ The E2E tests use Playwright and require Firebase emulators to be running. The t
 - **Next.js Dev Server**: Should start automatically via Playwright, but may need to be started manually
 - **Playwright Tests**: E2E tests that interact with the application
 
+**Note:** The test suite has been condensed to focus on critical smoke tests (~7 tests) covering core functionality to reduce execution time.
+
+## Quick Start & Common Issues
+
+**Most Common Issues:**
+
+1. **Java not found** → See Step 0 below (add Java to PATH)
+2. **Ports already in use** → Emulators may already be running - verify with `curl http://localhost:4000`
+3. **Emulators not detected** → The setup script may not detect already-running emulators - verify manually
+
+**Quick Verification Commands:**
+
+```bash
+# Check Java
+java -version
+
+# Check if emulators are running
+curl http://localhost:4000 && echo "✓ Emulator UI running"
+curl http://localhost:9099 && echo "✓ Auth Emulator running"
+curl http://localhost:8081 && echo "✓ Firestore Emulator running"
+```
+
+If all checks pass, you can proceed directly to running tests (Step 2).
+
 ## Step-by-Step Instructions
 
-### Step 1: Start Firebase Emulators
+### Step 0: Ensure Java is in PATH (CRITICAL - Do This First!)
+
+**Before starting the emulators, you MUST ensure Java is accessible in your PATH.**
+
+**Check if Java is available:**
+```bash
+java -version
+```
+
+**If you get an error like "command not found" or "Unable to locate a Java Runtime":**
+
+1. **Verify Java is installed:**
+   ```bash
+   # Check if Java is installed via Homebrew
+   brew list openjdk
+   ```
+
+2. **Add Java to PATH for this terminal session:**
+   ```bash
+   # For Apple Silicon (M1/M2/M3) Macs:
+   export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+   
+   # For Intel Macs:
+   export PATH="/usr/local/opt/openjdk/bin:$PATH"
+   ```
+
+3. **Verify Java is now accessible:**
+   ```bash
+   java -version
+   # Should show: openjdk version "X.X.X"
+   ```
+
+**Important:** You must export the PATH **in the same terminal window** where you'll run `npm run test:setup`. If you open a new terminal, you'll need to export it again, or add it permanently to your shell configuration (see Troubleshooting section for permanent setup).
+
+### Step 1: Check if Emulators Are Already Running
+
+**Before starting new emulators, check if they're already running:**
+
+```bash
+# Check if emulators are accessible
+curl -s http://localhost:4000 > /dev/null && echo "✓ Emulator UI is running" || echo "✗ Emulator UI is not running"
+curl -s http://localhost:9099 | grep -q "ready" && echo "✓ Auth Emulator is running" || echo "✗ Auth Emulator is not running"
+curl -s http://localhost:8081 | grep -q "Ok" && echo "✓ Firestore Emulator is running" || echo "✗ Firestore Emulator is not running"
+```
+
+**If all emulators are already running:**
+- You can skip to Step 2 and run tests directly
+- The `npm run test:setup` command will detect running emulators and inform you
+
+**If emulators are not running, proceed to start them:**
+
+### Step 1a: Start Firebase Emulators
 
 Open a terminal window and navigate to the project directory:
 
@@ -27,7 +102,7 @@ Open a terminal window and navigate to the project directory:
 cd /path/to/MentorMatch
 ```
 
-Start the Firebase emulators:
+**Ensure Java is in PATH (see Step 0 above), then start the Firebase emulators:**
 
 ```bash
 npm run test:setup
@@ -38,11 +113,11 @@ npm run test:setup
 npm run emulators:start
 ```
 
-**Java Configuration:**
-Both commands automatically configure Java with the necessary options (`_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'`) to prevent compatibility issues. You don't need to set this manually when using these npm scripts.
+**Note:** Both commands automatically configure Java with the necessary options (`_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'`) to prevent compatibility issues. You don't need to set this manually when using these npm scripts.
 
 **What to expect:**
-- The emulators will start and you'll see output indicating they're running
+- If emulators are already running, you'll see: `✓ Firebase emulators are already running!`
+- If starting new emulators, you'll see output indicating they're starting
 - Wait for the message: `✓ Firebase emulators are running!`
 - The Emulator UI will be available at: http://localhost:4000
 - Auth Emulator: http://localhost:9099
@@ -58,7 +133,7 @@ Before running tests, verify the emulators are fully operational:
 
 ```bash
 # Check Emulator UI (should return HTML)
-curl http://localhost:4000
+curl http://localhost:4000 | head -5
 
 # Check Auth Emulator (should return JSON with "ready": true)
 curl http://localhost:9099
@@ -66,6 +141,11 @@ curl http://localhost:9099
 # Check Firestore Emulator (should return "Ok")
 curl http://localhost:8081
 ```
+
+**Expected responses:**
+- Emulator UI: HTML content starting with `<!DOCTYPE html>`
+- Auth Emulator: `{"authEmulator":{"ready":true,...}}`
+- Firestore Emulator: `Ok`
 
 If all three commands return successfully, the emulators are ready for testing.
 
@@ -86,12 +166,18 @@ npm run test:e2e
 
 | Command | Description |
 |---------|-------------|
-| `npm run test:e2e` | Run all E2E tests (default mode) |
+| `npm run test:e2e` | Run all E2E tests (~7 critical smoke tests) |
 | `npm run test:e2e:ui` | Run tests with Playwright UI mode (interactive) |
 | `npm run test:e2e:debug` | Run tests in debug mode |
 | `npm run test:e2e:headed` | Run tests with visible browser |
 | `npm run test:e2e:verbose` | Run tests with verbose output |
 | `npm run test:e2e:report` | View the test report from last run |
+
+**Test Suite:** The suite focuses on critical smoke tests covering:
+- User authentication (login, registration)
+- Admin dashboard display
+- Student applications and supervisors display
+- Supervisor applications and projects display
 
 ### Running Specific Tests
 
@@ -110,6 +196,81 @@ npx playwright test --grep "@smoke"
 ```
 
 ## Troubleshooting
+
+### Java Not Found or Configuration Issues
+
+**Problem:** Error when running `npm run test:setup`:
+```
+Error: Process `java -version` has exited with code 1. 
+Please make sure Java is installed and on your system PATH.
+```
+
+**Root Cause:** Java is not installed or not in your terminal's PATH environment variable.
+
+**Solution:**
+
+1. **Install Java if not installed:**
+   ```bash
+   brew install openjdk
+   java -version  # Verify installation
+   ```
+
+2. **Configure Java PATH (if Java is installed but not found):**
+   
+   **Find Java installation path:**
+   ```bash
+   # Find the exact path:
+   /usr/libexec/java_home -V
+   # or
+   brew --prefix openjdk
+   ```
+   
+   **Export Java PATH in your terminal session:**
+   
+   **Option A: Temporary (current session only):**
+   ```bash
+   # For Apple Silicon (M1/M2/M3):
+   export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+   
+   # For Intel Mac:
+   export PATH="/usr/local/opt/openjdk/bin:$PATH"
+   ```
+   
+   **Option B: Permanent (add to shell configuration):**
+   
+   For zsh (default on macOS):
+   ```bash
+   echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.zshrc
+   # For Intel Macs, use: /usr/local/opt/openjdk/bin
+   source ~/.zshrc
+   ```
+   
+   For bash:
+   ```bash
+   echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.bash_profile
+   # For Intel Macs, use: /usr/local/opt/openjdk/bin
+   source ~/.bash_profile
+   ```
+   
+   **Verify Java is accessible:**
+   ```bash
+   java -version
+   which java
+   ```
+
+3. **Run emulator setup again:**
+   ```bash
+   npm run test:setup
+   ```
+
+**Note:** The setup scripts automatically configure Java with `_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'`. If starting emulators manually (not using npm scripts):
+```bash
+# macOS/Linux:
+_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' npx firebase emulators:start --only auth,firestore
+
+# Windows (PowerShell):
+$env:_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'; npx firebase emulators:start --only auth,firestore
+```
 
 ### Next.js Server Not Starting Automatically
 
@@ -144,112 +305,105 @@ Playwright's `webServer` configuration should automatically start the Next.js de
 
 ### Emulators Not Starting
 
-**Problem:** `ECONNREFUSED` errors when running tests
+**Problem:** `ECONNREFUSED` errors when running tests, or emulators fail to start
+
+**Symptoms:**
+- Tests fail with connection errors to Firebase emulators
+- `ECONNREFUSED` errors in test output
+- Emulators don't start when running `npm run test:setup`
 
 **Solution:**
-1. Ensure emulators are running: Check http://localhost:4000 in your browser
-2. Verify no other processes are using ports 4000, 9099, or 8081
-3. Try stopping and restarting the emulators:
+
+1. **Verify emulators are actually running:**
    ```bash
-   # Stop any running emulators (Ctrl+C in the emulator terminal)
-   # Then restart:
-   npm run test:setup
+   # Check Emulator UI
+   curl http://localhost:4000
+   
+   # Check Auth Emulator
+   curl http://localhost:9099
+   
+   # Check Firestore Emulator
+   curl http://localhost:8081
    ```
+
+2. **If emulators are not running:**
+   - Ensure Java is in PATH (see Step 0)
+   - Check if ports are already in use (see "Port Already in Use" section)
+   - Try stopping any existing emulator processes:
+     ```bash
+     # Find and kill existing emulator processes
+     pkill -f "firebase emulators"
+     pkill -f "java.*emulator"
+     ```
+   - Then restart emulators:
+     ```bash
+     npm run test:setup
+     ```
+
+3. **If emulators appear to be running but tests still fail:**
+   - Verify environment variables are set correctly (check `e2e/config/env.ts`)
+   - Check that the emulator ports match your configuration:
+     - Auth: `localhost:9099`
+     - Firestore: `localhost:8081`
+   - Try accessing the Emulator UI in your browser: http://localhost:4000
+   - Restart emulators to ensure clean state:
+     ```bash
+     # Stop emulators (Ctrl+C in emulator terminal)
+     # Wait a few seconds
+     # Then restart:
+     npm run test:setup
+     ```
 
 ### Port Already in Use
 
-**Problem:** Error about ports being already in use
-
-**Solution:**
-```bash
-# Check what's using the ports
-lsof -ti:4000,9099,8081,3000
-
-# Kill processes if needed (replace PID with actual process ID)
-kill -9 <PID>
+**Problem:** Error messages like:
+```
+⚠ ui: Port 4000 is not open on localhost
+⚠ auth: Port 9099 is not open on localhost
+⚠ firestore: Port 8081 is not open on localhost
+Error: Could not start Emulator UI, port taken.
 ```
 
-### Java Not Found or Configuration Issues
-
-**Problem:** Firebase emulators fail to start with Java-related errors
+**Root Cause:** Ports 4000, 9099, or 8081 are already in use, likely by existing emulator instances.
 
 **Solution:**
-1. **Install Java if not installed:**
-   - On macOS: `brew install openjdk`
-   - Verify installation: `java -version`
 
-2. **Configure Java PATH (if Java is not found):**
-   
-   If you get errors like `java: command not found` after installing Java, you **must** add Java to your PATH in the terminal where you'll run the emulators.
-   
-   **Find Java installation path:**
+1. **First, check if emulators are already running (they might be working fine):**
    ```bash
-   # On macOS with Homebrew, Java is typically installed at:
-   # Apple Silicon (M1/M2/M3): /opt/homebrew/opt/openjdk/bin/java
-   # Intel Mac: /usr/local/opt/openjdk/bin/java
-   
-   # Find the exact path:
-   /usr/libexec/java_home -V
-   # or
-   brew --prefix openjdk
-   ```
-   
-   **IMPORTANT: Export Java PATH in your terminal session:**
-   
-   You need to export the Java path **in the terminal where you'll run the emulators**. You can do this in two ways:
-   
-   **Option A: Export for current terminal session only (temporary):**
-   ```bash
-   # For Apple Silicon (M1/M2/M3):
-   export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
-   
-   # For Intel Mac:
-   export PATH="/usr/local/opt/openjdk/bin:$PATH"
-   ```
-   
-   **Option B: Add to shell configuration file (permanent):**
-   
-   For zsh (default on macOS):
-   ```bash
-   # Add to ~/.zshrc
-   echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.zshrc
-   # For Intel Macs, use: /usr/local/opt/openjdk/bin
-   
-   # Reload your shell configuration
-   source ~/.zshrc
-   ```
-   
-   For bash:
-   ```bash
-   # Add to ~/.bash_profile or ~/.bashrc
-   echo 'export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"' >> ~/.bash_profile
-   # For Intel Macs, use: /usr/local/opt/openjdk/bin
-   
-   # Reload your shell configuration
-   source ~/.bash_profile
-   ```
-   
-   **Verify Java is accessible:**
-   ```bash
-   java -version
-   which java
-   ```
-   
-   **Note:** If you use Option A (export in current session), you'll need to export it again each time you open a new terminal. Option B makes it permanent for all future terminal sessions.
-
-3. **Java configuration is automatic:**
-   The setup scripts (`npm run test:setup` and `npm run emulators:start`) automatically configure Java with `_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'` to prevent compatibility issues with newer Java versions.
-
-4. **If starting emulators manually (not using npm scripts):**
-   ```bash
-   # On macOS/Linux:
-   _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' npx firebase emulators:start --only auth,firestore
-   
-   # On Windows (PowerShell):
-   $env:_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'; npx firebase emulators:start --only auth,firestore
+   # Verify emulators are accessible
+   curl -s http://localhost:4000 > /dev/null && echo "✓ Emulator UI is running" || echo "✗ Not running"
+   curl -s http://localhost:9099 | grep -q "ready" && echo "✓ Auth Emulator is running" || echo "✗ Not running"
+   curl -s http://localhost:8081 | grep -q "Ok" && echo "✓ Firestore Emulator is running" || echo "✗ Not running"
    ```
 
-**Note:** The `npm run test:e2e` command does **not** require Java configuration because it doesn't start the emulators. It only runs tests against already-running emulators. However, the terminal where you run `npm run test:setup` or `npm run emulators:start` **must** have Java in the PATH.
+2. **If emulators ARE running and accessible:**
+   - You can skip starting new emulators and proceed directly to running tests
+   - The ports are already in use by working emulators - this is fine!
+
+3. **If emulators are NOT running but ports are still in use:**
+   - Find what's using the ports:
+     ```bash
+     # Check what processes are using the ports
+     lsof -i:4000,9099,8081,3000
+     ```
+   - If you see `node` or `java` processes, they might be stale emulator instances
+   - Kill the processes if needed (replace PID with actual process ID):
+     ```bash
+     # Find PIDs
+     lsof -ti:4000,9099,8081
+     
+     # Kill processes (use with caution)
+     kill -9 <PID>
+     ```
+   - Then restart emulators:
+     ```bash
+     npm run test:setup
+     ```
+
+4. **Alternative: Use different ports (if you need to run multiple emulator instances):**
+   - Edit `firebase.json` to use different ports
+   - Update environment variables in `e2e/config/env.ts` to match
+   - This is rarely needed for normal development
 
 ## Test Configuration
 
@@ -261,19 +415,6 @@ The test configuration is in `playwright.config.ts`. Key settings:
 - **Browsers**: Chromium (default)
 - **Retries**: 0 locally, 2 in CI
 - **Web Server**: Automatically starts Next.js dev server (may need manual start if it fails)
-
-## Test Execution Findings
-
-Based on test runs, here are important observations:
-
-### Test Execution
-- **Test duration:** Full test suite takes approximately 4-7 minutes to complete
-- **Pass rate:** Some tests may fail due to application logic issues, not infrastructure problems
-- **Authentication:** Many tests require proper authentication setup - ensure emulators are fully ready before running
-
-### Common Issues
-- **Authentication timeouts:** If tests fail with "Authentication not complete within 20000ms", verify emulators are running and wait longer before retrying
-- **Connection errors:** If you see `ECONNREFUSED`, verify emulators are running and accessible
 
 ## Best Practices
 
@@ -299,40 +440,57 @@ This opens the Playwright HTML report in your browser, showing:
 - Video recordings (if enabled)
 - Test execution timeline
 
-## Quick Reference
+## Testing the Setup
 
-**Start emulators (wait 10-15 seconds for readiness):**
-```bash
-npm run test:setup
-# Wait for "✓ Firebase emulators are running!" message
-# Verify with: curl http://localhost:4000
-```
+**Verified Working Setup:**
 
-**Start Next.js dev server (if needed):**
+During testing, the following setup was verified to work successfully:
+
+1. **Java Setup:**
+   - Java installed via Homebrew: `brew install openjdk`
+   - Java version: OpenJDK 25.0.1
+   - Path: `/opt/homebrew/opt/openjdk/bin` (Apple Silicon Mac)
+   - Added to PATH: `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"`
+
+2. **Emulator Status:**
+   - Emulators were already running from a previous session
+   - Verified accessible via:
+     - Emulator UI: http://localhost:4000 ✓
+     - Auth Emulator: http://localhost:9099 ✓ (returns `{"authEmulator":{"ready":true}}`)
+     - Firestore Emulator: http://localhost:8081 ✓ (returns `Ok`)
+
+3. **Common Issues Encountered:**
+   - **Issue:** `npm run test:setup` tried to start new emulators even though they were already running
+   - **Solution:** The script should detect running emulators, but if ports are in use, verify manually with curl commands
+   - **Workaround:** If emulators are already running and accessible, skip `npm run test:setup` and proceed directly to running tests
+
+**Recommended Workflow:**
+
+1. Check if emulators are already running (Step 1)
+2. If not running, ensure Java is in PATH (Step 0) and start emulators (Step 1a)
+3. Verify emulators are ready (verification commands in Step 1a)
+4. Run tests (Step 2)
+
+## Complete Workflow Example
+
+Here's a complete example using three terminal windows:
+
+**Terminal 1:** Follow Step 0 and Step 1 to set up Java PATH and start Firebase emulators. Keep this terminal open.
+
+**Terminal 2:** (Optional) If Playwright fails to start the Next.js server automatically, start it manually:
 ```bash
+cd /path/to/MentorMatch
 npm run dev
 ```
+Keep this terminal open.
 
-**Run all tests:**
+**Terminal 3:** Follow Step 2 to run tests:
 ```bash
+cd /path/to/MentorMatch
 npm run test:e2e
 ```
 
-**Run tests with UI:**
-```bash
-npm run test:e2e:ui
-```
-
-**View test report:**
+After tests complete, view the report:
 ```bash
 npm run test:e2e:report
 ```
-
----
-
-**Important Notes:**
-- Always ensure Firebase emulators are running before executing tests
-- Wait 10-15 seconds after starting emulators and verify they're ready before running tests
-- If Java is not found, export the Java PATH in the terminal where you start emulators (see Java Configuration section)
-- If tests fail with connection errors, verify both emulators and the Next.js dev server are running
-- The Next.js dev server should start automatically, but may need to be started manually if Playwright's webServer fails

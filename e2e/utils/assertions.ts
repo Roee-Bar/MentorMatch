@@ -9,44 +9,11 @@ import { waitForRoleBasedRedirect } from './navigation-helpers';
 import { waitForAnyURL } from './url-helpers';
 
 /**
- * Assert that user is redirected to login page or home page
- * (Protected routes redirect to '/' instead of '/login' when unauthenticated)
- */
-export async function expectRedirectToLogin(page: Page): Promise<void> {
-  // Accept both '/' and '/login' as valid redirect destinations
-  const currentUrl = page.url();
-  const isLoginPage = /\/login/.test(currentUrl);
-  const isHomePage = currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/);
-  
-  if (!isLoginPage && !isHomePage) {
-    throw new Error(`Expected redirect to '/' or '/login', but got: ${currentUrl}`);
-  }
-}
-
-/**
  * Assert that user is authenticated and on dashboard
  */
 export async function expectAuthenticatedDashboard(page: Page, role: 'student' | 'supervisor' | 'admin'): Promise<void> {
   const expectedPath = `/authenticated/${role}`;
   await expect(page).toHaveURL(new RegExp(expectedPath));
-}
-
-/**
- * Assert that error message is displayed
- * Excludes Next.js route announcer which also has role="alert"
- */
-export async function expectErrorMessage(page: Page, message?: string): Promise<void> {
-  // Use data-testid as primary selector, exclude route announcer
-  const errorSelector = '[data-testid="error-message"]:not(#__next-route-announcer__), [data-testid="error"]:not(#__next-route-announcer__), [role="alert"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)';
-  const errorElement = page.locator(errorSelector).first();
-  
-  // Wait for error element to be visible with a reasonable timeout
-  // Use a shorter timeout to avoid hanging when browser validation prevents form submission
-  await expect(errorElement).toBeVisible({ timeout: 8000 });
-  
-  if (message) {
-    await expect(errorElement).toContainText(message, { ignoreCase: true });
-  }
 }
 
 /**
@@ -334,16 +301,6 @@ export async function expectAuthenticatedRedirect(
   await waitForRoleBasedRedirect(page, role, timeout);
 }
 
-/**
- * Assert error message excluding route announcer
- */
-export async function expectErrorMessageExcludingAnnouncer(
-  page: Page,
-  message?: string
-): Promise<void> {
-  // Use the updated expectErrorMessage which already excludes announcer
-  await expectErrorMessage(page, message);
-}
 
 /**
  * Assert URL pattern with options

@@ -12,11 +12,9 @@ import {
   seedAdmin,
   seedApplication,
   seedProject,
-  seedSupervisorPartnershipRequest,
   cleanupUser,
   cleanupApplication,
-  cleanupProject,
-  cleanupSupervisorPartnershipRequest
+  cleanupProject
 } from './db-helpers';
 import { StudentBuilder, SupervisorBuilder, ApplicationBuilder, ProjectBuilder } from './test-data-builder';
 
@@ -170,60 +168,6 @@ export async function createProjectScenario(options?: {
   };
 }
 
-/**
- * Supervisor Partnership Scenario
- * Creates two supervisors and a partnership request
- */
-export interface SupervisorPartnershipScenario {
-  requestingSupervisor: { uid: string; supervisor: Supervisor };
-  targetSupervisor: { uid: string; supervisor: Supervisor };
-  project: { projectId: string; project: Project };
-  request: { id: string; request: SupervisorPartnershipRequest };
-  cleanup: () => Promise<void>;
-}
-
-export async function createSupervisorPartnershipScenario(options?: {
-  requestStatus?: SupervisorPartnershipRequest['status'];
-  requestingSupervisorOverrides?: Partial<Supervisor>;
-  targetSupervisorOverrides?: Partial<Supervisor>;
-  projectOverrides?: Partial<Project>;
-}): Promise<SupervisorPartnershipScenario> {
-  // Create requesting supervisor
-  const requestingSupervisor = await seedSupervisor(options?.requestingSupervisorOverrides);
-  
-  // Create target supervisor
-  const targetSupervisor = await seedSupervisor(options?.targetSupervisorOverrides);
-  
-  // Create a project for the requesting supervisor
-  const project = await seedProject({
-    supervisorId: requestingSupervisor.supervisor.id,
-    supervisorName: requestingSupervisor.supervisor.fullName,
-    ...options?.projectOverrides,
-  });
-  
-  // Create partnership request
-  const request = await seedSupervisorPartnershipRequest(
-    requestingSupervisor.uid,
-    targetSupervisor.uid,
-    project.projectId,
-    {
-      status: options?.requestStatus ?? 'pending',
-    }
-  );
-  
-  return {
-    requestingSupervisor,
-    targetSupervisor,
-    project,
-    request,
-    async cleanup() {
-      await cleanupSupervisorPartnershipRequest(request.id);
-      await cleanupProject(project.projectId);
-      await cleanupUser(requestingSupervisor.uid);
-      await cleanupUser(targetSupervisor.uid);
-    },
-  };
-}
 
 /**
  * Multiple Applications Scenario

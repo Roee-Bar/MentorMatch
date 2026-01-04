@@ -6,7 +6,7 @@
 
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import type { Student, Supervisor, Admin, Application, Project, SupervisorPartnershipRequest } from '@/types/database';
-import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData, generateSupervisorPartnershipRequestData } from './test-data';
+import { generateStudentData, generateSupervisorData, generateAdminData, generateApplicationData, generateProjectData } from './test-data';
 
 /**
  * Seed a test student in Firestore
@@ -197,46 +197,6 @@ export async function cleanupApplication(applicationId: string): Promise<void> {
 export async function cleanupProject(projectId: string): Promise<void> {
   try {
     await adminDb.collection('projects').doc(projectId).delete();
-  } catch (error) {
-    // Document might not exist, ignore
-  }
-}
-
-/**
- * Seed a supervisor partnership request in Firestore
- */
-export async function seedSupervisorPartnershipRequest(
-  requestingSupervisorId: string,
-  targetSupervisorId: string,
-  projectId: string,
-  overrides?: Partial<SupervisorPartnershipRequest>
-): Promise<{ id: string; request: SupervisorPartnershipRequest }> {
-  const requestData = generateSupervisorPartnershipRequestData(
-    requestingSupervisorId,
-    targetSupervisorId,
-    projectId,
-    overrides
-  );
-  
-  // Remove undefined values to avoid Firestore errors
-  const cleanRequestData = Object.fromEntries(
-    Object.entries(requestData).filter(([_, value]) => value !== undefined)
-  ) as typeof requestData;
-  
-  const docRef = await adminDb.collection('supervisor-partnership-requests').add(cleanRequestData);
-  
-  return {
-    id: docRef.id,
-    request: { id: docRef.id, ...requestData } as SupervisorPartnershipRequest,
-  };
-}
-
-/**
- * Clean up a supervisor partnership request
- */
-export async function cleanupSupervisorPartnershipRequest(requestId: string): Promise<void> {
-  try {
-    await adminDb.collection('supervisor-partnership-requests').doc(requestId).delete();
   } catch (error) {
     // Document might not exist, ignore
   }
