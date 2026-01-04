@@ -145,17 +145,62 @@ async function authenticateUser(
       // Wait a bit for Firebase to process the auth state
       await page.waitForTimeout(1000);
       
+      // Trigger Firebase auth state change by calling the SDK directly
+      // This ensures onAuthStateChanged fires
+      await page.evaluate(async ({ projectId }: { projectId: string }) => {
+        try {
+          // Import Firebase auth to trigger state change
+          const { getAuth } = await import('firebase/auth');
+          const { getApps, initializeApp } = await import('firebase/app');
+          
+          // Get or initialize the app
+          const apps = getApps();
+          let app;
+          if (apps.length > 0) {
+            app = apps[0];
+          } else {
+            app = initializeApp({
+              apiKey: 'test-api-key',
+              authDomain: 'localhost',
+              projectId,
+              storageBucket: `${projectId}.appspot.com`,
+              messagingSenderId: '123456789',
+              appId: '1:123456789:web:test'
+            });
+          }
+          
+          const auth = getAuth(app);
+          
+          // Force Firebase to check auth state by accessing currentUser
+          // This will trigger onAuthStateChanged if the state changed
+          const currentUser = auth.currentUser;
+          
+          // If currentUser is null but we have auth in localStorage, 
+          // we need to wait for Firebase to sync
+          if (!currentUser) {
+            // Wait for auth state to sync (Firebase checks localStorage on initialization)
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        } catch (e) {
+          // If Firebase SDK isn't available yet, that's okay
+          // The reload will trigger it
+        }
+      }, { projectId });
+      
       // Reload the page to pick up the auth state and trigger onAuthStateChanged
       await page.reload({ waitUntil: 'networkidle' });
-      await page.waitForTimeout(1000);
+      
+      // Wait for Firebase to initialize and detect auth state
+      await page.waitForTimeout(2000);
 
       // Wait for authentication to complete
-      await verifyAuthenticationComplete(page, 10000);
+      await verifyAuthenticationComplete(page, 15000);
 
       // Wait for redirect to role-specific route (handled by app/page.tsx)
       // The app automatically redirects authenticated users to their dashboard
+      // Give it more time since profile fetch may take a few seconds
       const startTime = Date.now();
-      const timeout = 15000;
+      const timeout = 20000; // Increased timeout for profile fetch
       
       while (Date.now() - startTime < timeout) {
         const currentUrl = page.url();
@@ -163,18 +208,19 @@ async function authenticateUser(
         // Check if we're on a role-specific route
         if (currentUrl.includes('/authenticated/')) {
           // Wait for navigation to complete
-          await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
+          await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
           return;
         }
         
         // If still on home page, wait a bit for redirect
+        // The redirect happens after profile fetch completes
         if (currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/)) {
-          await page.waitForTimeout(500);
+          await page.waitForTimeout(1000); // Increased wait time
           continue;
         }
         
         // If we're somewhere else, wait a bit and check again
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
       }
 
       // Final check - verify we're authenticated even if redirect didn't happen

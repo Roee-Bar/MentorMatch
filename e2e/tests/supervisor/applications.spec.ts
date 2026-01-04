@@ -57,7 +57,11 @@ test.describe('Supervisor - Applications @supervisor @smoke', () => {
     if (!listVisible) {
       // If UI doesn't exist, verify via API that application was created
       const response = await authenticatedRequest(page, 'GET', '/api/applications');
-      expect(response.ok()).toBeTruthy();
+      if (!response.ok()) {
+        const status = response.status();
+        const errorText = await response.text().catch(() => 'Unable to read error response');
+        throw new Error(`API request failed: ${status} - ${errorText}`);
+      }
       const data = await response.json();
       expect(Array.isArray(data)).toBeTruthy();
       // Test passes if we can verify the application exists via API

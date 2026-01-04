@@ -36,7 +36,11 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
     if (!listVisible) {
       // If UI doesn't exist, verify via API that project exists
       const response = await authenticatedRequest(page, 'GET', `/api/projects?supervisorId=${authenticatedSupervisor.uid}`);
-      expect(response.ok()).toBeTruthy();
+      if (!response.ok()) {
+        const status = response.status();
+        const errorText = await response.text().catch(() => 'Unable to read error response');
+        throw new Error(`API request failed: ${status} - ${errorText}`);
+      }
       const data = await response.json();
       expect(data).toHaveProperty('data');
       expect(Array.isArray(data.data)).toBeTruthy();
