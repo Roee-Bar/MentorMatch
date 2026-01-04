@@ -98,11 +98,24 @@ async function authenticateUser(
 
                 const firebase = (window as any).firebase;
                 
-                // Initialize Firebase app if not already initialized
+                // In test mode, always re-initialize with correct project ID
+                // Clear any existing apps to ensure we use demo-test
                 let app;
                 try {
-                  app = firebase.app();
+                  const existingApp = firebase.app();
+                  // If existing app has wrong project ID, delete it
+                  if (existingApp.options?.projectId !== projectId) {
+                    firebase.app().delete();
+                    app = firebase.initializeApp({
+                      apiKey: apiKey,
+                      authDomain: isEmulator ? authEmulatorHost.split(':')[0] : `${projectId}.firebaseapp.com`,
+                      projectId: projectId,
+                    });
+                  } else {
+                    app = existingApp;
+                  }
                 } catch (e) {
+                  // No existing app, initialize new one
                   app = firebase.initializeApp({
                     apiKey: apiKey,
                     authDomain: isEmulator ? authEmulatorHost.split(':')[0] : `${projectId}.firebaseapp.com`,
