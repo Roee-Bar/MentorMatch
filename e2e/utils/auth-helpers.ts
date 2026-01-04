@@ -330,6 +330,10 @@ export async function authenticatedRequest(
   // Get auth token
   const token = await getAuthToken(page);
   
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:330',message:'authenticatedRequest called',data:{method,url,hasToken:!!token,tokenLength:token?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
   // Prepare headers
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -342,6 +346,9 @@ export async function authenticatedRequest(
   } else {
     // Log warning if token is not available (helps debug auth issues)
     console.warn(`[authenticatedRequest] No auth token available for ${method} ${url}. Request may fail authentication.`);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:340',message:'No auth token available',data:{method,url},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
   }
   
   // Make the request
@@ -354,19 +361,31 @@ export async function authenticatedRequest(
     requestOptions.data = options.data;
   }
   
+  let response;
   switch (method) {
     case 'GET':
-      return await page.request.get(url, requestOptions);
+      response = await page.request.get(url, requestOptions);
+      break;
     case 'POST':
-      return await page.request.post(url, requestOptions);
+      response = await page.request.post(url, requestOptions);
+      break;
     case 'PUT':
-      return await page.request.put(url, requestOptions);
+      response = await page.request.put(url, requestOptions);
+      break;
     case 'DELETE':
-      return await page.request.delete(url, requestOptions);
+      response = await page.request.delete(url, requestOptions);
+      break;
     case 'PATCH':
-      return await page.request.patch(url, requestOptions);
+      response = await page.request.patch(url, requestOptions);
+      break;
     default:
       throw new Error(`Unsupported HTTP method: ${method}`);
   }
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:357',message:'authenticatedRequest response',data:{method,url,status:response.status(),ok:response.ok()},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
+  // #endregion
+  
+  return response;
 }
 

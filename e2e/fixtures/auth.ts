@@ -174,11 +174,11 @@ export const test = base.extend<AuthFixtures>({
       data: {
         role: 'student',
         userData: {
+          ...student,
           email,
           password,
           fullName: student.fullName,
           department: student.department,
-          ...student,
         },
       },
     });

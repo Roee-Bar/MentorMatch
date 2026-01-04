@@ -61,7 +61,13 @@ function logMetric(metric: VerificationMetric, data?: MetricData): void {
  * Ensures required environment variables are set in production
  */
 function validateEmailVerificationConfig(): void {
-  if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_APP_URL) {
+  // Only validate at runtime, not during build
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+  const isProductionRuntime = process.env.NODE_ENV === 'production' && 
+                              process.env.VERCEL === '1' &&
+                              !isBuildTime;
+  
+  if (isProductionRuntime && !process.env.NEXT_PUBLIC_APP_URL) {
     const error = new Error(
       'NEXT_PUBLIC_APP_URL is required in production for email verification. ' +
       'Please set this environment variable to your production domain.'
@@ -73,8 +79,9 @@ function validateEmailVerificationConfig(): void {
   }
 }
 
-// Validate configuration on module load (production only)
-if (process.env.NODE_ENV === 'production') {
+// Validate configuration on module load (production runtime only)
+// Skip during build to allow Next.js build to complete
+if (process.env.NODE_ENV === 'production' && process.env.NEXT_PHASE !== 'phase-production-build') {
   validateEmailVerificationConfig();
 }
 

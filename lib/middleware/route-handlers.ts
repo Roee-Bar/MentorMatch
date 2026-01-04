@@ -7,7 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { validateAndExtract, handleValidationError, ValidationError } from './validation-helpers';
+import { validateAndExtract, handleValidationError } from './validation-helpers';
+import { ValidationError } from './errors';
 import { handleServiceResult } from './service-result-handler';
 import { ApiResponse } from './response';
 import type { ServiceResult } from '@/lib/services/shared/types';

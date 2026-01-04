@@ -66,23 +66,59 @@ export default function RegisterPage() {
       return
     }
 
+    // #region agent log
+    const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
+    // #endregion
+
     try {
       setMessage('Creating your account...')
+
+      // #region agent log
+      if (isTestEnv) {
+        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:69',message:'Before registerUser API call',data:{email:formData.email},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+      }
+      // #endregion
 
       // Call backend registration API
       const response = await apiClient.registerUser(formData)
 
+      // #region agent log
+      if (isTestEnv) {
+        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:73',message:'After registerUser API call',data:{success:response?.success,hasError:!!response?.error,responseKeys:Object.keys(response||{})},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+      }
+      // #endregion
+
       if (response.success) {
         setMessage('Registration successful! Redirecting to login...')
+        // #region agent log
+        if (isTestEnv) {
+          fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:75',message:'Setting redirect timeout',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+        }
+        // #endregion
         // Pass success message via URL query parameter
         setTimeout(() => {
+          // #region agent log
+          if (isTestEnv) {
+            fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:78',message:'Executing router.push to /login',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+          }
+          // #endregion
           router.push('/login?registered=true')
         }, 2000)
       } else {
+        // #region agent log
+        if (isTestEnv) {
+          fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:81',message:'Registration failed - response.success is false',data:{error:response?.error},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+        }
+        // #endregion
         setMessage(response.error || 'Registration failed. Please try again.')
         setLoading(false)
       }
     } catch (error: any) {
+      // #region agent log
+      if (isTestEnv) {
+        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/register/page.tsx:85',message:'Registration exception caught',data:{error:error?.message,name:error?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'A'})}).catch(()=>{});
+      }
+      // #endregion
       console.error('Registration error:', error)
       setMessage(error.message || 'Registration failed. Please try again.')
       setLoading(false)
