@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       preferredTopics: data.preferredTopics || '',
       
       // Partner Information - NEW PARTNERSHIP SYSTEM
-      partnerId: null,
+      partnerId: undefined,
       partnershipStatus: 'none',
       
       // DEPRECATED - Keep for backwards compatibility (set to defaults)
@@ -75,7 +75,9 @@ export async function POST(request: NextRequest) {
       
       // Timestamps
       registrationDate: new Date(),
-    } as Omit<Student, 'id' | 'createdAt' | 'updatedAt'>);
+      createdAt: new Date(), // Will be overwritten by repository, but required by type
+      updatedAt: new Date(), // Will be overwritten by repository, but required by type
+    } as Omit<Student, 'id'>);
 
     console.log(`User registered successfully: ${userRecord.uid}`);
 
