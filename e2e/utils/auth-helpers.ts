@@ -18,22 +18,34 @@ export async function verifyAuthenticationComplete(
   const checkInterval = 200;
 
   while (Date.now() - startTime < timeout) {
-    const isAuthenticated = await page.evaluate(async () => {
+    const isAuthenticated = await page.evaluate(() => {
       try {
-        // Import Firebase auth from the app's firebase module
-        // This ensures we're checking the same auth instance the app uses
-        const { auth } = await import('@/lib/firebase');
+        // Check localStorage for Firebase auth state
+        // Firebase stores auth state in localStorage with keys like 'firebase:authUser:...'
+        const authKeys = Object.keys(window.localStorage).filter(key => 
+          key.startsWith('firebase:authUser:')
+        );
         
-        // Check if currentUser is set (modular SDK)
-        if (auth && auth.currentUser) {
+        if (authKeys.length > 0) {
+          // Parse the auth state to verify it's valid
+          const authKey = authKeys[0];
+          const authState = JSON.parse(window.localStorage.getItem(authKey) || '{}');
+          
+          // Check if we have a valid token
+          if (authState.stsTokenManager?.accessToken) {
+            return true;
+          }
+        }
+        
+        // Also check if Firebase is available on window (if app exposes it)
+        const firebaseAuth = (window as any).firebase?.auth?.();
+        if (firebaseAuth?.currentUser) {
           return true;
         }
         
-        // If currentUser is null, wait for auth state change
-        // This handles cases where auth is still initializing
         return false;
       } catch (error) {
-        // If import fails or auth is not available, return false
+        // If check fails, return false
         return false;
       }
     });

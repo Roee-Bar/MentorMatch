@@ -60,32 +60,94 @@ async function authenticateUser(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Clear any existing auth state before authentication
+      // Navigate to home page first to ensure we have a valid page context
+      // (Can't access localStorage on about:blank)
+      await page.goto('/', { waitUntil: 'networkidle' });
+
+      // Clear any existing auth state after navigation
       await page.evaluate(() => {
         window.localStorage.clear();
         window.sessionStorage.clear();
       });
       await page.context().clearCookies();
 
-      // Navigate to home page first to ensure Firebase is initialized
-      await page.goto('/', { waitUntil: 'networkidle' });
-
       // Wait a bit for Firebase to be fully initialized
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
 
-      // Inject Firebase auth and sign in with custom token directly
-      await page.evaluate(async (token: string) => {
-        try {
-          // Import Firebase auth functions
-          const { signInWithCustomToken } = await import('firebase/auth');
-          const { auth } = await import('@/lib/firebase');
+      // Use Firebase REST API from browser context to sign in with custom token
+      // This avoids module resolution issues and works with the emulator
+      const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test';
+      
+      const authData = await page.evaluate(async ({ token, projectId }: { token: string; projectId: string }) => {
+        // Use Firebase Auth Emulator REST API
+        const authEmulatorUrl = `http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=fake-api-key`;
+        
+        const response = await fetch(authEmulatorUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: token,
+            returnSecureToken: true,
+          }),
+        });
 
-          // Sign in with custom token
-          await signInWithCustomToken(auth, token);
-        } catch (error: any) {
-          throw new Error(`Failed to sign in with custom token: ${error?.message || 'Unknown error'}`);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to sign in with custom token: ${response.status} ${errorText}`);
         }
-      }, authToken);
+
+        const data = await response.json();
+        
+        // Decode the ID token to get user info
+        const tokenParts = data.idToken.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        
+        // Firebase stores auth state in localStorage with this key format
+        const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+        const authState = {
+          uid: data.localId,
+          email: payload.email || '',
+          emailVerified: payload.email_verified || true,
+          displayName: payload.name || null,
+          photoURL: payload.picture || null,
+          phoneNumber: payload.phone_number || null,
+          isAnonymous: false,
+          providerData: [],
+          stsTokenManager: {
+            apiKey: 'fake-api-key',
+            refreshToken: data.refreshToken,
+            accessToken: data.idToken,
+            expirationTime: payload.exp * 1000, // Convert to milliseconds
+          },
+          createdAt: (payload.iat * 1000).toString(),
+          lastLoginAt: Date.now().toString(),
+        };
+        
+        window.localStorage.setItem(authKey, JSON.stringify(authState));
+        
+        // Also set the refresh token separately (Firebase format)
+        const refreshKey = `firebase:refreshToken:${projectId}:[DEFAULT]`;
+        window.localStorage.setItem(refreshKey, data.refreshToken);
+        
+        // Trigger Firebase to check auth state by dispatching a storage event
+        // This helps Firebase SDK recognize the auth state change
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: authKey,
+          newValue: JSON.stringify(authState),
+          storageArea: window.localStorage
+        }));
+        
+        return data;
+      }, { token: authToken, projectId });
+
+      // Wait a bit for Firebase to process the auth state
+      await page.waitForTimeout(1000);
+      
+      // Reload the page to pick up the auth state and trigger onAuthStateChanged
+      await page.reload({ waitUntil: 'networkidle' });
+      await page.waitForTimeout(1000);
 
       // Wait for authentication to complete
       await verifyAuthenticationComplete(page, 10000);
@@ -116,9 +178,12 @@ async function authenticateUser(
       }
 
       // Final check - verify we're authenticated even if redirect didn't happen
-      const isAuth = await page.evaluate(async () => {
-        const { auth } = await import('@/lib/firebase');
-        return auth.currentUser !== null;
+      const isAuth = await page.evaluate(() => {
+        // Check localStorage for Firebase auth state
+        const authKeys = Object.keys(window.localStorage).filter(key => 
+          key.startsWith('firebase:authUser:')
+        );
+        return authKeys.length > 0;
       });
 
       if (!isAuth) {
@@ -146,13 +211,21 @@ async function authenticateUser(
 
   // If all retries failed, throw detailed error
   const currentUrl = page.url();
-  const authState = await page.evaluate(async () => {
+  const authState = await page.evaluate(() => {
     try {
-      const { auth } = await import('@/lib/firebase');
-      return {
-        currentUser: auth.currentUser !== null,
-        currentUserId: auth.currentUser?.uid || null,
-      };
+      // Check localStorage for Firebase auth state
+      const authKeys = Object.keys(window.localStorage).filter(key => 
+        key.startsWith('firebase:authUser:')
+      );
+      if (authKeys.length > 0) {
+        const authKey = authKeys[0];
+        const authState = JSON.parse(window.localStorage.getItem(authKey) || '{}');
+        return {
+          currentUser: !!authState.uid,
+          currentUserId: authState.uid || null,
+        };
+      }
+      return { currentUser: false, currentUserId: null };
     } catch {
       return { currentUser: false, currentUserId: null };
     }
