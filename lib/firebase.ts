@@ -57,16 +57,16 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
 
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+// Determine emulator connection BEFORE initializing auth/db services
+// This ensures emulators are connected before any operations
+let shouldConnectToEmulators = false;
+let authEmulatorHost: string | undefined;
+let firestoreEmulatorHost: string | undefined;
 
-// Connect to Firebase Emulators if running in test environment (client-side only)
-// Strategy: Use multiple detection methods since Next.js embeds NEXT_PUBLIC_* vars at build time
 if (typeof window !== 'undefined') {
   // Method 1: Check for explicit emulator host env vars (set by Playwright webServer.env)
-  const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
+  authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
+  firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
   
   // Method 2: Check for test mode flags
   const isTestMode = process.env.NEXT_PUBLIC_E2E_TEST === 'true' || 
@@ -77,60 +77,53 @@ if (typeof window !== 'undefined') {
   const isLocalhost = window.location.hostname === 'localhost' || 
                       window.location.hostname === '127.0.0.1';
   
-  // Method 4: Check if project ID is demo-test (test mode indicator)
-  const isDemoTestProject = projectId === 'demo-test';
-  
   // Determine if we should use emulators
   // Use emulators if: explicit hosts set, test mode detected, OR localhost (aggressive detection for tests)
-  // This ensures we connect to emulators even if env vars aren't embedded in the bundle
-  const shouldUseEmulators = authEmulatorHost || 
-                             firestoreEmulatorHost || 
+  shouldConnectToEmulators = !!authEmulatorHost || 
+                             !!firestoreEmulatorHost || 
                              isTestMode || 
                              isLocalhost; // Always try emulators on localhost
-  
+}
+
+// Initialize auth and db
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Connect to emulators IMMEDIATELY after initialization (before any operations)
+if (shouldConnectToEmulators && typeof window !== 'undefined') {
   const defaultAuthHost = 'localhost:9099';
   const defaultFirestoreHost = 'localhost:8081';
 
-  if (shouldUseEmulators) {
-    // Connect to Auth Emulator
-    const authHost = authEmulatorHost || defaultAuthHost;
-    if (authHost && !authHost.includes('undefined') && authHost.trim() !== '') {
-      try {
-        connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true });
-        console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authHost}`);
-      } catch (error) {
-        const errorMessage = (error as Error)?.message || '';
-        if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-          console.warn('[Firebase] Failed to connect to Auth Emulator:', error);
-        }
+  // Connect to Auth Emulator
+  const authHost = authEmulatorHost || defaultAuthHost;
+  if (authHost && !authHost.includes('undefined') && authHost.trim() !== '') {
+    try {
+      connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true });
+      console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authHost}`);
+    } catch (error) {
+      const errorMessage = (error as Error)?.message || '';
+      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
+        console.warn('[Firebase] Failed to connect to Auth Emulator:', error);
       }
     }
+  }
 
-    // Connect to Firestore Emulator
-    const firestoreHost = firestoreEmulatorHost || defaultFirestoreHost;
-    if (firestoreHost && !firestoreHost.includes('undefined') && firestoreHost.trim() !== '') {
-      try {
-        const [host, port] = firestoreHost.split(':');
-        connectFirestoreEmulator(db, host, parseInt(port || '8080'));
-        console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`);
-      } catch (error) {
-        const errorMessage = (error as Error)?.message || '';
-        if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-          console.warn('[Firebase] Failed to connect to Firestore Emulator:', error);
-        }
+  // Connect to Firestore Emulator
+  const firestoreHost = firestoreEmulatorHost || defaultFirestoreHost;
+  if (firestoreHost && !firestoreHost.includes('undefined') && firestoreHost.trim() !== '') {
+    try {
+      const [host, port] = firestoreHost.split(':');
+      connectFirestoreEmulator(db, host, parseInt(port || '8080'));
+      console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`);
+    } catch (error) {
+      const errorMessage = (error as Error)?.message || '';
+      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
+        console.warn('[Firebase] Failed to connect to Firestore Emulator:', error);
       }
-    }
-  } else {
-    // Log why we're not connecting (for debugging)
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[Firebase] Not connecting to emulators:', {
-        authHost: authEmulatorHost || 'not set',
-        firestoreHost: firestoreEmulatorHost || 'not set',
-        isTestMode,
-        isLocalhost,
-        isDemoTestProject,
-        projectId
-      });
     }
   }
 }
+
+// Export services
+export { auth, db, storage };
