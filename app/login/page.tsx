@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { signIn } from '@/lib/auth'
 import FormInput from '@/app/components/form/FormInput'
@@ -15,6 +15,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Check for registration success message from URL
+  useEffect(() => {
+    const registered = searchParams.get('registered')
+    if (registered === 'true') {
+      setMessage('Registration successful! Please login with your credentials.')
+      // Clean up URL
+      router.replace('/login', { scroll: false })
+    }
+  }, [searchParams, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

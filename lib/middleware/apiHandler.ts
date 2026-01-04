@@ -167,6 +167,18 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
         const hasAllowedRole = options.allowedRoles?.includes(user.role) || false;
         
         if (!isOwner && !isAdmin && !hasAllowedRole) {
+          // Log authorization failure for debugging (only in development/test)
+          if (process.env.NODE_ENV !== 'production') {
+            console.debug('Authorization check failed', {
+              userUid: user.uid,
+              resourceId,
+              isOwner,
+              isAdmin,
+              userRole: user.role,
+              hasAllowedRole,
+              allowedRoles: options.allowedRoles
+            });
+          }
           return ApiResponse.forbidden('You do not have permission to access this resource');
         }
       }

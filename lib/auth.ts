@@ -36,9 +36,27 @@ export const signOut = async () => {
 export const getUserProfile = async (uid: string, token: string) => {
   try {
     const response = await apiFetch(`/users/${uid}`, { token });
-    return response;
+    
+    // Ensure response has the expected format
+    if (response && typeof response === 'object') {
+      // If apiFetch returns the response directly, it should have success and data
+      if (response.success !== undefined) {
+        return response;
+      }
+      // If it's just the data object, wrap it
+      if (response.data) {
+        return { success: true, data: response.data };
+      }
+      // If it's the user object directly, wrap it
+      return { success: true, data: response };
+    }
+    
+    return { success: false, error: 'Invalid response format' };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    // Provide more detailed error information
+    const errorMessage = error?.message || 'Failed to fetch user profile';
+    console.warn('getUserProfile error:', { uid, error: errorMessage });
+    return { success: false, error: errorMessage };
   }
 };
 

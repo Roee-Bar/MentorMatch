@@ -36,12 +36,17 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     }
     
     // Verify Firebase token using Admin SDK
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    // In test mode with emulators, verifyIdToken should work with emulator tokens
+    // Note: In emulator mode, we don't check revocation (second param = false)
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+    const decodedToken = await adminAuth.verifyIdToken(token, !isTestEnv); // Only check revocation in production
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)
     const profile = await userService.getUserById(decodedToken.uid);
     
     if (!profile) {
+      // Log this case specifically as it's a common issue
+      console.warn(`User profile not found for uid: ${decodedToken.uid}`);
       return { authenticated: false, user: null };
     }
 
@@ -53,8 +58,18 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
         role: profile.role,
       },
     };
-  } catch (error) {
-    console.error('Auth verification error:', error);
+  } catch (error: any) {
+    // Provide more detailed error logging
+    const errorMessage = error?.message || 'Unknown error';
+    const errorCode = error?.code || 'unknown';
+    
+    // Don't log expected errors (like invalid tokens) at error level
+    if (errorCode === 'auth/id-token-expired' || errorCode === 'auth/argument-error') {
+      console.debug('Auth verification failed (expected):', errorCode, errorMessage);
+    } else {
+      console.error('Auth verification error:', { code: errorCode, message: errorMessage, error });
+    }
+    
     return { authenticated: false, user: null };
   }
 }

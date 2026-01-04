@@ -74,8 +74,9 @@ export default function RegisterPage() {
 
       if (response.success) {
         setMessage('Registration successful! Redirecting to login...')
+        // Pass success message via URL query parameter
         setTimeout(() => {
-          router.push('/login')
+          router.push('/login?registered=true')
         }, 2000)
       } else {
         setMessage(response.error || 'Registration failed. Please try again.')
