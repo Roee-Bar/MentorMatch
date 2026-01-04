@@ -64,48 +64,50 @@ const isClientTestEnv = typeof window !== 'undefined' && (
 );
 
 // Always try to connect to emulators if emulator host variables are set (client-side only)
+// In Next.js, NEXT_PUBLIC_* variables are embedded at build time, so we check both
+// the embedded values and also try to connect if we're in test mode
 if (typeof window !== 'undefined') {
+  // Check for emulator hosts - these should be set by Playwright webServer.env
   const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
   const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
+  
+  // Also check if we're in test mode - if so, default to localhost emulators
+  const shouldUseEmulators = isClientTestEnv || authEmulatorHost || firestoreEmulatorHost;
+  const defaultAuthHost = 'localhost:9099';
+  const defaultFirestoreHost = 'localhost:8081';
 
-  // Connect to Auth Emulator if host is configured
-  if (authEmulatorHost && !authEmulatorHost.includes('undefined') && authEmulatorHost.trim() !== '') {
-    try {
-      // Check if already connected by trying to get the auth instance
-      // connectAuthEmulator will throw if already connected
-      connectAuthEmulator(auth, `http://${authEmulatorHost}`, { disableWarnings: true });
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authEmulatorHost}`);
-      }
-    } catch (error) {
-      // Emulator already connected, ignore error
-      const errorMessage = (error as Error)?.message || '';
-      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-        console.warn('[Firebase] Failed to connect to Auth Emulator:', error);
+  // Connect to Auth Emulator
+  if (shouldUseEmulators) {
+    const hostToUse = authEmulatorHost || defaultAuthHost;
+    if (hostToUse && !hostToUse.includes('undefined') && hostToUse.trim() !== '') {
+      try {
+        connectAuthEmulator(auth, `http://${hostToUse}`, { disableWarnings: true });
+        console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${hostToUse}`);
+      } catch (error) {
+        // Emulator already connected, ignore error
+        const errorMessage = (error as Error)?.message || '';
+        if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
+          console.warn('[Firebase] Failed to connect to Auth Emulator:', error);
+        }
       }
     }
-  } else if (isClientTestEnv) {
-    // Only warn in test mode if emulator host is not set
-    console.warn('[Firebase] ⚠ Auth Emulator host not configured. NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST);
   }
 
-  // Connect to Firestore Emulator if host is configured
-  if (firestoreEmulatorHost && !firestoreEmulatorHost.includes('undefined') && firestoreEmulatorHost.trim() !== '') {
-    try {
-      const [host, port] = firestoreEmulatorHost.split(':');
-      connectFirestoreEmulator(db, host, parseInt(port || '8080'));
-      if (process.env.NODE_ENV !== 'production') {
+  // Connect to Firestore Emulator
+  if (shouldUseEmulators) {
+    const hostToUse = firestoreEmulatorHost || defaultFirestoreHost;
+    if (hostToUse && !hostToUse.includes('undefined') && hostToUse.trim() !== '') {
+      try {
+        const [host, port] = hostToUse.split(':');
+        connectFirestoreEmulator(db, host, parseInt(port || '8080'));
         console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`);
-      }
-    } catch (error) {
-      // Emulator already connected, ignore error
-      const errorMessage = (error as Error)?.message || '';
-      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-        console.warn('[Firebase] Failed to connect to Firestore Emulator:', error);
+      } catch (error) {
+        // Emulator already connected, ignore error
+        const errorMessage = (error as Error)?.message || '';
+        if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
+          console.warn('[Firebase] Failed to connect to Firestore Emulator:', error);
+        }
       }
     }
-  } else if (isClientTestEnv) {
-    // Only warn in test mode if emulator host is not set
-    console.warn('[Firebase] ⚠ Firestore Emulator host not configured. NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST:', process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST);
   }
 }
