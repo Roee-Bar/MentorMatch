@@ -35,13 +35,6 @@ export const signIn = async (email: string, password: string) => {
       const data = await response.json();
       const { token, uid } = data.data || data; // Handle both response formats
       
-      // #region agent log
-      const isTestEnvLog = typeof window !== 'undefined' && (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
-      if (isTestEnvLog) {
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/auth.ts:36',message:'signIn test-login response',data:{hasToken:!!token,hasUid:!!uid,uid,email},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'G'})}).catch(()=>{});
-      }
-      // #endregion
-      
       if (!uid) {
         console.error('[TEST AUTH] Missing uid in test-login response:', data);
         return { success: false, error: 'Login failed: missing user ID' };
@@ -51,12 +44,6 @@ export const signIn = async (email: string, password: string) => {
       sessionStorage.setItem('__test_id_token__', token);
       sessionStorage.setItem('__test_local_id__', uid);
       sessionStorage.setItem('__test_email__', email);
-      
-      // #region agent log
-      if (isTestEnvLog) {
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/auth.ts:45',message:'signIn sessionStorage set',data:{uid,email,hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'G'})}).catch(()=>{});
-      }
-      // #endregion
       
       // Also set in localStorage for Firebase format compatibility
       const projectId = 'demo-test';
@@ -171,13 +158,6 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
       const testToken = sessionStorage.getItem('__test_id_token__');
       const testUid = sessionStorage.getItem('__test_local_id__');
       
-      // #region agent log
-      const isTestEnvLog = typeof window !== 'undefined' && (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
-      if (isTestEnvLog && (testToken || testUid)) {
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/auth.ts:152',message:'checkTestAuth called',data:{hasToken:!!testToken,hasUid:!!testUid,testUid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'G'})}).catch(()=>{});
-      }
-      // #endregion
-      
       if (testToken && testUid) {
         // Create a mock user object that works with the client code
         // Must match Firebase User interface
@@ -201,12 +181,6 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
           reload: async () => {},
           toJSON: () => ({}),
         } as User;
-        
-        // #region agent log
-        if (isTestEnvLog) {
-          fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/auth.ts:180',message:'checkTestAuth creating mockUser',data:{uid:mockUser.uid,email:mockUser.email},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'G'})}).catch(()=>{});
-        }
-        // #endregion
         
         callback(mockUser);
         return true;

@@ -46,33 +46,15 @@ export async function apiFetch(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // #region agent log
-  const isTestEnv = typeof window !== 'undefined' && (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
-  if (isTestEnv) {
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api/client.ts:50',message:'apiFetch called',data:{endpoint,hasToken:!!token},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-  }
-  // #endregion
-
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...fetchOptions,
       headers,
     });
 
-    // #region agent log
-    if (isTestEnv) {
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api/client.ts:58',message:'apiFetch response received',data:{endpoint,status:response.status,ok:response.ok},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-    }
-    // #endregion
-
     const data = await response.json();
 
     if (!response.ok) {
-      // #region agent log
-      if (isTestEnv) {
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api/client.ts:66',message:'apiFetch error response',data:{endpoint,status:response.status,error:data.error||data.message},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-      }
-      // #endregion
       // Extract error message from various formats
       const errorMessage = 
         data.error || 
@@ -83,20 +65,8 @@ export async function apiFetch(
       throw new Error(errorMessage);
     }
 
-    // #region agent log
-    if (isTestEnv) {
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api/client.ts:78',message:'apiFetch success',data:{endpoint,hasData:!!data},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-    }
-    // #endregion
-
     return data;
   } catch (error: unknown) {
-    // #region agent log
-    if (isTestEnv) {
-      const err = error as Error;
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/api/client.ts:82',message:'apiFetch exception',data:{endpoint,error:err.message,name:err.name},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-    }
-    // #endregion
     // Handle network errors gracefully
     const err = error as Error;
     if (err.message === 'Failed to fetch' || err.name === 'TypeError') {

@@ -227,27 +227,128 @@ export const test = base.extend<AuthFixtures>({
   },
 
   authenticatedSupervisor: async ({ page }, use) => {
-    const { uid, supervisor } = await seedSupervisor();
+    // Seed supervisor in test process (for reference)
+    const { supervisor } = await seedSupervisor();
     const email = supervisor.email;
     const password = 'TestPassword123!';
     
-    await authenticateUser(page, uid, email, 'supervisor');
+    // Create user in server process via API so API calls will work
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'supervisor',
+        userData: {
+          ...supervisor,
+          email,
+          password,
+          fullName: supervisor.fullName,
+          department: supervisor.department,
+        },
+      },
+    });
+    
+    const seedData = await seedResponse.json();
+    if (!seedData.success) {
+      throw new Error(`Failed to seed supervisor in server process: ${seedData.error}`);
+    }
+    
+    const { uid, token } = seedData.data;
+    
+    // Authenticate using the token from server process
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ token, uid, email }) => {
+      sessionStorage.setItem('__test_id_token__', token);
+      sessionStorage.setItem('__test_local_id__', uid);
+      sessionStorage.setItem('__test_email__', email);
+      
+      const projectId = 'demo-test';
+      const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+      const authState = {
+        uid,
+        email,
+        emailVerified: true,
+        stsTokenManager: {
+          apiKey: 'test-api-key',
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+      };
+      window.localStorage.setItem(authKey, JSON.stringify(authState));
+      window.dispatchEvent(new CustomEvent('test-token-set'));
+    }, { token, uid, email });
+    
+    // Wait for auth state to propagate
+    await page.waitForTimeout(1000);
+    
+    // Navigate to supervisor dashboard
+    await page.goto('/authenticated/supervisor', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2000);
     
     await use({ uid, email, password, supervisor });
     
-    await cleanupUser(uid);
+    // Cleanup is handled by test-seed endpoint or can be added if needed
   },
 
   authenticatedAdmin: async ({ page }, use) => {
-    const { uid, admin } = await seedAdmin();
+    // Seed admin in test process (for reference)
+    const { admin } = await seedAdmin();
     const email = admin.email;
     const password = 'TestPassword123!';
     
-    await authenticateUser(page, uid, email, 'admin');
+    // Create user in server process via API so API calls will work
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'admin',
+        userData: {
+          ...admin,
+          email,
+          password,
+          fullName: admin.fullName,
+        },
+      },
+    });
+    
+    const seedData = await seedResponse.json();
+    if (!seedData.success) {
+      throw new Error(`Failed to seed admin in server process: ${seedData.error}`);
+    }
+    
+    const { uid, token } = seedData.data;
+    
+    // Authenticate using the token from server process
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ token, uid, email }) => {
+      sessionStorage.setItem('__test_id_token__', token);
+      sessionStorage.setItem('__test_local_id__', uid);
+      sessionStorage.setItem('__test_email__', email);
+      
+      const projectId = 'demo-test';
+      const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+      const authState = {
+        uid,
+        email,
+        emailVerified: true,
+        stsTokenManager: {
+          apiKey: 'test-api-key',
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+      };
+      window.localStorage.setItem(authKey, JSON.stringify(authState));
+      window.dispatchEvent(new CustomEvent('test-token-set'));
+    }, { token, uid, email });
+    
+    // Wait for auth state to propagate
+    await page.waitForTimeout(1000);
+    
+    // Navigate to admin dashboard
+    await page.goto('/authenticated/admin', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2000);
     
     await use({ uid, email, password, admin });
     
-    await cleanupUser(uid);
+    // Cleanup is handled by test-seed endpoint or can be added if needed
   },
 });
 

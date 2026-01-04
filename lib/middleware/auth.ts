@@ -26,9 +26,6 @@ export interface AuthResult {
  */
 export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:25',message:'verifyAuth entry',data:{hasAuthHeader:!!request.headers.get('authorization')},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -46,9 +43,6 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // In test mode, we use custom tokens directly (no ID token conversion needed)
     const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
     
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:44',message:'Before verifyIdToken',data:{isTestEnv,tokenLength:token.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     let decodedToken: DecodedIdToken;
     if (isTestEnv) {
       // In test mode, verify custom token directly
@@ -57,13 +51,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
           adminAuth.verifyIdToken(token) as Promise<DecodedIdToken>,
           'verifyIdToken (test)'
         );
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:48',message:'verifyIdToken success',data:{uid:decodedToken.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
       } catch (verifyError: any) {
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:52',message:'verifyIdToken error',data:{error:verifyError?.message,code:verifyError?.code},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         throw verifyError;
       }
     } else {
@@ -110,22 +98,13 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       }
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:75',message:'Before getUserById',data:{uid:decodedToken.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     let profile;
     try {
       profile = await withAuthTimeout(
         userService.getUserById(decodedToken.uid),
         'getUserById'
       );
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:79',message:'getUserById success',data:{profile:profile?{id:profile.id,email:profile.email,role:profile.role}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
     } catch (serviceError: any) {
-      // #region agent log
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:83',message:'getUserById error',data:{error:serviceError?.message,stack:serviceError?.stack?.substring(0,200)},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       throw serviceError;
     }
     
@@ -185,9 +164,6 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       },
     };
   } catch (error: any) {
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:110',message:'verifyAuth catch block',data:{error:error?.message,code:error?.code,stack:error?.stack?.substring(0,300)},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     // Provide more detailed error logging
     const errorMessage = error?.message || 'Unknown error';
     const errorCode = error?.code || 'unknown';

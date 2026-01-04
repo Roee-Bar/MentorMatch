@@ -90,8 +90,6 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
 
       // Update the application
       const result = await applicationService.updateApplication(params.id, updateData);
-
-      // Handle service result errors
       const errorResponse = handleServiceResult(result, 'Failed to update application');
       if (errorResponse) return errorResponse;
       

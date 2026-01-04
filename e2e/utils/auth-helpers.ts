@@ -330,10 +330,6 @@ export async function authenticatedRequest(
   // Get auth token
   const token = await getAuthToken(page);
   
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:330',message:'authenticatedRequest called',data:{method,url,hasToken:!!token,tokenLength:token?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-  // #endregion
-  
   // Prepare headers
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -346,9 +342,6 @@ export async function authenticatedRequest(
   } else {
     // Log warning if token is not available (helps debug auth issues)
     console.warn(`[authenticatedRequest] No auth token available for ${method} ${url}. Request may fail authentication.`);
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:340',message:'No auth token available',data:{method,url},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
   }
   
   // Make the request
@@ -381,10 +374,6 @@ export async function authenticatedRequest(
     default:
       throw new Error(`Unsupported HTTP method: ${method}`);
   }
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'e2e/utils/auth-helpers.ts:357',message:'authenticatedRequest response',data:{method,url,status:response.status(),ok:response.ok()},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'F'})}).catch(()=>{});
-  // #endregion
   
   return response;
 }

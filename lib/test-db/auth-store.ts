@@ -107,10 +107,6 @@ export class InMemoryAuthStore {
    * Create a custom token (for testing)
    */
   createCustomToken(uid: string, claims?: Record<string, any>): string {
-    // #region agent log
-    const logData = {location:'lib/test-db/auth-store.ts:109',message:'createCustomToken called',data:{uid,hasUser:!!this.getUser(uid),processId:process.pid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D'};
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
-    // #endregion
     const user = this.getUser(uid);
     if (!user) {
       throw new Error(`User ${uid} not found`);
@@ -127,10 +123,6 @@ export class InMemoryAuthStore {
     };
 
     this.tokens.set(token, authToken);
-    // #region agent log
-    const logData2 = {location:'lib/test-db/auth-store.ts:127',message:'createCustomToken completed',data:{uid,tokenLength:token.length,tokenCount:this.tokens.size},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D'};
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
-    // #endregion
     return token;
   }
 
@@ -138,16 +130,8 @@ export class InMemoryAuthStore {
    * Verify a custom token
    */
   verifyToken(token: string): AuthToken | null {
-    // #region agent log
-    const logData = {location:'lib/test-db/auth-store.ts:132',message:'verifyToken called',data:{tokenLength:token.length,tokenCount:this.tokens.size,hasToken:this.tokens.has(token),processId:process.pid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D'};
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
-    // #endregion
     const authToken = this.tokens.get(token);
     if (!authToken) {
-      // #region agent log
-      const logData2 = {location:'lib/test-db/auth-store.ts:138',message:'verifyToken - token not found',data:{tokenLength:token.length,tokenCount:this.tokens.size,processId:process.pid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D'};
-      fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
-      // #endregion
       return null;
     }
     
@@ -156,11 +140,19 @@ export class InMemoryAuthStore {
       return null;
     }
 
-    // #region agent log
-    const logData3 = {location:'lib/test-db/auth-store.ts:147',message:'verifyToken - token found',data:{uid:authToken.uid,email:authToken.email},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'D'};
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
-    // #endregion
     return authToken;
+  }
+
+  /**
+   * Update user properties
+   */
+  updateUser(uid: string, updates: Partial<AuthUser>): void {
+    const user = this.getUser(uid);
+    if (!user) {
+      throw new Error(`User ${uid} not found`);
+    }
+    const updatedUser = { ...user, ...updates };
+    this.users.set(uid, updatedUser);
   }
 
   /**

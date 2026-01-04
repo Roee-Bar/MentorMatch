@@ -37,6 +37,8 @@ docs/testing/
 /scripts/
 # Exception: test-setup.ts is part of the testing infrastructure
 !/scripts/test-setup.ts
+# Exception: ensure-port-free.js is part of the testing infrastructure
+!/scripts/ensure-port-free.js
 
 # playwright MCP screenshots
 .playwright-mcp/

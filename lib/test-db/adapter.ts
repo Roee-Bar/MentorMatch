@@ -76,6 +76,10 @@ export class TestAuth {
     };
   }
 
+  async updateUser(uid: string, updates: { emailVerified?: boolean; displayName?: string }): Promise<void> {
+    testAuthStore.updateUser(uid, updates);
+  }
+
   async setCustomUserClaims(uid: string, claims: Record<string, any>): Promise<void> {
     testAuthStore.setCustomClaims(uid, claims);
   }

@@ -58,6 +58,67 @@ function VerifyEmailForm() {
           }).catch(() => {}); // Ignore errors in logging
         } catch {}
 
+        // Check if we're in test mode
+        const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
+
+        if (isTestEnv) {
+          // Use test-specific verification endpoint
+          try {
+            const response = await fetch(`/api/auth/test-verify-email?mode=${mode}&oobCode=${encodeURIComponent(oobCode)}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+              // Handle error responses
+              const errorMessage = data.error || 'Verification failed';
+              if (errorMessage.includes('expired')) {
+                setResult({
+                  state: 'expired',
+                  message: ERROR_MESSAGES.VERIFICATION_EXPIRED,
+                  email: data.email,
+                });
+              } else if (errorMessage.includes('already verified') || data.alreadyVerified) {
+                setResult({
+                  state: 'already-verified',
+                  message: ERROR_MESSAGES.VERIFICATION_ALREADY_VERIFIED,
+                  email: data.email,
+                });
+                startCountdown(3);
+              } else {
+                setResult({
+                  state: 'invalid',
+                  message: errorMessage || ERROR_MESSAGES.VERIFICATION_INVALID,
+                  email: data.email,
+                });
+              }
+              return;
+            }
+
+            // Success
+            if (data.success && data.data) {
+              setResult({
+                state: data.data.alreadyVerified ? 'already-verified' : 'success',
+                message: data.data.alreadyVerified 
+                  ? ERROR_MESSAGES.VERIFICATION_ALREADY_VERIFIED 
+                  : SUCCESS_MESSAGES.EMAIL_VERIFIED,
+                email: data.data.email,
+              });
+              startCountdown(3);
+            } else {
+              setResult({
+                state: 'error',
+                message: ERROR_MESSAGES.VERIFICATION_FAILED,
+              });
+            }
+          } catch (error: any) {
+            setResult({
+              state: 'error',
+              message: error.message || ERROR_MESSAGES.VERIFICATION_NETWORK_ERROR,
+            });
+          }
+          return;
+        }
+
+        // Production flow: Use Firebase SDK
         // Check the action code to get email and verify it's valid
         let email: string | undefined;
         try {

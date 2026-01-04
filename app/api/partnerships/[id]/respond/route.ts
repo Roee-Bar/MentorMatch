@@ -11,7 +11,8 @@ import { NextRequest } from 'next/server';
 import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateRequest, partnershipResponseSchema } from '@/lib/middleware/validation';
+import { partnershipResponseSchema } from '@/lib/middleware/validation';
+import { validateAndExtract, handleValidationError } from '@/lib/middleware/validation-helpers';
 import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import type { PartnershipIdParams } from '@/types/api';
@@ -26,12 +27,15 @@ export const POST = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
     }
 
     // Validate request body
-    const validation = await validateRequest(request, partnershipResponseSchema);
-    if (!validation.valid) {
-      return ApiResponse.validationError(validation.error || 'Invalid request data');
+    let action: 'accept' | 'reject';
+    try {
+      const validatedData = await validateAndExtract(request, partnershipResponseSchema);
+      action = validatedData.action;
+    } catch (error) {
+      const validationResponse = handleValidationError(error);
+      if (validationResponse) return validationResponse;
+      throw error;
     }
-
-    const { action } = validation.data!;
 
     // Check if request has already been processed
     if (partnershipRequest.status !== 'pending') {

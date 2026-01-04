@@ -43,17 +43,14 @@ export class RegisterPage extends BasePage {
 
   async submit(): Promise<void> {
     await this.page.locator(Selectors.registerSubmitButton).click();
-    // Wait for navigation or message with better error handling
-    // Check for both error and success messages
-    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
+    // Wait for navigation to /login with longer timeout
+    // Prioritize URL navigation over message display
     try {
-      await Promise.race([
-        waitForURL(this.page, '/login', 10000),
-        this.page.locator(messageSelector).first().waitFor({ state: 'visible', timeout: 8000 }),
-      ]);
+      await this.page.waitForURL('/login', { timeout: 15000 });
     } catch (error) {
-      // If neither navigation nor message appears, wait a bit more for form validation
-      await this.page.waitForTimeout(1000);
+      // If navigation doesn't happen, check for error message
+      const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
+      await this.page.locator(messageSelector).first().waitFor({ state: 'visible', timeout: 5000 });
     }
   }
 

@@ -12,7 +12,9 @@ import { validatePartner } from '@/lib/services/applications/application-validat
 import { serviceEvents } from '@/lib/services/shared/events';
 import { withAuth, withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateRequest, createApplicationSchema } from '@/lib/middleware/validation';
+import { createApplicationSchema } from '@/lib/middleware/validation';
+import { validateAndExtract, handleValidationError } from '@/lib/middleware/validation-helpers';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import type { Application } from '@/types/database';
@@ -28,14 +30,18 @@ export const GET = withRoles<Record<string, string>>(['admin'], async (request: 
 export const POST = withAuth<Record<string, string>>(
   async (request: NextRequest, context, user) => {
   // Validate request body
-  const validation = await validateRequest(request, createApplicationSchema);
-  if (!validation.valid || !validation.data) {
-    return ApiResponse.validationError(validation.error || 'Invalid request data');
+  let validatedData;
+  try {
+    validatedData = await validateAndExtract(request, createApplicationSchema);
+  } catch (error) {
+    const validationResponse = handleValidationError(error);
+    if (validationResponse) return validationResponse;
+    throw error;
   }
 
   // Fetch student and supervisor details
   const student = await studentService.getStudentById(user.uid);
-  const supervisor = await supervisorService.getSupervisorById(validation.data.supervisorId);
+  const supervisor = await supervisorService.getSupervisorById(validatedData.supervisorId);
 
   if (!student || !supervisor) {
     return ApiResponse.notFound('Student or supervisor');
@@ -44,7 +50,7 @@ export const POST = withAuth<Record<string, string>>(
   // Check for duplicate applications (using workflow service)
   const duplicateCheck = await ApplicationWorkflowService.checkDuplicateApplication(
     user.uid,
-    validation.data.supervisorId
+    validatedData.supervisorId
   );
 
   if (duplicateCheck.isDuplicate) {
@@ -88,12 +94,12 @@ export const POST = withAuth<Record<string, string>>(
     studentId: user.uid,
     studentName: student.fullName,
     studentEmail: student.email,
-    supervisorId: validation.data.supervisorId,
+    supervisorId: validatedData.supervisorId,
     supervisorName: supervisor.fullName,
     // Project Details
-    projectTitle: validation.data.projectTitle,
-    projectDescription: validation.data.projectDescription,
-    proposedTopicId: validation.data.proposedTopicId ?? undefined,
+    projectTitle: validatedData.projectTitle,
+    projectDescription: validatedData.projectDescription,
+    proposedTopicId: validatedData.proposedTopicId ?? undefined,
     isOwnTopic: true,
     // Student Information
     studentSkills: student.skills || '',
@@ -115,12 +121,10 @@ export const POST = withAuth<Record<string, string>>(
   };
 
   const result = await applicationService.createApplication(applicationData);
+  const errorResponse = handleServiceResult(result, 'Failed to create application');
+  if (errorResponse) return errorResponse;
 
-  if (!result.success || !result.data) {
-    return ApiResponse.error(result.error || 'Failed to create application', 500);
-  }
-
-  const applicationId = result.data;
+  const applicationId = result.data!;
 
   // Emit application created event for side effects (e.g., email notifications)
   await serviceEvents.emit({
@@ -132,7 +136,7 @@ export const POST = withAuth<Record<string, string>>(
     supervisorId: supervisor.id,
     supervisorName: supervisor.fullName,
     supervisorEmail: supervisor.email,
-    projectTitle: validation.data.projectTitle,
+    projectTitle: validatedData.projectTitle,
     hasPartner: partnerInfo.hasPartner,
     partnerName: partnerInfo.partnerName,
     partnerEmail: partnerInfo.partnerEmail,

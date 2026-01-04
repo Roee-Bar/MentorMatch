@@ -132,32 +132,64 @@ test.describe('Email Verification @auth', () => {
   });
 
   test('should allow resending verification email', async ({ page }) => {
-    // Create an unverified student
-    const unverifiedStudent = await seedStudent({
+    // Create an unverified student using test-seed API (server process)
+    const studentData = {
       firstName: 'Unverified',
       lastName: 'Student',
-      email: 'unverified@test.com',
+      email: `unverified-${Date.now()}@test.com`,
       studentId: 'unverified123',
       phone: '1234567890',
       department: 'Computer Science',
-      emailVerified: false,
+      fullName: 'Unverified Student',
+    };
+
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'student',
+        userData: {
+          ...studentData,
+          password: 'TestPassword123!',
+        },
+      },
     });
 
-    // Authenticate the user
-    const authToken = await adminAuth.createCustomToken(unverifiedStudent.uid);
-    await page.goto('/');
-    await page.evaluate(async (token: string) => {
-      const { getAuth, signInWithCustomToken } = await import('firebase/auth');
-      const { getApps } = await import('firebase/app');
-      const apps = getApps();
-      if (apps.length > 0) {
-        const auth = getAuth(apps[0]);
-        await signInWithCustomToken(auth, token);
-      }
-    }, authToken);
+    const seedData = await seedResponse.json();
+    if (!seedData.success) {
+      throw new Error(`Failed to seed student: ${seedData.error}`);
+    }
+
+    const { uid, token, email } = seedData.data;
+
+    // Authenticate using the token from server process
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ token, uid, email }) => {
+      sessionStorage.setItem('__test_id_token__', token);
+      sessionStorage.setItem('__test_local_id__', uid);
+      sessionStorage.setItem('__test_email__', email);
+      
+      const projectId = 'demo-test';
+      const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+      const authState = {
+        uid,
+        email,
+        emailVerified: false, // Unverified user
+        stsTokenManager: {
+          apiKey: 'test-api-key',
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+      };
+      window.localStorage.setItem(authKey, JSON.stringify(authState));
+      window.dispatchEvent(new CustomEvent('test-token-set'));
+    }, { token, uid, email });
+
+    // Wait for auth state to propagate
+    await page.waitForTimeout(1000);
 
     // Navigate to authenticated area (should show verification banner)
-    await page.goto('/authenticated/student');
+    await page.goto('/authenticated/student', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2000);
     
     // Look for resend verification button
     const resendButton = page.locator('[data-testid="resend-verification-button"]');
@@ -169,36 +201,68 @@ test.describe('Email Verification @auth', () => {
     }
     
     // Cleanup
-    await cleanupUser(unverifiedStudent.uid);
+    await cleanupUser(uid);
   });
 
   test('should enforce rate limiting on resend verification', async ({ page }) => {
-    // Create an unverified student
-    const unverifiedStudent = await seedStudent({
+    // Create an unverified student using test-seed API (server process)
+    const studentData = {
       firstName: 'RateLimit',
       lastName: 'Test',
-      email: 'ratelimit@test.com',
+      email: `ratelimit-${Date.now()}@test.com`,
       studentId: 'ratelimit123',
       phone: '1234567890',
       department: 'Computer Science',
-      emailVerified: false,
+      fullName: 'RateLimit Test',
+    };
+
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'student',
+        userData: {
+          ...studentData,
+          password: 'TestPassword123!',
+        },
+      },
     });
 
-    // Authenticate the user
-    const authToken = await adminAuth.createCustomToken(unverifiedStudent.uid);
-    await page.goto('/');
-    await page.evaluate(async (token: string) => {
-      const { getAuth, signInWithCustomToken } = await import('firebase/auth');
-      const { getApps } = await import('firebase/app');
-      const apps = getApps();
-      if (apps.length > 0) {
-        const auth = getAuth(apps[0]);
-        await signInWithCustomToken(auth, token);
-      }
-    }, authToken);
+    const seedData = await seedResponse.json();
+    if (!seedData.success) {
+      throw new Error(`Failed to seed student: ${seedData.error}`);
+    }
+
+    const { uid, token, email } = seedData.data;
+
+    // Authenticate using the token from server process
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ token, uid, email }) => {
+      sessionStorage.setItem('__test_id_token__', token);
+      sessionStorage.setItem('__test_local_id__', uid);
+      sessionStorage.setItem('__test_email__', email);
+      
+      const projectId = 'demo-test';
+      const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+      const authState = {
+        uid,
+        email,
+        emailVerified: false, // Unverified user
+        stsTokenManager: {
+          apiKey: 'test-api-key',
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+      };
+      window.localStorage.setItem(authKey, JSON.stringify(authState));
+      window.dispatchEvent(new CustomEvent('test-token-set'));
+    }, { token, uid, email });
+
+    // Wait for auth state to propagate
+    await page.waitForTimeout(1000);
 
     // Navigate to authenticated area
-    await page.goto('/authenticated/student');
+    await page.goto('/authenticated/student', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2000);
     
     // Make multiple resend requests (4 requests to exceed limit of 3)
     const resendButton = page.locator('[data-testid="resend-verification-button"]');
@@ -216,7 +280,7 @@ test.describe('Email Verification @auth', () => {
     }
     
     // Cleanup
-    await cleanupUser(unverifiedStudent.uid);
+    await cleanupUser(uid);
   });
 
   test('should update verification status after verification', async ({ page }) => {

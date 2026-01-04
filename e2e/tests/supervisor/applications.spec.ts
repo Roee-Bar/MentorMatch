@@ -56,14 +56,15 @@ test.describe('Supervisor - Applications @supervisor @smoke', () => {
     const listVisible = await applicationsList.first().isVisible({ timeout: 10000 }).catch(() => false);
     if (!listVisible) {
       // If UI doesn't exist, verify via API that application was created
-      const response = await authenticatedRequest(page, 'GET', '/api/applications');
+      // Use supervisor-specific endpoint instead of admin-only /api/applications
+      const response = await authenticatedRequest(page, 'GET', `/api/supervisors/${authenticatedSupervisor.uid}/applications`);
       if (!response.ok()) {
         const status = response.status();
         const errorText = await response.text().catch(() => 'Unable to read error response');
         throw new Error(`API request failed: ${status} - ${errorText}`);
       }
       const data = await response.json();
-      expect(Array.isArray(data)).toBeTruthy();
+      expect(Array.isArray(data.data)).toBeTruthy();
       // Test passes if we can verify the application exists via API
       return;
     }

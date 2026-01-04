@@ -9,8 +9,8 @@ import { NextRequest } from 'next/server';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateBody, updateSupervisorSchema } from '@/lib/middleware/validation';
-import { handleServiceResult } from '@/lib/middleware/service-result-handler';
+import { updateSupervisorSchema } from '@/lib/middleware/validation';
+import { withValidatedRequestAndUser } from '@/lib/middleware/route-handlers';
 import { logger } from '@/lib/logger';
 import type { SupervisorIdParams } from '@/types/api';
 
@@ -34,33 +34,14 @@ export const GET = withAuth<SupervisorIdParams>(async (request: NextRequest, { p
 
 export const PUT = withAuth<SupervisorIdParams>(
   async (request: NextRequest, { params }, user) => {
-    const body = await request.json();
-    const validation = validateBody(body, updateSupervisorSchema);
-    
-    if (!validation.valid || !validation.data) {
-      logger.error('Supervisor update validation failed', undefined, {
-        context: 'API',
-        data: {
-          supervisorId: params.id,
-          validationError: validation.error,
-          receivedFields: Object.keys(body)
-        }
-      });
-      return ApiResponse.validationError(validation.error || 'Invalid request data');
-    }
-
-    const result = await supervisorService.updateSupervisor(params.id, validation.data);
-
-    const errorResponse = handleServiceResult(result, 'Failed to update supervisor');
-    if (errorResponse) {
-      logger.error('Supervisor database update failed', undefined, {
-        context: 'API',
-        data: { supervisorId: params.id, error: result.error }
-      });
-      return errorResponse;
-    }
-
-    return ApiResponse.successMessage('Supervisor updated successfully');
+    return withValidatedRequestAndUser(
+      request,
+      user,
+      updateSupervisorSchema,
+      (data, user) => supervisorService.updateSupervisor(params.id, data),
+      'Failed to update supervisor',
+      () => ApiResponse.successMessage('Supervisor updated successfully')
+    );
   },
   { requireOwnerOrAdmin: true, requireVerifiedEmail: true }
 );

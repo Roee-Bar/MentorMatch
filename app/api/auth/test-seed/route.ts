@@ -73,13 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create custom token in server process
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/auth/test-seed/route.ts:58',message:'Before createCustomToken',data:{uid,processId:process.pid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     const token = await adminAuth.createCustomToken(uid);
-    // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/api/auth/test-seed/route.ts:62',message:'After createCustomToken',data:{uid,tokenLength:token.length,processId:process.pid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
 
     return ApiResponse.success({
       uid,

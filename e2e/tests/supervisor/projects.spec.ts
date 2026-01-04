@@ -34,8 +34,15 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
     const listVisible = await projectsList.first().isVisible({ timeout: 10000 }).catch(() => false);
     
     if (!listVisible) {
+      // Verify project was created correctly in database first
+      const projectDoc = await adminDb.collection('projects').doc(project.id).get();
+      expect(projectDoc.exists).toBeTruthy();
+      const projectData = projectDoc.data();
+      expect(projectData?.supervisorId).toBe(authenticatedSupervisor.uid);
+      
       // If UI doesn't exist, verify via API that project exists
-      const response = await authenticatedRequest(page, 'GET', `/api/projects?supervisorId=${authenticatedSupervisor.uid}`);
+      // Use supervisor-specific endpoint instead of query parameter
+      const response = await authenticatedRequest(page, 'GET', `/api/supervisors/${authenticatedSupervisor.uid}/projects`);
       if (!response.ok()) {
         const status = response.status();
         const errorText = await response.text().catch(() => 'Unable to read error response');
@@ -44,7 +51,25 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
       const data = await response.json();
       expect(data).toHaveProperty('data');
       expect(Array.isArray(data.data)).toBeTruthy();
-      const projectExists = data.data.some((p: any) => p.id === project.id);
+      
+      // Debug: Log all project IDs returned
+      const projectIds = data.data.map((p: any) => p.id);
+      const projectExists = projectIds.includes(project.id);
+      
+      if (!projectExists) {
+        // Additional debugging
+        const allProjects = await adminDb.collection('projects').get();
+        const allProjectIds = allProjects.docs.map(doc => doc.id);
+        const allSupervisorIds = allProjects.docs.map(doc => doc.data()?.supervisorId);
+        throw new Error(
+          `Project ${project.id} not found in API response. ` +
+          `API returned projects: [${projectIds.join(', ')}]. ` +
+          `All projects in DB: [${allProjectIds.join(', ')}]. ` +
+          `Supervisor IDs in DB: [${allSupervisorIds.join(', ')}]. ` +
+          `Looking for supervisorId: ${authenticatedSupervisor.uid}`
+        );
+      }
+      
       expect(projectExists).toBeTruthy();
       // Test passes if we can verify the project exists via API
       // Still try to change status via API
@@ -54,10 +79,10 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
       expect(updateResponse.ok()).toBeTruthy();
       
       // Verify project status updated in database
-      const projectDoc = await adminDb.collection('projects').doc(project.id).get();
-      expect(projectDoc.exists).toBeTruthy();
-      const projectData = projectDoc.data();
-      expect(projectData?.status).toBe('completed');
+      const updatedProjectDoc = await adminDb.collection('projects').doc(project.id).get();
+      expect(updatedProjectDoc.exists).toBeTruthy();
+      const updatedProjectData = updatedProjectDoc.data();
+      expect(updatedProjectData?.status).toBe('completed');
       
       await cleanupProject(project.id);
       await cleanupUser(student.id);
