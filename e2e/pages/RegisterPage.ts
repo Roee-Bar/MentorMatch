@@ -26,8 +26,9 @@ export class RegisterPage extends BasePage {
 
   async fillForm(data: RegistrationData): Promise<void> {
     await this.form.fillField('Email Address', data.email);
-    await this.form.fillField('Password', data.password);
-    await this.form.fillField('Confirm Password', data.confirmPassword);
+    // Use fillFieldByName for password fields to avoid ambiguity (both have label "Password")
+    await this.form.fillFieldByName('password', data.password);
+    await this.form.fillFieldByName('confirmPassword', data.confirmPassword);
     await this.form.fillField('First Name', data.firstName);
     await this.form.fillField('Last Name', data.lastName);
     await this.form.fillField('Student ID', data.studentId);
@@ -63,9 +64,11 @@ export class RegisterPage extends BasePage {
 
   async getMessage(): Promise<string> {
     // Wait for either error or success message to be visible
-    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
-    await this.waitForElement(messageSelector, 8000);
-    return await this.getText(messageSelector);
+    // Exclude Next.js route announcer which also has role="alert"
+    const messageSelector = `${Selectors.errorMessage}:not(#__next-route-announcer__), ${Selectors.successMessage}:not(#__next-route-announcer__)`;
+    const messageElement = this.page.locator(messageSelector).first();
+    await messageElement.waitFor({ state: 'visible', timeout: 8000 });
+    return await messageElement.textContent() || '';
   }
 
   async isMessageVisible(): Promise<boolean> {

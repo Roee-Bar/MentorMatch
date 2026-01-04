@@ -42,6 +42,8 @@ export default defineConfig({
     video: 'retain-on-failure',
     actionTimeout: 5000,
     navigationTimeout: 15000,
+    // Clear browser state between tests for better isolation
+    storageState: undefined,
   },
 
   expect: {

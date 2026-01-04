@@ -5,12 +5,22 @@
  */
 
 import { expect, Page } from '@playwright/test';
+import { waitForRoleBasedRedirect } from './navigation-helpers';
+import { waitForAnyURL } from './url-helpers';
 
 /**
- * Assert that user is redirected to login page
+ * Assert that user is redirected to login page or home page
+ * (Protected routes redirect to '/' instead of '/login' when unauthenticated)
  */
 export async function expectRedirectToLogin(page: Page): Promise<void> {
-  await expect(page).toHaveURL(/\/login/);
+  // Accept both '/' and '/login' as valid redirect destinations
+  const currentUrl = page.url();
+  const isLoginPage = /\/login/.test(currentUrl);
+  const isHomePage = currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/);
+  
+  if (!isLoginPage && !isHomePage) {
+    throw new Error(`Expected redirect to '/' or '/login', but got: ${currentUrl}`);
+  }
 }
 
 /**
@@ -23,9 +33,11 @@ export async function expectAuthenticatedDashboard(page: Page, role: 'student' |
 
 /**
  * Assert that error message is displayed
+ * Excludes Next.js route announcer which also has role="alert"
  */
 export async function expectErrorMessage(page: Page, message?: string): Promise<void> {
-  const errorSelector = '[role="alert"], [data-testid="error-message"], [data-testid="error"], .error, .error-message';
+  // Use data-testid as primary selector, exclude route announcer
+  const errorSelector = '[data-testid="error-message"]:not(#__next-route-announcer__), [data-testid="error"]:not(#__next-route-announcer__), [role="alert"]:not(#__next-route-announcer__), .error:not(#__next-route-announcer__), .error-message:not(#__next-route-announcer__)';
   const errorElement = page.locator(errorSelector).first();
   
   // Wait for error element to be visible with a reasonable timeout
@@ -39,9 +51,11 @@ export async function expectErrorMessage(page: Page, message?: string): Promise<
 
 /**
  * Assert that success message is displayed
+ * Excludes Next.js route announcer
  */
 export async function expectSuccessMessage(page: Page, message?: string): Promise<void> {
-  const successSelector = '[role="status"], [data-testid="success-message"], [data-testid="success"], .success, .success-message';
+  // Use data-testid as primary selector, exclude route announcer
+  const successSelector = '[data-testid="success-message"]:not(#__next-route-announcer__), [data-testid="success"]:not(#__next-route-announcer__), [role="status"]:not(#__next-route-announcer__), .success:not(#__next-route-announcer__), .success-message:not(#__next-route-announcer__)';
   const successElement = page.locator(successSelector).first();
   
   await expect(successElement).toBeVisible({ timeout: 8000 });
@@ -307,5 +321,48 @@ export async function expectElementCountLessThan(
   const elements = page.locator(selector);
   const count = await elements.count();
   expect(count).toBeLessThan(maxCount);
+}
+
+/**
+ * Assert authenticated redirect to role dashboard
+ */
+export async function expectAuthenticatedRedirect(
+  page: Page,
+  role: 'student' | 'supervisor' | 'admin',
+  timeout: number = 15000
+): Promise<void> {
+  await waitForRoleBasedRedirect(page, role, timeout);
+}
+
+/**
+ * Assert error message excluding route announcer
+ */
+export async function expectErrorMessageExcludingAnnouncer(
+  page: Page,
+  message?: string
+): Promise<void> {
+  // Use the updated expectErrorMessage which already excludes announcer
+  await expectErrorMessage(page, message);
+}
+
+/**
+ * Assert URL pattern with options
+ */
+export async function expectURLPattern(
+  page: Page,
+  pattern: string | RegExp,
+  options?: { timeout?: number; allowMultiple?: boolean }
+): Promise<void> {
+  const timeout = options?.timeout || 10000;
+  
+  if (options?.allowMultiple && Array.isArray(pattern)) {
+    await waitForAnyURL(page, pattern as (string | RegExp)[], timeout);
+  } else {
+    if (typeof pattern === 'string') {
+      await expect(page).toHaveURL((url) => url.href.includes(pattern), { timeout });
+    } else {
+      await expect(page).toHaveURL(pattern, { timeout });
+    }
+  }
 }
 

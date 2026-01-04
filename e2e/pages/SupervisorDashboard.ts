@@ -8,6 +8,7 @@ import { BasePage } from '../components/BasePage';
 import { Modal } from '../components/Modal';
 import { Form } from '../components/Form';
 import { waitForURL, waitForStable } from '../utils/wait-strategies';
+import { navigateToDashboard } from '../utils/navigation-helpers';
 
 export class SupervisorDashboard extends BasePage {
   constructor(page: Page) {
@@ -15,10 +16,8 @@ export class SupervisorDashboard extends BasePage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/authenticated/supervisor');
+    await navigateToDashboard(this.page, 'supervisor');
     await this.waitForPageReady();
-    // Wait for navigation links to be ready
-    await this.waitForURLPattern(/\/authenticated\/supervisor/);
   }
 
   async navigateToApplications(): Promise<void> {

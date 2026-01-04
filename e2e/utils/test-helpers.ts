@@ -152,3 +152,109 @@ export function generateTestId(prefix: string = 'test'): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+/**
+ * Clear browser state (localStorage, cookies, sessionStorage)
+ */
+export async function clearBrowserState(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.context().clearCookies();
+}
+
+/**
+ * Retry an operation with exponential backoff
+ */
+export async function retryOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error as Error;
+      
+      if (attempt < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw new Error(
+    `Operation failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`
+  );
+}
+
+/**
+ * Wait for network to be idle
+ */
+export async function waitForNetworkIdle(
+  page: Page,
+  idleTime: number = 500,
+  timeout: number = 30000
+): Promise<void> {
+  await page.waitForLoadState('networkidle', { timeout });
+  
+  // Additional wait to ensure no pending requests
+  let lastRequestTime = Date.now();
+  const checkInterval = 100;
+  const startTime = Date.now();
+
+  return new Promise((resolve, reject) => {
+    const checkIdle = setInterval(() => {
+      const now = Date.now();
+      
+      if (now - startTime > timeout) {
+        clearInterval(checkIdle);
+        reject(new Error(`Network idle timeout after ${timeout}ms`));
+        return;
+      }
+
+      if (now - lastRequestTime >= idleTime) {
+        clearInterval(checkIdle);
+        resolve();
+      }
+    }, checkInterval);
+
+    // Track requests
+    page.on('request', () => {
+      lastRequestTime = Date.now();
+    });
+
+    // Timeout fallback
+    setTimeout(() => {
+      clearInterval(checkIdle);
+      resolve();
+    }, timeout);
+  });
+}
+
+/**
+ * Get enhanced error context (URL, console errors, etc.)
+ */
+export async function getErrorContext(page: Page): Promise<string> {
+  const url = page.url();
+  const title = await page.title();
+  
+  // Get console errors
+  const consoleErrors: string[] = [];
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      consoleErrors.push(msg.text());
+    }
+  });
+
+  return `
+Error Context:
+  - URL: ${url}
+  - Title: ${title}
+  - Console Errors: ${consoleErrors.length > 0 ? consoleErrors.join(', ') : 'None'}
+  `.trim();
+}
+

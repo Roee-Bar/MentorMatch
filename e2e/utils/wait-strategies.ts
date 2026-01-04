@@ -153,16 +153,32 @@ export async function waitForElementCount(
 
 /**
  * Wait for URL to match pattern
+ * Enhanced with better error messages showing expected vs actual URL
  */
 export async function waitForURL(
   page: Page,
   urlPattern: string | RegExp,
   timeout: number = TestConfig.timeouts.navigation
 ): Promise<void> {
-  if (typeof urlPattern === 'string') {
-    await page.waitForURL((url) => url.href.includes(urlPattern), { timeout });
-  } else {
-    await page.waitForURL(urlPattern, { timeout });
+  const startTime = Date.now();
+  const checkInterval = 200;
+
+  try {
+    if (typeof urlPattern === 'string') {
+      await page.waitForURL((url) => url.href.includes(urlPattern), { timeout });
+    } else {
+      await page.waitForURL(urlPattern, { timeout });
+    }
+  } catch (error) {
+    // Provide better error message with actual URL
+    const currentUrl = page.url();
+    const patternStr = typeof urlPattern === 'string' ? urlPattern : urlPattern.toString();
+    throw new Error(
+      `URL wait timeout after ${timeout}ms. ` +
+      `Expected pattern: ${patternStr}. ` +
+      `Current URL: ${currentUrl}. ` +
+      `Original error: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 }
 

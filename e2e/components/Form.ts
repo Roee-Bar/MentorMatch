@@ -27,9 +27,41 @@ export class Form {
 
   /**
    * Fill a form field by label
+   * Handles ambiguous labels by prioritizing fields with name attributes or test IDs
    */
   async fillField(label: string, value: string): Promise<void> {
-    const field = this.page.getByLabel(label);
+    const fields = this.page.getByLabel(label);
+    const count = await fields.count();
+    
+    if (count === 0) {
+      throw new Error(`No field found with label: ${label}`);
+    }
+    
+    if (count === 1) {
+      // Single match, use it directly
+      const field = fields.first();
+      await waitForStable(field);
+      await field.fill(value);
+      return;
+    }
+    
+    // Multiple matches - try to find the most specific one
+    // Prioritize fields with name attributes or test IDs
+    for (let i = 0; i < count; i++) {
+      const field = fields.nth(i);
+      const name = await field.getAttribute('name');
+      const testId = await field.getAttribute('data-testid');
+      
+      if (name || testId) {
+        // Use this field if it has a name or test ID
+        await waitForStable(field);
+        await field.fill(value);
+        return;
+      }
+    }
+    
+    // If no field has name/testId, use the first one
+    const field = fields.first();
     await waitForStable(field);
     await field.fill(value);
   }

@@ -7,6 +7,7 @@ import { BasePage } from '../components/BasePage';
 import { Form } from '../components/Form';
 import { Selectors } from '../utils/selectors';
 import { waitForURL } from '../utils/wait-strategies';
+import { waitForRoleBasedRedirect } from '../utils/navigation-helpers';
 
 export class LoginPage extends BasePage {
   private readonly form: Form;
@@ -23,7 +24,7 @@ export class LoginPage extends BasePage {
     await this.waitForElement(Selectors.loginEmailInput);
   }
 
-  async login(email: string, password: string): Promise<void> {
+  async login(email: string, password: string, expectedRole?: 'student' | 'supervisor' | 'admin'): Promise<void> {
     // Only fill fields if they have values (for testing empty field validation)
     if (email) {
       await this.form.fillField('Email Address', email);
@@ -39,7 +40,10 @@ export class LoginPage extends BasePage {
     const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
     try {
       await Promise.race([
-        waitForURL(this.page, /\/(authenticated|$)/, 10000),
+        // If expected role is provided, wait for role-based redirect
+        expectedRole 
+          ? waitForRoleBasedRedirect(this.page, expectedRole, 15000)
+          : waitForURL(this.page, /\/(authenticated|$)/, 10000),
         this.page.locator(messageSelector).first().waitFor({ state: 'visible', timeout: 8000 }),
       ]);
     } catch (error) {
@@ -57,9 +61,11 @@ export class LoginPage extends BasePage {
 
   async getMessage(): Promise<string> {
     // Wait for either error or success message to be visible
-    const messageSelector = `${Selectors.errorMessage}, ${Selectors.successMessage}`;
-    await this.waitForElement(messageSelector, 8000);
-    return await this.getText(messageSelector);
+    // Exclude Next.js route announcer which also has role="alert"
+    const messageSelector = `${Selectors.errorMessage}:not(#__next-route-announcer__), ${Selectors.successMessage}:not(#__next-route-announcer__)`;
+    const messageElement = this.page.locator(messageSelector).first();
+    await messageElement.waitFor({ state: 'visible', timeout: 8000 });
+    return await messageElement.textContent() || '';
   }
 
   async isMessageVisible(): Promise<boolean> {

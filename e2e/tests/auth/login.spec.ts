@@ -7,6 +7,7 @@ import { LoginPage } from '../../pages/LoginPage';
 import { expectErrorMessage, expectAuthenticatedDashboard } from '../../utils/assertions';
 import { seedStudent } from '../../fixtures/db-helpers';
 import { waitForStableState, waitForAnimations } from '../../utils/test-stability';
+import { waitForRoleBasedRedirect } from '../../utils/navigation-helpers';
 
 test.describe('User Login @auth @smoke @critical', () => {
   test('should successfully login with valid credentials @smoke @critical @fast', async ({ page }) => {
@@ -18,10 +19,10 @@ test.describe('User Login @auth @smoke @critical', () => {
     const password = 'TestPassword123!';
 
     await loginPage.goto();
-    await loginPage.login(email, password);
+    await loginPage.login(email, password, 'student');
 
-    // Should redirect to authenticated dashboard
-    await expect(page).toHaveURL(/\/(authenticated|$)/);
+    // Should redirect to authenticated dashboard (handles two-step redirect: '/' → '/authenticated/student')
+    await waitForRoleBasedRedirect(page, 'student', 15000);
   });
 
   test('should show error with invalid email @regression @fast', async ({ page }) => {

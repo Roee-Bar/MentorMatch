@@ -9,6 +9,7 @@ import { Modal } from '../components/Modal';
 import { Form } from '../components/Form';
 import { Selectors } from '../utils/selectors';
 import { waitForURL, waitForStable } from '../utils/wait-strategies';
+import { navigateToDashboard } from '../utils/navigation-helpers';
 
 export class AdminDashboard extends BasePage {
   readonly studentsTable: Table;
@@ -23,10 +24,8 @@ export class AdminDashboard extends BasePage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto('/authenticated/admin');
+    await navigateToDashboard(this.page, 'admin');
     await this.waitForPageReady();
-    // Wait for dashboard to be ready
-    await this.waitForURLPattern(/\/authenticated\/admin/);
   }
 
   async getStats(): Promise<{ [key: string]: number }> {
