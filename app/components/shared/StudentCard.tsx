@@ -58,7 +58,7 @@ export default function StudentCard({
   const interestsArray = student.interests ? student.interests.split(',').map(i => i.trim()).filter(i => i) : [];
 
   return (
-    <div className={`${cardHover} ${isCurrentPartner ? ringPartnerHighlight : ''}`}>
+    <div className={`${cardHover} ${isCurrentPartner ? ringPartnerHighlight : ''}`} data-testid={`student-card-${student.id}`}>
       {/* Header with Name and Status */}
       <div className={cardHeader}>
         <div className="flex-1">

@@ -48,6 +48,7 @@ const FormSelect: React.FC<FormSelectProps> = ({
         required={required}
         disabled={disabled}
         className={inputStyles}
+        data-testid={`form-select-${name}`}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (

@@ -41,7 +41,7 @@ export default function SupervisorCapacitySection({
   }
 
   return (
-    <div className="mb-8">
+    <div className="mb-8" data-testid="supervisor-capacity-section">
       <SectionHeader 
         title="Supervisor Capacity Management"
         action={
@@ -67,7 +67,7 @@ export default function SupervisorCapacitySection({
             {supervisors.map((supervisor) => {
               const available = supervisor.maxCapacity - supervisor.currentCapacity;
               return (
-                <Table.Row key={supervisor.id}>
+                <Table.Row key={supervisor.id} data-testid={`supervisor-row-${supervisor.id}`}>
                   <Table.Cell className="w-48 px-8">{supervisor.fullName}</Table.Cell>
                   <Table.Cell className="w-64 px-8">
                     <a href={`mailto:${supervisor.email}`} className={linkEmail}>
@@ -90,6 +90,7 @@ export default function SupervisorCapacitySection({
                   <Table.Cell className="w-40 px-8">
                     <div className="flex justify-center">
                       <button
+                        data-testid={`edit-capacity-${supervisor.id}`}
                         onClick={() => onEdit(supervisor)}
                         className={btnPrimary}
                       >

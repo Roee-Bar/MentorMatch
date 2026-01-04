@@ -45,7 +45,7 @@ export default function LoginPage() {
         Login to your MentorMatch account
       </p>
 
-      <form onSubmit={handleLogin} noValidate>
+      <form onSubmit={handleLogin} noValidate data-testid="login-form">
           <FormInput
             label="Email Address"
             type="email"
@@ -73,6 +73,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className={`${btnPrimaryFullWidth} py-3.5`}
+          data-testid="login-button"
         >
           {loading ? 'Logging in...' : 'Login'}
         </button>

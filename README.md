@@ -75,6 +75,14 @@ npm start            # Start production server
 # Code Quality
 npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
+
+# E2E Testing
+npm run test:e2e     # Run e2e tests
+npm run test:e2e:ui  # Run tests with UI mode
+npm run test:e2e:debug # Run tests in debug mode
+npm run test:e2e:headed # Run tests in headed mode (see browser)
+npm run test:e2e:report # View test report
+npm run emulators:start # Start Firebase emulators
 ```
 
 ## Project Structure
@@ -84,6 +92,11 @@ npm run typecheck    # TypeScript errors
 │   ├── api/              # REST API routes
 │   ├── authenticated/    # Role-based authenticated pages
 │   └── components/       # React components
+├── e2e/                  # E2E tests
+│   ├── fixtures/         # Test fixtures and helpers
+│   ├── pages/            # Page Object Models
+│   ├── tests/            # Test specifications
+│   └── utils/            # Test utilities
 ├── lib/
 │   ├── api/              # API client
 │   ├── middleware/       # Auth, validation, errors
@@ -92,6 +105,42 @@ npm run typecheck    # TypeScript errors
 ├── types/                # TypeScript types
 └── scripts/              # Utility scripts
 ```
+
+## Testing
+
+MentorMatch uses Playwright for end-to-end testing with Firebase Emulator Suite for isolated test environments.
+
+### Running Tests Locally
+
+**Prerequisites:** Java Runtime Environment (JRE) is required for Firebase Emulators.
+
+1. **Start Firebase Emulators (in a separate terminal):**
+   ```bash
+   npx firebase emulators:start --only auth,firestore
+   ```
+
+2. **Run tests (will automatically start Next.js dev server):**
+   ```bash
+   npm run test:e2e
+   ```
+
+   Or start Next.js manually:
+   ```bash
+   # Terminal 1: Emulators (already running)
+   # Terminal 2: Next.js
+   npm run dev
+   # Terminal 3: Tests
+   npm run test:e2e
+   ```
+
+### Test Structure
+
+- **Fixtures**: Authentication helpers and test data generators (`e2e/fixtures/`)
+- **Page Objects**: Reusable page interaction models (`e2e/pages/`)
+- **Tests**: Test specifications organized by feature (`e2e/tests/`)
+- **Utils**: Test utilities and assertions (`e2e/utils/`)
+
+For detailed testing documentation, see [docs/TESTING.md](docs/TESTING.md) and [e2e/README.md](e2e/README.md).
 
 ## Deployment
 

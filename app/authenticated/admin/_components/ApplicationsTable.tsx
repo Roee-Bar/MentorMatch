@@ -44,7 +44,7 @@ export default function ApplicationsTable({
   const widths = APPLICATIONS_TABLE_WIDTHS[tableType];
 
   return (
-    <Table.Container>
+    <Table.Container data-testid="applications-table">
       <Table.Header>
         <tr>
           <Table.HeaderCell className={widths.projectTitle}>

@@ -31,8 +31,17 @@ const StatusMessage: React.FC<StatusMessageProps> = ({
   className = '',
   onClose,
 }) => {
+  // Map message types to ARIA roles for accessibility and testing
+  const role = type === 'error' ? 'alert' : 'status';
+  const testId = type === 'error' ? 'error-message' : 'success-message';
+  
   return (
-    <div className={`${messageBoxStyles[type]} ${className}`}>
+    <div 
+      className={`${messageBoxStyles[type]} ${className}`}
+      role={role}
+      data-testid={testId}
+      aria-live={type === 'error' ? 'assertive' : 'polite'}
+    >
       <div className="flex items-center justify-center gap-2">
         <span className={messageTextStyles[type]}>{message}</span>
         {onClose && (

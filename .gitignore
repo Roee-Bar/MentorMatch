@@ -35,14 +35,29 @@ docs/testing/
 
 # scripts folder (local development utilities)
 /scripts/
+# Exception: test-setup.ts is part of the testing infrastructure
+!/scripts/test-setup.ts
 
 # playwright MCP screenshots
 .playwright-mcp/
 
-# playwright test results
-playwright-report/
-test-results/
+# Playwright test artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
 test-results.json
+test-results.xml
+*.webm
+*.png
+*.jpg
+*.jpeg
+
+# Firebase emulator data
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.emulator-pid
 
 # local env files
 .env*.local
