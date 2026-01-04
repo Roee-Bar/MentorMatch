@@ -85,6 +85,9 @@ export default defineConfig({
       // Add any additional env vars needed for Next.js dev server
       NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'localhost',
+      // Required for Firebase client to detect test mode and connect to emulators
+      NEXT_PUBLIC_E2E_TEST: 'true',
+      NEXT_PUBLIC_NODE_ENV: 'test',
     }),
   },
 });
