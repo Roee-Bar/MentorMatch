@@ -39,6 +39,11 @@ docs/testing/
 # playwright MCP screenshots
 .playwright-mcp/
 
+# playwright test results
+playwright-report/
+test-results/
+test-results.json
+
 # local env files
 .env*.local
 .env
