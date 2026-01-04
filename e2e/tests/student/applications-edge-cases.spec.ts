@@ -9,6 +9,7 @@ import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedSupervisor, seedStudent, seedApplication, cleanupUser, cleanupApplication } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor, Student } from '@/types/database';
+import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Student - Application Edge Cases', () => {
   test('should find applications by partner ID', async ({ page, authenticatedStudent }) => {
@@ -198,15 +199,12 @@ test.describe('Student - Application Edge Cases', () => {
 
     // Try to create a duplicate application
     // This tests repository query in duplicate check (findAll with filters)
-    const response = await page.request.post('/api/applications', {
+    const response = await authenticatedRequest(page, 'POST', '/api/applications', {
       data: {
         supervisorId: supervisor.id,
         projectTitle: 'Duplicate Test Project',
         projectDescription: 'This should be rejected',
         isOwnTopic: true,
-      },
-      headers: {
-        'Content-Type': 'application/json',
       },
     });
 

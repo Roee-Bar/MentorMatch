@@ -6,7 +6,7 @@ import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedStudent, seedMultipleStudentsWithPartnerships } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
-import { getAuthToken } from '../../utils/auth-helpers';
+import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Student - Partnerships', () => {
   test('should display partnership status', async ({ page, authenticatedStudent }) => {
@@ -56,7 +56,7 @@ test.describe('Student - Partnerships', () => {
     // Navigate to supervisors or partnerships page
     // The repository should filter out paired students in memory
     // This tests the repository pattern change from Firestore '!=' query to in-memory filtering
-    const availablePartnersResponse = await page.request.get(
+    const availablePartnersResponse = await authenticatedRequest(page, 'GET', 
       `/api/students/${authenticatedStudent.uid}/available-partners`
     );
 
@@ -139,7 +139,7 @@ test.describe('Student - Partnerships', () => {
     await dashboard.goto();
 
     // Test repository findByRequesterId() method indirectly
-    const outgoingResponse = await page.request.get(
+    const outgoingResponse = await authenticatedRequest(page, 'GET',
       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=outgoing`
     );
     expect(outgoingResponse.ok()).toBeTruthy();
@@ -147,7 +147,7 @@ test.describe('Student - Partnerships', () => {
     expect(outgoingData.data.length).toBeGreaterThanOrEqual(requesterRequests.length);
 
     // Test repository findByTargetId() method indirectly
-    const incomingResponse = await page.request.get(
+    const incomingResponse = await authenticatedRequest(page, 'GET',
       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=incoming`
     );
     expect(incomingResponse.ok()).toBeTruthy();
@@ -171,31 +171,17 @@ test.describe('Student - Partnerships', () => {
     // Test repository queries with no results
     // This tests edge cases for repository findAll() methods
 
-    // Get auth token for API request
-    const token = await getAuthToken(page);
-    expect(token).toBeTruthy();
-
     // Get partnership requests when none exist
-    const requestsResponse = await page.request.get(
-      `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+    const requestsResponse = await authenticatedRequest(page, 'GET',
+      `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`
     );
     expect(requestsResponse.ok()).toBeTruthy();
     const requestsData = await requestsResponse.json();
     expect(requestsData.data).toEqual([]);
 
     // Get available partners when none exist (or all are filtered out)
-    const partnersResponse = await page.request.get(
-      `/api/students/available-partners`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+    const partnersResponse = await authenticatedRequest(page, 'GET',
+      `/api/students/available-partners`
     );
     expect(partnersResponse.ok()).toBeTruthy();
     const partnersData = await partnersResponse.json();

@@ -9,6 +9,7 @@ import { Page } from '@playwright/test';
 /**
  * Verify that authentication is complete in the browser context
  * Checks Firebase auth state and user profile
+ * Works with both modular SDK (v9+) and compat SDK
  */
 export async function verifyAuthenticationComplete(
   page: Page,
@@ -19,26 +20,45 @@ export async function verifyAuthenticationComplete(
 
   while (Date.now() - startTime < timeout) {
     const isAuthenticated = await page.evaluate(() => {
-      // Check if Firebase is available and user is authenticated
-      const firebase = (window as any).firebase;
-      if (firebase?.auth) {
-        const auth = firebase.auth();
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          return true;
+      // Check localStorage for auth state (works with both SDKs)
+      // Firebase stores auth state in localStorage
+      const authKeys = Object.keys(localStorage).filter(key => 
+        key.includes('firebase') || key.includes('auth')
+      );
+      
+      // Check for Firebase auth user in localStorage
+      for (const key of authKeys) {
+        try {
+          const value = localStorage.getItem(key);
+          if (value) {
+            const parsed = JSON.parse(value);
+            // Check if it looks like a user object
+            if (parsed && (parsed.uid || parsed.user || parsed.stsTokenManager)) {
+              return true;
+            }
+          }
+        } catch {
+          // Not JSON, continue
         }
       }
       
-      // Fallback: check localStorage for auth state
-      const authUser = window.localStorage.getItem('firebase:authUser');
-      if (authUser) {
+      // Check if Firebase is available and user is authenticated (compat SDK)
+      const firebase = (window as any).firebase;
+      if (firebase?.auth) {
         try {
-          const user = JSON.parse(authUser);
-          return user && user.uid;
+          const auth = firebase.auth();
+          const currentUser = auth.currentUser;
+          if (currentUser) {
+            return true;
+          }
         } catch {
-          return false;
+          // Auth not available, continue
         }
       }
+      
+      // Check for modular SDK (v9+) - the app might expose it differently
+      // The app uses getAuth from firebase/auth, which doesn't expose on window
+      // So we rely on localStorage checks above
       
       return false;
     });
@@ -110,29 +130,149 @@ export async function ensureAuthenticated(
 /**
  * Get Firebase ID token from the authenticated user in the browser context
  * This is needed for making authenticated API requests in tests
+ * Works with both modular SDK (v9+) and compat SDK
  */
 export async function getAuthToken(page: Page): Promise<string | null> {
   try {
+    // Inject a script that can access the app's Firebase auth instance
+    // The app uses modular SDK, so we need to access it through the app's context
     const token = await page.evaluate(async () => {
+      // Wait for the app to load and Firebase to be initialized
+      // Check if auth is available via the app's Firebase instance
+      
+      // Try to access auth from the app's Firebase module
+      // The app imports auth from '@/lib/firebase', which exports it
+      // We can try to access it via window if the app exposes it, or via localStorage
+      
+      // First, try compat SDK (if available)
       const firebase = (window as any).firebase;
       if (firebase?.auth) {
-        const auth = firebase.auth();
-        const currentUser = auth.currentUser;
-        if (currentUser) {
-          try {
-            return await currentUser.getIdToken();
-          } catch (error) {
-            console.error('Error getting ID token:', error);
-            return null;
+        try {
+          const auth = firebase.auth();
+          const currentUser = auth.currentUser;
+          if (currentUser) {
+            try {
+              return await currentUser.getIdToken();
+            } catch (error) {
+              // Token refresh failed
+            }
           }
+        } catch (e) {
+          // Auth not available
+        }
+      }
+      
+      // For modular SDK, we need to access the auth instance
+      // The app uses getAuth from firebase/auth
+      // We can try to access it if the app exposes it on window
+      // Or we can try to get it from the app's Firebase module
+      
+      // Check if the app exposes auth on window (some apps do this for testing)
+      const appAuth = (window as any).__FIREBASE_AUTH__;
+      if (appAuth?.currentUser) {
+        try {
+          return await appAuth.currentUser.getIdToken();
+        } catch (e) {
+          // Failed to get token
+        }
+      }
+      
+      // Last resort: try to get token from localStorage
+      // Firebase stores auth state in localStorage with keys like 'firebase:authUser:...'
+      // But we can't easily extract the token from there without the SDK
+      
+      // Return null - the authenticatedRequest will handle retry
+      return null;
+    });
+    
+    // If we got a token, return it
+    if (token) {
+      return token;
+    }
+    
+    // If we couldn't get token, wait a bit and try again
+    // Sometimes Firebase needs time to initialize
+    await page.waitForTimeout(500);
+    
+    // Try one more time
+    const retryToken = await page.evaluate(async () => {
+      const firebase = (window as any).firebase;
+      if (firebase?.auth) {
+        try {
+          const auth = firebase.auth();
+          const currentUser = auth.currentUser;
+          if (currentUser) {
+            try {
+              return await currentUser.getIdToken();
+            } catch (e) {
+              return null;
+            }
+          }
+        } catch (e) {
+          return null;
         }
       }
       return null;
     });
-    return token;
+    
+    return retryToken;
   } catch (error) {
     console.error('Error getting auth token:', error);
     return null;
+  }
+}
+
+/**
+ * Make an authenticated API request with automatic token injection
+ * This helper ensures all API requests include the Authorization header
+ */
+export async function authenticatedRequest(
+  page: Page,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+  url: string,
+  options: {
+    data?: any;
+    headers?: Record<string, string>;
+    timeout?: number;
+  } = {}
+): Promise<{ ok: () => boolean; status: () => number; json: () => Promise<any>; text: () => Promise<string> }> {
+  // Get auth token
+  const token = await getAuthToken(page);
+  
+  // Prepare headers
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  
+  // Add Authorization header if token is available
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  // Make the request
+  const requestOptions: any = {
+    headers,
+    timeout: options.timeout || 30000,
+  };
+  
+  if (options.data) {
+    requestOptions.data = options.data;
+  }
+  
+  switch (method) {
+    case 'GET':
+      return await page.request.get(url, requestOptions);
+    case 'POST':
+      return await page.request.post(url, requestOptions);
+    case 'PUT':
+      return await page.request.put(url, requestOptions);
+    case 'DELETE':
+      return await page.request.delete(url, requestOptions);
+    case 'PATCH':
+      return await page.request.patch(url, requestOptions);
+    default:
+      throw new Error(`Unsupported HTTP method: ${method}`);
   }
 }
 

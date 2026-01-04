@@ -75,7 +75,7 @@ export class AdminDashboard extends BasePage {
     
     // Wait for supervisor capacity section to be visible
     const capacitySection = this.page.locator('[data-testid="supervisor-capacity-section"]');
-    await capacitySection.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
+    await capacitySection.waitFor({ state: 'visible', timeout: 10000 }).catch(async () => {
       // If section not found by test ID, try to find any table
       const anyTable = this.page.locator('table').last();
       await anyTable.waitFor({ state: 'visible', timeout: 10000 });

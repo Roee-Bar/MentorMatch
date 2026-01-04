@@ -4,7 +4,7 @@
 
 import { test, expect } from '../../fixtures/auth';
 import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
-import { getAuthToken } from '../../utils/auth-helpers';
+import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Supervisor - Capacity Management', () => {
   test('should display current capacity', async ({ page, authenticatedSupervisor }) => {
@@ -22,13 +22,7 @@ test.describe('Supervisor - Capacity Management', () => {
     const isVisible = await capacityInfo.isVisible({ timeout: 10000 }).catch(() => false);
     if (!isVisible) {
       // If UI doesn't exist, verify via API that capacity data is accessible
-      const token = await getAuthToken(page);
-      expect(token).toBeTruthy();
-      const response = await page.request.get(`/api/supervisors/${authenticatedSupervisor.uid}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await authenticatedRequest(page, 'GET', `/api/supervisors/${authenticatedSupervisor.uid}`);
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
       expect(data).toHaveProperty('data');

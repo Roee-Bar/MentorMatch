@@ -7,6 +7,7 @@ import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
 import { seedStudent, seedApplication, cleanupUser } from '../../fixtures/db-helpers';
 import type { Student } from '@/types/database';
 import { waitForNetworkIdle, waitForAnimations } from '../../utils/test-stability';
+import { authenticatedRequest } from '../../utils/auth-helpers';
 
 test.describe('Supervisor - Applications @supervisor @regression', () => {
   let sharedStudent: { uid: string; student: Student } | undefined;
@@ -56,7 +57,7 @@ test.describe('Supervisor - Applications @supervisor @regression', () => {
     const listVisible = await applicationsList.first().isVisible({ timeout: 10000 }).catch(() => false);
     if (!listVisible) {
       // If UI doesn't exist, verify via API that application was created
-      const response = await page.request.get('/api/applications');
+      const response = await authenticatedRequest(page, 'GET', '/api/applications');
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
       expect(Array.isArray(data)).toBeTruthy();
@@ -88,9 +89,7 @@ test.describe('Supervisor - Applications @supervisor @regression', () => {
     
     if (!listVisible) {
       // If UI doesn't exist, use API to approve
-      const response = await page.request.post(`/api/applications/${application.id}/approve`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await authenticatedRequest(page, 'POST', `/api/applications/${application.id}/approve`);
       expect(response.ok()).toBeTruthy();
       return;
     }
@@ -103,9 +102,7 @@ test.describe('Supervisor - Applications @supervisor @regression', () => {
     
     if (!buttonVisible) {
       // If button doesn't exist, use API
-      const response = await page.request.post(`/api/applications/${application.id}/approve`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await authenticatedRequest(page, 'POST', `/api/applications/${application.id}/approve`);
       expect(response.ok()).toBeTruthy();
       return;
     }
@@ -145,9 +142,7 @@ test.describe('Supervisor - Applications @supervisor @regression', () => {
     
     if (!listVisible) {
       // If UI doesn't exist, use API to reject
-      const response = await page.request.post(`/api/applications/${application.id}/reject`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await authenticatedRequest(page, 'POST', `/api/applications/${application.id}/reject`);
       expect(response.ok()).toBeTruthy();
       return;
     }
@@ -160,9 +155,7 @@ test.describe('Supervisor - Applications @supervisor @regression', () => {
     
     if (!buttonVisible) {
       // If button doesn't exist, use API
-      const response = await page.request.post(`/api/applications/${application.id}/reject`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await authenticatedRequest(page, 'POST', `/api/applications/${application.id}/reject`);
       expect(response.ok()).toBeTruthy();
       return;
     }

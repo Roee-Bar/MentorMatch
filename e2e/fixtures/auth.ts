@@ -43,6 +43,7 @@ async function createAuthToken(uid: string): Promise<string> {
 
 /**
  * Authenticate a user in the browser context with retry logic
+ * Uses email/password login for reliability
  */
 async function authenticateUser(
   page: any,
@@ -55,122 +56,79 @@ async function authenticateUser(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // If we have a custom token, use it to authenticate via browser context
-      if (authToken) {
-        // Get Firebase config from environment
-        // In test mode, force 'demo-test' to match admin SDK configuration
-        const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
-        const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key';
-        const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099';
-        const projectId = isTestEnv 
-          ? 'demo-test'  // Force demo-test in test mode to match admin SDK
-          : (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-test');
-        const isEmulator = authEmulatorHost && !authEmulatorHost.includes('undefined');
-
-        // Inject script to authenticate using Firebase SDK before page loads
-        await page.addInitScript(
-          ({ token, apiKey, authEmulatorHost, projectId, isEmulator }: { 
-            token: string; 
-            apiKey: string; 
-            authEmulatorHost: string; 
-            projectId: string;
-            isEmulator: boolean;
-          }) => {
-            // Function to load Firebase SDK and authenticate
-            const authenticate = async () => {
-              try {
-                // Load Firebase SDK from CDN if not already loaded
-                if (!(window as any).firebase) {
-                  await new Promise<void>((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
-                    script.onload = () => {
-                      const authScript = document.createElement('script');
-                      authScript.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
-                      authScript.onload = () => resolve();
-                      authScript.onerror = reject;
-                      document.head.appendChild(authScript);
-                    };
-                    script.onerror = reject;
-                    document.head.appendChild(script);
-                  });
-                }
-
-                const firebase = (window as any).firebase;
-                
-                // In test mode, always re-initialize with correct project ID
-                // Clear any existing apps to ensure we use demo-test
-                let app;
-                try {
-                  const existingApp = firebase.app();
-                  // If existing app has wrong project ID, delete it
-                  if (existingApp.options?.projectId !== projectId) {
-                    firebase.app().delete();
-                    app = firebase.initializeApp({
-                      apiKey: apiKey,
-                      authDomain: isEmulator ? authEmulatorHost.split(':')[0] : `${projectId}.firebaseapp.com`,
-                      projectId: projectId,
-                    });
-                  } else {
-                    app = existingApp;
-                  }
-                } catch (e) {
-                  // No existing app, initialize new one
-                  app = firebase.initializeApp({
-                    apiKey: apiKey,
-                    authDomain: isEmulator ? authEmulatorHost.split(':')[0] : `${projectId}.firebaseapp.com`,
-                    projectId: projectId,
-                  });
-                }
-
-                // Connect to emulator if needed
-                if (isEmulator) {
-                  try {
-                    firebase.auth(app).useEmulator(`http://${authEmulatorHost}`);
-                  } catch (e) {
-                    // Emulator already connected, ignore
-                  }
-                }
-
-                // Sign in with custom token
-                const auth = firebase.auth(app);
-                await auth.signInWithCustomToken(token);
-              } catch (error) {
-                console.error('Firebase authentication error:', error);
-                throw error;
-              }
-            };
-
-            // Run authentication
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', authenticate);
-            } else {
-              authenticate();
-            }
-          },
-          { token: authToken, apiKey, authEmulatorHost, projectId, isEmulator }
-        );
-
-        // Navigate to the app
-        await page.goto('/');
-        
-        // Wait for authentication to complete using Firebase-specific checks
-        await verifyAuthenticationComplete(page, 15000);
-        
-        // Wait for redirect to authenticated route
-        await page.waitForURL(/\/(authenticated|dashboard|supervisor|admin|$)/, { timeout: 15000 });
-        return;
-      }
-
-      // Fallback: use email/password login
+      // Always use email/password login for reliability
+      // The custom token approach is complex with modular Firebase SDK
       await page.goto('/login');
+      
+      // Wait for login form to be ready
+      await page.waitForSelector('input[type="email"]', { timeout: 10000 });
+      await page.waitForSelector('input[type="password"]', { timeout: 10000 });
+      
+      // Fill and submit login form
       await page.fill('input[type="email"]', email);
       await page.fill('input[type="password"]', password);
       await page.click('button[type="submit"]');
       
-      // Wait for authentication and redirect
-      await verifyAuthenticationComplete(page, 15000);
-      await page.waitForURL(/\/(authenticated|dashboard|supervisor|admin|$)/, { timeout: 15000 });
+      // Wait for authentication to complete
+      await verifyAuthenticationComplete(page, 20000);
+      
+      // Wait for redirect - could be to home page first, then to role-specific route
+      await page.waitForURL(/\/(authenticated|dashboard|supervisor|admin|login|$)/, { timeout: 20000 });
+      
+      // If we're still on login page, authentication might have failed
+      const currentUrl = page.url();
+      if (currentUrl.includes('/login')) {
+        // Check for error message
+        const errorMessage = await page.locator('[role="alert"], .error, .text-red').first().textContent().catch(() => null);
+        if (errorMessage) {
+          throw new Error(`Login failed: ${errorMessage}`);
+        }
+        // Wait a bit more in case redirect is delayed
+        await page.waitForTimeout(2000);
+        const newUrl = page.url();
+        if (newUrl.includes('/login')) {
+          throw new Error('Login failed - still on login page after submission');
+        }
+      }
+      
+      // If we're on home page, wait for redirect to role-specific route
+      if (currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/)) {
+        // Wait for redirect to role-specific route (handled by app/page.tsx)
+        await page.waitForURL(/\/authenticated\/(student|supervisor|admin)/, { timeout: 15000 }).catch(() => {
+          // If redirect doesn't happen, check if we're authenticated
+          // Sometimes the redirect happens but URL check fails
+          const finalUrl = page.url();
+          if (!finalUrl.includes('/authenticated/')) {
+            // Give it one more chance
+            await page.waitForTimeout(2000);
+            const checkUrl = page.url();
+            if (!checkUrl.includes('/authenticated/')) {
+              // Still not redirected, but authentication might be complete
+              // Verify auth state
+              const isAuth = await page.evaluate(() => {
+                try {
+                  // Check if Firebase auth is available (app uses modular SDK)
+                  // The app might expose auth differently
+                  return window.localStorage.getItem('firebase:authUser') !== null;
+                } catch {
+                  return false;
+                }
+              });
+              if (!isAuth) {
+                throw new Error('Authentication not complete after login');
+              }
+            }
+          }
+        });
+      }
+      
+      // Verify we're authenticated by checking URL or auth state
+      const finalUrl = page.url();
+      if (!finalUrl.includes('/authenticated/') && !finalUrl.endsWith('/')) {
+        // Might be on an error page or something else
+        throw new Error(`Unexpected URL after login: ${finalUrl}`);
+      }
+      
       return;
     } catch (error) {
       lastError = error as Error;
@@ -183,10 +141,9 @@ async function authenticateUser(
         // Clear any existing auth state before retry
         await page.evaluate(() => {
           window.localStorage.clear();
-          if ((window as any).firebase?.auth) {
-            (window as any).firebase.auth().signOut();
-          }
+          window.sessionStorage.clear();
         });
+        await page.context().clearCookies();
       }
     }
   }

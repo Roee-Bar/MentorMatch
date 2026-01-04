@@ -9,7 +9,7 @@ import { Modal } from '../components/Modal';
 import { Form } from '../components/Form';
 import { waitForURL, waitForStable } from '../utils/wait-strategies';
 import { navigateToDashboard } from '../utils/navigation-helpers';
-import { getAuthToken } from '../utils/auth-helpers';
+import { authenticatedRequest } from '../utils/auth-helpers';
 
 export class SupervisorDashboard extends BasePage {
   constructor(page: Page) {
@@ -96,20 +96,11 @@ export class SupervisorDashboard extends BasePage {
       }
     } else {
       // If UI doesn't exist, use API directly
-      const token = await getAuthToken(this.page);
-      if (token) {
-        const response = await this.page.request.post(`/api/projects/${projectId}/status-change`, {
-          data: { status: newStatus },
-          headers: { 
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        if (!response.ok()) {
-          throw new Error(`Failed to update project status: ${response.status()}`);
-        }
-      } else {
-        throw new Error('Unable to get auth token for project status update');
+      const response = await authenticatedRequest(this.page, 'POST', `/api/projects/${projectId}/status-change`, {
+        data: { status: newStatus },
+      });
+      if (!response.ok()) {
+        throw new Error(`Failed to update project status: ${response.status()}`);
       }
     }
     
@@ -151,13 +142,10 @@ export class SupervisorDashboard extends BasePage {
       }
     } else {
       // If UI doesn't exist, use API directly
-      await this.page.request.post('/api/supervisor-partnerships/request', {
+      await authenticatedRequest(this.page, 'POST', '/api/supervisor-partnerships/request', {
         data: {
           targetSupervisorId,
           projectId,
-        },
-        headers: {
-          'Content-Type': 'application/json',
         },
       });
     }
@@ -179,9 +167,8 @@ export class SupervisorDashboard extends BasePage {
       }
     } else {
       // If UI doesn't exist, use API directly
-      await this.page.request.post(`/api/supervisor-partnerships/${requestId}/respond`, {
+      await authenticatedRequest(this.page, 'POST', `/api/supervisor-partnerships/${requestId}/respond`, {
         data: { action: 'accept' },
-        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -202,9 +189,8 @@ export class SupervisorDashboard extends BasePage {
       }
     } else {
       // If UI doesn't exist, use API directly
-      await this.page.request.post(`/api/supervisor-partnerships/${requestId}/respond`, {
+      await authenticatedRequest(this.page, 'POST', `/api/supervisor-partnerships/${requestId}/respond`, {
         data: { action: 'reject' },
-        headers: { 'Content-Type': 'application/json' },
       });
     }
   }
@@ -225,9 +211,7 @@ export class SupervisorDashboard extends BasePage {
       }
     } else {
       // If UI doesn't exist, use API directly
-      await this.page.request.delete(`/api/supervisor-partnerships/${requestId}`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      await authenticatedRequest(this.page, 'DELETE', `/api/supervisor-partnerships/${requestId}`);
     }
   }
 }
