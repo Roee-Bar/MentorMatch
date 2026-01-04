@@ -7,17 +7,8 @@
 import { NextRequest } from 'next/server';
 import { validateRequest } from './validation';
 import { ApiResponse } from './response';
+import { ValidationError } from './errors';
 import type { z } from 'zod';
-
-/**
- * Custom error class for validation errors
- */
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
 
 /**
  * Validate request and extract data, throwing ValidationError on failure

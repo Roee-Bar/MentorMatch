@@ -86,6 +86,24 @@ export class TestAuth {
       users: users.map(u => ({ uid: u.uid, email: u.email })),
     });
   }
+
+  async generateEmailVerificationLink(
+    email: string,
+    actionCodeSettings?: {
+      url: string;
+      handleCodeInApp?: boolean;
+    }
+  ): Promise<string> {
+    // In test mode, generate a mock verification link
+    const user = testAuthStore.getUserByEmail(email);
+    if (!user) {
+      throw new Error(`User with email ${email} not found`);
+    }
+    
+    const baseUrl = actionCodeSettings?.url || 'http://localhost:3000/verify-email';
+    const oobCode = `test-verification-code-${user.uid}-${Date.now()}`;
+    return `${baseUrl}?mode=verifyEmail&oobCode=${oobCode}`;
+  }
 }
 
 /**

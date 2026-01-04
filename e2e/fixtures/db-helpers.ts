@@ -12,15 +12,19 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 /**
  * Seed a test student in Firestore
  */
-export async function seedStudent(overrides?: Partial<Student>): Promise<{ uid: string; student: Student }> {
-  const studentData = generateStudentData(overrides);
+export async function seedStudent(
+  overrides?: Partial<Student> & { emailVerified?: boolean }
+): Promise<{ uid: string; student: Student }> {
+  // Extract emailVerified from overrides (not part of Student type)
+  const { emailVerified, ...studentOverrides } = overrides || {};
+  const studentData = generateStudentData(studentOverrides);
   
   // Create auth user first
   const userRecord = await adminAuth.createUser({
     email: studentData.email,
     password: 'TestPassword123!',
     displayName: studentData.fullName,
-    emailVerified: true,
+    emailVerified: emailVerified ?? true,
   });
 
   // Create user document

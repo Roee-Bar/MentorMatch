@@ -12,6 +12,7 @@ import { resend, FROM_EMAIL, isResendAvailable } from './resend-client';
 import { getStatusMessage } from './email-config';
 import { generateStatusChangeEmailHTML } from './templates';
 import { getApplicationStatusChangeRecipients, type EmailRecipient } from '@/lib/services/shared/notification-helpers';
+import { withEmailTimeout } from '@/lib/middleware/timeout';
 import type { ApplicationStatusChangedEvent } from '@/lib/services/shared/events';
 
 const SERVICE_NAME = 'EmailService';
@@ -232,14 +233,20 @@ export const EmailService = {
     try {
       const html = generateStatusChangeEmailHTML(recipient.name, event, statusInfo);
 
-      // Use retry logic for transient failures
+      // Use retry logic for transient failures with timeout
       await retryWithBackoff(async () => {
-        await resend.emails.send({
-          from: FROM_EMAIL,
-          to: recipient.email,
-          subject: `${statusInfo.subject} - ${escapeHtml(event.projectTitle)}`,
-          html,
-        });
+        if (!resend) {
+          throw new Error('Resend client is not available');
+        }
+        await withEmailTimeout(
+          resend.emails.send({
+            from: FROM_EMAIL,
+            to: recipient.email,
+            subject: `${statusInfo.subject} - ${escapeHtml(event.projectTitle)}`,
+            html,
+          }),
+          'sendStatusChangeEmail'
+        );
       });
 
       logger.info('Status change email sent successfully', {
@@ -300,14 +307,17 @@ export const EmailService = {
     }
 
     try {
-      // Use retry logic for transient failures
+      // Use retry logic for transient failures with timeout
       await retryWithBackoff(async () => {
-        await resend!.emails.send({
-          from: FROM_EMAIL,
-          to: recipient.email,
-          subject,
-          html,
-        });
+        await withEmailTimeout(
+          resend!.emails.send({
+            from: FROM_EMAIL,
+            to: recipient.email,
+            subject,
+            html,
+          }),
+          'sendCriticalEmail'
+        );
       });
 
       logger.info('Critical email sent successfully', {

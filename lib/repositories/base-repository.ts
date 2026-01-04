@@ -2,6 +2,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
+import { withFirestoreTimeout } from '@/lib/middleware/timeout';
 import type { DocumentData } from 'firebase-admin/firestore';
 
 export type RepositoryFilter = {
@@ -33,7 +34,10 @@ export abstract class BaseRepository<T extends { id: string }> {
 
   async findById(id: string): Promise<T | null> {
     try {
-      const doc = await this.getCollection().doc(id).get();
+      const doc = await withFirestoreTimeout(
+        this.getCollection().doc(id).get(),
+        `${this.repositoryName}.findById`
+      );
       if (doc.exists) {
         return this.toEntity(doc.id, doc.data()!);
       }
@@ -68,7 +72,10 @@ export abstract class BaseRepository<T extends { id: string }> {
         query = query.limit(limit);
       }
       
-      const snapshot = await query.get();
+      const snapshot = await withFirestoreTimeout(
+        query.get(),
+        `${this.repositoryName}.findAll`
+      );
       return snapshot.docs.map(doc => this.toEntity(doc.id, doc.data()));
     } catch (error) {
       logger.error(`Repository.findAll failed for ${this.repositoryName}`, error, {
@@ -87,11 +94,14 @@ export abstract class BaseRepository<T extends { id: string }> {
       const createdAtField = timestampFields?.createdAt || 'createdAt';
       const updatedAtField = timestampFields?.updatedAt || 'updatedAt';
       
-      const docRef = await this.getCollection().add({
-        ...cleanData,
-        [createdAtField]: new Date(),
-        [updatedAtField]: new Date(),
-      });
+      const docRef = await withFirestoreTimeout(
+        this.getCollection().add({
+          ...cleanData,
+          [createdAtField]: new Date(),
+          [updatedAtField]: new Date(),
+        }),
+        `${this.repositoryName}.create`
+      );
       
       return docRef.id;
     } catch (error) {
@@ -112,11 +122,14 @@ export abstract class BaseRepository<T extends { id: string }> {
       const createdAtField = timestampFields?.createdAt || 'createdAt';
       const updatedAtField = timestampFields?.updatedAt || 'updatedAt';
       
-      await this.getCollection().doc(id).set({
-        ...cleanData,
-        [createdAtField]: new Date(),
-        [updatedAtField]: new Date(),
-      });
+      await withFirestoreTimeout(
+        this.getCollection().doc(id).set({
+          ...cleanData,
+          [createdAtField]: new Date(),
+          [updatedAtField]: new Date(),
+        }),
+        `${this.repositoryName}.set`
+      );
     } catch (error) {
       logger.error(`Repository.set failed for ${this.repositoryName}`, error, {
         data: { id, data, collection: this.collectionName },
@@ -134,10 +147,13 @@ export abstract class BaseRepository<T extends { id: string }> {
       const cleanData = this.cleanData(data);
       const updatedAtField = timestampField || 'updatedAt';
       
-      await this.getCollection().doc(id).update({
-        ...cleanData,
-        [updatedAtField]: new Date(),
-      });
+      await withFirestoreTimeout(
+        this.getCollection().doc(id).update({
+          ...cleanData,
+          [updatedAtField]: new Date(),
+        }),
+        `${this.repositoryName}.update`
+      );
     } catch (error) {
       logger.error(`Repository.update failed for ${this.repositoryName}`, error, {
         data: { id, data, collection: this.collectionName },
@@ -148,7 +164,10 @@ export abstract class BaseRepository<T extends { id: string }> {
 
   async delete(id: string): Promise<void> {
     try {
-      await this.getCollection().doc(id).delete();
+      await withFirestoreTimeout(
+        this.getCollection().doc(id).delete(),
+        `${this.repositoryName}.delete`
+      );
     } catch (error) {
       logger.error(`Repository.delete failed for ${this.repositoryName}`, error, {
         data: { id, collection: this.collectionName },
@@ -172,7 +191,10 @@ export abstract class BaseRepository<T extends { id: string }> {
       });
     });
     
-    await batch.commit();
+    await withFirestoreTimeout(
+      batch.commit(),
+      `${this.repositoryName}.batchUpdate`
+    );
   }
 
   getDocumentRef(id: string): FirebaseFirestore.DocumentReference {

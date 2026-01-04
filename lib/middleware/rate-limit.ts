@@ -32,6 +32,8 @@ interface RateLimitConfig {
   maxRequests: number;
   /** Window duration in milliseconds */
   windowMs: number;
+  /** Fail strategy: 'fail-open' allows requests on error, 'fail-closed' denies them */
+  failStrategy?: 'fail-open' | 'fail-closed';
 }
 
 /**
@@ -77,6 +79,7 @@ export class RateLimitService {
   ): Promise<RateLimitResult> {
     const finalConfig: RateLimitConfig = {
       ...DEFAULT_CONFIG,
+      failStrategy: 'fail-open', // Default to fail-open for backward compatibility
       ...config,
     };
 
@@ -167,14 +170,22 @@ export class RateLimitService {
         count: newCount,
       };
     } catch (error) {
-      // On error, allow the request but log the error
-      // This ensures rate limiting doesn't break the application
       logger.error('Rate limit check failed', error, {
         context: SERVICE_NAME,
-        data: { userId, endpoint },
+        data: { userId, endpoint, failStrategy: finalConfig.failStrategy },
       });
 
-      // Fail open - allow the request
+      // Apply fail strategy
+      if (finalConfig.failStrategy === 'fail-closed') {
+        // Fail closed - deny the request
+        return {
+          allowed: false,
+          remaining: 0,
+          count: 0,
+        };
+      }
+
+      // Fail open - allow the request (default behavior)
       return {
         allowed: true,
         remaining: finalConfig.maxRequests - 1,
@@ -245,7 +256,7 @@ export class RateLimitService {
         data: { userId, endpoint },
       });
 
-      // Fail open
+      // Always fail open for status checks (non-blocking operation)
       return {
         allowed: true,
         remaining: finalConfig.maxRequests,

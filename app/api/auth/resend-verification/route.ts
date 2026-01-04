@@ -35,10 +35,11 @@ export async function POST(request: NextRequest) {
       return ApiResponse.error('User email not found', 400);
     }
 
-    // Check rate limit (3 requests per hour)
+    // Check rate limit (3 requests per hour) - fail-closed for security
     const rateLimitResult = await rateLimitService.checkRateLimit(
       userId,
-      '/api/auth/resend-verification'
+      '/api/auth/resend-verification',
+      { failStrategy: 'fail-closed' }
     );
 
     if (!rateLimitResult.allowed) {
@@ -77,16 +78,10 @@ export async function POST(request: NextRequest) {
     if (!isVerified && authResult.user.emailVerified === undefined) {
       const verifiedStatus = await EmailVerificationService.isEmailVerified(userId);
       if (verifiedStatus) {
-        return ApiResponse.success(
-          { message: 'Email is already verified' },
-          'Email already verified'
-        );
+        return ApiResponse.successMessage('Email is already verified');
       }
     } else if (isVerified) {
-      return ApiResponse.success(
-        { message: 'Email is already verified' },
-        'Email already verified'
-      );
+      return ApiResponse.successMessage('Email is already verified');
     }
 
     // Get user profile to get display name
@@ -109,10 +104,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Add rate limit headers to successful response
-    const response = ApiResponse.success(
-      { message: SUCCESS_MESSAGES.VERIFICATION_EMAIL_SENT },
-      'Verification email sent'
-    );
+    const response = ApiResponse.successMessage(SUCCESS_MESSAGES.VERIFICATION_EMAIL_SENT);
 
     if (rateLimitResult.remaining !== undefined) {
       response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());

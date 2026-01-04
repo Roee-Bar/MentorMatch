@@ -7,6 +7,8 @@
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { userService } from '@/lib/services/users/user-service';
+import { logger } from '@/lib/logger';
+import { withAuthTimeout } from '@/lib/middleware/timeout';
 import type { DecodedIdToken } from 'firebase-admin/auth';
 
 export interface AuthResult {
@@ -51,7 +53,10 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     if (isTestEnv) {
       // In test mode, verify custom token directly
       try {
-        decodedToken = await adminAuth.verifyIdToken(token) as DecodedIdToken;
+        decodedToken = await withAuthTimeout(
+          adminAuth.verifyIdToken(token) as Promise<DecodedIdToken>,
+          'verifyIdToken (test)'
+        );
         // #region agent log
         fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:48',message:'verifyIdToken success',data:{uid:decodedToken.uid},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
         // #endregion
@@ -63,28 +68,45 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       }
     } else {
       // In production, verify ID token with revocation check
-      decodedToken = await adminAuth.verifyIdToken(token, true) as DecodedIdToken;
+      decodedToken = await withAuthTimeout(
+        adminAuth.verifyIdToken(token, true) as Promise<DecodedIdToken>,
+        'verifyIdToken (production)'
+      );
     }
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)
     if (isTestEnv) {
-      console.log('[TEST AUTH] Verifying token for uid:', decodedToken.uid);
+      logger.debug('[TEST AUTH] Verifying token for uid', {
+        context: 'Auth',
+        data: { uid: decodedToken.uid }
+      });
     }
     
     if (isTestEnv) {
-      console.log('[TEST AUTH] Attempting to get user profile for uid:', decodedToken.uid);
+      logger.debug('[TEST AUTH] Attempting to get user profile for uid', {
+        context: 'Auth',
+        data: { uid: decodedToken.uid }
+      });
       // Direct check before using service
       try {
         const { testDb } = await import('@/lib/test-db/adapter');
         const userDoc = await testDb.collection('users').doc(decodedToken.uid).get();
-        console.log('[TEST AUTH] Direct DB check - doc exists:', userDoc.exists);
+        logger.debug('[TEST AUTH] Direct DB check - doc exists', {
+          context: 'Auth',
+          data: { uid: decodedToken.uid, exists: userDoc.exists }
+        });
         if (userDoc.exists) {
           const docData = userDoc.data();
-          console.log('[TEST AUTH] Direct DB check - doc data:', JSON.stringify(docData, null, 2));
-          console.log('[TEST AUTH] Direct DB check - doc id:', userDoc.id);
+          logger.debug('[TEST AUTH] Direct DB check - doc data', {
+            context: 'Auth',
+            data: { uid: decodedToken.uid, docData: JSON.stringify(docData, null, 2), docId: userDoc.id }
+          });
         }
       } catch (dbError: any) {
-        console.error('[TEST AUTH] Error in direct DB check:', dbError?.message || dbError);
+        logger.error('[TEST AUTH] Error in direct DB check', dbError, {
+          context: 'Auth',
+          data: { uid: decodedToken.uid }
+        });
       }
     }
     
@@ -93,7 +115,10 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     // #endregion
     let profile;
     try {
-      profile = await userService.getUserById(decodedToken.uid);
+      profile = await withAuthTimeout(
+        userService.getUserById(decodedToken.uid),
+        'getUserById'
+      );
       // #region agent log
       fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/auth.ts:79',message:'getUserById success',data:{profile:profile?{id:profile.id,email:profile.email,role:profile.role}:null},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'B'})}).catch(()=>{});
       // #endregion
@@ -105,28 +130,46 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     }
     
     if (isTestEnv) {
-      console.log('[TEST AUTH] userService.getUserById result:', profile ? { id: profile.id, email: profile.email, role: profile.role } : null);
+      logger.debug('[TEST AUTH] userService.getUserById result', {
+        context: 'Auth',
+        data: { profile: profile ? { id: profile.id, email: profile.email, role: profile.role } : null }
+      });
     }
     
     if (!profile) {
       // Log this case specifically as it's a common issue
       if (isTestEnv) {
-        console.error('[TEST AUTH] User profile not found for uid:', decodedToken.uid);
+        logger.error('[TEST AUTH] User profile not found for uid', new Error('User profile not found'), {
+          context: 'Auth',
+          data: { uid: decodedToken.uid }
+        });
         // Try repository directly
         try {
           const { userRepository } = await import('@/lib/repositories/user-repository');
           const repoResult = await userRepository.findById(decodedToken.uid);
-          console.error('[TEST AUTH] Repository.findById result:', repoResult ? { id: repoResult.id, email: repoResult.email } : null);
+          logger.error('[TEST AUTH] Repository.findById result', new Error('Repository check'), {
+            context: 'Auth',
+            data: { repoResult: repoResult ? { id: repoResult.id, email: repoResult.email } : null }
+          });
         } catch (repoError: any) {
-          console.error('[TEST AUTH] Repository error:', repoError?.message || repoError);
+          logger.error('[TEST AUTH] Repository error', repoError, {
+            context: 'Auth',
+            data: { uid: decodedToken.uid }
+          });
         }
       }
-      console.warn(`User profile not found for uid: ${decodedToken.uid}`);
+      logger.warn('User profile not found for uid', {
+        context: 'Auth',
+        data: { uid: decodedToken.uid }
+      });
       return { authenticated: false, user: null };
     }
     
     if (isTestEnv) {
-      console.log('[TEST AUTH] User profile found:', { uid: profile.id, email: profile.email, role: profile.role });
+      logger.debug('[TEST AUTH] User profile found', {
+        context: 'Auth',
+        data: { uid: profile.id, email: profile.email, role: profile.role }
+      });
     }
 
     // Check email verification status
@@ -151,9 +194,15 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     
     // Don't log expected errors (like invalid tokens) at error level
     if (errorCode === 'auth/id-token-expired' || errorCode === 'auth/argument-error') {
-      console.debug('Auth verification failed (expected):', errorCode, errorMessage);
+      logger.debug('Auth verification failed (expected)', {
+        context: 'Auth',
+        data: { code: errorCode, message: errorMessage }
+      });
     } else {
-      console.error('Auth verification error:', { code: errorCode, message: errorMessage, error });
+      logger.error('Auth verification error', error, {
+        context: 'Auth',
+        data: { code: errorCode, message: errorMessage }
+      });
     }
     
     return { authenticated: false, user: null };

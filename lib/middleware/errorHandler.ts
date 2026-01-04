@@ -5,33 +5,94 @@
  */
 
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
+import { getCorrelationId } from './correlation-id';
+import {
+  ApiError,
+  ValidationError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  InternalServerError,
+  TimeoutError,
+} from './errors';
 
 /**
  * Handle errors and return appropriate NextResponse
  */
 export function handleApiError(error: unknown): NextResponse {
-  // #region agent log
-  fetch('http://127.0.0.1:7243/ingest/b58b9ea6-ea87-472c-b297-772b0ab30cc5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/middleware/errorHandler.ts:13',message:'handleApiError called',data:{isError:error instanceof Error,message:error instanceof Error?error.message:'unknown',stack:error instanceof Error?error.stack?.substring(0,300):'none'},timestamp:Date.now(),sessionId:'debug-session',runId:'pre-fix',hypothesisId:'C'})}).catch(()=>{});
-  // #endregion
-  console.error('API Error:', error);
+  const correlationId = getCorrelationId();
+  
+  // Log error with full context
+  logger.error('API Error', error, {
+    context: 'ErrorHandler',
+    data: { correlationId }
+  });
 
-  if (error instanceof Error) {
-    return NextResponse.json(
+  // Handle custom error classes
+  if (error instanceof ApiError) {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const response = NextResponse.json(
       {
         success: false,
         error: error.message,
+        code: error.code,
+        ...(correlationId && { correlationId }),
+        ...(isDevelopment && error.details && { details: error.details }),
+      },
+      { status: error.statusCode }
+    );
+    
+    // Add correlation ID to header
+    if (correlationId) {
+      response.headers.set('X-Correlation-ID', correlationId);
+    }
+    
+    // Add retry-after header for rate limit errors
+    if (error instanceof RateLimitError && error.retryAfter) {
+      response.headers.set('Retry-After', error.retryAfter.toString());
+    }
+    
+    return response;
+  }
+
+  // Handle generic Error instances
+  if (error instanceof Error) {
+    const response = NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+        code: 'INTERNAL_ERROR',
+        ...(correlationId && { correlationId }),
       },
       { status: 500 }
     );
+    
+    if (correlationId) {
+      response.headers.set('X-Correlation-ID', correlationId);
+    }
+    
+    return response;
   }
 
-  return NextResponse.json(
+  // Handle unknown error types
+  const response = NextResponse.json(
     {
       success: false,
       error: 'An unexpected error occurred',
+      code: 'INTERNAL_ERROR',
+      ...(correlationId && { correlationId }),
     },
     { status: 500 }
   );
+  
+  if (correlationId) {
+    response.headers.set('X-Correlation-ID', correlationId);
+  }
+  
+  return response;
 }
 
 /**

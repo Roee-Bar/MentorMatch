@@ -3,6 +3,8 @@
  * Provides colored, timestamped, and contextualized logging
  */
 
+import { getCorrelationId } from './middleware/correlation-id';
+
 type LogLevel = 'info' | 'warn' | 'error' | 'debug' | 'success';
 
 interface LogOptions {
@@ -30,6 +32,12 @@ class Logger {
       parts.push(`[${this.getTimestamp()}]`);
     }
     
+    // Add correlation ID if available
+    const correlationId = getCorrelationId();
+    if (correlationId) {
+      parts.push(`[${correlationId.substring(0, 8)}]`);
+    }
+    
     // Add level
     const levelMap = {
       info: 'INFO',
@@ -51,24 +59,44 @@ class Logger {
     return parts.join(' ');
   }
 
+  private enrichData(options?: LogOptions): LogOptions | undefined {
+    if (!options) return undefined;
+    
+    const correlationId = getCorrelationId();
+    if (correlationId) {
+      return {
+        ...options,
+        data: {
+          ...options.data,
+          correlationId,
+        },
+      };
+    }
+    
+    return options;
+  }
+
   info(message: string, options?: LogOptions) {
-    const formatted = this.formatMessage('info', message, options);
+    const enrichedOptions = this.enrichData(options);
+    const formatted = this.formatMessage('info', message, enrichedOptions);
     console.log(formatted);
-    if (options?.data) {
-      console.log('  Data:', JSON.stringify(options.data, null, 2));
+    if (enrichedOptions?.data) {
+      console.log('  Data:', JSON.stringify(enrichedOptions.data, null, 2));
     }
   }
 
   warn(message: string, options?: LogOptions) {
-    const formatted = this.formatMessage('warn', message, options);
+    const enrichedOptions = this.enrichData(options);
+    const formatted = this.formatMessage('warn', message, enrichedOptions);
     console.warn(formatted);
-    if (options?.data) {
-      console.warn('  Data:', JSON.stringify(options.data, null, 2));
+    if (enrichedOptions?.data) {
+      console.warn('  Data:', JSON.stringify(enrichedOptions.data, null, 2));
     }
   }
 
   error(message: string, error?: Error | unknown, options?: LogOptions) {
-    const formatted = this.formatMessage('error', message, options);
+    const enrichedOptions = this.enrichData(options);
+    const formatted = this.formatMessage('error', message, enrichedOptions);
     console.error(formatted);
     
     if (error instanceof Error) {
@@ -81,26 +109,28 @@ class Logger {
       console.error('  Error Details:', JSON.stringify(error, null, 2));
     }
     
-    if (options?.data) {
-      console.error('  Additional Data:', JSON.stringify(options.data, null, 2));
+    if (enrichedOptions?.data) {
+      console.error('  Additional Data:', JSON.stringify(enrichedOptions.data, null, 2));
     }
   }
 
   debug(message: string, options?: LogOptions) {
     if (this.isDevelopment) {
-      const formatted = this.formatMessage('debug', message, options);
+      const enrichedOptions = this.enrichData(options);
+      const formatted = this.formatMessage('debug', message, enrichedOptions);
       console.debug(formatted);
-      if (options?.data) {
-        console.debug('  Data:', JSON.stringify(options.data, null, 2));
+      if (enrichedOptions?.data) {
+        console.debug('  Data:', JSON.stringify(enrichedOptions.data, null, 2));
       }
     }
   }
 
   success(message: string, options?: LogOptions) {
-    const formatted = this.formatMessage('success', message, options);
+    const enrichedOptions = this.enrichData(options);
+    const formatted = this.formatMessage('success', message, enrichedOptions);
     console.log(formatted);
-    if (options?.data) {
-      console.log('  Data:', JSON.stringify(options.data, null, 2));
+    if (enrichedOptions?.data) {
+      console.log('  Data:', JSON.stringify(enrichedOptions.data, null, 2));
     }
   }
 
