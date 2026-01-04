@@ -185,29 +185,33 @@ export const onAuthChange = (callback: (user: User | null) => void) => {
       }
     };
     
-    // Check immediately
-    let hasAuth = checkTestAuth();
+    // Check immediately and call callback
+    checkTestAuth();
     
-    // Set up polling to catch when token is set
-    // Use shorter interval for faster detection
+    // Set up polling to catch when token is set (more aggressive)
     const intervalId = setInterval(() => {
-      if (checkTestAuth()) {
-        hasAuth = true;
-      }
-    }, 100);
+      checkTestAuth();
+    }, 50); // Very short interval for fast detection
     
     // Also listen for custom events (when token is set programmatically)
     const tokenSetListener = () => {
-      if (checkTestAuth()) {
-        hasAuth = true;
-      }
+      checkTestAuth();
     };
     window.addEventListener('test-token-set', tokenSetListener);
+    
+    // Also listen for storage changes
+    const storageListener = (e: StorageEvent) => {
+      if (e.key === '__test_id_token__' || e.key === '__test_local_id__') {
+        checkTestAuth();
+      }
+    };
+    window.addEventListener('storage', storageListener);
     
     // Return unsubscribe function
     return () => {
       clearInterval(intervalId);
       window.removeEventListener('test-token-set', tokenSetListener);
+      window.removeEventListener('storage', storageListener);
     };
   }
   

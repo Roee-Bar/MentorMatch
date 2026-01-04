@@ -12,6 +12,7 @@ import { StudentPartnershipService } from '@/lib/services/partnerships/partnersh
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, partnershipResponseSchema } from '@/lib/middleware/validation';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import type { PartnershipIdParams } from '@/types/api';
 import type { StudentPartnershipRequest } from '@/types/database';
@@ -52,9 +53,8 @@ export const POST = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
       action
     );
 
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to respond to partnership request', 400);
-    }
+    const errorResponse = handleServiceResult(result, 'Failed to respond to partnership request');
+    if (errorResponse) return errorResponse;
 
     return ApiResponse.successMessage(
       action === 'accept' 

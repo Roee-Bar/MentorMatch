@@ -68,6 +68,7 @@ class TestDocumentReference implements DocumentReference {
       data: () => {
         if (!data) return undefined;
         // Remove the id field from data since it's already in the snapshot
+        // But keep all other fields including userId if present
         const { id: _, ...dataWithoutId } = data;
         return dataWithoutId as DocumentData;
       },

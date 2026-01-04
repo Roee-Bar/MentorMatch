@@ -13,6 +13,7 @@ import { NextRequest } from 'next/server';
 import { supervisorService } from '@/lib/services/supervisors/supervisor-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 
 export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
   // Get query parameters
@@ -30,9 +31,8 @@ export const GET = withAuth<Record<string, string>>(async (request: NextRequest,
   // Delegate filtering to service layer
   const result = await supervisorService.getFilteredSupervisors(filters);
 
-  if (!result.success) {
-    return ApiResponse.error(result.error || 'Failed to fetch supervisors');
-  }
+  const errorResponse = handleServiceResult(result, 'Failed to fetch supervisors');
+  if (errorResponse) return errorResponse;
 
   return ApiResponse.successWithCount(result.data || []);
 });

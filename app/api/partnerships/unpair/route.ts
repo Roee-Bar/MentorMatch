@@ -12,6 +12,7 @@ import { StudentPartnershipService } from '@/lib/services/partnerships/partnersh
 import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 
 export const POST = withAuth<Record<string, string>>(
@@ -38,9 +39,8 @@ export const POST = withAuth<Record<string, string>>(
     // Unpair students (includes application synchronization)
     const result = await StudentPartnershipService.unpairStudents(user.uid, student.partnerId);
 
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to unpair from partner', 400);
-    }
+    const errorResponse = handleServiceResult(result, 'Failed to unpair from partner');
+    if (errorResponse) return errorResponse;
 
     return ApiResponse.successMessage('Successfully unpaired from your partner');
   },

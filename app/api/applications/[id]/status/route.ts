@@ -12,6 +12,7 @@ import { ApplicationWorkflowService } from '@/lib/services/applications/applicat
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import type { ApplicationIdParams } from '@/types/api';
 import type { Application } from '@/types/database';
@@ -41,6 +42,8 @@ export const PATCH = withAuth<ApplicationIdParams, Application>(
       user.role as 'admin' | 'supervisor' | 'student' | undefined
     );
 
+    // Note: ApplicationWorkflowService returns { success, error } not ServiceResult
+    // So we handle it manually but consistently
     if (!result.success) {
       logger.error('Application status update failed', undefined, {
         context: 'API',

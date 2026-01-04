@@ -22,7 +22,9 @@ export const GET = withRoles<Record<string, string>>(['admin'], async (request: 
   return ApiResponse.successWithCount(applications);
 });
 
-export const POST = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
+// Only students can create applications
+export const POST = withAuth<Record<string, string>>(
+  async (request: NextRequest, context, user) => {
   // Validate request body
   const validation = await validateRequest(request, createApplicationSchema);
   if (!validation.valid || !validation.data) {
@@ -135,5 +137,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   });
 
   return ApiResponse.created({ applicationId }, 'Application created successfully');
-});
+  },
+  { allowedRoles: ['student'] }
+);
 

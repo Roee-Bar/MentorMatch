@@ -8,6 +8,7 @@ import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import { canViewStudentProfile } from '@/lib/middleware/authorization';
 import type { StudentIdParams } from '@/types/api';
@@ -58,12 +59,13 @@ export const PUT = withAuth<StudentIdParams>(
 
     const result = await studentService.updateStudent(params.id, validation.data);
 
-    if (!result.success) {
+    const errorResponse = handleServiceResult(result, 'Failed to update student');
+    if (errorResponse) {
       logger.error('Student database update failed', undefined, {
         context: 'API',
         data: { studentId: params.id, error: result.error }
       });
-      return ApiResponse.error(result.error || 'Failed to update student', 500);
+      return errorResponse;
     }
 
     return ApiResponse.successMessage('Student updated successfully');

@@ -21,23 +21,32 @@ async function _removeCoSupervisorFromProject(
   projectId: string,
   coSupervisorId: string
 ): Promise<void> {
-  await adminDb.runTransaction(async (transaction) => {
-    const projectRef = projectRepository.getDocumentRef(projectId);
-    const coSupervisorRef = supervisorRepository.getDocumentRef(coSupervisorId);
+  try {
+    await adminDb.runTransaction(async (transaction) => {
+      const projectRef = projectRepository.getDocumentRef(projectId);
+      const coSupervisorRef = supervisorRepository.getDocumentRef(coSupervisorId);
 
-    // Remove co-supervisor from project
-    transaction.update(projectRef, {
-      coSupervisorId: null,
-      coSupervisorName: null,
-      updatedAt: new Date()
-    });
+      // Remove co-supervisor from project
+      transaction.update(projectRef, {
+        coSupervisorId: null,
+        coSupervisorName: null,
+        updatedAt: new Date()
+      });
 
-    // Decrease co-supervisor capacity
-    transaction.update(coSupervisorRef, {
-      currentCapacity: FieldValue.increment(-1),
-      updatedAt: new Date()
+      // Decrease co-supervisor capacity
+      transaction.update(coSupervisorRef, {
+        currentCapacity: FieldValue.increment(-1),
+        updatedAt: new Date()
+      });
     });
-  });
+  } catch (error: unknown) {
+    logger.service.error(SERVICE_NAME, '_removeCoSupervisorFromProject - transaction failed', error, {
+      projectId,
+      coSupervisorId
+    });
+    // Re-throw to be caught by calling functions
+    throw error;
+  }
 }
 
 /**

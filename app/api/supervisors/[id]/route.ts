@@ -10,6 +10,7 @@ import { supervisorService } from '@/lib/services/supervisors/supervisor-service
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateBody, updateSupervisorSchema } from '@/lib/middleware/validation';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import type { SupervisorIdParams } from '@/types/api';
 
@@ -50,12 +51,13 @@ export const PUT = withAuth<SupervisorIdParams>(
 
     const result = await supervisorService.updateSupervisor(params.id, validation.data);
 
-    if (!result.success) {
+    const errorResponse = handleServiceResult(result, 'Failed to update supervisor');
+    if (errorResponse) {
       logger.error('Supervisor database update failed', undefined, {
         context: 'API',
         data: { supervisorId: params.id, error: result.error }
       });
-      return ApiResponse.error(result.error || 'Failed to update supervisor', 500);
+      return errorResponse;
     }
 
     return ApiResponse.successMessage('Supervisor updated successfully');

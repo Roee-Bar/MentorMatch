@@ -23,8 +23,8 @@ export async function seedStudent(overrides?: Partial<Student>): Promise<{ uid: 
   });
 
   // Create user document
+  // Note: Don't include userId field - the document ID is used as the id
   await adminDb.collection('users').doc(userRecord.uid).set({
-    userId: userRecord.uid,
     email: studentData.email,
     name: studentData.fullName,
     role: 'student',
@@ -60,8 +60,8 @@ export async function seedSupervisor(overrides?: Partial<Supervisor>): Promise<{
   });
 
   // Create user document
+  // Note: Don't include userId field - the document ID is used as the id
   await adminDb.collection('users').doc(userRecord.uid).set({
-    userId: userRecord.uid,
     email: supervisorData.email,
     name: supervisorData.fullName,
     role: 'supervisor',
@@ -97,8 +97,8 @@ export async function seedAdmin(overrides?: Partial<Admin>): Promise<{ uid: stri
   });
 
   // Create user document
+  // Note: Don't include userId field - the document ID is used as the id
   await adminDb.collection('users').doc(userRecord.uid).set({
-    userId: userRecord.uid,
     email: adminData.email,
     name: adminData.fullName,
     role: 'admin',

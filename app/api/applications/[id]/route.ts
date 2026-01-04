@@ -13,7 +13,9 @@ import { applicationService } from '@/lib/services/applications/application-serv
 import { canAccessApplication, canModifyApplication } from '@/lib/services/applications/application-auth';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateBody, updateApplicationSchema } from '@/lib/middleware/validation';
+import { validateAndExtract, handleValidationError } from '@/lib/middleware/validation-helpers';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
+import { updateApplicationSchema } from '@/lib/middleware/validation';
 import { adminDb } from '@/lib/firebase-admin';
 import { logger } from '@/lib/logger';
 import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
@@ -63,34 +65,36 @@ export const PUT = withAuth<ApplicationIdParams, Application>(
       return ApiResponse.error('Application can only be edited when in revision_requested status', 400);
     }
 
-    const body = await request.json();
-    const validation = validateBody(body, updateApplicationSchema);
+    try {
+      // Validate request body
+      const validatedData = await validateAndExtract(request, updateApplicationSchema);
 
-    if (!validation.valid || !validation.data) {
-      return ApiResponse.validationError(validation.error || 'Invalid application data');
+      // Prepare update data
+      const updateData = {
+        projectTitle: validatedData.projectTitle,
+        projectDescription: validatedData.projectDescription,
+        isOwnTopic: validatedData.isOwnTopic,
+        proposedTopicId: validatedData.proposedTopicId,
+        studentSkills: validatedData.studentSkills,
+        studentInterests: validatedData.studentInterests,
+        hasPartner: validatedData.hasPartner,
+        partnerName: validatedData.partnerName,
+        partnerEmail: validatedData.partnerEmail,
+      };
+
+      // Update the application
+      const result = await applicationService.updateApplication(params.id, updateData);
+
+      // Handle service result errors
+      const errorResponse = handleServiceResult(result, 'Failed to update application');
+      if (errorResponse) return errorResponse;
+      
+      return ApiResponse.success({ message: 'Application updated successfully' });
+    } catch (error) {
+      const validationResponse = handleValidationError(error);
+      if (validationResponse) return validationResponse;
+      throw error;
     }
-
-    // Prepare update data
-    const updateData = {
-      projectTitle: validation.data.projectTitle,
-      projectDescription: validation.data.projectDescription,
-      isOwnTopic: validation.data.isOwnTopic,
-      proposedTopicId: validation.data.proposedTopicId,
-      studentSkills: validation.data.studentSkills,
-      studentInterests: validation.data.studentInterests,
-      hasPartner: validation.data.hasPartner,
-      partnerName: validation.data.partnerName,
-      partnerEmail: validation.data.partnerEmail,
-    };
-
-    // Update the application
-    const result = await applicationService.updateApplication(params.id, updateData);
-
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to update application', 500);
-    }
-    
-    return ApiResponse.success({ message: 'Application updated successfully' });
   },
   { 
     resourceName: 'Application',
@@ -120,32 +124,42 @@ export const DELETE = withAuth<ApplicationIdParams, Application>(
         }
       });
       // Use transaction to ensure atomicity when updating supervisor capacity
-      await adminDb.runTransaction(async (transaction) => {
-        const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
-        const supervisorSnap = await transaction.get(supervisorRef);
+      try {
+        await adminDb.runTransaction(async (transaction) => {
+          const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
+          const supervisorSnap = await transaction.get(supervisorRef);
 
-        if (supervisorSnap.exists) {
-          const supervisorData = supervisorSnap.data();
-          const currentCapacity = supervisorData?.currentCapacity || 0;
-          const newCapacity = Math.max(0, currentCapacity - 1);
+          if (supervisorSnap.exists) {
+            const supervisorData = supervisorSnap.data();
+            const currentCapacity = supervisorData?.currentCapacity || 0;
+            const newCapacity = Math.max(0, currentCapacity - 1);
 
-          transaction.update(supervisorRef, {
-            currentCapacity: newCapacity,
-            updatedAt: new Date()
-          });
-        }
+            transaction.update(supervisorRef, {
+              currentCapacity: newCapacity,
+              updatedAt: new Date()
+            });
+          }
 
-        // Delete application
-        const applicationRef = applicationRepository.getDocumentRef(params.id);
-        transaction.delete(applicationRef);
-      });
+          // Delete application
+          const applicationRef = applicationRepository.getDocumentRef(params.id);
+          transaction.delete(applicationRef);
+        });
+      } catch (error) {
+        logger.error('Transaction failed while deleting approved application', error, {
+          context: 'API',
+          data: {
+            applicationId: params.id,
+            supervisorId: application.supervisorId
+          }
+        });
+        return ApiResponse.error('Failed to delete application', 500);
+      }
     } else {
       // No capacity change needed - delete normally
       const result = await applicationService.deleteApplication(params.id);
 
-      if (!result.success) {
-        return ApiResponse.error(result.error || 'Failed to delete application', 500);
-      }
+      const errorResponse = handleServiceResult(result, 'Failed to delete application');
+      if (errorResponse) return errorResponse;
     }
 
     return ApiResponse.success({ message: 'Application deleted successfully' });

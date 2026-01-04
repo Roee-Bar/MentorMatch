@@ -39,67 +39,7 @@ type SuccessHandler<TData, TResult> = (
 ) => NextResponse;
 
 /**
- * Handles the common pattern: validate request → call service → handle result
- * 
- * @param request - NextRequest object
- * @param schema - Zod schema for request body validation
- * @param serviceCall - Function that calls the service with validated data and user
- * @param errorMessage - Default error message if service call fails
- * @param successHandler - Optional function to customize success response
- * @returns NextResponse with success or error
- * 
- * @example
- * ```typescript
- * return withValidationAndServiceCall(
- *   request,
- *   supervisorPartnershipRequestSchema,
- *   (data, user) => SupervisorPartnershipWorkflowService.createRequest(
- *     user.uid,
- *     data.targetSupervisorId,
- *     data.projectId
- *   ),
- *   ERROR_MESSAGES.CREATE_PARTNERSHIP_REQUEST,
- *   (data, result) => ApiResponse.created(
- *     { requestId: result.data! },
- *     SUCCESS_MESSAGES.PARTNERSHIP_REQUEST_SENT
- *   )
- * );
- * ```
- */
-export async function withValidationAndServiceCall<TData, TResult>(
-  request: NextRequest,
-  schema: z.ZodSchema<TData>,
-  serviceCall: ServiceCallHandler<TData, TResult>,
-  errorMessage: string,
-  successHandler?: SuccessHandler<TData, TResult>
-): Promise<NextResponse> {
-  try {
-    // Validate request body
-    const data = await validateAndExtract(request, schema);
-
-    // Call service with validated data
-    const result = await serviceCall(data, {} as User); // User will be passed by wrapper
-
-    // Handle service result errors
-    const errorResponse = handleServiceResult(result, errorMessage);
-    if (errorResponse) return errorResponse;
-
-    // Handle success
-    if (successHandler) {
-      return successHandler(data, result);
-    }
-
-    // Default success response
-    return ApiResponse.successMessage('Operation completed successfully');
-  } catch (error) {
-    const validationResponse = handleValidationError(error);
-    if (validationResponse) return validationResponse;
-    throw error;
-  }
-}
-
-/**
- * Wrapper for withValidationAndServiceCall that includes user context
+ * Wrapper for validation and service call that includes user context
  * This is the main function to use in route handlers
  * 
  * @param request - NextRequest object

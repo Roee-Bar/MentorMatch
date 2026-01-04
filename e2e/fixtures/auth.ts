@@ -128,20 +128,33 @@ async function authenticateUser(
   
   // Wait for auth state to be recognized and verify token is set
   await page.waitForFunction(() => {
-    return sessionStorage.getItem('__test_id_token__') !== null;
+    return sessionStorage.getItem('__test_id_token__') !== null && 
+           sessionStorage.getItem('__test_local_id__') !== null;
   }, { timeout: 5000 });
   
+  // Trigger auth state change by dispatching event
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent('test-token-set'));
+  });
+  
   // Wait a bit more for auth state to propagate
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
   
   // Navigate to authenticated route based on role
   if (expectedRole) {
-    await page.goto(`/authenticated/${expectedRole}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    // Wait for page to load and auth to be processed
+    // Use load instead of networkidle to avoid hanging
+    await page.goto(`/authenticated/${expectedRole}`, { waitUntil: 'load', timeout: 30000 });
+    // Wait for auth check to complete
     await page.waitForTimeout(2000);
+    
+    // Verify we're on the right page
+    const currentUrl = page.url();
+    if (!currentUrl.includes(`/authenticated/${expectedRole}`)) {
+      console.warn(`[AUTH FIXTURE] Expected to be on /authenticated/${expectedRole}, but on ${currentUrl}`);
+    }
   } else {
     // Navigate to home and wait for redirect
-    await page.goto('/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto('/', { waitUntil: 'load', timeout: 30000 });
     await page.waitForTimeout(2000);
   }
 }

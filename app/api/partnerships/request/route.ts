@@ -14,7 +14,8 @@ import { validateRequest, partnershipRequestSchema } from '@/lib/middleware/vali
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
 
-export const POST = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
+export const POST = withAuth<Record<string, string>>(
+  async (request: NextRequest, context, user) => {
   // Validate request body
   const validation = await validateRequest(request, partnershipRequestSchema);
   if (!validation.valid) {
@@ -43,5 +44,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
   }
 
   return ApiResponse.created({ requestId: result.data }, 'Partnership request sent successfully');
-});
+  },
+  { allowedRoles: ['student'] }
+);
 

@@ -193,7 +193,7 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
     }
     
     try {
-      return await handler(req, context, user);
+      return await handler(request, context, user);
     } catch (error) {
       return handleApiError(error);
     }

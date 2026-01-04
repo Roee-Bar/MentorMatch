@@ -77,12 +77,13 @@ npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
 
 # E2E Testing
-npm run test:e2e     # Run e2e tests
-npm run test:e2e:ui  # Run tests with UI mode
-npm run test:e2e:debug # Run tests in debug mode
-npm run test:e2e:headed # Run tests in headed mode (see browser)
-npm run test:e2e:report # View test report
-npm run emulators:start # Start Firebase emulators
+npm run test         # Run e2e tests
+npm run test:e2e     # Alias for npm run test
+npm run test:ui      # Run tests with UI mode
+npm run test:debug   # Run tests in debug mode
+npm run test:headed  # Run tests in headed mode (see browser)
+npm run test:report  # View test report
+npm run test:verbose # Run tests with verbose output
 ```
 
 ## Project Structure
@@ -108,30 +109,39 @@ npm run emulators:start # Start Firebase emulators
 
 ## Testing
 
-MentorMatch uses Playwright for end-to-end testing with Firebase Emulator Suite for isolated test environments.
+MentorMatch uses Playwright for end-to-end testing with an in-memory test database.
 
 ### Running Tests Locally
 
-**Prerequisites:** Java Runtime Environment (JRE) is required for Firebase Emulators.
+**No emulators or Java required** - tests use an in-memory database.
 
-1. **Start Firebase Emulators (in a separate terminal):**
-   ```bash
-   npx firebase emulators:start --only auth,firestore
-   ```
+Run all tests with a single command:
+```bash
+npm run test
+```
 
-2. **Run tests (will automatically start Next.js dev server):**
-   ```bash
-   npm run test:e2e
-   ```
+Or use the alias:
+```bash
+npm run test:e2e
+```
 
-   Or start Next.js manually:
-   ```bash
-   # Terminal 1: Emulators (already running)
-   # Terminal 2: Next.js
-   npm run dev
-   # Terminal 3: Tests
-   npm run test:e2e
-   ```
+The test infrastructure automatically:
+- Uses an in-memory test database (no emulators needed)
+- Starts the Next.js dev server
+- Runs all E2E tests
+- Cleans up automatically
+
+### Available Test Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run test` | Run all E2E tests |
+| `npm run test:e2e` | Alias for `npm run test` |
+| `npm run test:ui` | Run tests with Playwright UI mode (interactive) |
+| `npm run test:debug` | Run tests in debug mode |
+| `npm run test:headed` | Run tests with visible browser |
+| `npm run test:report` | View the test report from last run |
+| `npm run test:verbose` | Run tests with verbose output |
 
 ### Test Structure
 
@@ -140,7 +150,7 @@ MentorMatch uses Playwright for end-to-end testing with Firebase Emulator Suite 
 - **Tests**: Test specifications organized by feature (`e2e/tests/`)
 - **Utils**: Test utilities and assertions (`e2e/utils/`)
 
-For detailed testing documentation, see [docs/TESTING.md](docs/TESTING.md) and [e2e/README.md](e2e/README.md).
+For detailed testing documentation, see [docs/RUNNING_TESTS_LOCALLY.md](docs/RUNNING_TESTS_LOCALLY.md) and [e2e/README.md](e2e/README.md).
 
 ## Deployment
 

@@ -49,37 +49,44 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     }
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)
-    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
     if (isTestEnv) {
       console.log('[TEST AUTH] Verifying token for uid:', decodedToken.uid);
     }
     
     if (isTestEnv) {
       console.log('[TEST AUTH] Attempting to get user profile for uid:', decodedToken.uid);
+      // Direct check before using service
+      try {
+        const { testDb } = await import('@/lib/test-db/adapter');
+        const userDoc = await testDb.collection('users').doc(decodedToken.uid).get();
+        console.log('[TEST AUTH] Direct DB check - doc exists:', userDoc.exists);
+        if (userDoc.exists) {
+          const docData = userDoc.data();
+          console.log('[TEST AUTH] Direct DB check - doc data:', JSON.stringify(docData, null, 2));
+          console.log('[TEST AUTH] Direct DB check - doc id:', userDoc.id);
+        }
+      } catch (dbError: any) {
+        console.error('[TEST AUTH] Error in direct DB check:', dbError?.message || dbError);
+      }
     }
     
     const profile = await userService.getUserById(decodedToken.uid);
+    
+    if (isTestEnv) {
+      console.log('[TEST AUTH] userService.getUserById result:', profile ? { id: profile.id, email: profile.email, role: profile.role } : null);
+    }
     
     if (!profile) {
       // Log this case specifically as it's a common issue
       if (isTestEnv) {
         console.error('[TEST AUTH] User profile not found for uid:', decodedToken.uid);
-        // Try to check if user exists in test DB directly
+        // Try repository directly
         try {
-          const { testDb } = await import('@/lib/test-db/adapter');
-          const userDoc = await testDb.collection('users').doc(decodedToken.uid).get();
-          console.error('[TEST AUTH] Direct DB check - doc exists:', userDoc.exists);
-          if (userDoc.exists) {
-            const docData = userDoc.data();
-            console.error('[TEST AUTH] Direct DB check - doc data:', JSON.stringify(docData, null, 2));
-            console.error('[TEST AUTH] Direct DB check - doc id:', userDoc.id);
-          } else {
-            // Check all users in collection
-            const allUsers = await testDb.collection('users').get();
-            console.error('[TEST AUTH] All users in DB:', allUsers.docs.map(d => ({ id: d.id, data: d.data() })));
-          }
-        } catch (dbError: any) {
-          console.error('[TEST AUTH] Error checking test DB:', dbError?.message || dbError);
+          const { userRepository } = await import('@/lib/repositories/user-repository');
+          const repoResult = await userRepository.findById(decodedToken.uid);
+          console.error('[TEST AUTH] Repository.findById result:', repoResult ? { id: repoResult.id, email: repoResult.email } : null);
+        } catch (repoError: any) {
+          console.error('[TEST AUTH] Repository error:', repoError?.message || repoError);
         }
       }
       console.warn(`User profile not found for uid: ${decodedToken.uid}`);

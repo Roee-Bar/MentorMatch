@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server';
 import { StudentPartnershipService } from '@/lib/services/partnerships/partnership-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import { logger } from '@/lib/logger';
 import type { PartnershipIdParams } from '@/types/api';
 import type { StudentPartnershipRequest } from '@/types/database';
@@ -33,9 +34,8 @@ export const DELETE = withAuth<PartnershipIdParams, StudentPartnershipRequest>(
 
     const result = await StudentPartnershipService.cancelPartnershipRequest(params.id, user.uid);
     
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to cancel partnership request', 400);
-    }
+    const errorResponse = handleServiceResult(result, 'Failed to cancel partnership request');
+    if (errorResponse) return errorResponse;
     
     return ApiResponse.successMessage('Partnership request cancelled successfully');
   },

@@ -26,6 +26,7 @@ That's it! The test infrastructure automatically:
 | Command | Description |
 |---------|-------------|
 | `npm run test` | Run all E2E tests |
+| `npm run test:e2e` | Alias for `npm run test` |
 | `npm run test:ui` | Run tests with Playwright UI mode (interactive) |
 | `npm run test:debug` | Run tests in debug mode |
 | `npm run test:headed` | Run tests with visible browser |

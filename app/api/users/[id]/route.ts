@@ -3,6 +3,7 @@ import { userService } from '@/lib/services/users/user-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 import { validateRequest, updateUserSchema } from '@/lib/middleware/validation';
+import { handleServiceResult } from '@/lib/middleware/service-result-handler';
 import type { UserIdParams } from '@/types/api';
 
 export const GET = withAuth<UserIdParams>(
@@ -24,9 +25,9 @@ export const PUT = withAuth<UserIdParams>(
     }
     
     const result = await userService.updateUser(params.id, validation.data);
-    if (!result.success) {
-      return ApiResponse.error(result.error || 'Failed to update user', 500);
-    }
+    
+    const errorResponse = handleServiceResult(result, 'Failed to update user');
+    if (errorResponse) return errorResponse;
     
     return ApiResponse.successMessage('User updated successfully');
   },
