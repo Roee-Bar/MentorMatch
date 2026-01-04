@@ -128,11 +128,15 @@ class TestQuery implements Query {
       this.limitValue
     );
 
-    const docs = results.map((data) => ({
-      id: data.id || data.id,
-      data: () => data,
-      exists: true,
-    }));
+    const docs = results.map((data) => {
+      // Extract id from data and return data without id (matching Firestore behavior)
+      const { id, ...dataWithoutId } = data;
+      return {
+        id: id || data.id,
+        data: () => dataWithoutId as DocumentData,
+        exists: true,
+      };
+    });
 
     return {
       docs,

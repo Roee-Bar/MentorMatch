@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       displayName,
-      emailVerified: true,
+      emailVerified: userData?.emailVerified ?? true,
     });
 
     const uid = userRecord.uid;

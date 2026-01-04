@@ -26,6 +26,15 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
       description: 'Test project description',
     });
 
+    // Verify project structure in database before API call
+    const projectDocBefore = await adminDb.collection('projects').doc(project.id).get();
+    expect(projectDocBefore.exists, `Project ${project.id} should exist in database`).toBeTruthy();
+    const projectDataBefore = projectDocBefore.data();
+    console.log('Project data before API call:', JSON.stringify(projectDataBefore, null, 2));
+    expect(projectDataBefore?.supervisorId, 
+      `Expected supervisorId to be ${authenticatedSupervisor.uid} but got ${projectDataBefore?.supervisorId}`
+    ).toBe(authenticatedSupervisor.uid);
+
     await dashboard.goto();
     await dashboard.navigateToProjects();
 
@@ -36,9 +45,11 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
     if (!listVisible) {
       // Verify project was created correctly in database first
       const projectDoc = await adminDb.collection('projects').doc(project.id).get();
-      expect(projectDoc.exists).toBeTruthy();
+      expect(projectDoc.exists, `Project ${project.id} should exist in database`).toBeTruthy();
       const projectData = projectDoc.data();
-      expect(projectData?.supervisorId).toBe(authenticatedSupervisor.uid);
+      expect(projectData?.supervisorId, 
+        `Expected supervisorId to be ${authenticatedSupervisor.uid} but got ${projectData?.supervisorId}`
+      ).toBe(authenticatedSupervisor.uid);
       
       // If UI doesn't exist, verify via API that project exists
       // Use supervisor-specific endpoint instead of query parameter
@@ -49,8 +60,11 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
         throw new Error(`API request failed: ${status} - ${errorText}`);
       }
       const data = await response.json();
-      expect(data).toHaveProperty('data');
-      expect(Array.isArray(data.data)).toBeTruthy();
+      expect(data, 'API response should have success property').toHaveProperty('success', true);
+      expect(data, 'API response should have data property').toHaveProperty('data');
+      expect(Array.isArray(data.data), 
+        `Expected data.data to be an array but got ${typeof data.data}`
+      ).toBeTruthy();
       
       // Debug: Log all project IDs returned
       const projectIds = data.data.map((p: any) => p.id);
@@ -70,19 +84,27 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
         );
       }
       
-      expect(projectExists).toBeTruthy();
+      expect(projectExists, 
+        `Project ${project.id} should exist in API response`
+      ).toBeTruthy();
       // Test passes if we can verify the project exists via API
       // Still try to change status via API
       const updateResponse = await authenticatedRequest(page, 'POST', `/api/projects/${project.id}/status-change`, {
         data: { status: 'completed' },
       });
-      expect(updateResponse.ok()).toBeTruthy();
+      if (!updateResponse.ok()) {
+        const status = updateResponse.status();
+        const errorText = await updateResponse.text().catch(() => 'Unable to read error response');
+        throw new Error(`Failed to update project status: ${status} - ${errorText}`);
+      }
       
       // Verify project status updated in database
       const updatedProjectDoc = await adminDb.collection('projects').doc(project.id).get();
-      expect(updatedProjectDoc.exists).toBeTruthy();
+      expect(updatedProjectDoc.exists, `Project ${project.id} should still exist after update`).toBeTruthy();
       const updatedProjectData = updatedProjectDoc.data();
-      expect(updatedProjectData?.status).toBe('completed');
+      expect(updatedProjectData?.status, 
+        `Expected project status to be 'completed' but got '${updatedProjectData?.status}'`
+      ).toBe('completed');
       
       await cleanupProject(project.id);
       await cleanupUser(student.id);
@@ -103,10 +125,14 @@ test.describe('Supervisor - Projects @supervisor @smoke', () => {
 
     // Verify project status updated in database
     const projectDoc = await adminDb.collection('projects').doc(project.id).get();
-    expect(projectDoc.exists).toBeTruthy();
+    expect(projectDoc.exists, `Project ${project.id} should exist after status change`).toBeTruthy();
     const projectData = projectDoc.data();
-    expect(projectData?.status).toBe('completed');
-    expect(projectData?.completedAt).toBeDefined();
+    expect(projectData?.status, 
+      `Expected project status to be 'completed' but got '${projectData?.status}'`
+    ).toBe('completed');
+    expect(projectData?.completedAt, 
+      `Expected completedAt to be defined but got ${projectData?.completedAt}`
+    ).toBeDefined();
 
     // Cleanup
     await cleanupProject(project.id);

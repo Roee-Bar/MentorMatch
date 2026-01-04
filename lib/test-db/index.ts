@@ -91,12 +91,24 @@ export class InMemoryDatabase {
     const collection = this.getCollection(collectionName);
     let results = Array.from(collection.values());
 
+    // Debug logging for query operations
+    if (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true') {
+      console.log(`[TEST-DB] Query ${collectionName}: ${results.length} documents before filter`);
+    }
+
     // Apply filters
     if (filters && filters.length > 0) {
       results = results.filter(doc => {
         return filters.every(filter => {
           const fieldValue = this.getNestedValue(doc, filter.field);
-          return this.matchesFilter(fieldValue, filter.operator, filter.value);
+          const matches = this.matchesFilter(fieldValue, filter.operator, filter.value);
+          
+          // Debug logging for filter operations
+          if (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true') {
+            console.log(`[TEST-DB] Filter ${filter.field} ${filter.operator} ${filter.value}: ${matches} (value: ${JSON.stringify(fieldValue)})`);
+          }
+          
+          return matches;
         });
       });
     }
@@ -117,6 +129,11 @@ export class InMemoryDatabase {
     // Apply limit
     if (limit !== undefined) {
       results = results.slice(0, limit);
+    }
+
+    // Debug logging for final results
+    if (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true') {
+      console.log(`[TEST-DB] Query ${collectionName}: ${results.length} documents after filter`);
     }
 
     return results;

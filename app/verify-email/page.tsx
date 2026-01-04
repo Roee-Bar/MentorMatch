@@ -67,6 +67,11 @@ function VerifyEmailForm() {
             const response = await fetch(`/api/auth/test-verify-email?mode=${mode}&oobCode=${encodeURIComponent(oobCode)}`);
             const data = await response.json();
 
+            // Debug logging in test mode
+            if (isTestEnv) {
+              console.log('Test verify email response:', { ok: response.ok, status: response.status, data });
+            }
+
             if (!response.ok) {
               // Handle error responses
               const errorMessage = data.error || 'Verification failed';
@@ -104,12 +109,20 @@ function VerifyEmailForm() {
               });
               startCountdown(3);
             } else {
+              // Log what we got if it's not the expected format
+              if (isTestEnv) {
+                console.error('Unexpected response format:', data);
+              }
               setResult({
                 state: 'error',
                 message: ERROR_MESSAGES.VERIFICATION_FAILED,
               });
             }
           } catch (error: any) {
+            // Log network errors in test mode
+            if (isTestEnv) {
+              console.error('Test verify email error:', error);
+            }
             setResult({
               state: 'error',
               message: error.message || ERROR_MESSAGES.VERIFICATION_NETWORK_ERROR,
@@ -268,7 +281,11 @@ function VerifyEmailForm() {
   }, [searchParams]);
 
   const startCountdown = (seconds: number) => {
-    setCountdown(seconds);
+    const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
+    // In test mode, use longer countdown to ensure messages are visible
+    const countdownSeconds = isTestEnv ? Math.max(seconds, 5) : seconds;
+    setCountdown(countdownSeconds);
+    
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {

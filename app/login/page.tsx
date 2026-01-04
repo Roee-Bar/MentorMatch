@@ -21,7 +21,7 @@ function LoginForm() {
   useEffect(() => {
     const registered = searchParams.get('registered')
     if (registered === 'true') {
-      setMessage('Registration successful! Please login with your credentials.')
+      setMessage('Registration successful! A verification email has been sent to your email address. Please check your inbox and verify your email before logging in.')
       // Clean up URL
       router.replace('/login', { scroll: false })
     }

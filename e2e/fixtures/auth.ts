@@ -20,6 +20,12 @@ type AuthFixtures = {
     password: string;
     student: Student;
   };
+  authenticatedUnverifiedStudent: {
+    uid: string;
+    email: string;
+    password: string;
+    student: Student;
+  };
   authenticatedSupervisor: {
     uid: string;
     email: string;
@@ -218,6 +224,70 @@ export const test = base.extend<AuthFixtures>({
     await page.waitForTimeout(1000);
     
     // Navigate to student dashboard
+    await page.goto('/authenticated/student', { waitUntil: 'load', timeout: 30000 });
+    await page.waitForTimeout(2000);
+    
+    await use({ uid, email, password, student });
+    
+    // Cleanup is handled by test-seed endpoint or can be added if needed
+  },
+
+  authenticatedUnverifiedStudent: async ({ page }, use) => {
+    // Seed student in test process (for reference)
+    const { student } = await seedStudent();
+    const email = student.email;
+    const password = 'TestPassword123!';
+    
+    // Create user in server process via API so API calls will work
+    const seedResponse = await page.request.post('http://localhost:3000/api/auth/test-seed', {
+      data: {
+        role: 'student',
+        userData: {
+          ...student,
+          email,
+          password,
+          fullName: student.fullName,
+          department: student.department,
+          emailVerified: false, // Unverified user
+        },
+      },
+    });
+    
+    const seedData = await seedResponse.json();
+    if (!seedData.success) {
+      throw new Error(`Failed to seed unverified student in server process: ${seedData.error}`);
+    }
+    
+    const { uid, token } = seedData.data;
+    
+    // Authenticate using the token from server process
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await page.evaluate(({ token, uid, email }) => {
+      sessionStorage.setItem('__test_id_token__', token);
+      sessionStorage.setItem('__test_local_id__', uid);
+      sessionStorage.setItem('__test_email__', email);
+      
+      const projectId = 'demo-test';
+      const authKey = `firebase:authUser:${projectId}:[DEFAULT]`;
+      const authState = {
+        uid,
+        email,
+        emailVerified: false, // Unverified user
+        stsTokenManager: {
+          apiKey: 'test-api-key',
+          refreshToken: token,
+          accessToken: token,
+          expirationTime: Date.now() + 3600000,
+        },
+      };
+      window.localStorage.setItem(authKey, JSON.stringify(authState));
+      window.dispatchEvent(new CustomEvent('test-token-set'));
+    }, { token, uid, email });
+    
+    // Wait for auth state to propagate
+    await page.waitForTimeout(1000);
+    
+    // Navigate to student dashboard (will show verification banner)
     await page.goto('/authenticated/student', { waitUntil: 'load', timeout: 30000 });
     await page.waitForTimeout(2000);
     

@@ -39,7 +39,7 @@ const StatusMessage: React.FC<StatusMessageProps> = ({
     <div 
       className={`${messageBoxStyles[type]} ${className}`}
       role={role}
-      data-testid={testId}
+      data-testid="status-message"
       aria-live={type === 'error' ? 'assertive' : 'polite'}
     >
       <div className="flex items-center justify-center gap-2">

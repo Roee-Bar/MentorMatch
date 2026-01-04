@@ -7,7 +7,7 @@
  * Only available in test mode.
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
@@ -28,7 +28,12 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (mode !== 'verifyEmail' || !oobCode) {
-      return ApiResponse.error('Invalid verification parameters', 400);
+      // Return error with email field for frontend compatibility
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid verification parameters',
+        email: undefined 
+      }, { status: 400 });
     }
 
     // In test mode, verification codes are in format: test-verification-code-{uid}-{timestamp}
@@ -37,14 +42,29 @@ export async function GET(request: NextRequest) {
     if (!oobCode.startsWith('test-verification-code-')) {
       // Check if it's a test expired code
       if (oobCode.includes('expired') || oobCode === 'invalid-expired-code') {
-        return ApiResponse.error('Verification link has expired', 400);
+        // Return error with email field for frontend compatibility
+        return NextResponse.json({ 
+          success: false, 
+          error: 'Verification link has expired',
+          email: undefined 
+        }, { status: 400 });
       }
-      return ApiResponse.error('Invalid verification code format', 400);
+      // Return error with email field for frontend compatibility
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid verification code format',
+        email: undefined 
+      }, { status: 400 });
     }
 
     const codeParts = oobCode.replace('test-verification-code-', '').split('-');
     if (codeParts.length < 2) {
-      return ApiResponse.error('Invalid verification code format', 400);
+      // Return error with email field for frontend compatibility
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invalid verification code format',
+        email: undefined 
+      }, { status: 400 });
     }
 
     // Extract UID (everything except the last part which is timestamp)
@@ -54,16 +74,34 @@ export async function GET(request: NextRequest) {
     // Check if code is expired (1 hour = 3600000ms)
     const codeAge = Date.now() - timestamp;
     if (codeAge > 3600000) {
-      return ApiResponse.error('Verification link has expired', 400);
+      // Return error with email field for frontend compatibility
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Verification link has expired',
+        email: undefined 
+      }, { status: 400 });
     }
 
     // Get user by UID
     let userRecord;
     try {
       userRecord = await adminAuth.getUser(uid);
+      logger.info('Found user for verification', {
+        context: 'TestVerifyEmail',
+        data: { uid, email: userRecord.email, emailVerified: userRecord.emailVerified },
+      });
     } catch (error: any) {
+      logger.error('User lookup failed', error, {
+        context: 'TestVerifyEmail',
+        data: { uid, oobCode },
+      });
       if (error.message?.includes('not found')) {
-        return ApiResponse.error('User not found', 404);
+        // Return error with email field for frontend compatibility
+        return NextResponse.json({ 
+          success: false, 
+          error: `User not found for UID: ${uid}`,
+          email: undefined 
+        }, { status: 404 });
       }
       throw error;
     }
@@ -98,7 +136,12 @@ export async function GET(request: NextRequest) {
     logger.error('Error verifying email in test mode', error, {
       context: 'TestVerifyEmail',
     });
-    return ApiResponse.error(error.message || 'Failed to verify email', 500);
+    // Return error with email field for frontend compatibility
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message || 'Failed to verify email',
+      email: undefined 
+    }, { status: 500 });
   }
 }
 

@@ -84,17 +84,9 @@ export default function RegisterPage() {
         setMessage('Registration successful! Redirecting to login...')
         setLoading(false) // Clear loading state before redirect
         
-        // Pass success message via URL query parameter
-        // In test mode, use window.location for more reliable redirect
-        if (isTestEnv) {
-          // Use window.location for immediate redirect in test mode
-          // This is more reliable than router.replace in test environment
-          window.location.href = '/login?registered=true'
-        } else {
-          setTimeout(() => {
-            router.replace('/login?registered=true')
-          }, 2000)
-        }
+        // Use router.push for better Playwright compatibility
+        // This works in both test and production environments
+        router.push('/login?registered=true')
         return // Exit early to prevent further execution
       } else {
         // Handle case where response doesn't have success property
