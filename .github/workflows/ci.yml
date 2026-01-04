@@ -154,6 +154,30 @@ jobs:
         run: npm run test:e2e
         env:
           CI: true
+        continue-on-error: false
+
+      - name: Debug Server Issues on Failure
+        if: failure()
+        run: |
+          echo "::group::Next.js Server Process Info"
+          ps aux | grep -E "next|node.*dev" | head -20 || echo "No Next.js processes found"
+          echo "::endgroup::"
+          
+          echo "::group::Port Status"
+          lsof -i :3000 || echo "Port 3000 is not in use"
+          echo "::endgroup::"
+          
+          echo "::group::Network Connections"
+          netstat -tuln | grep -E ":3000|:9099|:8081" || echo "No relevant network connections found"
+          echo "::endgroup::"
+          
+          echo "::group::Firebase Emulator Status"
+          curl -s http://localhost:4000 || echo "Firebase emulator UI not accessible"
+          echo "::endgroup::"
+          
+          echo "::group::Health Check Test"
+          curl -v http://localhost:3000/api/health 2>&1 || echo "Health check failed"
+          echo "::endgroup::"
 
       - name: Stop Firebase Emulators
         if: always()

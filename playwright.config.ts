@@ -77,13 +77,14 @@ export default defineConfig({
   // Configure web server to start Next.js dev server
   // Note: Firebase Emulators require Java to be installed
   // Start emulators manually with: npx firebase emulators:start --only auth,firestore
+  // The health check endpoint (/api/health) is used to verify server readiness
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3000/api/health',
     reuseExistingServer: !process.env.CI,
     timeout: process.env.CI ? 180000 : 120000, // Longer timeout in CI for first build
-    stdout: process.env.CI ? 'ignore' : 'pipe', // Suppress Next.js output in CI
-    stderr: process.env.CI ? 'ignore' : 'pipe', // Suppress Next.js errors in CI (errors will still show in test failures)
+    stdout: process.env.CI ? 'pipe' : 'pipe', // Show Next.js output in CI for debugging
+    stderr: process.env.CI ? 'pipe' : 'pipe', // Show Next.js errors in CI for debugging
     // Use environment variables from the workflow, with fallbacks
     env: {
       E2E_TEST: process.env.E2E_TEST || 'true',
