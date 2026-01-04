@@ -6,6 +6,7 @@
 
 import type {
   SupervisorFilterParams,
+  StudentFilterParams,
   RegistrationData,
   Supervisor,
   Application,
@@ -208,8 +209,19 @@ export const apiClient = {
   // Student Partnerships API
   // ========================================
   
-  getAvailablePartners: (token: string) => {
-    return apiFetch('/students/available-partners', { token });
+  getAvailablePartners: (token: string, params?: StudentFilterParams) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.append('search', params.search);
+    if (params?.department) query.append('department', params.department);
+    if (params?.skills) query.append('skills', params.skills);
+    if (params?.interests) query.append('interests', params.interests);
+    
+    const queryString = query.toString();
+    const endpoint = queryString 
+      ? `/students/available-partners?${queryString}`
+      : '/students/available-partners';
+    
+    return apiFetch(endpoint, { token });
   },
 
   createPartnershipRequest: (data: { targetStudentId: string }, token: string) => {

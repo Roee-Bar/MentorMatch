@@ -368,6 +368,14 @@ export interface SupervisorFilterParams {
   interests?: string;
 }
 
+// Student filter parameters for API calls
+export interface StudentFilterParams {
+  search?: string;
+  department?: string;
+  skills?: string;
+  interests?: string;
+}
+
 // Application submission data
 export interface ApplicationSubmitData {
   supervisorId: string;

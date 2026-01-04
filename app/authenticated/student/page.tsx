@@ -329,12 +329,20 @@ export default function StudentAuthenticated() {
             <SectionHeader
               title="Available Students"
               action={
-                <button
-                  onClick={() => setShowAllStudents(!showAllStudents)}
-                  className={linkAction}
-                >
-                  {showAllStudents ? 'Show Less' : 'View All'} →
-                </button>
+                <div className="flex gap-4 items-center">
+                  <button
+                    onClick={() => setShowAllStudents(!showAllStudents)}
+                    className={linkAction}
+                  >
+                    {showAllStudents ? 'Show Less' : 'View All'} →
+                  </button>
+                  <button
+                    onClick={() => router.push(ROUTES.AUTHENTICATED.STUDENT_STUDENTS)}
+                    className={btnPrimary}
+                  >
+                    Browse All Students
+                  </button>
+                </div>
               }
             />
             
