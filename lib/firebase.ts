@@ -26,7 +26,11 @@ if (missingEnvVars.length > 0) {
 
 // In test mode, force 'demo-test' to match admin SDK configuration
 // This ensures both client and admin SDK use the same project ID for token verification
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+// Check both server-side and client-side environment variables
+// NEXT_PUBLIC_E2E_TEST is set by Playwright webServer config for client-side access
+const isTestEnv = typeof window !== 'undefined' 
+  ? (process.env.NEXT_PUBLIC_E2E_TEST === 'true' || process.env.NEXT_PUBLIC_NODE_ENV === 'test')
+  : (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true');
 const projectId = isTestEnv 
   ? 'demo-test'  // Force demo-test in test mode to match admin SDK
   : (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'test-project');
@@ -51,7 +55,13 @@ export const db = getFirestore(app)
 export const storage = getStorage(app)
 
 // Connect to Firebase Emulators if running in test environment (client-side only)
-if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true' || process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST)) {
+// Check for test mode using NEXT_PUBLIC_* variables which are available in the browser
+const isClientTestEnv = typeof window !== 'undefined' && (
+  process.env.NEXT_PUBLIC_E2E_TEST === 'true' || 
+  process.env.NEXT_PUBLIC_NODE_ENV === 'test' ||
+  process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST
+);
+if (isClientTestEnv) {
   const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
   const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
 
