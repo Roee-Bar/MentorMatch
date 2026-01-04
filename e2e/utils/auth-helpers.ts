@@ -107,3 +107,32 @@ export async function ensureAuthenticated(
   }
 }
 
+/**
+ * Get Firebase ID token from the authenticated user in the browser context
+ * This is needed for making authenticated API requests in tests
+ */
+export async function getAuthToken(page: Page): Promise<string | null> {
+  try {
+    const token = await page.evaluate(async () => {
+      const firebase = (window as any).firebase;
+      if (firebase?.auth) {
+        const auth = firebase.auth();
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          try {
+            return await currentUser.getIdToken();
+          } catch (error) {
+            console.error('Error getting ID token:', error);
+            return null;
+          }
+        }
+      }
+      return null;
+    });
+    return token;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
+}
+

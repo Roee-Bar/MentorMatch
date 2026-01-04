@@ -6,6 +6,7 @@ import { test, expect } from '../../fixtures/auth';
 import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
 import { seedStudent, seedSupervisor, seedProject, cleanupProject, cleanupUser } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
+import { getAuthToken } from '../../utils/auth-helpers';
 
 test.describe('Supervisor - Projects', () => {
   test('should change project status to completed', async ({ page, authenticatedSupervisor }) => {
@@ -34,17 +35,27 @@ test.describe('Supervisor - Projects', () => {
     
     if (!listVisible) {
       // If UI doesn't exist, verify via API that project exists
-      const response = await page.request.get(`/api/projects?supervisorId=${authenticatedSupervisor.uid}`);
+      const token = await getAuthToken(page);
+      expect(token).toBeTruthy();
+      const response = await page.request.get(`/api/projects?supervisorId=${authenticatedSupervisor.uid}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
       expect(response.ok()).toBeTruthy();
       const data = await response.json();
-      expect(Array.isArray(data)).toBeTruthy();
-      const projectExists = data.some((p: any) => p.id === project.id);
+      expect(data).toHaveProperty('data');
+      expect(Array.isArray(data.data)).toBeTruthy();
+      const projectExists = data.data.some((p: any) => p.id === project.id);
       expect(projectExists).toBeTruthy();
       // Test passes if we can verify the project exists via API
       // Still try to change status via API
-      const updateResponse = await page.request.put(`/api/projects/${project.id}`, {
+      const updateResponse = await page.request.post(`/api/projects/${project.id}/status-change`, {
         data: { status: 'completed' },
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
       });
       expect(updateResponse.ok()).toBeTruthy();
       

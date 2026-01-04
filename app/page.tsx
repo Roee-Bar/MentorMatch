@@ -13,28 +13,43 @@ export default function Home() {
   useEffect(() => {
     const unsubscribe = onAuthChange(async (user) => {
       if (user) {
-        const token = await user.getIdToken()
-        const profile = await getUserProfile(user.uid, token)
-        if (profile.success) {
-          // Redirect authenticated users directly to their role-specific page
-          const role = profile.data?.role
-          switch (role) {
-            case 'student':
-              router.replace('/authenticated/student')
-              break
-            case 'supervisor':
-              router.replace('/authenticated/supervisor')
-              break
-            case 'admin':
-              router.replace('/authenticated/admin')
-              break
-            default:
+        try {
+          const token = await user.getIdToken()
+          const profile = await getUserProfile(user.uid, token)
+          if (profile.success && profile.data?.role) {
+            // Redirect authenticated users directly to their role-specific page
+            const role = profile.data.role
+            switch (role) {
+              case 'student':
+                router.replace('/authenticated/student')
+                return
+              case 'supervisor':
+                router.replace('/authenticated/supervisor')
+                return
+              case 'admin':
+                router.replace('/authenticated/admin')
+                return
+              default:
+                setLoading(false)
+                return
+            }
+          } else {
+            // If profile fetch failed, try to redirect anyway after a delay
+            // This handles cases where API might be slow
+            setTimeout(() => {
               setLoading(false)
+            }, 2000)
           }
-          return
+        } catch (error) {
+          // If there's an error, still try to redirect after a delay
+          console.error('Error getting user profile:', error)
+          setTimeout(() => {
+            setLoading(false)
+          }, 2000)
         }
+      } else {
+        setLoading(false)
       }
-      setLoading(false)
     })
     return () => unsubscribe()
   }, [router])

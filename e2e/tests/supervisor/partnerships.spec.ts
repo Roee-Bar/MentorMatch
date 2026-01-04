@@ -7,6 +7,7 @@ import { SupervisorDashboard } from '../../pages/SupervisorDashboard';
 import { seedSupervisor, seedProject, seedSupervisorPartnershipRequest, cleanupUser, cleanupProject, cleanupSupervisorPartnershipRequest } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
 import type { Supervisor, Project } from '@/types/database';
+import { getAuthToken } from '../../utils/auth-helpers';
 
 test.describe('Supervisor - Partnership Requests', () => {
   test('should create partnership request', async ({ page, authenticatedSupervisor }) => {
@@ -31,6 +32,10 @@ test.describe('Supervisor - Partnership Requests', () => {
 
     await dashboard.goto();
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Create partnership request via API (since UI may not exist)
     // This tests the repository pattern indirectly
     const response = await page.request.post('/api/supervisor-partnerships/request', {
@@ -40,6 +45,7 @@ test.describe('Supervisor - Partnership Requests', () => {
       },
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -109,6 +115,10 @@ test.describe('Supervisor - Partnership Requests', () => {
 
     await dashboard.goto();
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Accept partnership request via API
     const response = await page.request.post(`/api/supervisor-partnerships/${request.id}/respond`, {
       data: {
@@ -116,6 +126,7 @@ test.describe('Supervisor - Partnership Requests', () => {
       },
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -183,6 +194,10 @@ test.describe('Supervisor - Partnership Requests', () => {
 
     await dashboard.goto();
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Reject partnership request via API
     const response = await page.request.post(`/api/supervisor-partnerships/${request.id}/respond`, {
       data: {
@@ -190,6 +205,7 @@ test.describe('Supervisor - Partnership Requests', () => {
       },
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -251,10 +267,15 @@ test.describe('Supervisor - Partnership Requests', () => {
 
     await dashboard.goto();
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Cancel partnership request via API
     const response = await page.request.delete(`/api/supervisor-partnerships/${request.id}`, {
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -329,15 +350,25 @@ test.describe('Supervisor - Partnership Requests', () => {
 
     await dashboard.goto();
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Accept both requests concurrently (tests transaction atomicity)
     const [response1, response2] = await Promise.all([
       page.request.post(`/api/supervisor-partnerships/${request1.id}/respond`, {
         data: { action: 'accept' },
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
       }),
       page.request.post(`/api/supervisor-partnerships/${request2.id}/respond`, {
         data: { action: 'accept' },
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
       }),
     ]);
 

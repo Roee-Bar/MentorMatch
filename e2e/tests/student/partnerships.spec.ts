@@ -6,6 +6,7 @@ import { test, expect } from '../../fixtures/auth';
 import { StudentDashboard } from '../../pages/StudentDashboard';
 import { seedStudent, seedMultipleStudentsWithPartnerships } from '../../fixtures/db-helpers';
 import { adminDb } from '@/lib/firebase-admin';
+import { getAuthToken } from '../../utils/auth-helpers';
 
 test.describe('Student - Partnerships', () => {
   test('should display partnership status', async ({ page, authenticatedStudent }) => {
@@ -170,9 +171,18 @@ test.describe('Student - Partnerships', () => {
     // Test repository queries with no results
     // This tests edge cases for repository findAll() methods
 
+    // Get auth token for API request
+    const token = await getAuthToken(page);
+    expect(token).toBeTruthy();
+
     // Get partnership requests when none exist
     const requestsResponse = await page.request.get(
-      `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`
+      `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
     );
     expect(requestsResponse.ok()).toBeTruthy();
     const requestsData = await requestsResponse.json();
@@ -180,7 +190,12 @@ test.describe('Student - Partnerships', () => {
 
     // Get available partners when none exist (or all are filtered out)
     const partnersResponse = await page.request.get(
-      `/api/students/${authenticatedStudent.uid}/available-partners`
+      `/api/students/available-partners`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
     );
     expect(partnersResponse.ok()).toBeTruthy();
     const partnersData = await partnersResponse.json();
