@@ -58,9 +58,13 @@ async function authenticateUser(
       // If we have a custom token, use it to authenticate via browser context
       if (authToken) {
         // Get Firebase config from environment
+        // In test mode, force 'demo-test' to match admin SDK configuration
+        const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
         const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key';
         const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099';
-        const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-test';
+        const projectId = isTestEnv 
+          ? 'demo-test'  // Force demo-test in test mode to match admin SDK
+          : (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-test');
         const isEmulator = authEmulatorHost && !authEmulatorHost.includes('undefined');
 
         // Inject script to authenticate using Firebase SDK before page loads

@@ -25,6 +25,11 @@ async function globalSetup() {
     process.env.FIREBASE_ADMIN_PROJECT_ID = 'demo-test';
   }
   
+  // Force client SDK to use demo-test in test mode
+  // This ensures both client and admin SDK use the same project ID
+  process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'demo-test';
+  process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'demo-test.appspot.com';
+  
   // Prevent Firebase Admin SDK from using Application Default Credentials
   // This is important when running tests with emulators
   process.env.GCLOUD_PROJECT = process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test';
