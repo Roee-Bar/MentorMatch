@@ -33,7 +33,7 @@ e2e/
 │       └── dashboard.spec.ts
 └── utils/            # Test utilities
     ├── firebase-helpers.ts  # Firebase emulator utilities
-    ├── test-helpers.ts      # General test helpers
+    ├── retry-helpers.ts     # Retry utilities with exponential backoff
     └── assertions.ts        # Custom assertions
 ```
 
@@ -107,13 +107,24 @@ import { resetEmulatorState, clearFirestoreData } from '../../utils/firebase-hel
 await resetEmulatorState(); // Clear all emulator data
 ```
 
-### Test Helpers (`utils/test-helpers.ts`)
+### Wait Strategies (`utils/wait-strategies.ts`)
 
 ```typescript
-import { waitForPageLoad, fillFieldWithRetry } from '../../utils/test-helpers';
+import { waitForPageLoad, waitForURL, waitForStable } from '../../utils/wait-strategies';
 
 await waitForPageLoad(page);
-await fillFieldWithRetry(page, '#email', 'test@example.com');
+await waitForURL(page, '/dashboard');
+await waitForStable(locator);
+```
+
+### Retry Helpers (`utils/retry-helpers.ts`)
+
+```typescript
+import { retryOperation } from '../../utils/retry-helpers';
+
+await retryOperation(async () => {
+  await page.click('#submit-button');
+}, 3, 1000);
 ```
 
 ### Assertions (`utils/assertions.ts`)

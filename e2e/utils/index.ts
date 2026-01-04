@@ -8,8 +8,8 @@
 // Assertions
 export * from './assertions';
 
-// Test Helpers
-export * from './test-helpers';
+// Retry Helpers
+export * from './retry-helpers';
 
 // Firebase Helpers
 export * from './firebase-helpers';

@@ -5,7 +5,7 @@
  */
 
 import { Page } from '@playwright/test';
-import { retryOperation } from './test-helpers';
+import { retryOperation } from './retry-helpers';
 
 /**
  * Fill password fields (handles ambiguity between password and confirmPassword)
