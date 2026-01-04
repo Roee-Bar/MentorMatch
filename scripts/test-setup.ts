@@ -35,16 +35,31 @@ async function areEmulatorsRunning(): Promise<boolean> {
   }
   
   // Check if it's actually the emulator UI
-  return new Promise((resolve) => {
-    const req = http.get('http://localhost:4000', (res) => {
-      resolve(res.statusCode === 200 || res.statusCode === 302);
-    });
-    req.on('error', () => resolve(false));
-    req.setTimeout(2000, () => {
-      req.destroy();
-      resolve(false);
-    });
-  });
+  // Try both localhost and 127.0.0.1, and check multiple endpoints
+  const hosts = ['http://localhost:4000', 'http://127.0.0.1:4000'];
+  const endpoints = ['', '/auth', '/firestore'];
+  
+  for (const host of hosts) {
+    for (const endpoint of endpoints) {
+      const url = `${host}${endpoint}`;
+      const isReady = await new Promise<boolean>((resolve) => {
+        const req = http.get(url, (res) => {
+          resolve(res.statusCode === 200 || res.statusCode === 302 || res.statusCode === 404);
+        });
+        req.on('error', () => resolve(false));
+        req.setTimeout(3000, () => {
+          req.destroy();
+          resolve(false);
+        });
+      });
+      
+      if (isReady) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
 }
 
 /**
