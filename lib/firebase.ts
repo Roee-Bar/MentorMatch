@@ -31,10 +31,17 @@ if (missingEnvVars.length > 0) {
 const isTestEnv = typeof window !== 'undefined' 
   ? (process.env.NEXT_PUBLIC_E2E_TEST === 'true' || process.env.NEXT_PUBLIC_NODE_ENV === 'test')
   : (process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true');
-const projectId = isTestEnv 
-  ? 'demo-test'  // Force demo-test in test mode to match admin SDK
+
+// Check if we're on localhost (common in test/dev) - if so, use demo-test for emulator compatibility
+const isLocalhostEnv = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Use demo-test if in test mode OR if on localhost (to catch test scenarios where env vars aren't embedded)
+const shouldUseDemoTest = isTestEnv || isLocalhostEnv;
+const projectId = shouldUseDemoTest
+  ? 'demo-test'  // Force demo-test in test/localhost mode to match admin SDK
   : (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'test-project');
-const storageBucket = isTestEnv
+const storageBucket = shouldUseDemoTest
   ? 'demo-test.appspot.com'  // Match project ID
   : (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'test-project.appspot.com');
 
@@ -74,11 +81,12 @@ if (typeof window !== 'undefined') {
   const isDemoTestProject = projectId === 'demo-test';
   
   // Determine if we should use emulators
-  // Use emulators if: explicit hosts set, test mode detected, OR (localhost AND demo-test project)
+  // Use emulators if: explicit hosts set, test mode detected, OR localhost (aggressive detection for tests)
+  // This ensures we connect to emulators even if env vars aren't embedded in the bundle
   const shouldUseEmulators = authEmulatorHost || 
                              firestoreEmulatorHost || 
                              isTestMode || 
-                             (isLocalhost && isDemoTestProject);
+                             isLocalhost; // Always try emulators on localhost
   
   const defaultAuthHost = 'localhost:9099';
   const defaultFirestoreHost = 'localhost:8081';
