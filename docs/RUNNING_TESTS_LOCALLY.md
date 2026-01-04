@@ -26,6 +26,8 @@ The E2E tests use Playwright and require Firebase emulators to be running. The t
 1. **Java not found** → See Step 0 below (add Java to PATH)
 2. **Ports already in use** → Emulators may already be running - verify with `curl http://localhost:4000`
 3. **Emulators not detected** → The setup script may not detect already-running emulators - verify manually
+4. **Next.js server not ready** → Start the dev server manually before running tests to avoid authentication timeouts
+5. **Authentication timeouts** → Ensure both emulators AND Next.js server are running and ready before tests
 
 **Quick Verification Commands:**
 
@@ -37,6 +39,9 @@ java -version
 curl http://localhost:4000 && echo "✓ Emulator UI running"
 curl http://localhost:9099 && echo "✓ Auth Emulator running"
 curl http://localhost:8081 && echo "✓ Firestore Emulator running"
+
+# Check if Next.js server is running (CRITICAL for avoiding timeouts)
+curl http://localhost:3000/api/health && echo "✓ Next.js server running" || echo "✗ Next.js server NOT running - start it manually!"
 ```
 
 If all checks pass, you can proceed directly to running tests (Step 2).
@@ -151,16 +156,59 @@ If all three commands return successfully, the emulators are ready for testing.
 
 **Important:** Keep this terminal window open and running. The emulators must remain active while running tests.
 
+### Step 1b: Start Next.js Dev Server (RECOMMENDED - Prevents Timeout Issues)
+
+**CRITICAL:** To avoid authentication timeout errors and connection issues, start the Next.js dev server manually before running tests. While Playwright can start it automatically, starting it manually ensures it's fully ready before tests begin.
+
+**Open a second terminal window** (keep the emulators running in Terminal 1) and navigate to the project directory:
+
+```bash
+cd /path/to/MentorMatch
+npm run dev
+```
+
+**What to expect:**
+- The server will start compiling
+- Wait for the message: `✓ Ready in X.Xs` or `Ready on http://localhost:3000`
+- The server will be available at: http://localhost:3000
+
+**Wait time:**
+- **Wait at least 10-15 seconds** after seeing "Ready" before running tests
+- The server needs time to fully initialize and connect to Firebase emulators
+
+**Verify the server is ready:**
+Before running tests, verify the server is fully operational:
+
+```bash
+# Check if the server responds (should return a response)
+curl http://localhost:3000/api/health
+
+# Check if the main page loads (should return HTML)
+curl http://localhost:3000 | head -5
+```
+
+**Expected responses:**
+- Health endpoint: Should return a response (may be JSON or HTML)
+- Main page: HTML content starting with `<!DOCTYPE html>` or similar
+
+**Why this is important:**
+- Prevents "Authentication not complete within 20000ms" errors
+- Ensures the server is connected to Firebase emulators before tests run
+- Reduces flaky test failures due to timing issues
+- Allows you to see server logs if tests fail
+
+**Important:** Keep this terminal window open and running. The dev server must remain active while running tests.
+
 ### Step 2: Run the Tests
 
-Open a **new terminal window** (keep the emulators running in the first terminal) and navigate to the project directory:
+Open a **new terminal window** (keep the emulators running in Terminal 1 and the dev server running in Terminal 2) and navigate to the project directory:
 
 ```bash
 cd /path/to/MentorMatch
 npm run test:e2e
 ```
 
-**Note:** Playwright is configured to automatically start the Next.js dev server, but if you encounter connection errors, you may need to start it manually (see Troubleshooting section below).
+**Note:** While Playwright is configured to automatically start the Next.js dev server, **starting it manually (Step 1b) is strongly recommended** to avoid authentication timeout errors and ensure reliable test execution.
 
 ## Available Test Commands
 
@@ -272,36 +320,62 @@ _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' npx firebase emulators:start --
 $env:_JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions'; npx firebase emulators:start --only auth,firestore
 ```
 
-### Next.js Server Not Starting Automatically
+### Next.js Server Not Starting Automatically / Authentication Timeouts
 
-**Problem:** Tests fail with `ERR_CONNECTION_REFUSED` or `Timeout 15000ms exceeded` when trying to connect to `http://localhost:3000`
+**Problem:** Tests fail with authentication timeout errors or connection issues:
+- `Authentication not complete within 20000ms`
+- `ERR_CONNECTION_REFUSED` or `Timeout 15000ms exceeded` when trying to connect to `http://localhost:3000`
+- Multiple tests failing with authentication errors
 
 **Symptoms:**
-- All tests fail with connection/timeout errors
+- Tests fail with "Authentication failed after 3 attempts" errors
 - `page.goto: Timeout 15000ms exceeded` errors
 - `net::ERR_CONNECTION_REFUSED` errors
+- Tests that require authentication consistently fail
+
+**Root Cause:**
+The Next.js dev server may not be ready when Playwright tries to start tests automatically, or it may not have fully connected to Firebase emulators. This causes authentication flows to timeout.
 
 **Solution:**
+
 1. **Check if the server is running:**
    ```bash
    curl http://localhost:3000/api/health
    ```
 
-2. **If the server is not running, start it manually:**
-   - Open a **third terminal window**
+2. **If the server is not running, start it manually (RECOMMENDED):**
+   - Open a **separate terminal window** (Terminal 2)
    - Navigate to the project directory
    - Run: `npm run dev`
-   - Wait for the server to start (you should see "Ready" message)
-   - Then run tests: `npm run test:e2e`
+   - **Wait for the "Ready" message** (usually takes 10-30 seconds)
+   - **Wait an additional 10-15 seconds** after "Ready" to ensure full initialization
+   - Verify it's accessible: `curl http://localhost:3000/api/health`
+   - Then run tests in another terminal: `npm run test:e2e`
 
-3. **Verify the server is accessible:**
+3. **Verify the server is fully ready:**
    ```bash
    # Should return a response
    curl http://localhost:3000/api/health
+   
+   # Should return HTML
+   curl http://localhost:3000 | head -5
    ```
 
+4. **If tests still fail with authentication timeouts:**
+   - Ensure Firebase emulators are running (Step 1a)
+   - Restart the Next.js dev server: Stop it (Ctrl+C) and start again (`npm run dev`)
+   - Wait longer after "Ready" message (30+ seconds)
+   - Check server logs for connection errors to Firebase emulators
+   - Verify emulator ports match your configuration (Auth: 9099, Firestore: 8081)
+
 **Why this happens:**
-Playwright's `webServer` configuration should automatically start the Next.js dev server, but it may fail silently or timeout. Starting the server manually ensures it's running before tests execute.
+- Playwright's `webServer` configuration may start the server, but it might not be fully ready when tests begin
+- The server needs time to connect to Firebase emulators
+- Cold starts can take longer than expected
+- Starting the server manually ensures it's ready before tests execute
+
+**Best Practice:**
+Always start the Next.js dev server manually (Step 1b) before running tests to avoid these issues entirely.
 
 ### Emulators Not Starting
 
@@ -418,13 +492,14 @@ The test configuration is in `playwright.config.ts`. Key settings:
 
 ## Best Practices
 
-1. **Start emulators first:** Always start Firebase emulators before running tests
-2. **Wait and verify:** Wait 10-15 seconds after starting emulators and verify they're ready using the curl commands in Step 1 before running tests
-3. **Keep emulators running:** Start emulators once and keep them running while developing/running tests multiple times
-4. **Start dev server manually if needed:** If Playwright fails to start the Next.js server automatically, start it manually in a separate terminal
-5. **Use UI mode for debugging:** Use `npm run test:e2e:ui` when debugging test failures
-6. **Run specific tests:** When working on a feature, run only relevant tests to save time
-7. **Check test reports:** After test runs, check the HTML report for detailed failure information
+1. **Start emulators first:** Always start Firebase emulators before running tests (Step 1a)
+2. **Start Next.js server manually:** Always start the dev server manually (Step 1b) before running tests to avoid authentication timeouts
+3. **Wait and verify:** Wait 10-15 seconds after starting each service and verify they're ready using the curl commands before running tests
+4. **Keep services running:** Start emulators and dev server once and keep them running while developing/running tests multiple times
+5. **Verify readiness:** Use the verification commands in Steps 1a and 1b to ensure all services are ready before running tests
+6. **Use UI mode for debugging:** Use `npm run test:e2e:ui` when debugging test failures
+7. **Run specific tests:** When working on a feature, run only relevant tests to save time
+8. **Check test reports:** After test runs, check the HTML report for detailed failure information
 
 ## Viewing Test Results
 
@@ -463,26 +538,42 @@ During testing, the following setup was verified to work successfully:
    - **Issue:** `npm run test:setup` tried to start new emulators even though they were already running
    - **Solution:** The script should detect running emulators, but if ports are in use, verify manually with curl commands
    - **Workaround:** If emulators are already running and accessible, skip `npm run test:setup` and proceed directly to running tests
+   - **Issue:** Authentication timeout errors ("Authentication not complete within 20000ms")
+   - **Solution:** Start Next.js dev server manually before running tests (Step 1b) and wait for it to be fully ready
+   - **Prevention:** Always verify both emulators AND Next.js server are running before executing tests
 
 **Recommended Workflow:**
 
 1. Check if emulators are already running (Step 1)
 2. If not running, ensure Java is in PATH (Step 0) and start emulators (Step 1a)
 3. Verify emulators are ready (verification commands in Step 1a)
-4. Run tests (Step 2)
+4. **Start Next.js dev server manually (Step 1b)** - This prevents authentication timeout errors
+5. Verify Next.js server is ready (verification commands in Step 1b)
+6. Run tests (Step 2)
 
 ## Complete Workflow Example
 
 Here's a complete example using three terminal windows:
 
-**Terminal 1:** Follow Step 0 and Step 1 to set up Java PATH and start Firebase emulators. Keep this terminal open.
+**Terminal 1:** Follow Step 0 and Step 1a to set up Java PATH and start Firebase emulators. Keep this terminal open.
+```bash
+cd /path/to/MentorMatch
+# Ensure Java is in PATH (Step 0)
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"  # Apple Silicon Mac
+# Start emulators (Step 1a)
+npm run test:setup
+# Wait for "✓ Firebase emulators are running!" message
+# Keep this terminal open
+```
 
-**Terminal 2:** (Optional) If Playwright fails to start the Next.js server automatically, start it manually:
+**Terminal 2:** Start Next.js dev server manually (Step 1b) - **RECOMMENDED to prevent timeout issues:**
 ```bash
 cd /path/to/MentorMatch
 npm run dev
+# Wait for "Ready" message, then wait additional 10-15 seconds
+# Verify: curl http://localhost:3000/api/health
+# Keep this terminal open
 ```
-Keep this terminal open.
 
 **Terminal 3:** Follow Step 2 to run tests:
 ```bash
@@ -494,3 +585,5 @@ After tests complete, view the report:
 ```bash
 npm run test:e2e:report
 ```
+
+**Note:** Starting the Next.js server manually (Terminal 2) is strongly recommended to avoid authentication timeout errors. While Playwright can start it automatically, manual startup ensures it's fully ready before tests begin.

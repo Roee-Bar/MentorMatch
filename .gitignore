@@ -46,6 +46,7 @@ docs/testing/
 /playwright-report/
 /playwright/.cache/
 test-results.json
+test-results.xml
 *.webm
 *.png
 *.jpg
