@@ -45,9 +45,15 @@ const storageBucket = shouldUseDemoTest
   ? 'demo-test.appspot.com'  // Match project ID
   : (process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'test-project.appspot.com');
 
+// When using emulators, authDomain should be set to localhost or the emulator host
+// This prevents Firebase from trying to connect to production auth endpoints
+const authDomain = shouldUseDemoTest || isLocalhostEnv
+  ? 'localhost'  // Use localhost when emulators are expected
+  : (process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'test.firebaseapp.com');
+
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'test.firebaseapp.com',
+  authDomain,
   projectId,
   storageBucket,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
@@ -91,20 +97,27 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 // Connect to emulators IMMEDIATELY after initialization (before any operations)
+// CRITICAL: This must happen synchronously before any auth operations
 if (shouldConnectToEmulators && typeof window !== 'undefined') {
   const defaultAuthHost = 'localhost:9099';
   const defaultFirestoreHost = 'localhost:8081';
 
-  // Connect to Auth Emulator
+  // Connect to Auth Emulator - use explicit localhost if on localhost
   const authHost = authEmulatorHost || defaultAuthHost;
   if (authHost && !authHost.includes('undefined') && authHost.trim() !== '') {
     try {
+      // CRITICAL: connectAuthEmulator must be called before any auth operations
+      // The second parameter should be the full URL including protocol
       connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true });
-      console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authHost}`);
+      console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authHost}`, '| Project:', projectId);
     } catch (error) {
       const errorMessage = (error as Error)?.message || '';
-      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-        console.warn('[Firebase] Failed to connect to Auth Emulator:', error);
+      if (errorMessage.includes('already been initialized') || errorMessage.includes('already connected')) {
+        // Already connected, that's fine
+        console.log('[Firebase] Auth Emulator already connected');
+      } else {
+        console.error('[Firebase] ❌ Failed to connect to Auth Emulator:', error);
+        // Don't throw - allow app to continue, but log the error
       }
     }
   }
@@ -115,14 +128,21 @@ if (shouldConnectToEmulators && typeof window !== 'undefined') {
     try {
       const [host, port] = firestoreHost.split(':');
       connectFirestoreEmulator(db, host, parseInt(port || '8080'));
-      console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`);
+      console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`, '| Project:', projectId);
     } catch (error) {
       const errorMessage = (error as Error)?.message || '';
-      if (!errorMessage.includes('already been initialized') && !errorMessage.includes('already connected')) {
-        console.warn('[Firebase] Failed to connect to Firestore Emulator:', error);
+      if (errorMessage.includes('already been initialized') || errorMessage.includes('already connected')) {
+        // Already connected, that's fine
+        console.log('[Firebase] Firestore Emulator already connected');
+      } else {
+        console.error('[Firebase] ❌ Failed to connect to Firestore Emulator:', error);
+        // Don't throw - allow app to continue, but log the error
       }
     }
   }
+} else if (typeof window !== 'undefined') {
+  // Log why we're not connecting (for debugging)
+  console.log('[Firebase] Not connecting to emulators. shouldConnectToEmulators:', shouldConnectToEmulators, '| Project:', projectId, '| Hostname:', window.location.hostname);
 }
 
 // Export services
