@@ -70,8 +70,27 @@ export class AdminDashboard extends BasePage {
   }
 
   async overrideSupervisorCapacity(supervisorId: string, newCapacity: number, reason: string): Promise<void> {
-    // Find the supervisor row
+    // Wait for page to be fully loaded
+    await this.waitForPageReady();
+    
+    // Wait for supervisor capacity section to be visible
+    const capacitySection = this.page.locator('[data-testid="supervisor-capacity-section"]');
+    await capacitySection.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
+      // If section not found by test ID, try to find any table
+      const anyTable = this.page.locator('table').last();
+      await anyTable.waitFor({ state: 'visible', timeout: 10000 });
+    });
+    
+    // Scroll to capacity section to ensure it's visible
+    await capacitySection.scrollIntoViewIfNeeded().catch(() => {
+      // Fallback: scroll to bottom
+      this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    });
+    await this.page.waitForTimeout(500);
+    
+    // Find the supervisor row - scroll into view if needed
     const supervisorRow = this.page.locator(`[data-testid="supervisor-row-${supervisorId}"]`);
+    await supervisorRow.scrollIntoViewIfNeeded();
     await expect(supervisorRow).toBeVisible({ timeout: 10000 });
 
     // Click the "Edit Capacity" button

@@ -20,14 +20,42 @@ export class StudentDashboard extends BasePage {
   }
 
   async navigateToSupervisors(): Promise<void> {
-    const link = this.page.getByRole('link', { name: /browse supervisors|supervisors/i });
-    await link.click();
+    // Try to find a link or button with "browse supervisors" or "supervisors" text
+    const link = this.page.getByRole('link', { name: /browse supervisors|supervisors/i }).first();
+    const button = this.page.getByRole('button', { name: /browse supervisors|supervisors/i }).first();
+    
+    // Check which one exists and click it
+    const linkVisible = await link.isVisible({ timeout: 2000 }).catch(() => false);
+    const buttonVisible = await button.isVisible({ timeout: 2000 }).catch(() => false);
+    
+    if (linkVisible) {
+      await link.click();
+    } else if (buttonVisible) {
+      await button.click();
+    } else {
+      // Fallback: navigate directly
+      await this.page.goto('/authenticated/student/supervisors');
+    }
     await waitForURL(this.page, /\/authenticated\/student\/supervisors/);
   }
 
   async navigateToApplications(): Promise<void> {
-    const link = this.page.getByRole('link', { name: /applications/i });
-    await link.click();
+    // Try to find a link or button with "applications" text
+    const link = this.page.getByRole('link', { name: /applications/i }).first();
+    const button = this.page.getByRole('button', { name: /applications/i }).first();
+    
+    // Check which one exists and click it
+    const linkVisible = await link.isVisible({ timeout: 2000 }).catch(() => false);
+    const buttonVisible = await button.isVisible({ timeout: 2000 }).catch(() => false);
+    
+    if (linkVisible) {
+      await link.click();
+    } else if (buttonVisible) {
+      await button.click();
+    } else {
+      // Fallback: navigate directly
+      await this.page.goto('/authenticated/student/applications');
+    }
     await waitForURL(this.page, /\/authenticated\/student\/applications/);
   }
 

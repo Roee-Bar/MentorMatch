@@ -37,7 +37,7 @@ export default function StudentsTable({
   }
 
   return (
-    <Table.Container>
+    <Table.Container data-testid="students-table">
       <Table.Header>
         <tr>
           <Table.HeaderCell className={STUDENTS_TABLE_WIDTHS.name}>

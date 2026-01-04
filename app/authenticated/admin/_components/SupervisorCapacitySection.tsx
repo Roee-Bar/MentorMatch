@@ -41,7 +41,7 @@ export default function SupervisorCapacitySection({
   }
 
   return (
-    <div className="mb-8">
+    <div className="mb-8" data-testid="supervisor-capacity-section">
       <SectionHeader 
         title="Supervisor Capacity Management"
         action={

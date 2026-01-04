@@ -42,7 +42,7 @@ export default function SupervisorsTable({
     : SUPERVISORS_TABLE_WIDTHS.withoutAvailableSlots;
 
   return (
-    <Table.Container>
+    <Table.Container data-testid="supervisors-table">
       <Table.Header>
         <tr>
           <Table.HeaderCell className={widths.name}>

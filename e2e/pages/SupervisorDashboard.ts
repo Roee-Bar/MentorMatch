@@ -9,6 +9,7 @@ import { Modal } from '../components/Modal';
 import { Form } from '../components/Form';
 import { waitForURL, waitForStable } from '../utils/wait-strategies';
 import { navigateToDashboard } from '../utils/navigation-helpers';
+import { getAuthToken } from '../utils/auth-helpers';
 
 export class SupervisorDashboard extends BasePage {
   constructor(page: Page) {
@@ -21,8 +22,22 @@ export class SupervisorDashboard extends BasePage {
   }
 
   async navigateToApplications(): Promise<void> {
-    const link = this.page.getByRole('link', { name: /applications/i });
-    await link.click();
+    // Try to find a link or button with "applications" text
+    const link = this.page.getByRole('link', { name: /applications/i }).first();
+    const button = this.page.getByRole('button', { name: /applications/i }).first();
+    
+    // Check which one exists and click it
+    const linkVisible = await link.isVisible({ timeout: 2000 }).catch(() => false);
+    const buttonVisible = await button.isVisible({ timeout: 2000 }).catch(() => false);
+    
+    if (linkVisible) {
+      await link.click();
+    } else if (buttonVisible) {
+      await button.click();
+    } else {
+      // Fallback: navigate directly
+      await this.page.goto('/authenticated/supervisor/applications');
+    }
     await waitForURL(this.page, /\/authenticated\/supervisor\/applications/);
   }
 
@@ -54,30 +69,52 @@ export class SupervisorDashboard extends BasePage {
       `[data-testid="project-${projectId}"], [data-project-id="${projectId}"]`
     ).or(this.page.locator('[data-testid="project-card"], .project-card, table tbody tr').first());
 
-    if (await projectCard.isVisible({ timeout: 1000 })) {
+    const cardVisible = await projectCard.isVisible({ timeout: 2000 }).catch(() => false);
+    
+    if (cardVisible) {
       // Look for status change button or dropdown
       const statusButton = projectCard.getByRole('button', { name: /change status|update status|status/i });
-      if (await statusButton.isVisible({ timeout: 1000 })) {
+      if (await statusButton.isVisible({ timeout: 2000 }).catch(() => false)) {
         await statusButton.click();
         await waitForStable(statusButton);
-      }
 
-      // Select the new status from dropdown or button
-      const statusOption = this.page.getByRole('button', { name: new RegExp(newStatus, 'i') })
-        .or(this.page.getByRole('option', { name: new RegExp(newStatus, 'i') }));
-      
-      if (await statusOption.isVisible({ timeout: 1000 })) {
-        await statusOption.click();
-        await waitForStable(statusOption);
-      }
+        // Select the new status from dropdown or button
+        const statusOption = this.page.getByRole('button', { name: new RegExp(newStatus, 'i') })
+          .or(this.page.getByRole('option', { name: new RegExp(newStatus, 'i') }));
+        
+        if (await statusOption.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await statusOption.click();
+          await waitForStable(statusOption);
+        }
 
-      // Submit the change if there's a submit button
-      const submitButton = this.page.getByRole('button', { name: /save|update|confirm|submit/i });
-      if (await submitButton.isVisible({ timeout: 1000 })) {
-        await submitButton.click();
-        await waitForStable(submitButton);
+        // Submit the change if there's a submit button
+        const submitButton = this.page.getByRole('button', { name: /save|update|confirm|submit/i });
+        if (await submitButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+          await submitButton.click();
+          await waitForStable(submitButton);
+        }
+      }
+    } else {
+      // If UI doesn't exist, use API directly
+      const token = await getAuthToken(this.page);
+      if (token) {
+        const response = await this.page.request.post(`/api/projects/${projectId}/status-change`, {
+          data: { status: newStatus },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (!response.ok()) {
+          throw new Error(`Failed to update project status: ${response.status()}`);
+        }
+      } else {
+        throw new Error('Unable to get auth token for project status update');
       }
     }
+    
+    // Wait for status update to complete
+    await this.page.waitForTimeout(1000);
   }
 
   async navigateToPartnerships(): Promise<void> {

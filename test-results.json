@@ -119,10 +119,10 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 25195,
+                      "duration": 18235,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:25:21",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:25:21",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts",
                           "column": 33,
@@ -137,13 +137,13 @@
                             "column": 33,
                             "line": 75
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-4AkjdCuepyvpjES30eNHE3sjFdj0\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:25:21"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-1upZH9i2DbxxPc2XaphCUF4IL8Kj\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:25:21"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:03:44.183Z",
+                      "startTime": "2026-01-04T09:25:24.453Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -193,10 +193,10 @@
                       "workerIndex": 1,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 24973,
+                      "duration": 18237,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:73:33",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:73:33",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts",
                           "column": 33,
@@ -211,13 +211,13 @@
                             "column": 33,
                             "line": 73
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-z1Qa7xGtgS3AQSF7WAUOw2l7eXzU\"]')\u001b[22m\n\n\n  71 |     // Verify initial capacity is displayed in the table\n  72 |     const supervisorRow = page.locator(`[data-testid=\"supervisor-row-${supervisor.id}\"]`);\n> 73 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  74 |     \n  75 |     // Check that initial capacity (3) is shown in the table\n  76 |     const initialCapacityCell = supervisorRow.locator('td').nth(3); // Current / Max column\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:73:33"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-niVIMyhjhPgUmWuev1Bcv6yt0Ra1\"]')\u001b[22m\n\n\n  71 |     // Verify initial capacity is displayed in the table\n  72 |     const supervisorRow = page.locator(`[data-testid=\"supervisor-row-${supervisor.id}\"]`);\n> 73 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  74 |     \n  75 |     // Check that initial capacity (3) is shown in the table\n  76 |     const initialCapacityCell = supervisorRow.locator('td').nth(3); // Current / Max column\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:73:33"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:03:44.169Z",
+                      "startTime": "2026-01-04T09:25:24.446Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -267,10 +267,10 @@
                       "workerIndex": 2,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 25267,
+                      "duration": 18162,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:109:21",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:109:21",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts",
                           "column": 33,
@@ -285,13 +285,13 @@
                             "column": 33,
                             "line": 75
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-6hl3Eu9MDw0PhhUMMzctgl4I2y0G\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:109:21"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-vbVNijaoHrz9Vhkeg4pneYXB4w1S\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:109:21"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:03:44.190Z",
+                      "startTime": "2026-01-04T09:25:24.452Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -341,10 +341,10 @@
                       "workerIndex": 3,
                       "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 25194,
+                      "duration": 18116,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:148:21",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:148:21",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts",
                           "column": 33,
@@ -359,13 +359,13 @@
                             "column": 33,
                             "line": 75
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-bo3jvjHUYyAydI8TzmClLfBd4Dsm\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:148:21"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-rzIG6SoHqxeH4JNNsT0sz4ntnehR\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:148:21"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:03:44.247Z",
+                      "startTime": "2026-01-04T09:25:24.452Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -412,13 +412,13 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 4,
-                      "parallelIndex": 1,
+                      "workerIndex": 5,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 18044,
+                      "duration": 16719,
                       "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\u001b[22m\n",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:188:21",
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\u001b[22m\n\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:188:21",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts",
                           "column": 33,
@@ -433,13 +433,13 @@
                             "column": 33,
                             "line": 75
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-m0QZ3Gp8skpdgc2mk1Mq8dgnR3RG\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:188:21"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisor-row-eIERh7ahlG2Ny5zth9htg6PfNjzv\"]')\u001b[22m\n\n\n   at ../pages/AdminDashboard.ts:75\n\n  73 |     // Find the supervisor row\n  74 |     const supervisorRow = this.page.locator(`[data-testid=\"supervisor-row-${supervisorId}\"]`);\n> 75 |     await expect(supervisorRow).toBeVisible({ timeout: 10000 });\n     |                                 ^\n  76 |\n  77 |     // Click the \"Edit Capacity\" button\n  78 |     const editButton = this.page.locator(`[data-testid=\"edit-capacity-${supervisorId}\"]`);\n    at AdminDashboard.overrideSupervisorCapacity (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/AdminDashboard.ts:75:33)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/capacity.spec.ts:188:21"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:13.208Z",
+                      "startTime": "2026-01-04T09:25:44.866Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -508,10 +508,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 5,
+                      "workerIndex": 4,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 18002,
+                      "duration": 16663,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/dashboard.spec.ts:15:24",
@@ -535,7 +535,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:13.208Z",
+                      "startTime": "2026-01-04T09:25:44.861Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -590,7 +590,7 @@
                       "workerIndex": 6,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 18030,
+                      "duration": 16596,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"students-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"students-table\"]')\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"students-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"students-table\"]')\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/dashboard.spec.ts:33:33",
@@ -614,7 +614,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:13.210Z",
+                      "startTime": "2026-01-04T09:25:44.858Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -667,9 +667,9 @@
                   "results": [
                     {
                       "workerIndex": 7,
-                      "parallelIndex": 3,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 18040,
+                      "duration": 16645,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisors-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisors-table\"]')\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"supervisors-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"supervisors-table\"]')\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/dashboard.spec.ts:43:36",
@@ -693,7 +693,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:13.203Z",
+                      "startTime": "2026-01-04T09:25:44.858Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -745,10 +745,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 9,
-                      "parallelIndex": 2,
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 16927,
+                      "duration": 17654,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"applications-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"applications-table\"]')\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('[data-testid=\"applications-table\"]')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"applications-table\"]')\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/admin/dashboard.spec.ts:53:37",
@@ -772,7 +772,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:34.006Z",
+                      "startTime": "2026-01-04T09:26:03.499Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -836,15 +836,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 6666,
+                      "duration": 7647,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:34.005Z",
+                      "startTime": "2026-01-04T09:26:03.500Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -871,14 +871,14 @@
                   "results": [
                     {
                       "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 7176,
+                      "duration": 7675,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:34.005Z",
+                      "startTime": "2026-01-04T09:26:03.499Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -905,14 +905,14 @@
                   "results": [
                     {
                       "workerIndex": 11,
-                      "parallelIndex": 1,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 6638,
+                      "duration": 7649,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:34.007Z",
+                      "startTime": "2026-01-04T09:26:03.498Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -963,9 +963,9 @@
                   "results": [
                     {
                       "workerIndex": 11,
-                      "parallelIndex": 1,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 35118,
+                      "duration": 33770,
                       "error": {
                         "message": "Error: URL wait timeout after 15000ms. Expected pattern: /\\/authenticated\\/student/. Current URL: http://localhost:3000/login. Original error: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================",
                         "stack": "Error: URL wait timeout after 15000ms. Expected pattern: /\\/authenticated\\/student/. Current URL: http://localhost:3000/login. Original error: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================\n    at waitForURL (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/wait-strategies.ts:176:11)\n    at waitForRoleBasedRedirect (/Users/roeebar/Desktop/RB/MentorMatch/e2e/utils/navigation-helpers.ts:61:3)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/login.spec.ts:25:5",
@@ -989,7 +989,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:41.641Z",
+                      "startTime": "2026-01-04T09:26:11.562Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1042,15 +1042,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4990,
+                      "duration": 3749,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:41.655Z",
+                      "startTime": "2026-01-04T09:26:11.563Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1083,14 +1083,14 @@
                   "results": [
                     {
                       "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 4400,
+                      "duration": 3706,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:42.256Z",
+                      "startTime": "2026-01-04T09:26:11.610Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1122,15 +1122,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1820,
+                      "duration": 1679,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:46.655Z",
+                      "startTime": "2026-01-04T09:26:15.319Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1163,14 +1163,14 @@
                   "results": [
                     {
                       "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1804,
+                      "duration": 1687,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:46.664Z",
+                      "startTime": "2026-01-04T09:26:15.323Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1213,10 +1213,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 10,
-                      "parallelIndex": 3,
+                      "workerIndex": 9,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 11658,
+                      "duration": 11620,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/student/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/student/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/logout.spec.ts:10:24",
@@ -1240,7 +1240,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:48.479Z",
+                      "startTime": "2026-01-04T09:26:17.008Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1287,10 +1287,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 8,
-                      "parallelIndex": 0,
+                      "workerIndex": 10,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 11680,
+                      "duration": 11604,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/supervisor/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/supervisor/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/logout.spec.ts:40:24",
@@ -1314,7 +1314,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:48.484Z",
+                      "startTime": "2026-01-04T09:26:17.038Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1362,9 +1362,9 @@
                   "results": [
                     {
                       "workerIndex": 12,
-                      "parallelIndex": 2,
+                      "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 12375,
+                      "duration": 11863,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mpage\u001b[39m\u001b[2m).\u001b[22mtoHaveURL\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nExpected pattern: \u001b[32m/\\/authenticated\\/admin/\u001b[39m\nReceived string:  \u001b[31m\"http://localhost:3000/\"\u001b[39m\nTimeout: 10000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveURL\" with timeout 10000ms\u001b[22m\n\u001b[2m    14 × unexpected value \"http://localhost:3000/\"\u001b[22m\n\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/logout.spec.ts:67:24",
@@ -1388,7 +1388,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:04:54.135Z",
+                      "startTime": "2026-01-04T09:26:22.888Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1453,14 +1453,14 @@
                   "results": [
                     {
                       "workerIndex": 13,
-                      "parallelIndex": 3,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 2257,
+                      "duration": 1931,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:01.572Z",
+                      "startTime": "2026-01-04T09:26:29.482Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1487,14 +1487,14 @@
                   "results": [
                     {
                       "workerIndex": 14,
-                      "parallelIndex": 0,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 2266,
+                      "duration": 1813,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:01.569Z",
+                      "startTime": "2026-01-04T09:26:29.482Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1520,15 +1520,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 13,
-                      "parallelIndex": 3,
+                      "workerIndex": 14,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1401,
+                      "duration": 1058,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:04.229Z",
+                      "startTime": "2026-01-04T09:26:31.673Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1554,10 +1554,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 14,
-                      "parallelIndex": 0,
+                      "workerIndex": 13,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 11453,
+                      "duration": 11264,
                       "error": {
                         "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:3000/authenticated/student/applications\"\n============================================================",
                         "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:3000/authenticated/student/applications\"\n============================================================\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/protected-routes.spec.ts:30:16",
@@ -1581,7 +1581,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:04.237Z",
+                      "startTime": "2026-01-04T09:26:31.788Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1628,15 +1628,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 13,
-                      "parallelIndex": 3,
+                      "workerIndex": 14,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1462,
+                      "duration": 1001,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:05.651Z",
+                      "startTime": "2026-01-04T09:26:32.737Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1662,15 +1662,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 15,
+                      "workerIndex": 14,
                       "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 1419,
+                      "duration": 1230,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:08.364Z",
+                      "startTime": "2026-01-04T09:26:33.743Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1718,10 +1718,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 13,
-                      "parallelIndex": 3,
+                      "workerIndex": 14,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 12398,
+                      "duration": 9728,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"success\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected substring: \u001b[32m\"success\"\u001b[39m\nReceived string:    \u001b[31m\"\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:23:35",
@@ -1745,7 +1745,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:07.184Z",
+                      "startTime": "2026-01-04T09:26:34.996Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -1799,14 +1799,14 @@
                   "results": [
                     {
                       "workerIndex": 15,
-                      "parallelIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4900,
+                      "duration": 4891,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:10.238Z",
+                      "startTime": "2026-01-04T09:26:35.817Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1839,14 +1839,14 @@
                   "results": [
                     {
                       "workerIndex": 15,
-                      "parallelIndex": 2,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5283,
+                      "duration": 4865,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:15.144Z",
+                      "startTime": "2026-01-04T09:26:41.039Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1879,14 +1879,14 @@
                   "results": [
                     {
                       "workerIndex": 16,
-                      "parallelIndex": 0,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1197,
+                      "duration": 1019,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:16.974Z",
+                      "startTime": "2026-01-04T09:26:43.855Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -1919,9 +1919,9 @@
                   "results": [
                     {
                       "workerIndex": 17,
-                      "parallelIndex": 1,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 14578,
+                      "duration": 13484,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/email|already|exists/i\u001b[39m\nReceived string:  \u001b[31m\"creating your account...\"\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/email|already|exists/i\u001b[39m\nReceived string:  \u001b[31m\"creating your account...\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/auth/register.spec.ts:88:35",
@@ -1945,7 +1945,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:17.970Z",
+                      "startTime": "2026-01-04T09:26:45.689Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2014,14 +2014,14 @@
                   "results": [
                     {
                       "workerIndex": 16,
-                      "parallelIndex": 0,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1249,
+                      "duration": 954,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:18.553Z",
+                      "startTime": "2026-01-04T09:26:45.211Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2054,12 +2054,12 @@
                       "workerIndex": 18,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 753,
+                      "duration": 678,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:20.871Z",
+                      "startTime": "2026-01-04T09:26:46.755Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2089,10 +2089,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 16,
+                      "workerIndex": 15,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 5911,
+                      "duration": 6051,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m1800\u001b[39m\nReceived:   \u001b[31m3000\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m1800\u001b[39m\nReceived:   \u001b[31m3000\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/performance/lighthouse.spec.ts:67:17",
@@ -2116,7 +2116,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:19.810Z",
+                      "startTime": "2026-01-04T09:26:45.915Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2167,15 +2167,15 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 15,
-                      "parallelIndex": 2,
+                      "workerIndex": 16,
+                      "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4098,
+                      "duration": 4361,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:20.445Z",
+                      "startTime": "2026-01-04T09:26:46.172Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2208,12 +2208,12 @@
                       "workerIndex": 18,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 944,
+                      "duration": 991,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:21.989Z",
+                      "startTime": "2026-01-04T09:26:47.735Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2246,12 +2246,12 @@
                       "workerIndex": 18,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 961,
+                      "duration": 1099,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:22.942Z",
+                      "startTime": "2026-01-04T09:26:48.734Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2297,7 +2297,7 @@
                       "workerIndex": 18,
                       "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 1897,
+                      "duration": 1714,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m8\u001b[39m\nReceived: \u001b[31m5\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m8\u001b[39m\nReceived: \u001b[31m5\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-concurrency.spec.ts:38:28",
@@ -2321,7 +2321,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:24.766Z",
+                      "startTime": "2026-01-04T09:26:50.656Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2368,10 +2368,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 15,
-                      "parallelIndex": 2,
+                      "workerIndex": 16,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 7908,
+                      "duration": 6953,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at StudentDashboard.deleteApplication (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:42:16)\n    at map (/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-concurrency.spec.ts:97:17)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-concurrency.spec.ts:96:53",
@@ -2395,7 +2395,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:25.173Z",
+                      "startTime": "2026-01-04T09:26:51.032Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2445,7 +2445,7 @@
                       "workerIndex": 19,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 2692,
+                      "duration": 1626,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m7\u001b[39m\nReceived: \u001b[31m4\u001b[39m",
                         "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m7\u001b[39m\nReceived: \u001b[31m4\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-concurrency.spec.ts:158:28",
@@ -2469,7 +2469,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:27.619Z",
+                      "startTime": "2026-01-04T09:26:53.169Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2536,7 +2536,7 @@
                       "workerIndex": 20,
                       "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 9958,
+                      "duration": 9392,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-edge-cases.spec.ts:53:21",
@@ -2560,7 +2560,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:28.345Z",
+                      "startTime": "2026-01-04T09:26:53.575Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2610,7 +2610,7 @@
                       "workerIndex": 21,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 9515,
+                      "duration": 8338,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-edge-cases.spec.ts:107:21",
@@ -2634,7 +2634,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:33.440Z",
+                      "startTime": "2026-01-04T09:26:56.156Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2684,12 +2684,12 @@
                       "workerIndex": 22,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 2579,
+                      "duration": 1745,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:34.739Z",
+                      "startTime": "2026-01-04T09:26:59.275Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2718,7 +2718,7 @@
                       "workerIndex": 23,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 9436,
+                      "duration": 9556,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n\n    at StudentDashboard.navigateToSupervisors (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:24:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications-edge-cases.spec.ts:197:21",
@@ -2742,7 +2742,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:34.818Z",
+                      "startTime": "2026-01-04T09:27:01.040Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2792,12 +2792,12 @@
                       "workerIndex": 22,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 1301,
+                      "duration": 2236,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:37.625Z",
+                      "startTime": "2026-01-04T09:27:01.362Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -2845,10 +2845,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 24,
-                      "parallelIndex": 3,
+                      "workerIndex": 22,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 8910,
+                      "duration": 8169,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications.spec.ts:53:21",
@@ -2872,7 +2872,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:40.599Z",
+                      "startTime": "2026-01-04T09:27:03.615Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -2924,10 +2924,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 22,
-                      "parallelIndex": 1,
+                      "workerIndex": 24,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 8166,
+                      "duration": 8325,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n\n    at StudentDashboard.navigateToSupervisors (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:24:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications.spec.ts:66:21",
@@ -2951,7 +2951,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:38.940Z",
+                      "startTime": "2026-01-04T09:27:05.147Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3006,7 +3006,7 @@
                       "workerIndex": 25,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 8884,
+                      "duration": 8087,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications.spec.ts:110:21",
@@ -3030,7 +3030,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:44.841Z",
+                      "startTime": "2026-01-04T09:27:06.644Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3087,7 +3087,7 @@
                       "workerIndex": 26,
                       "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 8563,
+                      "duration": 8144,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at StudentDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:30:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/applications.spec.ts:152:21",
@@ -3111,7 +3111,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:46.360Z",
+                      "startTime": "2026-01-04T09:27:12.044Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3159,7 +3159,7 @@
         {
           "title": "Student - Partnerships",
           "file": "student/partnerships.spec.ts",
-          "line": 10,
+          "line": 11,
           "column": 6,
           "specs": [
             {
@@ -3178,12 +3178,12 @@
                       "workerIndex": 27,
                       "parallelIndex": 1,
                       "status": "passed",
-                      "duration": 4129,
+                      "duration": 3291,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:49.196Z",
+                      "startTime": "2026-01-04T09:27:13.179Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3193,7 +3193,7 @@
               ],
               "id": "a74ce2d3214e792f5d6c-68449cfcdf04030faced",
               "file": "student/partnerships.spec.ts",
-              "line": 11,
+              "line": 12,
               "column": 7
             },
             {
@@ -3212,12 +3212,12 @@
                       "workerIndex": 28,
                       "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 4548,
+                      "duration": 3785,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:53.017Z",
+                      "startTime": "2026-01-04T09:27:15.773Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -3227,7 +3227,7 @@
               ],
               "id": "a74ce2d3214e792f5d6c-bd59419f23e8d0c252b1",
               "file": "student/partnerships.spec.ts",
-              "line": 23,
+              "line": 24,
               "column": 7
             },
             {
@@ -3243,34 +3243,34 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 27,
-                      "parallelIndex": 1,
+                      "workerIndex": 29,
+                      "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 4013,
+                      "duration": 4711,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:62:44",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:63:44",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                           "column": 44,
-                          "line": 62
+                          "line": 63
                         },
-                        "snippet": "  60 |     );\n  61 |\n> 62 |     expect(availablePartnersResponse.ok()).toBeTruthy();\n     |                                            ^\n  63 |     const availablePartners = await availablePartnersResponse.json();\n  64 |\n  65 |     // Verify repository filtering works correctly"
+                        "snippet": "  61 |     );\n  62 |\n> 63 |     expect(availablePartnersResponse.ok()).toBeTruthy();\n     |                                            ^\n  64 |     const availablePartners = await availablePartnersResponse.json();\n  65 |\n  66 |     // Verify repository filtering works correctly"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                             "column": 44,
-                            "line": 62
+                            "line": 63
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  60 |     );\n  61 |\n> 62 |     expect(availablePartnersResponse.ok()).toBeTruthy();\n     |                                            ^\n  63 |     const availablePartners = await availablePartnersResponse.json();\n  64 |\n  65 |     // Verify repository filtering works correctly\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:62:44"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  61 |     );\n  62 |\n> 63 |     expect(availablePartnersResponse.ok()).toBeTruthy();\n     |                                            ^\n  64 |     const availablePartners = await availablePartnersResponse.json();\n  65 |\n  66 |     // Verify repository filtering works correctly\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:63:44"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:53.704Z",
+                      "startTime": "2026-01-04T09:27:17.037Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3292,7 +3292,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                         "column": 44,
-                        "line": 62
+                        "line": 63
                       }
                     }
                   ],
@@ -3301,7 +3301,7 @@
               ],
               "id": "a74ce2d3214e792f5d6c-6742f7e4b13bda8cd1fe",
               "file": "student/partnerships.spec.ts",
-              "line": 41,
+              "line": 42,
               "column": 7
             },
             {
@@ -3317,34 +3317,34 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 29,
-                      "parallelIndex": 0,
+                      "workerIndex": 27,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 9803,
+                      "duration": 4172,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:144:35",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:145:35",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                           "column": 35,
-                          "line": 144
+                          "line": 145
                         },
-                        "snippet": "  142 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=outgoing`\n  143 |     );\n> 144 |     expect(outgoingResponse.ok()).toBeTruthy();\n      |                                   ^\n  145 |     const outgoingData = await outgoingResponse.json();\n  146 |     expect(outgoingData.data.length).toBeGreaterThanOrEqual(requesterRequests.length);\n  147 |"
+                        "snippet": "  143 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=outgoing`\n  144 |     );\n> 145 |     expect(outgoingResponse.ok()).toBeTruthy();\n      |                                   ^\n  146 |     const outgoingData = await outgoingResponse.json();\n  147 |     expect(outgoingData.data.length).toBeGreaterThanOrEqual(requesterRequests.length);\n  148 |"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                             "column": 35,
-                            "line": 144
+                            "line": 145
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  142 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=outgoing`\n  143 |     );\n> 144 |     expect(outgoingResponse.ok()).toBeTruthy();\n      |                                   ^\n  145 |     const outgoingData = await outgoingResponse.json();\n  146 |     expect(outgoingData.data.length).toBeGreaterThanOrEqual(requesterRequests.length);\n  147 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:144:35"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  143 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=outgoing`\n  144 |     );\n> 145 |     expect(outgoingResponse.ok()).toBeTruthy();\n      |                                   ^\n  146 |     const outgoingData = await outgoingResponse.json();\n  147 |     expect(outgoingData.data.length).toBeGreaterThanOrEqual(requesterRequests.length);\n  148 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:145:35"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:57.341Z",
+                      "startTime": "2026-01-04T09:27:16.737Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3366,7 +3366,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                         "column": 35,
-                        "line": 144
+                        "line": 145
                       }
                     }
                   ],
@@ -3375,7 +3375,7 @@
               ],
               "id": "a74ce2d3214e792f5d6c-1bc6d7f450e49d26868c",
               "file": "student/partnerships.spec.ts",
-              "line": 86,
+              "line": 87,
               "column": 7
             },
             {
@@ -3391,34 +3391,34 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 30,
-                      "parallelIndex": 2,
+                      "workerIndex": 28,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 8464,
+                      "duration": 4152,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:177:35",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:187:35",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                           "column": 35,
-                          "line": 177
+                          "line": 187
                         },
-                        "snippet": "  175 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`\n  176 |     );\n> 177 |     expect(requestsResponse.ok()).toBeTruthy();\n      |                                   ^\n  178 |     const requestsData = await requestsResponse.json();\n  179 |     expect(requestsData.data).toEqual([]);\n  180 |"
+                        "snippet": "  185 |       }\n  186 |     );\n> 187 |     expect(requestsResponse.ok()).toBeTruthy();\n      |                                   ^\n  188 |     const requestsData = await requestsResponse.json();\n  189 |     expect(requestsData.data).toEqual([]);\n  190 |"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                             "column": 35,
-                            "line": 177
+                            "line": 187
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  175 |       `/api/students/${authenticatedStudent.uid}/partnership-requests?type=all`\n  176 |     );\n> 177 |     expect(requestsResponse.ok()).toBeTruthy();\n      |                                   ^\n  178 |     const requestsData = await requestsResponse.json();\n  179 |     expect(requestsData.data).toEqual([]);\n  180 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:177:35"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  185 |       }\n  186 |     );\n> 187 |     expect(requestsResponse.ok()).toBeTruthy();\n      |                                   ^\n  188 |     const requestsData = await requestsResponse.json();\n  189 |     expect(requestsData.data).toEqual([]);\n  190 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts:187:35"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:58.187Z",
+                      "startTime": "2026-01-04T09:27:19.849Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3440,7 +3440,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/partnerships.spec.ts",
                         "column": 35,
-                        "line": 177
+                        "line": 187
                       }
                     }
                   ],
@@ -3449,7 +3449,7 @@
               ],
               "id": "a74ce2d3214e792f5d6c-d768fa7dbab8156556df",
               "file": "student/partnerships.spec.ts",
-              "line": 165,
+              "line": 166,
               "column": 7
             }
           ]
@@ -3487,10 +3487,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 31,
-                      "parallelIndex": 1,
+                      "workerIndex": 30,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 18264,
+                      "duration": 9255,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n\n    at StudentDashboard.navigateToSupervisors (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:24:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/supervisors.spec.ts:17:21",
@@ -3514,7 +3514,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:03.820Z",
+                      "startTime": "2026-01-04T09:27:22.300Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3567,10 +3567,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 28,
-                      "parallelIndex": 3,
+                      "workerIndex": 31,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 11145,
+                      "duration": 9113,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /browse supervisors|supervisors/i })\u001b[22m\n\n    at StudentDashboard.navigateToSupervisors (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/StudentDashboard.ts:24:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/student/supervisors.spec.ts:34:21",
@@ -3594,7 +3594,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:05:58.181Z",
+                      "startTime": "2026-01-04T09:27:22.423Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3664,9 +3664,9 @@
                   "results": [
                     {
                       "workerIndex": 32,
-                      "parallelIndex": 2,
+                      "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 12121,
+                      "duration": 8572,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at SupervisorDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/SupervisorDashboard.ts:25:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/applications.spec.ts:49:21",
@@ -3690,7 +3690,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:09.609Z",
+                      "startTime": "2026-01-04T09:27:24.232Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3744,9 +3744,9 @@
                   "results": [
                     {
                       "workerIndex": 33,
-                      "parallelIndex": 0,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 12039,
+                      "duration": 8243,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at SupervisorDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/SupervisorDashboard.ts:25:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/applications.spec.ts:83:21",
@@ -3770,7 +3770,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:09.609Z",
+                      "startTime": "2026-01-04T09:27:26.157Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3824,9 +3824,9 @@
                   "results": [
                     {
                       "workerIndex": 34,
-                      "parallelIndex": 3,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 9754,
+                      "duration": 8605,
                       "error": {
                         "message": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n",
                         "stack": "TimeoutError: locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('link', { name: /applications/i })\u001b[22m\n\n    at SupervisorDashboard.navigateToApplications (/Users/roeebar/Desktop/RB/MentorMatch/e2e/pages/SupervisorDashboard.ts:25:16)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/applications.spec.ts:140:21",
@@ -3850,7 +3850,7 @@
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:11.988Z",
+                      "startTime": "2026-01-04T09:27:33.022Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3898,7 +3898,7 @@
         {
           "title": "Supervisor - Capacity Management",
           "file": "supervisor/capacity.spec.ts",
-          "line": 8,
+          "line": 9,
           "column": 6,
           "specs": [
             {
@@ -3917,31 +3917,31 @@
                       "workerIndex": 35,
                       "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 14598,
+                      "duration": 4226,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts:25:29",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts:32:29",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts",
                           "column": 29,
-                          "line": 25
+                          "line": 32
                         },
-                        "snippet": "  23 |       // If UI doesn't exist, verify via API that capacity data is accessible\n  24 |       const response = await page.request.get(`/api/supervisors/${authenticatedSupervisor.uid}`);\n> 25 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  26 |       const data = await response.json();\n  27 |       expect(data).toHaveProperty('maxCapacity');\n  28 |       expect(data).toHaveProperty('currentCapacity');"
+                        "snippet": "  30 |         },\n  31 |       });\n> 32 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  33 |       const data = await response.json();\n  34 |       expect(data).toHaveProperty('data');\n  35 |       expect(data.data).toHaveProperty('maxCapacity');"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts",
                             "column": 29,
-                            "line": 25
+                            "line": 32
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  23 |       // If UI doesn't exist, verify via API that capacity data is accessible\n  24 |       const response = await page.request.get(`/api/supervisors/${authenticatedSupervisor.uid}`);\n> 25 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  26 |       const data = await response.json();\n  27 |       expect(data).toHaveProperty('maxCapacity');\n  28 |       expect(data).toHaveProperty('currentCapacity');\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts:25:29"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  30 |         },\n  31 |       });\n> 32 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  33 |       const data = await response.json();\n  34 |       expect(data).toHaveProperty('data');\n  35 |       expect(data.data).toHaveProperty('maxCapacity');\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts:32:29"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:24.851Z",
+                      "startTime": "2026-01-04T09:27:33.290Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -3963,7 +3963,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/capacity.spec.ts",
                         "column": 29,
-                        "line": 25
+                        "line": 32
                       }
                     }
                   ],
@@ -3972,7 +3972,7 @@
               ],
               "id": "7500f0932d84e61fae7b-76d1762f51d1d1a7f88d",
               "file": "supervisor/capacity.spec.ts",
-              "line": 9,
+              "line": 10,
               "column": 7
             },
             {
@@ -3991,12 +3991,12 @@
                       "workerIndex": 36,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 12139,
+                      "duration": 4088,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:24.850Z",
+                      "startTime": "2026-01-04T09:27:35.114Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -4006,7 +4006,7 @@
               ],
               "id": "7500f0932d84e61fae7b-eb2a749ba5fb98a8f0b7",
               "file": "supervisor/capacity.spec.ts",
-              "line": 36,
+              "line": 44,
               "column": 7
             }
           ]
@@ -4023,7 +4023,7 @@
         {
           "title": "Supervisor - Partnership Requests",
           "file": "supervisor/partnerships.spec.ts",
-          "line": 11,
+          "line": 12,
           "column": 6,
           "specs": [
             {
@@ -4040,33 +4040,33 @@
                   "results": [
                     {
                       "workerIndex": 37,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 13225,
+                      "duration": 4106,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:46:27",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:52:27",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                           "column": 27,
-                          "line": 46
+                          "line": 52
                         },
-                        "snippet": "  44 |     });\n  45 |\n> 46 |     expect(response.ok()).toBeTruthy();\n     |                           ^\n  47 |\n  48 |     // Verify request was created in database using repository pattern\n  49 |     const requestsSnapshot = await adminDb"
+                        "snippet": "  50 |     });\n  51 |\n> 52 |     expect(response.ok()).toBeTruthy();\n     |                           ^\n  53 |\n  54 |     // Verify request was created in database using repository pattern\n  55 |     const requestsSnapshot = await adminDb"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                             "column": 27,
-                            "line": 46
+                            "line": 52
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  44 |     });\n  45 |\n> 46 |     expect(response.ok()).toBeTruthy();\n     |                           ^\n  47 |\n  48 |     // Verify request was created in database using repository pattern\n  49 |     const requestsSnapshot = await adminDb\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:46:27"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  50 |     });\n  51 |\n> 52 |     expect(response.ok()).toBeTruthy();\n     |                           ^\n  53 |\n  54 |     // Verify request was created in database using repository pattern\n  55 |     const requestsSnapshot = await adminDb\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:52:27"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:24.849Z",
+                      "startTime": "2026-01-04T09:27:37.017Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4088,7 +4088,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                         "column": 27,
-                        "line": 46
+                        "line": 52
                       }
                     }
                   ],
@@ -4097,7 +4097,7 @@
               ],
               "id": "85605c46d4db1795edc6-0475f5d49cebd70998b1",
               "file": "supervisor/partnerships.spec.ts",
-              "line": 12,
+              "line": 13,
               "column": 7
             },
             {
@@ -4114,33 +4114,33 @@
                   "results": [
                     {
                       "workerIndex": 38,
-                      "parallelIndex": 3,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 15383,
+                      "duration": 3694,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:122:27",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:133:27",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                           "column": 27,
-                          "line": 122
+                          "line": 133
                         },
-                        "snippet": "  120 |     });\n  121 |\n> 122 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  123 |\n  124 |     // Wait for database updates\n  125 |     await page.waitForTimeout(2000);"
+                        "snippet": "  131 |     });\n  132 |\n> 133 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  134 |\n  135 |     // Wait for database updates\n  136 |     await page.waitForTimeout(2000);"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                             "column": 27,
-                            "line": 122
+                            "line": 133
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  120 |     });\n  121 |\n> 122 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  123 |\n  124 |     // Wait for database updates\n  125 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:122:27"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  131 |     });\n  132 |\n> 133 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  134 |\n  135 |     // Wait for database updates\n  136 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:133:27"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:24.852Z",
+                      "startTime": "2026-01-04T09:27:39.566Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4162,7 +4162,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                         "column": 27,
-                        "line": 122
+                        "line": 133
                       }
                     }
                   ],
@@ -4171,7 +4171,7 @@
               ],
               "id": "85605c46d4db1795edc6-18ccbcfad00c46d1b58a",
               "file": "supervisor/partnerships.spec.ts",
-              "line": 70,
+              "line": 76,
               "column": 7
             },
             {
@@ -4190,31 +4190,31 @@
                       "workerIndex": 36,
                       "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 4218,
+                      "duration": 3474,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:196:27",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:212:27",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                           "column": 27,
-                          "line": 196
+                          "line": 212
                         },
-                        "snippet": "  194 |     });\n  195 |\n> 196 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  197 |\n  198 |     // Wait for database updates\n  199 |     await page.waitForTimeout(2000);"
+                        "snippet": "  210 |     });\n  211 |\n> 212 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  213 |\n  214 |     // Wait for database updates\n  215 |     await page.waitForTimeout(2000);"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                             "column": 27,
-                            "line": 196
+                            "line": 212
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  194 |     });\n  195 |\n> 196 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  197 |\n  198 |     // Wait for database updates\n  199 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:196:27"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  210 |     });\n  211 |\n> 212 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  213 |\n  214 |     // Wait for database updates\n  215 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:212:27"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:37.662Z",
+                      "startTime": "2026-01-04T09:27:39.493Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4236,7 +4236,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                         "column": 27,
-                        "line": 196
+                        "line": 212
                       }
                     }
                   ],
@@ -4245,7 +4245,7 @@
               ],
               "id": "85605c46d4db1795edc6-abf85d7e7203a8c68822",
               "file": "supervisor/partnerships.spec.ts",
-              "line": 152,
+              "line": 163,
               "column": 7
             },
             {
@@ -4262,33 +4262,33 @@
                   "results": [
                     {
                       "workerIndex": 39,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 7715,
+                      "duration": 5340,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:261:27",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:282:27",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                           "column": 27,
-                          "line": 261
+                          "line": 282
                         },
-                        "snippet": "  259 |     });\n  260 |\n> 261 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  262 |\n  263 |     // Wait for database updates\n  264 |     await page.waitForTimeout(2000);"
+                        "snippet": "  280 |     });\n  281 |\n> 282 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  283 |\n  284 |     // Wait for database updates\n  285 |     await page.waitForTimeout(2000);"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                             "column": 27,
-                            "line": 261
+                            "line": 282
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  259 |     });\n  260 |\n> 261 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  262 |\n  263 |     // Wait for database updates\n  264 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:261:27"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  280 |     });\n  281 |\n> 282 |     expect(response.ok()).toBeTruthy();\n      |                           ^\n  283 |\n  284 |     // Wait for database updates\n  285 |     await page.waitForTimeout(2000);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts:282:27"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:41.197Z",
+                      "startTime": "2026-01-04T09:27:43.320Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4310,7 +4310,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/partnerships.spec.ts",
                         "column": 27,
-                        "line": 261
+                        "line": 282
                       }
                     }
                   ],
@@ -4319,7 +4319,7 @@
               ],
               "id": "85605c46d4db1795edc6-67657a691b0101406ee8",
               "file": "supervisor/partnerships.spec.ts",
-              "line": 220,
+              "line": 236,
               "column": 7
             },
             {
@@ -4336,14 +4336,14 @@
                   "results": [
                     {
                       "workerIndex": 40,
-                      "parallelIndex": 1,
+                      "parallelIndex": 2,
                       "status": "passed",
-                      "duration": 7835,
+                      "duration": 7793,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:42.795Z",
+                      "startTime": "2026-01-04T09:27:44.211Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -4353,7 +4353,7 @@
               ],
               "id": "85605c46d4db1795edc6-a80c576f541b87b8be6a",
               "file": "supervisor/partnerships.spec.ts",
-              "line": 279,
+              "line": 300,
               "column": 7
             }
           ]
@@ -4370,7 +4370,7 @@
         {
           "title": "Supervisor - Projects",
           "file": "supervisor/projects.spec.ts",
-          "line": 10,
+          "line": 11,
           "column": 6,
           "specs": [
             {
@@ -4387,33 +4387,33 @@
                   "results": [
                     {
                       "workerIndex": 41,
-                      "parallelIndex": 3,
+                      "parallelIndex": 0,
                       "status": "failed",
-                      "duration": 7101,
+                      "duration": 6472,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:38:29",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:45:29",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                           "column": 29,
-                          "line": 38
+                          "line": 45
                         },
-                        "snippet": "  36 |       // If UI doesn't exist, verify via API that project exists\n  37 |       const response = await page.request.get(`/api/projects?supervisorId=${authenticatedSupervisor.uid}`);\n> 38 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  39 |       const data = await response.json();\n  40 |       expect(Array.isArray(data)).toBeTruthy();\n  41 |       const projectExists = data.some((p: any) => p.id === project.id);"
+                        "snippet": "  43 |         },\n  44 |       });\n> 45 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  46 |       const data = await response.json();\n  47 |       expect(data).toHaveProperty('data');\n  48 |       expect(Array.isArray(data.data)).toBeTruthy();"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                             "column": 29,
-                            "line": 38
+                            "line": 45
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  36 |       // If UI doesn't exist, verify via API that project exists\n  37 |       const response = await page.request.get(`/api/projects?supervisorId=${authenticatedSupervisor.uid}`);\n> 38 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  39 |       const data = await response.json();\n  40 |       expect(Array.isArray(data)).toBeTruthy();\n  41 |       const projectExists = data.some((p: any) => p.id === project.id);\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:38:29"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  43 |         },\n  44 |       });\n> 45 |       expect(response.ok()).toBeTruthy();\n     |                             ^\n  46 |       const data = await response.json();\n  47 |       expect(data).toHaveProperty('data');\n  48 |       expect(Array.isArray(data.data)).toBeTruthy();\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:45:29"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:43.029Z",
+                      "startTime": "2026-01-04T09:27:44.737Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4435,7 +4435,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                         "column": 29,
-                        "line": 38
+                        "line": 45
                       }
                     }
                   ],
@@ -4444,7 +4444,7 @@
               ],
               "id": "1733793ca44884a0719e-7d2237b21df25ee4e529",
               "file": "supervisor/projects.spec.ts",
-              "line": 11,
+              "line": 12,
               "column": 7
             },
             {
@@ -4461,33 +4461,33 @@
                   "results": [
                     {
                       "workerIndex": 42,
-                      "parallelIndex": 0,
+                      "parallelIndex": 1,
                       "status": "failed",
-                      "duration": 9347,
+                      "duration": 8298,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:126:33",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:137:33",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                           "column": 33,
-                          "line": 126
+                          "line": 137
                         },
-                        "snippet": "  124 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  125 |     const projectData = projectDoc.data();\n> 126 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  127 |     expect(projectData?.completedAt).toBeDefined();\n  128 |\n  129 |     // Verify co-supervisor partnership cleaned up"
+                        "snippet": "  135 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  136 |     const projectData = projectDoc.data();\n> 137 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  138 |     expect(projectData?.completedAt).toBeDefined();\n  139 |\n  140 |     // Verify co-supervisor partnership cleaned up"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                             "column": 33,
-                            "line": 126
+                            "line": 137
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  124 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  125 |     const projectData = projectDoc.data();\n> 126 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  127 |     expect(projectData?.completedAt).toBeDefined();\n  128 |\n  129 |     // Verify co-supervisor partnership cleaned up\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:126:33"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  135 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  136 |     const projectData = projectDoc.data();\n> 137 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  138 |     expect(projectData?.completedAt).toBeDefined();\n  139 |\n  140 |     // Verify co-supervisor partnership cleaned up\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:137:33"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:45.170Z",
+                      "startTime": "2026-01-04T09:27:45.622Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4509,7 +4509,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                         "column": 33,
-                        "line": 126
+                        "line": 137
                       }
                     }
                   ],
@@ -4518,7 +4518,7 @@
               ],
               "id": "1733793ca44884a0719e-5f81423a55406d255092",
               "file": "supervisor/projects.spec.ts",
-              "line": 85,
+              "line": 96,
               "column": 7
             },
             {
@@ -4535,14 +4535,14 @@
                   "results": [
                     {
                       "workerIndex": 43,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "passed",
-                      "duration": 1826,
+                      "duration": 1756,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:51.918Z",
+                      "startTime": "2026-01-04T09:27:51.209Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -4552,7 +4552,7 @@
               ],
               "id": "1733793ca44884a0719e-49cecf4c0362a18ca869",
               "file": "supervisor/projects.spec.ts",
-              "line": 146,
+              "line": 157,
               "column": 7
             },
             {
@@ -4569,14 +4569,14 @@
                   "results": [
                     {
                       "workerIndex": 44,
-                      "parallelIndex": 3,
+                      "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 1704,
+                      "duration": 1626,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:52.613Z",
+                      "startTime": "2026-01-04T09:27:53.164Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -4586,7 +4586,7 @@
               ],
               "id": "1733793ca44884a0719e-e6df8fbfd3e8e38398b0",
               "file": "supervisor/projects.spec.ts",
-              "line": 190,
+              "line": 201,
               "column": 7
             },
             {
@@ -4603,33 +4603,33 @@
                   "results": [
                     {
                       "workerIndex": 40,
-                      "parallelIndex": 1,
+                      "parallelIndex": 2,
                       "status": "failed",
-                      "duration": 6862,
+                      "duration": 7193,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:261:33",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:272:33",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                           "column": 33,
-                          "line": 261
+                          "line": 272
                         },
-                        "snippet": "  259 |     expect(projectDoc.exists).toBeTruthy();\n  260 |     const projectData = projectDoc.data();\n> 261 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  262 |     expect(projectData?.completedAt).toBeDefined();\n  263 |     expect(projectData?.updatedAt).toBeDefined();\n  264 |"
+                        "snippet": "  270 |     expect(projectDoc.exists).toBeTruthy();\n  271 |     const projectData = projectDoc.data();\n> 272 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  273 |     expect(projectData?.completedAt).toBeDefined();\n  274 |     expect(projectData?.updatedAt).toBeDefined();\n  275 |"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                             "column": 33,
-                            "line": 261
+                            "line": 272
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  259 |     expect(projectDoc.exists).toBeTruthy();\n  260 |     const projectData = projectDoc.data();\n> 261 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  262 |     expect(projectData?.completedAt).toBeDefined();\n  263 |     expect(projectData?.updatedAt).toBeDefined();\n  264 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:261:33"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  270 |     expect(projectDoc.exists).toBeTruthy();\n  271 |     const projectData = projectDoc.data();\n> 272 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  273 |     expect(projectData?.completedAt).toBeDefined();\n  274 |     expect(projectData?.updatedAt).toBeDefined();\n  275 |\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:272:33"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:50.960Z",
+                      "startTime": "2026-01-04T09:27:52.381Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4651,7 +4651,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                         "column": 33,
-                        "line": 261
+                        "line": 272
                       }
                     }
                   ],
@@ -4660,7 +4660,7 @@
               ],
               "id": "1733793ca44884a0719e-dda70e38b0e3d8d38abb",
               "file": "supervisor/projects.spec.ts",
-              "line": 230,
+              "line": 241,
               "column": 7
             },
             {
@@ -4677,33 +4677,33 @@
                   "results": [
                     {
                       "workerIndex": 43,
-                      "parallelIndex": 2,
+                      "parallelIndex": 3,
                       "status": "failed",
-                      "duration": 6413,
+                      "duration": 6652,
                       "error": {
                         "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:312:33",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:323:33",
                         "location": {
                           "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                           "column": 33,
-                          "line": 312
+                          "line": 323
                         },
-                        "snippet": "  310 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  311 |     const projectData = projectDoc.data();\n> 312 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  313 |     expect(projectData?.completedAt).toBeDefined();\n  314 |\n  315 |     // Verify co-supervisor capacity decreased (supervisorRepository in transaction)"
+                        "snippet": "  321 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  322 |     const projectData = projectDoc.data();\n> 323 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  324 |     expect(projectData?.completedAt).toBeDefined();\n  325 |\n  326 |     // Verify co-supervisor capacity decreased (supervisorRepository in transaction)"
                       },
                       "errors": [
                         {
                           "location": {
                             "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                             "column": 33,
-                            "line": 312
+                            "line": 323
                           },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  310 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  311 |     const projectData = projectDoc.data();\n> 312 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  313 |     expect(projectData?.completedAt).toBeDefined();\n  314 |\n  315 |     // Verify co-supervisor capacity decreased (supervisorRepository in transaction)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:312:33"
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"completed\"\u001b[39m\nReceived: \u001b[31m\"in_progress\"\u001b[39m\n\n  321 |     const projectDoc = await adminDb.collection('projects').doc(project.id).get();\n  322 |     const projectData = projectDoc.data();\n> 323 |     expect(projectData?.status).toBe('completed');\n      |                                 ^\n  324 |     expect(projectData?.completedAt).toBeDefined();\n  325 |\n  326 |     // Verify co-supervisor capacity decreased (supervisorRepository in transaction)\n    at /Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts:323:33"
                         }
                       ],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-01-04T09:06:54.072Z",
+                      "startTime": "2026-01-04T09:27:53.234Z",
                       "annotations": [],
                       "attachments": [
                         {
@@ -4725,7 +4725,7 @@
                       "errorLocation": {
                         "file": "/Users/roeebar/Desktop/RB/MentorMatch/e2e/tests/supervisor/projects.spec.ts",
                         "column": 33,
-                        "line": 312
+                        "line": 323
                       }
                     }
                   ],
@@ -4734,7 +4734,7 @@
               ],
               "id": "1733793ca44884a0719e-76e75c6ef679b66ff726",
               "file": "supervisor/projects.spec.ts",
-              "line": 270,
+              "line": 281,
               "column": 7
             }
           ]
@@ -4744,8 +4744,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-01-04T09:03:41.249Z",
-    "duration": 199405.478,
+    "startTime": "2026-01-04T09:25:21.901Z",
+    "duration": 158045.26799999998,
     "expected": 28,
     "skipped": 0,
     "unexpected": 44,
