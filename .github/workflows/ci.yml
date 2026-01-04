@@ -150,11 +150,93 @@ jobs:
             sleep 2
           done
 
+      - name: Start Next.js Server
+        run: |
+          echo "::group::Starting Next.js Development Server"
+          # Start server in background and capture PID
+          npm run dev > /tmp/nextjs-server.log 2>&1 &
+          SERVER_PID=$!
+          echo "Started server with PID: $SERVER_PID"
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          echo "::endgroup::"
+          
+          # Give server a moment to start
+          sleep 5
+          
+          # Check if process is still running
+          if ! kill -0 $SERVER_PID 2>/dev/null; then
+            echo "::error::Server process died immediately after startup"
+            echo "::group::Next.js Server Logs"
+            cat /tmp/nextjs-server.log || true
+            echo "::endgroup::"
+            exit 1
+          fi
+          
+          echo "Waiting for Next.js server to be ready..."
+          for i in {1..90}; do
+            # Check if process is still running
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "::error::Server process died during startup"
+              echo "::group::Next.js Server Logs"
+              cat /tmp/nextjs-server.log || true
+              echo "::endgroup::"
+              exit 1
+            fi
+            
+            # Check if server is responding
+            if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
+              echo "✓ Next.js server is ready!"
+              echo "Server is responding at http://localhost:3000"
+              break
+            fi
+            
+            if [ $i -eq 90 ]; then
+              echo "::error::Next.js server failed to start within timeout"
+              echo "::group::Next.js Server Logs"
+              cat /tmp/nextjs-server.log || true
+              echo "::endgroup::"
+              echo "::group::Server Process Check"
+              ps aux | grep -E "next|node.*dev" || echo "No server processes found"
+              echo "::endgroup::"
+              echo "::group::Port Check"
+              lsof -i :3000 || echo "Port 3000 is not in use"
+              echo "::endgroup::"
+              pkill -f "next dev" || true
+              exit 1
+            fi
+            
+            if [ $((i % 10)) -eq 0 ]; then
+              echo "Still waiting... ($i/90) - Server logs so far:"
+              tail -20 /tmp/nextjs-server.log || true
+            fi
+            sleep 2
+          done
+
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
           CI: true
         continue-on-error: false
+
+      - name: Stop Next.js Server
+        if: always()
+        run: |
+          echo "Stopping Next.js server..."
+          # Try to kill by PID if available
+          if [ -n "$SERVER_PID" ]; then
+            kill $SERVER_PID 2>/dev/null || true
+          fi
+          # Also kill by process name to ensure cleanup
+          pkill -f "next dev" || true
+          pkill -f "node.*next" || true
+          sleep 2
+          # Verify server is stopped
+          if lsof -i :3000 > /dev/null 2>&1; then
+            echo "Warning: Port 3000 is still in use after cleanup attempt"
+            lsof -i :3000 || true
+          else
+            echo "✓ Server stopped successfully"
+          fi
 
       - name: Debug Server Issues on Failure
         if: failure()

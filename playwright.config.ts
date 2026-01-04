@@ -75,36 +75,40 @@ export default defineConfig({
   ],
 
   // Configure web server to start Next.js dev server
-  // Note: Firebase Emulators require Java to be installed
+  // Note: In CI, the server is started manually in the workflow to ensure proper startup
+  // and error visibility. In local development, Playwright will start it automatically.
+  // Firebase Emulators require Java to be installed
   // Start emulators manually with: npx firebase emulators:start --only auth,firestore
   // The health check endpoint (/api/health) is used to verify server readiness
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000/api/health',
-    reuseExistingServer: !process.env.CI,
-    timeout: process.env.CI ? 180000 : 120000, // Longer timeout in CI for first build
-    stdout: process.env.CI ? 'pipe' : 'pipe', // Show Next.js output in CI for debugging
-    stderr: process.env.CI ? 'pipe' : 'pipe', // Show Next.js errors in CI for debugging
-    // Use environment variables from the workflow, with fallbacks
-    env: {
-      E2E_TEST: process.env.E2E_TEST || 'true',
-      NODE_ENV: process.env.NODE_ENV || 'test',
-      CI: process.env.CI || 'false',
-      FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099',
-      FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8081',
-      NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099',
-      NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || 'localhost:8081',
-      NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
-      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'localhost',
-      NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-test',
-      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-test.appspot.com',
-      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-      NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:test',
-      FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
-      // Don't set dummy credentials - let firebase-admin use emulator mode in test environment
-      // FIREBASE_ADMIN_CLIENT_EMAIL: undefined,
-      // FIREBASE_ADMIN_PRIVATE_KEY: undefined,
+  ...(process.env.CI ? {} : {
+    webServer: {
+      command: 'npm run dev',
+      url: 'http://localhost:3000/api/health',
+      reuseExistingServer: true,
+      timeout: 120000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+      // Use environment variables from the workflow, with fallbacks
+      env: {
+        E2E_TEST: process.env.E2E_TEST || 'true',
+        NODE_ENV: process.env.NODE_ENV || 'test',
+        CI: process.env.CI || 'false',
+        FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099',
+        FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST || 'localhost:8081',
+        NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST: process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || 'localhost:9099',
+        NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST: process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || 'localhost:8081',
+        NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'test-api-key',
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'localhost',
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-test',
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-test.appspot.com',
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+        NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:test',
+        FIREBASE_ADMIN_PROJECT_ID: process.env.FIREBASE_ADMIN_PROJECT_ID || 'demo-test',
+        // Don't set dummy credentials - let firebase-admin use emulator mode in test environment
+        // FIREBASE_ADMIN_CLIENT_EMAIL: undefined,
+        // FIREBASE_ADMIN_PRIVATE_KEY: undefined,
+      },
     },
-  },
+  }),
 });
 
