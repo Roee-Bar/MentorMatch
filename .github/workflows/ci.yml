@@ -130,7 +130,12 @@ jobs:
       - name: Start Firebase Emulators
         run: |
           echo "::group::Starting Firebase Emulators"
-          npx firebase emulators:start --only auth,firestore > /tmp/firebase-emulator.log 2>&1 &
+          _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' \
+          FIREBASE_EMULATOR_DEBUG_LOG=/dev/null \
+          npx firebase emulators:start --only auth,firestore 2>&1 | \
+            grep -v 'Multiple projectIds' | \
+            grep -v 'WARNING: A terminally deprecated' | \
+            grep -v 'INFO: Detected HTTP/2' > /tmp/firebase-emulator.log 2>&1 &
           echo "::endgroup::"
           
           echo "Waiting for emulators to be ready..."

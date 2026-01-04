@@ -8,6 +8,9 @@
  * - Logging test execution summary
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 async function globalTeardown() {
   console.log('Running global teardown...');
   
@@ -35,6 +38,20 @@ async function globalTeardown() {
   } catch (error) {
     console.warn('Error during test artifacts cleanup:', error);
   }
+  
+  // Clean up emulator log files
+  const logFiles = ['firestore-debug.log', 'firebase-debug.log', 'ui-debug.log'];
+  logFiles.forEach(logFile => {
+    const logPath = path.join(process.cwd(), logFile);
+    if (fs.existsSync(logPath)) {
+      try {
+        fs.unlinkSync(logPath);
+        console.log(`Cleaned up ${logFile}`);
+      } catch (error) {
+        console.warn(`Could not delete ${logFile}:`, error);
+      }
+    }
+  });
   
   // Log test execution summary
   console.log('Global teardown complete');

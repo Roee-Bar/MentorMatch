@@ -14,7 +14,7 @@
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
     "test:setup-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-test-partnerships.ts",
     "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "rm -f firestore-debug.log firebase-debug.log ui-debug.log && playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
@@ -30,7 +30,7 @@
     "test:e2e:supervisor": "playwright test --grep '@supervisor'",
     "test:e2e:admin": "playwright test --grep '@admin'",
     "test:e2e:auth": "playwright test --grep '@auth'",
-    "emulators:start": "firebase emulators:start",
+    "emulators:start": "FIREBASE_EMULATOR_DEBUG_LOG=/dev/null _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' firebase emulators:start",
     "emulators:exec": "firebase emulators:exec --only auth,firestore"
   },
   "dependencies": {
