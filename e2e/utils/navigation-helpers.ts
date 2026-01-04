@@ -9,56 +9,51 @@ import { waitForURL } from './wait-strategies';
 import { verifyAuthenticationComplete } from './auth-helpers';
 
 /**
- * Wait for role-based redirect after login
- * Handles the two-step redirect: '/' → '/authenticated/{role}'
+ * Wait for role-based redirect after authentication
+ * Simplified for direct auth injection - auth is faster, so redirects should be quicker
  */
 export async function waitForRoleBasedRedirect(
   page: Page,
   expectedRole: 'student' | 'supervisor' | 'admin',
-  timeout: number = 15000
+  timeout: number = 10000
 ): Promise<void> {
   const expectedPath = `/authenticated/${expectedRole}`;
   const startTime = Date.now();
+  const checkInterval = 300;
 
-  // First, wait for initial redirect to '/' (if not already there)
-  const currentUrl = page.url();
-  if (!currentUrl.endsWith('/') && !currentUrl.includes('/authenticated')) {
-    try {
-      await page.waitForURL(/\/($|\?)/, { timeout: 5000 });
-    } catch {
-      // If we're already past '/', continue
-    }
-  }
-
-  // Then wait for redirect to the role-specific dashboard
-  // Allow for intermediate redirects
+  // Wait for redirect to the role-specific dashboard
   while (Date.now() - startTime < timeout) {
     const url = page.url();
     
     if (url.includes(expectedPath)) {
-      // Wait a bit more to ensure navigation is complete
+      // Wait for navigation to complete
       await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
       return;
     }
 
-    // Check if we're still on home page, wait a bit more
+    // If we're on home page, wait for redirect
     if (url.endsWith('/') || url.match(/^https?:\/\/[^/]+\/?$/)) {
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(checkInterval);
       continue;
     }
 
-    // If we're on a different authenticated route, that's also acceptable
+    // If we're on a different authenticated route, wait a bit and check if redirect happens
     if (url.includes('/authenticated/')) {
-      await page.waitForTimeout(200);
+      await page.waitForTimeout(checkInterval);
       continue;
     }
 
-    // Wait a bit before checking again
-    await page.waitForTimeout(200);
+    // Wait before checking again
+    await page.waitForTimeout(checkInterval);
   }
 
   // Final check with waitForURL for better error message
-  await waitForURL(page, new RegExp(expectedPath), timeout);
+  const currentUrl = page.url();
+  if (!currentUrl.includes(expectedPath)) {
+    throw new Error(
+      `Expected redirect to ${expectedPath} within ${timeout}ms, but current URL is: ${currentUrl}`
+    );
+  }
 }
 
 /**

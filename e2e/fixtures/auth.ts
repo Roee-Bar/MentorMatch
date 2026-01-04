@@ -42,114 +42,127 @@ async function createAuthToken(uid: string): Promise<string> {
 }
 
 /**
- * Authenticate a user in the browser context with retry logic
- * Uses email/password login for reliability
+ * Authenticate a user in the browser context using direct Firebase auth injection
+ * Uses signInWithCustomToken for fast, reliable authentication
  */
 async function authenticateUser(
   page: any,
   email: string,
   password: string,
-  authToken?: string,
+  authToken: string,
   maxRetries: number = 3
 ): Promise<void> {
+  if (!authToken) {
+    throw new Error('Auth token is required for direct authentication');
+  }
+
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Always use email/password login for reliability
-      // The custom token approach is complex with modular Firebase SDK
-      await page.goto('/login');
-      
-      // Wait for login form to be ready
-      await page.waitForSelector('input[type="email"]', { timeout: 10000 });
-      await page.waitForSelector('input[type="password"]', { timeout: 10000 });
-      
-      // Fill and submit login form
-      await page.fill('input[type="email"]', email);
-      await page.fill('input[type="password"]', password);
-      await page.click('button[type="submit"]');
-      
+      // Clear any existing auth state before authentication
+      await page.evaluate(() => {
+        window.localStorage.clear();
+        window.sessionStorage.clear();
+      });
+      await page.context().clearCookies();
+
+      // Navigate to home page first to ensure Firebase is initialized
+      await page.goto('/', { waitUntil: 'networkidle' });
+
+      // Wait a bit for Firebase to be fully initialized
+      await page.waitForTimeout(500);
+
+      // Inject Firebase auth and sign in with custom token directly
+      await page.evaluate(async (token: string) => {
+        try {
+          // Import Firebase auth functions
+          const { signInWithCustomToken } = await import('firebase/auth');
+          const { auth } = await import('@/lib/firebase');
+
+          // Sign in with custom token
+          await signInWithCustomToken(auth, token);
+        } catch (error: any) {
+          throw new Error(`Failed to sign in with custom token: ${error?.message || 'Unknown error'}`);
+        }
+      }, authToken);
+
       // Wait for authentication to complete
-      await verifyAuthenticationComplete(page, 20000);
+      await verifyAuthenticationComplete(page, 10000);
+
+      // Wait for redirect to role-specific route (handled by app/page.tsx)
+      // The app automatically redirects authenticated users to their dashboard
+      const startTime = Date.now();
+      const timeout = 15000;
       
-      // Wait for redirect - could be to home page first, then to role-specific route
-      await page.waitForURL(/\/(authenticated|dashboard|supervisor|admin|login|$)/, { timeout: 20000 });
-      
-      // If we're still on login page, authentication might have failed
-      const currentUrl = page.url();
-      if (currentUrl.includes('/login')) {
-        // Check for error message
-        const errorMessage = await page.locator('[role="alert"], .error, .text-red').first().textContent().catch(() => null);
-        if (errorMessage) {
-          throw new Error(`Login failed: ${errorMessage}`);
+      while (Date.now() - startTime < timeout) {
+        const currentUrl = page.url();
+        
+        // Check if we're on a role-specific route
+        if (currentUrl.includes('/authenticated/')) {
+          // Wait for navigation to complete
+          await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
+          return;
         }
-        // Wait a bit more in case redirect is delayed
-        await page.waitForTimeout(2000);
-        const newUrl = page.url();
-        if (newUrl.includes('/login')) {
-          throw new Error('Login failed - still on login page after submission');
+        
+        // If still on home page, wait a bit for redirect
+        if (currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/)) {
+          await page.waitForTimeout(500);
+          continue;
         }
+        
+        // If we're somewhere else, wait a bit and check again
+        await page.waitForTimeout(500);
       }
-      
-      // If we're on home page, wait for redirect to role-specific route
-      if (currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/)) {
-        // Wait for redirect to role-specific route (handled by app/page.tsx)
-        await page.waitForURL(/\/authenticated\/(student|supervisor|admin)/, { timeout: 15000 }).catch(async () => {
-          // If redirect doesn't happen, check if we're authenticated
-          // Sometimes the redirect happens but URL check fails
-          const finalUrl = page.url();
-          if (!finalUrl.includes('/authenticated/')) {
-            // Give it one more chance
-            await page.waitForTimeout(2000);
-            const checkUrl = page.url();
-            if (!checkUrl.includes('/authenticated/')) {
-              // Still not redirected, but authentication might be complete
-              // Verify auth state
-              const isAuth = await page.evaluate(() => {
-                try {
-                  // Check if Firebase auth is available (app uses modular SDK)
-                  // The app might expose auth differently
-                  return window.localStorage.getItem('firebase:authUser') !== null;
-                } catch {
-                  return false;
-                }
-              });
-              if (!isAuth) {
-                throw new Error('Authentication not complete after login');
-              }
-            }
-          }
-        });
+
+      // Final check - verify we're authenticated even if redirect didn't happen
+      const isAuth = await page.evaluate(async () => {
+        const { auth } = await import('@/lib/firebase');
+        return auth.currentUser !== null;
+      });
+
+      if (!isAuth) {
+        throw new Error('Authentication not complete after sign in');
       }
-      
-      // Verify we're authenticated by checking URL or auth state
-      const finalUrl = page.url();
-      if (!finalUrl.includes('/authenticated/') && !finalUrl.endsWith('/')) {
-        // Might be on an error page or something else
-        throw new Error(`Unexpected URL after login: ${finalUrl}`);
-      }
-      
+
+      // If we're authenticated but not redirected, that's acceptable
+      // The test can navigate to the dashboard manually if needed
       return;
     } catch (error) {
       lastError = error as Error;
+      
+      // Log attempt for debugging
+      if (process.env.PLAYWRIGHT_VERBOSE === 'true') {
+        console.log(`Authentication attempt ${attempt + 1}/${maxRetries} failed:`, error);
+      }
       
       // If not the last attempt, wait with exponential backoff
       if (attempt < maxRetries - 1) {
         const backoffDelay = Math.min(1000 * Math.pow(2, attempt), 5000);
         await page.waitForTimeout(backoffDelay);
-        
-        // Clear any existing auth state before retry
-        await page.evaluate(() => {
-          window.localStorage.clear();
-          window.sessionStorage.clear();
-        });
-        await page.context().clearCookies();
       }
     }
   }
 
-  // If all retries failed, throw the last error
-  throw new Error(`Authentication failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+  // If all retries failed, throw detailed error
+  const currentUrl = page.url();
+  const authState = await page.evaluate(async () => {
+    try {
+      const { auth } = await import('@/lib/firebase');
+      return {
+        currentUser: auth.currentUser !== null,
+        currentUserId: auth.currentUser?.uid || null,
+      };
+    } catch {
+      return { currentUser: false, currentUserId: null };
+    }
+  }).catch(() => ({ currentUser: false, currentUserId: null }));
+
+  throw new Error(
+    `Authentication failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}\n` +
+    `Current URL: ${currentUrl}\n` +
+    `Auth state: ${JSON.stringify(authState)}`
+  );
 }
 
 export const test = base.extend<AuthFixtures>({
@@ -221,4 +234,5 @@ export const test = base.extend<AuthFixtures>({
 });
 
 export { expect } from '@playwright/test';
+
 

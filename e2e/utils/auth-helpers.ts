@@ -8,79 +8,82 @@ import { Page } from '@playwright/test';
 
 /**
  * Verify that authentication is complete in the browser context
- * Checks Firebase auth state and user profile
- * Works with both modular SDK (v9+) and compat SDK
+ * Checks Firebase auth state using modular SDK (v9+)
  */
 export async function verifyAuthenticationComplete(
   page: Page,
   timeout: number = 15000
 ): Promise<void> {
   const startTime = Date.now();
-  const checkInterval = 100;
+  const checkInterval = 200;
 
   while (Date.now() - startTime < timeout) {
-    const isAuthenticated = await page.evaluate(() => {
-      // Check localStorage for auth state (works with both SDKs)
-      // Firebase stores auth state in localStorage
-      const authKeys = Object.keys(localStorage).filter(key => 
-        key.includes('firebase') || key.includes('auth')
-      );
-      
-      // Check for Firebase auth user in localStorage
-      for (const key of authKeys) {
-        try {
-          const value = localStorage.getItem(key);
-          if (value) {
-            const parsed = JSON.parse(value);
-            // Check if it looks like a user object
-            if (parsed && (parsed.uid || parsed.user || parsed.stsTokenManager)) {
-              return true;
-            }
-          }
-        } catch {
-          // Not JSON, continue
+    const isAuthenticated = await page.evaluate(async () => {
+      try {
+        // Import Firebase auth from the app's firebase module
+        // This ensures we're checking the same auth instance the app uses
+        const { auth } = await import('@/lib/firebase');
+        
+        // Check if currentUser is set (modular SDK)
+        if (auth && auth.currentUser) {
+          return true;
         }
+        
+        // If currentUser is null, wait for auth state change
+        // This handles cases where auth is still initializing
+        return false;
+      } catch (error) {
+        // If import fails or auth is not available, return false
+        return false;
       }
-      
-      // Check if Firebase is available and user is authenticated (compat SDK)
-      const firebase = (window as any).firebase;
-      if (firebase?.auth) {
-        try {
-          const auth = firebase.auth();
-          const currentUser = auth.currentUser;
-          if (currentUser) {
-            return true;
-          }
-        } catch {
-          // Auth not available, continue
-        }
-      }
-      
-      // Check for modular SDK (v9+) - the app might expose it differently
-      // The app uses getAuth from firebase/auth, which doesn't expose on window
-      // So we rely on localStorage checks above
-      
-      return false;
     });
 
     if (isAuthenticated) {
       // Wait a bit more to ensure auth state is fully propagated
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(300);
       return;
     }
 
     await page.waitForTimeout(checkInterval);
   }
 
-  throw new Error(`Authentication not complete within ${timeout}ms`);
+  // Get current auth state for better error message
+  const authState = await page.evaluate(async () => {
+    try {
+      const { auth } = await import('@/lib/firebase');
+      return {
+        authAvailable: !!auth,
+        currentUser: auth?.currentUser !== null,
+        currentUserId: auth?.currentUser?.uid || null,
+      };
+    } catch (error: any) {
+      return {
+        authAvailable: false,
+        currentUser: false,
+        currentUserId: null,
+        error: error?.message || 'Unknown error',
+      };
+    }
+  }).catch(() => ({
+    authAvailable: false,
+    currentUser: false,
+    currentUserId: null,
+    error: 'Failed to check auth state',
+  }));
+
+  throw new Error(
+    `Authentication not complete within ${timeout}ms. ` +
+    `Auth state: ${JSON.stringify(authState)}`
+  );
 }
 
 /**
  * Wait for authentication to complete with retry logic
+ * Simplified for direct auth injection
  */
 export async function waitForAuthentication(
   page: Page,
-  timeout: number = 15000
+  timeout: number = 10000
 ): Promise<void> {
   return verifyAuthenticationComplete(page, timeout);
 }
