@@ -94,7 +94,7 @@ async function authenticateUser(
       // If we're on home page, wait for redirect to role-specific route
       if (currentUrl.endsWith('/') || currentUrl.match(/^https?:\/\/[^/]+\/?$/)) {
         // Wait for redirect to role-specific route (handled by app/page.tsx)
-        await page.waitForURL(/\/authenticated\/(student|supervisor|admin)/, { timeout: 15000 }).catch(() => {
+        await page.waitForURL(/\/authenticated\/(student|supervisor|admin)/, { timeout: 15000 }).catch(async () => {
           // If redirect doesn't happen, check if we're authenticated
           // Sometimes the redirect happens but URL check fails
           const finalUrl = page.url();

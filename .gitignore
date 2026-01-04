@@ -35,6 +35,8 @@ docs/testing/
 
 # scripts folder (local development utilities)
 /scripts/
+# Exception: test-setup.ts is part of the testing infrastructure
+!/scripts/test-setup.ts
 
 # playwright MCP screenshots
 .playwright-mcp/
@@ -43,6 +45,7 @@ docs/testing/
 /test-results/
 /playwright-report/
 /playwright/.cache/
+test-results.json
 *.webm
 *.png
 *.jpg

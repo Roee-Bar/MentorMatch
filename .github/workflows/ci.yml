@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 # Trigger on pull requests and pushes to main
 on:
@@ -6,6 +6,16 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 # Prevent overlapping workflow runs
 concurrency:
@@ -132,139 +142,24 @@ jobs:
           echo "::group::Starting Firebase Emulators"
           _JAVA_OPTIONS='-XX:+IgnoreUnrecognizedVMOptions' \
           FIREBASE_EMULATOR_DEBUG_LOG=/dev/null \
-          npx firebase emulators:start --only auth,firestore 2>&1 | \
-            grep -v 'Multiple projectIds' | \
-            grep -v 'WARNING: A terminally deprecated' | \
-            grep -v 'INFO: Detected HTTP/2' > /tmp/firebase-emulator.log 2>&1 &
+          npx firebase emulators:start --only auth,firestore > /tmp/firebase-emulator.log 2>&1 &
           echo "::endgroup::"
           
           echo "Waiting for emulators to be ready..."
-          for i in {1..60}; do
-            if curl -f http://localhost:4000 > /dev/null 2>&1; then
-              echo "✓ Emulators are ready!"
-              break
-            fi
-            if [ $i -eq 60 ]; then
-              echo "::error::Emulators failed to start within timeout"
-              echo "::group::Firebase Emulator Logs"
-              cat /tmp/firebase-emulator.log || true
-              echo "::endgroup::"
-              pkill -f "firebase emulators" || true
-              exit 1
-            fi
-            sleep 2
-          done
-
-      - name: Start Next.js Server
-        run: |
-          echo "::group::Starting Next.js Development Server"
-          # Start server in background and capture PID
-          npm run dev > /tmp/nextjs-server.log 2>&1 &
-          SERVER_PID=$!
-          echo "Started server with PID: $SERVER_PID"
-          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
-          echo "::endgroup::"
-          
-          # Give server a moment to start
-          sleep 5
-          
-          # Check if process is still running
-          if ! kill -0 $SERVER_PID 2>/dev/null; then
-            echo "::error::Server process died immediately after startup"
-            echo "::group::Next.js Server Logs"
-            cat /tmp/nextjs-server.log || true
+          timeout 120 bash -c 'until curl -f http://localhost:4000 > /dev/null 2>&1; do sleep 2; done' || {
+            echo "::error::Emulators failed to start within timeout"
+            echo "::group::Firebase Emulator Logs"
+            cat /tmp/firebase-emulator.log || true
             echo "::endgroup::"
             exit 1
-          fi
-          
-          echo "Waiting for Next.js server to be ready..."
-          for i in {1..90}; do
-            # Check if process is still running
-            if ! kill -0 $SERVER_PID 2>/dev/null; then
-              echo "::error::Server process died during startup"
-              echo "::group::Next.js Server Logs"
-              cat /tmp/nextjs-server.log || true
-              echo "::endgroup::"
-              exit 1
-            fi
-            
-            # Check if server is responding
-            if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
-              echo "✓ Next.js server is ready!"
-              echo "Server is responding at http://localhost:3000"
-              break
-            fi
-            
-            if [ $i -eq 90 ]; then
-              echo "::error::Next.js server failed to start within timeout"
-              echo "::group::Next.js Server Logs"
-              cat /tmp/nextjs-server.log || true
-              echo "::endgroup::"
-              echo "::group::Server Process Check"
-              ps aux | grep -E "next|node.*dev" || echo "No server processes found"
-              echo "::endgroup::"
-              echo "::group::Port Check"
-              lsof -i :3000 || echo "Port 3000 is not in use"
-              echo "::endgroup::"
-              pkill -f "next dev" || true
-              exit 1
-            fi
-            
-            if [ $((i % 10)) -eq 0 ]; then
-              echo "Still waiting... ($i/90) - Server logs so far:"
-              tail -20 /tmp/nextjs-server.log || true
-            fi
-            sleep 2
-          done
+          }
+          echo "✓ Emulators are ready!"
 
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
           CI: true
         continue-on-error: false
-
-      - name: Stop Next.js Server
-        if: always()
-        run: |
-          echo "Stopping Next.js server..."
-          # Try to kill by PID if available
-          if [ -n "$SERVER_PID" ]; then
-            kill $SERVER_PID 2>/dev/null || true
-          fi
-          # Also kill by process name to ensure cleanup
-          pkill -f "next dev" || true
-          pkill -f "node.*next" || true
-          sleep 2
-          # Verify server is stopped
-          if lsof -i :3000 > /dev/null 2>&1; then
-            echo "Warning: Port 3000 is still in use after cleanup attempt"
-            lsof -i :3000 || true
-          else
-            echo "✓ Server stopped successfully"
-          fi
-
-      - name: Debug Server Issues on Failure
-        if: failure()
-        run: |
-          echo "::group::Next.js Server Process Info"
-          ps aux | grep -E "next|node.*dev" | head -20 || echo "No Next.js processes found"
-          echo "::endgroup::"
-          
-          echo "::group::Port Status"
-          lsof -i :3000 || echo "Port 3000 is not in use"
-          echo "::endgroup::"
-          
-          echo "::group::Network Connections"
-          netstat -tuln | grep -E ":3000|:9099|:8081" || echo "No relevant network connections found"
-          echo "::endgroup::"
-          
-          echo "::group::Firebase Emulator Status"
-          curl -s http://localhost:4000 || echo "Firebase emulator UI not accessible"
-          echo "::endgroup::"
-          
-          echo "::group::Health Check Test"
-          curl -v http://localhost:3000/api/health 2>&1 || echo "Health check failed"
-          echo "::endgroup::"
 
       - name: Stop Firebase Emulators
         if: always()
@@ -291,3 +186,57 @@ jobs:
           path: test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  # Deploy job - runs after tests pass, only on main branch
+  deploy:
+    name: Deploy to Vercel
+    needs: [lint, typecheck, build, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Only deploy on pushes to main branch or manual workflow dispatch
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --silent
+
+      - name: Set build environment variables
+        run: |
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}" >> $GITHUB_ENV
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy Summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Deployment Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Deployment passed!**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment failed.**" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Environment: ${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Note: Actual deployment to Vercel is handled by Vercel's GitHub integration." >> $GITHUB_STEP_SUMMARY
