@@ -58,80 +58,7 @@ function VerifyEmailForm() {
           }).catch(() => {}); // Ignore errors in logging
         } catch {}
 
-        // Check if we're in test mode
-        const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
-
-        if (isTestEnv) {
-          // Use test-specific verification endpoint
-          try {
-            const response = await fetch(`/api/auth/test-verify-email?mode=${mode}&oobCode=${encodeURIComponent(oobCode)}`);
-            const data = await response.json();
-
-            // Debug logging in test mode
-            if (isTestEnv) {
-              console.log('Test verify email response:', { ok: response.ok, status: response.status, data });
-            }
-
-            if (!response.ok) {
-              // Handle error responses
-              const errorMessage = data.error || 'Verification failed';
-              if (errorMessage.includes('expired')) {
-                setResult({
-                  state: 'expired',
-                  message: ERROR_MESSAGES.VERIFICATION_EXPIRED,
-                  email: data.email,
-                });
-              } else if (errorMessage.includes('already verified') || data.alreadyVerified) {
-                setResult({
-                  state: 'already-verified',
-                  message: ERROR_MESSAGES.VERIFICATION_ALREADY_VERIFIED,
-                  email: data.email,
-                });
-                startCountdown(3);
-              } else {
-                setResult({
-                  state: 'invalid',
-                  message: errorMessage || ERROR_MESSAGES.VERIFICATION_INVALID,
-                  email: data.email,
-                });
-              }
-              return;
-            }
-
-            // Success
-            if (data.success && data.data) {
-              setResult({
-                state: data.data.alreadyVerified ? 'already-verified' : 'success',
-                message: data.data.alreadyVerified 
-                  ? ERROR_MESSAGES.VERIFICATION_ALREADY_VERIFIED 
-                  : SUCCESS_MESSAGES.EMAIL_VERIFIED,
-                email: data.data.email,
-              });
-              startCountdown(3);
-            } else {
-              // Log what we got if it's not the expected format
-              if (isTestEnv) {
-                console.error('Unexpected response format:', data);
-              }
-              setResult({
-                state: 'error',
-                message: ERROR_MESSAGES.VERIFICATION_FAILED,
-              });
-            }
-          } catch (error: any) {
-            // Log network errors in test mode
-            if (isTestEnv) {
-              console.error('Test verify email error:', error);
-            }
-            setResult({
-              state: 'error',
-              message: error.message || ERROR_MESSAGES.VERIFICATION_NETWORK_ERROR,
-            });
-          }
-          return;
-        }
-
-        // Production flow: Use Firebase SDK
+        // Use Firebase SDK
         // Check the action code to get email and verify it's valid
         let email: string | undefined;
         try {
@@ -281,10 +208,7 @@ function VerifyEmailForm() {
   }, [searchParams]);
 
   const startCountdown = (seconds: number) => {
-    const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
-    // In test mode, use longer countdown to ensure messages are visible
-    const countdownSeconds = isTestEnv ? Math.max(seconds, 5) : seconds;
-    setCountdown(countdownSeconds);
+    setCountdown(seconds);
     
     const interval = setInterval(() => {
       setCountdown((prev) => {

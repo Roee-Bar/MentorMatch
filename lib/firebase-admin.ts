@@ -9,21 +9,13 @@
 
 import * as admin from 'firebase-admin';
 import { logger } from './logger';
-import { testAuth, testDb } from './test-db/adapter';
 
-// Check if we're in test mode
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+// Initialize Firebase Admin SDK
+// Track if we've already logged the minimal config warning to avoid duplicate logs
+let hasLoggedMinimalConfigWarning = false;
 
-// In test mode, use in-memory test database instead of Firebase
-if (isTestEnv) {
-  // Test mode - exports are handled at the end
-} else {
-  // Production/development mode - use real Firebase Admin SDK
-  // Track if we've already logged the minimal config warning to avoid duplicate logs
-  let hasLoggedMinimalConfigWarning = false;
-
-  // Initialize Firebase Admin SDK only if not already initialized
-  if (!admin.apps.length) {
+// Initialize Firebase Admin SDK only if not already initialized
+if (!admin.apps.length) {
     const isCI = process.env.CI === 'true';
   
     const projectId = process.env.FIREBASE_ADMIN_PROJECT_ID;
@@ -155,28 +147,11 @@ if (isTestEnv) {
       }
     }
   }
-}
 
-// Export services based on environment
-export const adminAuth = isTestEnv 
-  ? testAuth 
-  : admin.auth();
-
-export const adminDb = isTestEnv 
-  ? (testDb as any)
-  : admin.firestore();
-
-export const adminStorage = isTestEnv
-  ? ({
-      bucket: () => ({
-        file: () => ({
-          save: async () => {},
-          delete: async () => {},
-          exists: async () => [false],
-        }),
-      }),
-    } as any)
-  : admin.storage();
+// Export services
+export const adminAuth = admin.auth();
+export const adminDb = admin.firestore();
+export const adminStorage = admin.storage();
 
 // Export admin instance for advanced use cases
-export default isTestEnv ? ({} as typeof admin) : admin;
+export default admin;

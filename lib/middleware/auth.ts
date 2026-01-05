@@ -40,64 +40,13 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
     }
     
     // Verify Firebase token using Admin SDK
-    // In test mode, we use custom tokens directly (no ID token conversion needed)
-    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
-    
-    let decodedToken: DecodedIdToken;
-    if (isTestEnv) {
-      // In test mode, verify custom token directly
-      try {
-        decodedToken = await withAuthTimeout(
-          adminAuth.verifyIdToken(token) as Promise<DecodedIdToken>,
-          'verifyIdToken (test)'
-        );
-      } catch (verifyError: any) {
-        throw verifyError;
-      }
-    } else {
-      // In production, verify ID token with revocation check
-      decodedToken = await withAuthTimeout(
-        adminAuth.verifyIdToken(token, true) as Promise<DecodedIdToken>,
-        'verifyIdToken (production)'
-      );
-    }
+    // In production, verify ID token with revocation check
+    const decodedToken = await withAuthTimeout(
+      adminAuth.verifyIdToken(token, true) as Promise<DecodedIdToken>,
+      'verifyIdToken'
+    );
     
     // Get user profile from Firestore using Admin SDK (bypasses security rules)
-    if (isTestEnv) {
-      logger.debug('[TEST AUTH] Verifying token for uid', {
-        context: 'Auth',
-        data: { uid: decodedToken.uid }
-      });
-    }
-    
-    if (isTestEnv) {
-      logger.debug('[TEST AUTH] Attempting to get user profile for uid', {
-        context: 'Auth',
-        data: { uid: decodedToken.uid }
-      });
-      // Direct check before using service
-      try {
-        const { testDb } = await import('@/lib/test-db/adapter');
-        const userDoc = await testDb.collection('users').doc(decodedToken.uid).get();
-        logger.debug('[TEST AUTH] Direct DB check - doc exists', {
-          context: 'Auth',
-          data: { uid: decodedToken.uid, exists: userDoc.exists }
-        });
-        if (userDoc.exists) {
-          const docData = userDoc.data();
-          logger.debug('[TEST AUTH] Direct DB check - doc data', {
-            context: 'Auth',
-            data: { uid: decodedToken.uid, docData: JSON.stringify(docData, null, 2), docId: userDoc.id }
-          });
-        }
-      } catch (dbError: any) {
-        logger.error('[TEST AUTH] Error in direct DB check', dbError, {
-          context: 'Auth',
-          data: { uid: decodedToken.uid }
-        });
-      }
-    }
-    
     let profile;
     try {
       profile = await withAuthTimeout(
@@ -108,47 +57,12 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       throw serviceError;
     }
     
-    if (isTestEnv) {
-      logger.debug('[TEST AUTH] userService.getUserById result', {
-        context: 'Auth',
-        data: { profile: profile ? { id: profile.id, email: profile.email, role: profile.role } : null }
-      });
-    }
-    
     if (!profile) {
-      // Log this case specifically as it's a common issue
-      if (isTestEnv) {
-        logger.error('[TEST AUTH] User profile not found for uid', new Error('User profile not found'), {
-          context: 'Auth',
-          data: { uid: decodedToken.uid }
-        });
-        // Try repository directly
-        try {
-          const { userRepository } = await import('@/lib/repositories/user-repository');
-          const repoResult = await userRepository.findById(decodedToken.uid);
-          logger.error('[TEST AUTH] Repository.findById result', new Error('Repository check'), {
-            context: 'Auth',
-            data: { repoResult: repoResult ? { id: repoResult.id, email: repoResult.email } : null }
-          });
-        } catch (repoError: any) {
-          logger.error('[TEST AUTH] Repository error', repoError, {
-            context: 'Auth',
-            data: { uid: decodedToken.uid }
-          });
-        }
-      }
       logger.warn('User profile not found for uid', {
         context: 'Auth',
         data: { uid: decodedToken.uid }
       });
       return { authenticated: false, user: null };
-    }
-    
-    if (isTestEnv) {
-      logger.debug('[TEST AUTH] User profile found', {
-        context: 'Auth',
-        data: { uid: profile.id, email: profile.email, role: profile.role }
-      });
     }
 
     // Check email verification status
