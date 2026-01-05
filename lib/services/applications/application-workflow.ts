@@ -12,6 +12,7 @@ import { supervisorRepository } from '@/lib/repositories/supervisor-repository';
 import { applicationRepository } from '@/lib/repositories/application-repository';
 import { serviceEvents } from '@/lib/services/shared/events';
 import type { Application, ApplicationStatus } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'ApplicationWorkflowService';
 
@@ -57,55 +58,65 @@ export const ApplicationWorkflowService = {
       const shouldUpdateCapacity = application.isLeadApplication || !application.linkedApplicationId;
       
       if ((isApproving || isUnapproving) && shouldUpdateCapacity) {
-        await adminDb.runTransaction(async (transaction) => {
-          const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
-          const supervisorSnap = await transaction.get(supervisorRef);
+        try {
+          await adminDb.runTransaction(async (transaction: Transaction) => {
+            const supervisorRef = supervisorRepository.getDocumentRef(application.supervisorId);
+            const supervisorSnap = await transaction.get(supervisorRef);
 
-          if (!supervisorSnap.exists) {
-            throw new Error('Supervisor not found');
-          }
-
-          const supervisorData = supervisorSnap.data();
-          const currentCapacity = supervisorData?.currentCapacity || 0;
-          const maxCapacity = supervisorData?.maxCapacity || 0;
-
-          if (isApproving) {
-            if (currentCapacity >= maxCapacity) {
-              throw new Error(
-                `Cannot approve: Maximum capacity reached (${currentCapacity}/${maxCapacity} projects). Please contact an administrator to increase capacity.`
-              );
+            if (!supervisorSnap.exists) {
+              throw new Error('Supervisor not found');
             }
 
-            transaction.update(supervisorRef, {
-              currentCapacity: currentCapacity + 1,
-              updatedAt: new Date()
-            });
+            const supervisorData = supervisorSnap.data();
+            const currentCapacity = supervisorData?.currentCapacity || 0;
+            const maxCapacity = supervisorData?.maxCapacity || 0;
 
-          } else if (isUnapproving) {
-            const newCapacity = Math.max(0, currentCapacity - 1);
-            transaction.update(supervisorRef, {
-              currentCapacity: newCapacity,
-              updatedAt: new Date()
-            });
-          }
+            if (isApproving) {
+              if (currentCapacity >= maxCapacity) {
+                throw new Error(
+                  `Cannot approve: Maximum capacity reached (${currentCapacity}/${maxCapacity} projects). Please contact an administrator to increase capacity.`
+                );
+              }
 
-          // Update application status
-          const applicationRef = applicationRepository.getDocumentRef(applicationId);
-          const updateData: Record<string, unknown> = {
-            status: newStatus,
-            lastUpdated: new Date(),
-          };
-          
-          if (feedback) {
-            updateData.supervisorFeedback = feedback;
-          }
-          
-          if (newStatus === 'approved' || newStatus === 'rejected') {
-            updateData.responseDate = new Date();
-          }
+              transaction.update(supervisorRef, {
+                currentCapacity: currentCapacity + 1,
+                updatedAt: new Date()
+              });
 
-          transaction.update(applicationRef, updateData);
-        });
+            } else if (isUnapproving) {
+              const newCapacity = Math.max(0, currentCapacity - 1);
+              transaction.update(supervisorRef, {
+                currentCapacity: newCapacity,
+                updatedAt: new Date()
+              });
+            }
+
+            // Update application status
+            const applicationRef = applicationRepository.getDocumentRef(applicationId);
+            const updateData: Record<string, unknown> = {
+              status: newStatus,
+              lastUpdated: new Date(),
+            };
+            
+            if (feedback) {
+              updateData.supervisorFeedback = feedback;
+            }
+            
+            if (newStatus === 'approved' || newStatus === 'rejected') {
+              updateData.responseDate = new Date();
+            }
+
+            transaction.update(applicationRef, updateData);
+          });
+        } catch (transactionError: unknown) {
+          logger.service.error(SERVICE_NAME, 'updateApplicationStatus - transaction failed', transactionError, {
+            applicationId,
+            newStatus,
+            supervisorId: application.supervisorId
+          });
+          // Re-throw to be caught by outer try-catch with proper error message
+          throw transactionError;
+        }
 
       } else {
         // No capacity change needed - update normally

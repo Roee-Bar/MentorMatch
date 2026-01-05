@@ -9,6 +9,8 @@ import { verifyAuth, AuthResult } from './auth';
 import { handleApiError } from './errorHandler';
 import { ApiResponse } from './response';
 import { logger } from '@/lib/logger';
+import { withCorrelationId, generateCorrelationId, getCorrelationId } from './correlation-id';
+import { withTimeout, DEFAULT_TIMEOUTS } from './timeout';
 
 /**
  * API Context with typed parameters and optional cached resource
@@ -46,6 +48,9 @@ export interface AuthOptions<TParams = Record<string, string>, TCached = undefin
   
   /** Name of the resource for better error messages (e.g., "Application", "Partnership") */
   resourceName?: string;
+  
+  /** User must have verified their email address */
+  requireVerifiedEmail?: boolean;
 }
 
 /**
@@ -129,13 +134,29 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
   options?: AuthOptions<TParams, TCached>
 ) {
   return async (req: NextRequest, context: any) => {
-    const authResult = await verifyAuth(req);
+    // Get or generate correlation ID from header or generate new one
+    const correlationId = req.headers.get('X-Correlation-ID') || generateCorrelationId();
+    
+    // Run entire handler within correlation ID context
+    return withCorrelationId(correlationId, async () => {
+      const authResult = await verifyAuth(req);
     
     if (!authResult.authenticated || !authResult.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const user = authResult.user;
+    
+    // Check email verification requirement first (before other authorization checks)
+    if (options?.requireVerifiedEmail) {
+      // Allow admins to bypass verification for support cases
+      if (user.role !== 'admin' && !user.emailVerified) {
+        return ApiResponse.error(
+          'Email verification required. Please verify your email address to access this resource.',
+          403
+        );
+      }
+    }
     
     // Apply authorization checks if options provided
     if (options) {
@@ -167,6 +188,21 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
         const hasAllowedRole = options.allowedRoles?.includes(user.role) || false;
         
         if (!isOwner && !isAdmin && !hasAllowedRole) {
+          // Log authorization failure for debugging (only in development/test)
+          if (process.env.NODE_ENV !== 'production') {
+            logger.debug('Authorization check failed', {
+              context: 'API',
+              data: {
+                userUid: user.uid,
+                resourceId,
+                isOwner,
+                isAdmin,
+                userRole: user.role,
+                hasAllowedRole,
+                allowedRoles: options.allowedRoles
+              }
+            });
+          }
           return ApiResponse.forbidden('You do not have permission to access this resource');
         }
       }
@@ -180,11 +216,33 @@ export function withAuth<TParams = Record<string, string>, TCached = undefined>(
       }
     }
     
-    try {
-      return await handler(req, context, user);
-    } catch (error) {
-      return handleApiError(error);
-    }
+      try {
+        // Wrap handler execution with timeout
+        const response = await withTimeout(
+          handler(req, context, user),
+          DEFAULT_TIMEOUTS.API_REQUEST,
+          `${req.method} ${req.nextUrl.pathname}`
+        );
+        
+        // Add correlation ID to response header
+        const correlationId = getCorrelationId();
+        if (correlationId) {
+          response.headers.set('X-Correlation-ID', correlationId);
+        }
+        
+        return response;
+      } catch (error) {
+        const errorResponse = handleApiError(error);
+        
+        // Add correlation ID to error response header
+        const correlationId = getCorrelationId();
+        if (correlationId) {
+          errorResponse.headers.set('X-Correlation-ID', correlationId);
+        }
+        
+        return errorResponse;
+      }
+    });
   };
 }
 
@@ -202,21 +260,54 @@ export function withRoles<TParams = Record<string, string>>(
   handler: (req: NextRequest, context: ApiContext<TParams, undefined>, user: NonNullable<AuthResult['user']>) => Promise<NextResponse>
 ) {
   return async (req: NextRequest, context: any) => {
-    const authResult = await verifyAuth(req);
+    // Get or generate correlation ID from header or generate new one
+    const correlationId = req.headers.get('X-Correlation-ID') || generateCorrelationId();
     
-    if (!authResult.authenticated || !authResult.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    if (!allowedRoles.includes(authResult.user.role)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
-    
-    try {
-      return await handler(req, context, authResult.user);
-    } catch (error) {
-      return handleApiError(error);
-    }
+    // Run entire handler within correlation ID context
+    return withCorrelationId(correlationId, async () => {
+      const authResult = await verifyAuth(req);
+      
+      if (!authResult.authenticated || !authResult.user) {
+        const response = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const corrId = getCorrelationId();
+        if (corrId) response.headers.set('X-Correlation-ID', corrId);
+        return response;
+      }
+      
+      if (!allowedRoles.includes(authResult.user.role)) {
+        const response = NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        const corrId = getCorrelationId();
+        if (corrId) response.headers.set('X-Correlation-ID', corrId);
+        return response;
+      }
+      
+      try {
+        // Wrap handler execution with timeout
+        const response = await withTimeout(
+          handler(req, context, authResult.user),
+          DEFAULT_TIMEOUTS.API_REQUEST,
+          `${req.method} ${req.nextUrl.pathname}`
+        );
+        
+        // Add correlation ID to response header
+        const corrId = getCorrelationId();
+        if (corrId) {
+          response.headers.set('X-Correlation-ID', corrId);
+        }
+        
+        return response;
+      } catch (error) {
+        const errorResponse = handleApiError(error);
+        
+        // Add correlation ID to error response header
+        const corrId = getCorrelationId();
+        if (corrId) {
+          errorResponse.headers.set('X-Correlation-ID', corrId);
+        }
+        
+        return errorResponse;
+      }
+    });
   };
 }
 

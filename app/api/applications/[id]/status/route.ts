@@ -10,7 +10,8 @@ import { NextRequest } from 'next/server';
 import { applicationService } from '@/lib/services/applications/application-service';
 import { ApplicationWorkflowService } from '@/lib/services/applications/application-workflow';
 import { withAuth } from '@/lib/middleware/apiHandler';
-import { validateRequest, updateApplicationStatusSchema } from '@/lib/middleware/validation';
+import { updateApplicationStatusSchema } from '@/lib/middleware/validation';
+import { validateAndExtract, handleValidationError } from '@/lib/middleware/validation-helpers';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
 import type { ApplicationIdParams } from '@/types/api';
@@ -25,12 +26,17 @@ export const PATCH = withAuth<ApplicationIdParams, Application>(
     }
 
     // Validate request body
-    const validation = await validateRequest(request, updateApplicationStatusSchema);
-    if (!validation.valid) {
-      return ApiResponse.validationError(validation.error || 'Invalid request data');
+    let status: 'pending' | 'approved' | 'rejected' | 'revision_requested';
+    let feedback: string | undefined;
+    try {
+      const validatedData = await validateAndExtract(request, updateApplicationStatusSchema);
+      status = validatedData.status;
+      feedback = validatedData.feedback;
+    } catch (error) {
+      const validationResponse = handleValidationError(error);
+      if (validationResponse) return validationResponse;
+      throw error;
     }
-
-    const { status, feedback } = validation.data!;
 
     // Delegate to workflow service
     const result = await ApplicationWorkflowService.updateApplicationStatus(
@@ -41,6 +47,8 @@ export const PATCH = withAuth<ApplicationIdParams, Application>(
       user.role as 'admin' | 'supervisor' | 'student' | undefined
     );
 
+    // Note: ApplicationWorkflowService returns { success, error } not ServiceResult
+    // So we handle it manually but consistently
     if (!result.success) {
       logger.error('Application status update failed', undefined, {
         context: 'API',

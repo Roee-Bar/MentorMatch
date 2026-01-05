@@ -2,6 +2,7 @@
 // Export all custom hooks
 
 export { useAuth } from './useAuth';
+export { useEmailVerification } from './useEmailVerification';
 export { useLoadingState } from './useLoadingState';
 export { useAuthenticatedFetch } from './useAuthenticatedFetch';
 

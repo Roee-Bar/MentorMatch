@@ -64,83 +64,29 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// CRITICAL: Connect to emulators IMMEDIATELY after initialization
-// This must happen synchronously before any other code imports and uses these services
-if (typeof window !== 'undefined') {
-  // Check for emulator hosts
-  const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST;
-  const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_HOST || process.env.FIRESTORE_EMULATOR_HOST;
+// In test mode, we use in-memory database instead of Firebase emulators
+// Client SDK is still initialized but API routes handle authentication via test database
+if (typeof window !== 'undefined' && isTestEnv) {
+  console.log('[Firebase] Test mode: Using in-memory database (client SDK initialized for compatibility)');
+}
+
+/**
+ * Get auth token - works in both test and production mode
+ * In test mode, returns token from sessionStorage
+ * In production, returns token from Firebase Auth
+ */
+export async function getAuthToken(): Promise<string | null> {
+  const isTestEnv = typeof window !== 'undefined' && 
+    (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
   
-  // Check for test mode flags
-  const isTestMode = process.env.NEXT_PUBLIC_E2E_TEST === 'true' || 
-                     process.env.NEXT_PUBLIC_NODE_ENV === 'test' ||
-                     !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
-  
-  // Always connect to emulators if on localhost OR if test mode is detected
-  const shouldConnectToEmulators = !!authEmulatorHost || 
-                                   !!firestoreEmulatorHost || 
-                                   isTestMode || 
-                                   isLocalhostEnv;
-
-  if (shouldConnectToEmulators) {
-    const defaultAuthHost = 'localhost:9099';
-    const defaultFirestoreHost = 'localhost:8081';
-
-    // Connect to Auth Emulator
-    const authHost = authEmulatorHost || defaultAuthHost;
-    if (authHost && !authHost.includes('undefined') && authHost.trim() !== '') {
-      try {
-        // CRITICAL: connectAuthEmulator must be called before any auth operations
-        connectAuthEmulator(auth, `http://${authHost}`, { disableWarnings: true });
-        console.log('[Firebase] ✓ Connected to Auth Emulator at', `http://${authHost}`, '| Project:', projectId, '| AuthDomain:', authDomain);
-      } catch (error: any) {
-        const errorMessage = error?.message || '';
-        if (errorMessage.includes('already been initialized') || errorMessage.includes('already connected')) {
-          console.log('[Firebase] Auth Emulator already connected');
-        } else {
-          console.error('[Firebase] ❌ Failed to connect to Auth Emulator:', error);
-          // Re-throw in development to surface the issue
-          if (process.env.NODE_ENV !== 'production') {
-            console.error('[Firebase] Error details:', {
-              errorMessage,
-              authHost,
-              projectId,
-              authDomain,
-              isLocalhost: isLocalhostEnv,
-              isTestMode
-            });
-          }
-        }
-      }
+  if (isTestEnv && typeof window !== 'undefined') {
+    const testToken = sessionStorage.getItem('__test_id_token__');
+    if (testToken) {
+      return testToken;
     }
-
-    // Connect to Firestore Emulator
-    const firestoreHost = firestoreEmulatorHost || defaultFirestoreHost;
-    if (firestoreHost && !firestoreHost.includes('undefined') && firestoreHost.trim() !== '') {
-      try {
-        const [host, port] = firestoreHost.split(':');
-        connectFirestoreEmulator(db, host, parseInt(port || '8080'));
-        console.log('[Firebase] ✓ Connected to Firestore Emulator at', `${host}:${port || '8080'}`, '| Project:', projectId);
-      } catch (error: any) {
-        const errorMessage = error?.message || '';
-        if (errorMessage.includes('already been initialized') || errorMessage.includes('already connected')) {
-          console.log('[Firebase] Firestore Emulator already connected');
-        } else {
-          console.error('[Firebase] ❌ Failed to connect to Firestore Emulator:', error);
-        }
-      }
-    }
-  } else {
-    // Log why we're not connecting (for debugging)
-    console.log('[Firebase] Not connecting to emulators:', {
-      authHost: authEmulatorHost || 'not set',
-      firestoreHost: firestoreEmulatorHost || 'not set',
-      isTestMode,
-      isLocalhost: isLocalhostEnv,
-      projectId,
-      authDomain
-    });
   }
+  
+  return await auth.currentUser?.getIdToken() || null;
 }
 
 // Export services

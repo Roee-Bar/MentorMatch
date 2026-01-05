@@ -91,6 +91,17 @@ export const apiClient = {
     });
   },
 
+  checkEmailVerification: (token: string) => {
+    return apiFetch('/auth/verify-email', { token });
+  },
+
+  resendVerificationEmail: (token: string) => {
+    return apiFetch('/auth/resend-verification', {
+      method: 'POST',
+      token,
+    });
+  },
+
   // ========================================
   // Supervisors API
   // ========================================

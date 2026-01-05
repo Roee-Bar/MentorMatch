@@ -66,19 +66,32 @@ export default function RegisterPage() {
       return
     }
 
+    const isTestEnv = process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true';
+
     try {
       setMessage('Creating your account...')
 
       // Call backend registration API
       const response = await apiClient.registerUser(formData)
+      
+      // Debug logging in test mode
+      if (isTestEnv) {
+        console.log('Registration API response:', JSON.stringify(response, null, 2))
+      }
 
-      if (response.success) {
+      // Check if response has success property (API returns { success: true, data: {...}, message: "..." })
+      if (response && response.success) {
         setMessage('Registration successful! Redirecting to login...')
-        setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+        setLoading(false) // Clear loading state before redirect
+        
+        // Use router.push for better Playwright compatibility
+        // This works in both test and production environments
+        router.push('/login?registered=true')
+        return // Exit early to prevent further execution
       } else {
-        setMessage(response.error || 'Registration failed. Please try again.')
+        // Handle case where response doesn't have success property
+        const errorMsg = response?.error || response?.message || 'Registration failed. Please try again.'
+        setMessage(errorMsg)
         setLoading(false)
       }
     } catch (error: any) {

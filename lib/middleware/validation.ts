@@ -9,6 +9,29 @@ import { NextRequest } from 'next/server';
 
 /**
  * Validate request body against a Zod schema
+ * 
+ * @deprecated Use validateAndExtract from validation-helpers.ts instead.
+ * This function will be removed in a future version.
+ * The new pattern is cleaner and uses exceptions for error handling.
+ * 
+ * @example
+ * ```typescript
+ * // Old pattern (deprecated):
+ * const validation = await validateRequest(request, schema);
+ * if (!validation.valid || !validation.data) {
+ *   return ApiResponse.validationError(validation.error || 'Invalid request data');
+ * }
+ * 
+ * // New pattern (preferred):
+ * try {
+ *   const data = await validateAndExtract(request, schema);
+ *   // Use data...
+ * } catch (error) {
+ *   const validationResponse = handleValidationError(error);
+ *   if (validationResponse) return validationResponse;
+ *   throw error;
+ * }
+ * ```
  */
 export async function validateRequest<T>(
   request: NextRequest,
@@ -227,4 +250,15 @@ export const unpairCoSupervisorSchema = z.object({
  */
 export const projectStatusChangeSchema = z.object({
   status: z.enum(['pending_approval', 'approved', 'in_progress', 'completed']),
+}).strict();
+
+/**
+ * Schema for creating a new project
+ */
+export const createProjectSchema = z.object({
+  title: z.string().min(1, 'Project title is required').max(200, 'Project title must be at most 200 characters'),
+  description: z.string().min(10, 'Project description must be at least 10 characters').max(2000, 'Project description must be at most 2000 characters'),
+  studentIds: z.array(z.string().min(1, 'Student ID is required')).min(1, 'At least one student is required'),
+  supervisorId: z.string().min(1, 'Supervisor ID is required'),
+  coSupervisorId: z.string().optional(),
 }).strict();

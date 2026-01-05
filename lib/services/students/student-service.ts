@@ -25,9 +25,20 @@ class StudentServiceClass extends BaseService<Student> {
     ]);
   }
 
+  /**
+   * Get available partners for a student
+   * 
+   * Performance Note: This method loads all students into memory and filters client-side.
+   * For large datasets, consider adding pagination support using Firestore limit() and startAfter().
+   * This would require API changes to support pagination parameters (page, limit, cursor).
+   * 
+   * @param excludeStudentId - Student ID to exclude from results
+   * @returns Array of available student partners
+   */
   async getAvailablePartners(excludeStudentId: string): Promise<Student[]> {
     try {
       // Get all students and filter in memory (Firestore doesn't support != operator efficiently)
+      // TODO: Add pagination support for better performance with large datasets
       const allStudents = await this.repository.findAll();
       
       const unpairedStudents = allStudents.filter(

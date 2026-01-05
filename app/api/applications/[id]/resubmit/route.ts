@@ -30,6 +30,8 @@ export const POST = withAuth<ApplicationIdParams, Application>(
       user.uid
     );
 
+    // Note: ApplicationWorkflowService returns { success, error, message } not ServiceResult
+    // So we handle it manually but consistently
     if (!result.success) {
       return ApiResponse.error(result.error || 'Failed to resubmit application', 400);
     }
@@ -43,7 +45,8 @@ export const POST = withAuth<ApplicationIdParams, Application>(
     },
     requireResourceAccess: async (user, context, application) => {
       return canModifyApplication(user.uid, application, user.role as UserRole);
-    }
+    },
+    requireVerifiedEmail: true
   }
 );
 

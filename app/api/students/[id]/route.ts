@@ -7,7 +7,8 @@ import { NextRequest } from 'next/server';
 import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
-import { validateBody, updateStudentSchema } from '@/lib/middleware/validation';
+import { updateStudentSchema } from '@/lib/middleware/validation';
+import { withValidatedRequestAndUser } from '@/lib/middleware/route-handlers';
 import { logger } from '@/lib/logger';
 import { canViewStudentProfile } from '@/lib/middleware/authorization';
 import type { StudentIdParams } from '@/types/api';
@@ -41,34 +42,16 @@ export const GET = withAuth<StudentIdParams>(async (request: NextRequest, { para
 
 export const PUT = withAuth<StudentIdParams>(
   async (request: NextRequest, { params }, user) => {
-    const body = await request.json();
-    const validation = validateBody(body, updateStudentSchema);
-    
-    if (!validation.valid || !validation.data) {
-      logger.error('Student update validation failed', undefined, {
-        context: 'API',
-        data: {
-          studentId: params.id,
-          validationError: validation.error,
-          receivedFields: Object.keys(body)
-        }
-      });
-      return ApiResponse.validationError(validation.error || 'Invalid request data');
-    }
-
-    const result = await studentService.updateStudent(params.id, validation.data);
-
-    if (!result.success) {
-      logger.error('Student database update failed', undefined, {
-        context: 'API',
-        data: { studentId: params.id, error: result.error }
-      });
-      return ApiResponse.error(result.error || 'Failed to update student', 500);
-    }
-
-    return ApiResponse.successMessage('Student updated successfully');
+    return withValidatedRequestAndUser(
+      request,
+      user,
+      updateStudentSchema,
+      (data, user) => studentService.updateStudent(params.id, data),
+      'Failed to update student',
+      () => ApiResponse.successMessage('Student updated successfully')
+    );
   },
-  { requireOwnerOrAdmin: true }
+  { requireOwnerOrAdmin: true, requireVerifiedEmail: true }
 );
 
 

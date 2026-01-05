@@ -7,7 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { validateAndExtract, handleValidationError, ValidationError } from './validation-helpers';
+import { validateAndExtract, handleValidationError } from './validation-helpers';
+import { ValidationError } from './errors';
 import { handleServiceResult } from './service-result-handler';
 import { ApiResponse } from './response';
 import type { ServiceResult } from '@/lib/services/shared/types';
@@ -39,67 +40,7 @@ type SuccessHandler<TData, TResult> = (
 ) => NextResponse;
 
 /**
- * Handles the common pattern: validate request → call service → handle result
- * 
- * @param request - NextRequest object
- * @param schema - Zod schema for request body validation
- * @param serviceCall - Function that calls the service with validated data and user
- * @param errorMessage - Default error message if service call fails
- * @param successHandler - Optional function to customize success response
- * @returns NextResponse with success or error
- * 
- * @example
- * ```typescript
- * return withValidationAndServiceCall(
- *   request,
- *   supervisorPartnershipRequestSchema,
- *   (data, user) => SupervisorPartnershipWorkflowService.createRequest(
- *     user.uid,
- *     data.targetSupervisorId,
- *     data.projectId
- *   ),
- *   ERROR_MESSAGES.CREATE_PARTNERSHIP_REQUEST,
- *   (data, result) => ApiResponse.created(
- *     { requestId: result.data! },
- *     SUCCESS_MESSAGES.PARTNERSHIP_REQUEST_SENT
- *   )
- * );
- * ```
- */
-export async function withValidationAndServiceCall<TData, TResult>(
-  request: NextRequest,
-  schema: z.ZodSchema<TData>,
-  serviceCall: ServiceCallHandler<TData, TResult>,
-  errorMessage: string,
-  successHandler?: SuccessHandler<TData, TResult>
-): Promise<NextResponse> {
-  try {
-    // Validate request body
-    const data = await validateAndExtract(request, schema);
-
-    // Call service with validated data
-    const result = await serviceCall(data, {} as User); // User will be passed by wrapper
-
-    // Handle service result errors
-    const errorResponse = handleServiceResult(result, errorMessage);
-    if (errorResponse) return errorResponse;
-
-    // Handle success
-    if (successHandler) {
-      return successHandler(data, result);
-    }
-
-    // Default success response
-    return ApiResponse.successMessage('Operation completed successfully');
-  } catch (error) {
-    const validationResponse = handleValidationError(error);
-    if (validationResponse) return validationResponse;
-    throw error;
-  }
-}
-
-/**
- * Wrapper for withValidationAndServiceCall that includes user context
+ * Wrapper for validation and service call that includes user context
  * This is the main function to use in route handlers
  * 
  * @param request - NextRequest object
@@ -165,5 +106,112 @@ export function handleServiceResultWithSuccess<T>(
   }
 
   return successHandler(result.data);
+}
+
+/**
+ * Handler function for processing validated data without user context
+ */
+type ServiceCallHandlerNoUser<TData, TResult> = (
+  data: TData
+) => Promise<ServiceResult<TResult>>;
+
+/**
+ * Wrapper for validation and service call without user context
+ * Use this for routes that don't need authenticated user information
+ * 
+ * @param request - NextRequest object
+ * @param schema - Zod schema for request body validation
+ * @param serviceCall - Function that calls the service with validated data
+ * @param errorMessage - Default error message if service call fails
+ * @param successHandler - Optional function to customize success response
+ * @returns NextResponse with success or error
+ * 
+ * @example
+ * ```typescript
+ * export const POST = withRoles(['admin'], async (request, context, user) => {
+ *   return withValidatedRequest(
+ *     request,
+ *     createProjectSchema,
+ *     (data) => projectService.createProject(data),
+ *     'Failed to create project',
+ *     (data, result) => ApiResponse.created({ projectId: result.data! }, 'Project created')
+ *   );
+ * });
+ * ```
+ */
+export async function withValidatedRequest<TData, TResult>(
+  request: NextRequest,
+  schema: z.ZodSchema<TData>,
+  serviceCall: ServiceCallHandlerNoUser<TData, TResult>,
+  errorMessage: string,
+  successHandler?: SuccessHandler<TData, TResult>
+): Promise<NextResponse> {
+  try {
+    // Validate request body
+    const data = await validateAndExtract(request, schema);
+
+    // Call service with validated data
+    const result = await serviceCall(data);
+
+    // Handle service result errors
+    const errorResponse = handleServiceResult(result, errorMessage);
+    if (errorResponse) return errorResponse;
+
+    // Handle success
+    if (successHandler) {
+      return successHandler(data, result);
+    }
+
+    // Default success response
+    return ApiResponse.successMessage('Operation completed successfully');
+  } catch (error) {
+    const validationResponse = handleValidationError(error);
+    if (validationResponse) return validationResponse;
+    throw error;
+  }
+}
+
+/**
+ * Wrapper for validation and service call that includes user context
+ * This is an alias for withValidationAndServiceCallForUser for consistency
+ * 
+ * @param request - NextRequest object
+ * @param user - Authenticated user from withAuth
+ * @param schema - Zod schema for request body validation
+ * @param serviceCall - Function that calls the service with validated data and user
+ * @param errorMessage - Default error message if service call fails
+ * @param successHandler - Optional function to customize success response
+ * @returns NextResponse with success or error
+ * 
+ * @example
+ * ```typescript
+ * export const PUT = withAuth(async (request, { params }, user) => {
+ *   return withValidatedRequestAndUser(
+ *     request,
+ *     user,
+ *     updateStudentSchema,
+ *     (data, user) => studentService.updateStudent(params.id, data),
+ *     'Failed to update student',
+ *     () => ApiResponse.successMessage('Student updated successfully')
+ *   );
+ * });
+ * ```
+ */
+export async function withValidatedRequestAndUser<TData, TResult>(
+  request: NextRequest,
+  user: User,
+  schema: z.ZodSchema<TData>,
+  serviceCall: ServiceCallHandler<TData, TResult>,
+  errorMessage: string,
+  successHandler?: SuccessHandler<TData, TResult>
+): Promise<NextResponse> {
+  return withValidationAndServiceCallForUser(
+    request,
+    user,
+    schema,
+    serviceCall,
+    errorMessage,
+    successHandler
+  );
 }
 

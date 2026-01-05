@@ -9,6 +9,8 @@ import { studentService } from '@/lib/services/students/student-service';
 import { withRoles } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
+export const dynamic = 'force-dynamic';
+
 export const GET = withRoles<Record<string, string>>(['student'], async (request: NextRequest, context, user) => {
   // Check if student already has a partner - if so, return empty array immediately
   const currentStudent = await studentService.getStudentById(user.uid);

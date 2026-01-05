@@ -4,17 +4,62 @@
  * User registration endpoint - creates user in Firebase Auth and Firestore
  */
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { userRepository } from '@/lib/repositories/user-repository';
 import { studentRepository } from '@/lib/repositories/student-repository';
+import { EmailVerificationService } from '@/lib/services/auth/email-verification-service';
+import { rateLimitService } from '@/lib/middleware/rate-limit';
+import { logger } from '@/lib/logger';
 import type { BaseUser } from '@/types/database';
 import type { Student } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
+    // Skip rate limiting in test mode
+    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
+    
+    if (!isTestEnv) {
+      // Get client IP for rate limiting (fallback to 'anonymous' if not available)
+      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                       request.headers.get('x-real-ip') || 
+                       'anonymous';
+      
+      // Check rate limit (5 registrations per hour per IP) - fail-closed for security
+      const rateLimitResult = await rateLimitService.checkRateLimit(
+        clientIp,
+        '/api/auth/register',
+        { 
+          maxRequests: 5,
+          windowMs: 3600000, // 1 hour
+          failStrategy: 'fail-closed' 
+        }
+      );
+
+      if (!rateLimitResult.allowed) {
+        const response = NextResponse.json(
+          {
+            success: false,
+            error: 'Too many registration attempts. Please wait before trying again.',
+          },
+          { status: 429 }
+        );
+        
+        if (rateLimitResult.retryAfter) {
+          response.headers.set('Retry-After', rateLimitResult.retryAfter.toString());
+        }
+        if (rateLimitResult.remaining !== undefined) {
+          response.headers.set('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
+        }
+        
+        return response;
+      }
+    }
+
     // Parse and validate request body
     const body = await request.json();
     const validation = validateRegistration(body);
@@ -79,12 +124,50 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(), // Will be overwritten by repository, but required by type
     } as Omit<Student, 'id'>);
 
-    console.log(`User registered successfully: ${userRecord.uid}`);
+    logger.info('User registered successfully', {
+      context: 'Register',
+      data: { userId: userRecord.uid }
+    });
 
-    return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
+    // Send verification email (non-blocking - account is created even if email fails)
+    let emailSent = false;
+    let warning: string | undefined;
+    
+    try {
+      await EmailVerificationService.sendVerificationEmail(
+        userRecord.uid,
+        data.email,
+        `${data.firstName} ${data.lastName}`
+      );
+      emailSent = true;
+      logger.info('Verification email sent after registration', {
+        context: 'Register',
+        data: { userId: userRecord.uid, email: data.email },
+      });
+    } catch (emailError) {
+      // Log error but don't fail registration - account is already created
+      logger.error('Failed to send verification email after registration', emailError, {
+        context: 'Register',
+        data: { userId: userRecord.uid, email: data.email },
+      });
+      // Set warning message for user
+      warning = 'Account created successfully, but verification email could not be sent. Please use "Resend Verification Email" from your dashboard.';
+    }
+
+    return ApiResponse.created(
+      { 
+        userId: userRecord.uid,
+        message: 'Registration successful. Please check your email to verify your account.',
+        emailSent,
+        ...(warning && { warning }),
+      }, 
+      'Registration successful'
+    );
 
   } catch (error: any) {
-    console.error('Registration error:', error);
+    logger.error('Registration error', error, {
+      context: 'Register'
+    });
     
     // Handle specific Firebase errors
     if (error.code === 'auth/email-already-exists') {

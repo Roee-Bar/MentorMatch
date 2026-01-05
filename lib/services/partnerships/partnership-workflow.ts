@@ -10,6 +10,7 @@ import { PartnershipPairingService } from './partnership-pairing';
 import { ServiceResults } from '@/lib/services/shared/types';
 import type { ServiceResult } from '@/lib/services/shared/types';
 import type { StudentPartnershipRequest } from '@/types/database';
+import type { Transaction } from 'firebase-admin/firestore';
 
 const SERVICE_NAME = 'PartnershipWorkflowService';
 
@@ -45,7 +46,7 @@ export const PartnershipWorkflowService = {
       // Use transaction to atomically check and update student statuses
       let requestId = '';
       
-      await adminDb.runTransaction(async (transaction) => {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
         const requesterRef = studentRepository.getDocumentRef(requesterId);
         const targetRef = studentRepository.getDocumentRef(targetStudentId);
 
@@ -232,47 +233,52 @@ export const PartnershipWorkflowService = {
     targetStudentId: string
   ): Promise<ServiceResult> {
     // Use transaction to prevent race conditions
-    await adminDb.runTransaction(async (transaction) => {
-      const requesterRef = studentRepository.getDocumentRef(request.requesterId);
-      const targetRef = studentRepository.getDocumentRef(targetStudentId);
-      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
+    try {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
+        const requesterRef = studentRepository.getDocumentRef(request.requesterId);
+        const targetRef = studentRepository.getDocumentRef(targetStudentId);
+        const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
+        const [requesterSnap, targetSnap] = await transaction.getAll(requesterRef, targetRef);
 
-      if (!requesterSnap.exists || !targetSnap.exists) {
-        throw new Error('One or both students not found');
-      }
+        if (!requesterSnap.exists || !targetSnap.exists) {
+          throw new Error('One or both students not found');
+        }
 
-      const requesterData = requesterSnap.data();
-      const targetData = targetSnap.data();
+        const requesterData = requesterSnap.data();
+        const targetData = targetSnap.data();
 
-      if (requesterData?.partnershipStatus === 'paired') {
-        throw new Error('Requester is already paired with another student');
-      }
+        if (requesterData?.partnershipStatus === 'paired') {
+          throw new Error('Requester is already paired with another student');
+        }
 
-      if (targetData?.partnershipStatus === 'paired') {
-        throw new Error('You are already paired with another student');
-      }
+        if (targetData?.partnershipStatus === 'paired') {
+          throw new Error('You are already paired with another student');
+        }
 
-      // Update both students to paired
-      transaction.update(requesterRef, {
-        partnerId: targetStudentId,
-        partnershipStatus: 'paired',
-        updatedAt: new Date()
+        // Update both students to paired
+        transaction.update(requesterRef, {
+          partnerId: targetStudentId,
+          partnershipStatus: 'paired',
+          updatedAt: new Date()
+        });
+
+        transaction.update(targetRef, {
+          partnerId: request.requesterId,
+          partnershipStatus: 'paired',
+          updatedAt: new Date()
+        });
+
+        // Update request status
+        transaction.update(requestRef, {
+          status: 'accepted',
+          respondedAt: new Date()
+        });
       });
-
-      transaction.update(targetRef, {
-        partnerId: request.requesterId,
-        partnershipStatus: 'paired',
-        updatedAt: new Date()
-      });
-
-      // Update request status
-      transaction.update(requestRef, {
-        status: 'accepted',
-        respondedAt: new Date()
-      });
-    });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to accept partnership request';
+      return ServiceResults.error(errorMessage);
+    }
 
     // Cancel all other pending requests for both students (cleanup outside transaction)
     await PartnershipPairingService.cancelAllPendingRequests(request.requesterId);
@@ -300,14 +306,19 @@ export const PartnershipWorkflowService = {
     const targetPendingCount = targetOtherRequests.filter(r => r.id !== requestId && r.status === 'pending').length;
 
     // Use transaction to ensure atomic rejection
-    await adminDb.runTransaction(async (transaction) => {
-      const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
+    try {
+      await adminDb.runTransaction(async (transaction: Transaction) => {
+        const requestRef = partnershipRequestRepository.getDocumentRef(requestId);
 
-      transaction.update(requestRef, {
-        status: 'rejected',
-        respondedAt: new Date()
+        transaction.update(requestRef, {
+          status: 'rejected',
+          respondedAt: new Date()
+        });
       });
-    });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reject partnership request';
+      return ServiceResults.error(errorMessage);
+    }
 
     const updates: Promise<void>[] = [];
     

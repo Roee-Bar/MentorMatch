@@ -7,13 +7,13 @@ import { studentService } from '@/lib/services/students/student-service';
 import { withAuth } from '@/lib/middleware/apiHandler';
 import { ApiResponse } from '@/lib/middleware/response';
 
-export const GET = withAuth<Record<string, string>>(async (request: NextRequest, context, user) => {
-  // Only supervisor or admin can view all students
-  if (user.role !== 'supervisor' && user.role !== 'admin') {
-    return ApiResponse.forbidden();
-  }
+export const dynamic = 'force-dynamic';
 
-  const students = await studentService.getAllStudents();
-  return ApiResponse.successWithCount(students);
-});
+export const GET = withAuth<Record<string, string>>(
+  async (request: NextRequest, context, user) => {
+    const students = await studentService.getAllStudents();
+    return ApiResponse.successWithCount(students);
+  },
+  { allowedRoles: ['supervisor', 'admin'] }
+);
 
