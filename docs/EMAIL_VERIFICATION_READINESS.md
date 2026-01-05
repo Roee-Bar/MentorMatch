@@ -354,7 +354,6 @@ console.log('Resend available:', isResendAvailable());
 - Verify `RESEND_API_KEY` in environment variables
 - Check Resend account status and billing
 - Review server logs for specific error messages
-- Test email sending with `npm run test:email`
 
 #### Issue: Verification Links Not Working
 

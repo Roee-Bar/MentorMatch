@@ -75,15 +75,6 @@ npm start            # Start production server
 # Code Quality
 npm run lint         # Run ESLint
 npm run typecheck    # TypeScript errors
-
-# E2E Testing
-npm run test         # Run e2e tests
-npm run test:e2e     # Alias for npm run test
-npm run test:ui      # Run tests with UI mode
-npm run test:debug   # Run tests in debug mode
-npm run test:headed  # Run tests in headed mode (see browser)
-npm run test:report  # View test report
-npm run test:verbose # Run tests with verbose output
 ```
 
 ## Project Structure
@@ -93,11 +84,6 @@ npm run test:verbose # Run tests with verbose output
 │   ├── api/              # REST API routes
 │   ├── authenticated/    # Role-based authenticated pages
 │   └── components/       # React components
-├── e2e/                  # E2E tests
-│   ├── fixtures/         # Test fixtures and helpers
-│   ├── pages/            # Page Object Models
-│   ├── tests/            # Test specifications
-│   └── utils/            # Test utilities
 ├── lib/
 │   ├── api/              # API client
 │   ├── middleware/       # Auth, validation, errors
@@ -106,51 +92,6 @@ npm run test:verbose # Run tests with verbose output
 ├── types/                # TypeScript types
 └── scripts/              # Utility scripts
 ```
-
-## Testing
-
-MentorMatch uses Playwright for end-to-end testing with an in-memory test database.
-
-### Running Tests Locally
-
-**No emulators or Java required** - tests use an in-memory database.
-
-Run all tests with a single command:
-```bash
-npm run test
-```
-
-Or use the alias:
-```bash
-npm run test:e2e
-```
-
-The test infrastructure automatically:
-- Uses an in-memory test database (no emulators needed)
-- Starts the Next.js dev server
-- Runs all E2E tests
-- Cleans up automatically
-
-### Available Test Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm run test` | Run all E2E tests |
-| `npm run test:e2e` | Alias for `npm run test` |
-| `npm run test:ui` | Run tests with Playwright UI mode (interactive) |
-| `npm run test:debug` | Run tests in debug mode |
-| `npm run test:headed` | Run tests with visible browser |
-| `npm run test:report` | View the test report from last run |
-| `npm run test:verbose` | Run tests with verbose output |
-
-### Test Structure
-
-- **Fixtures**: Authentication helpers and test data generators (`e2e/fixtures/`)
-- **Page Objects**: Reusable page interaction models (`e2e/pages/`)
-- **Tests**: Test specifications organized by feature (`e2e/tests/`)
-- **Utils**: Test utilities and assertions (`e2e/utils/`)
-
-For detailed testing documentation, see [docs/RUNNING_TESTS_LOCALLY.md](docs/RUNNING_TESTS_LOCALLY.md) and [e2e/README.md](e2e/README.md).
 
 ## Deployment
 
