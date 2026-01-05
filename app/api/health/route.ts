@@ -2,8 +2,6 @@
  * Health Check Endpoint
  * 
  * Enhanced endpoint to verify the Next.js server and all dependencies are running and ready.
- * Used by E2E tests and CI/CD pipelines to verify server readiness.
- * Also exposes test mode configuration for client-side detection.
  */
 
 import { NextResponse } from 'next/server';
@@ -81,8 +79,6 @@ export async function GET() {
   const correlationId = generateCorrelationId();
   
   return withCorrelationId(correlationId, async () => {
-    const isTestEnv = process.env.NODE_ENV === 'test' || process.env.E2E_TEST === 'true';
-    
     // Run all health checks in parallel
     const [firestoreCheck, emailCheck, rateLimitCheck] = await Promise.all([
       checkFirestore(),
@@ -117,8 +113,6 @@ export async function GET() {
           email: emailCheck,
           rateLimit: rateLimitCheck,
         },
-        // Expose test mode info for client-side detection
-        testMode: isTestEnv,
         firebase: {
           projectId: process.env.FIREBASE_ADMIN_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
           authEmulatorHost: process.env.FIREBASE_AUTH_EMULATOR_HOST || process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST,

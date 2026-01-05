@@ -6,6 +6,7 @@
  */
 
 import { adminDb } from '@/lib/firebase-admin';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { logger } from '@/lib/logger';
 
 const SERVICE_NAME = 'RateLimitService';
@@ -100,8 +101,8 @@ export class RateLimitService {
           userId,
           endpoint,
           count: 1,
-          windowStart: adminDb.Timestamp.fromDate(now),
-          expiresAt: adminDb.Timestamp.fromDate(expiresAt),
+          windowStart: Timestamp.fromDate(now),
+          expiresAt: Timestamp.fromDate(expiresAt),
         });
 
         return {
@@ -122,8 +123,8 @@ export class RateLimitService {
           userId,
           endpoint,
           count: 1,
-          windowStart: adminDb.Timestamp.fromDate(now),
-          expiresAt: adminDb.Timestamp.fromDate(expiresAt),
+          windowStart: Timestamp.fromDate(now),
+          expiresAt: Timestamp.fromDate(expiresAt),
         });
 
         return {
@@ -159,7 +160,7 @@ export class RateLimitService {
 
       // Increment count
       await docRef.update({
-        count: adminDb.FieldValue.increment(1),
+        count: FieldValue.increment(1),
       });
 
       const newCount = data.count + 1;

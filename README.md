@@ -13,7 +13,6 @@ MentorMatch streamlines the process of connecting students with appropriate proj
 - Tailwind CSS
 - Firebase (Authentication, Firestore, Storage)
 - Firebase Admin SDK
-- Vercel (Deployment)
 
 ## Quick Start
 
@@ -95,11 +94,9 @@ npm run typecheck    # TypeScript errors
 
 ## Deployment
 
-Automatic deployment via Vercel on push to main branch.
-
 ### Environment Variables
 
-Add to Vercel project settings and `.env.local` for local development:
+Add to `.env.local` for local development:
 
 ```
 # Firebase Configuration
