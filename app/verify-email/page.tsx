@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { applyActionCode, checkActionCode } from 'firebase/auth';
@@ -23,6 +23,21 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const [result, setResult] = useState<VerificationResult | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+
+  const startCountdown = useCallback((seconds: number) => {
+    setCountdown(seconds);
+    
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          router.push('/login?verified=true');
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, [router]);
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -205,22 +220,7 @@ function VerifyEmailForm() {
     };
 
     verifyEmail();
-  }, [searchParams]);
-
-  const startCountdown = (seconds: number) => {
-    setCountdown(seconds);
-    
-    const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval);
-          router.push('/login?verified=true');
-          return null;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
+  }, [searchParams, startCountdown]);
 
   const handleRedirect = () => {
     router.push('/login?verified=true');

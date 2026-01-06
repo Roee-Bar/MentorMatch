@@ -192,7 +192,7 @@ export function useEmailVerification(): UseEmailVerificationReturn {
     } finally {
       setIsResending(false);
     }
-  }, [userId, getToken, checkVerificationStatus]);
+  }, [userId, getToken, pollVerificationStatus]);
 
   // Combined effect: Check verification status when user changes and listen for auth state changes
   useEffect(() => {

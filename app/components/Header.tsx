@@ -117,9 +117,9 @@ export default function Header() {
               aria-haspopup="true"
             >
               {/* Avatar or Initials */}
-              {userProfile.photoURL ? (
+              {user?.photoURL ? (
                 <Image
-                  src={userProfile.photoURL}
+                  src={user.photoURL}
                   alt={userProfile.name}
                   width={40}
                   height={40}
@@ -207,9 +207,9 @@ export default function Header() {
         {userProfile && (
           <div className={`p-4 ${borderBottom}`}>
             <div className="flex items-center gap-3">
-              {userProfile.photoURL ? (
+              {user?.photoURL ? (
                 <Image
-                  src={userProfile.photoURL}
+                  src={user.photoURL}
                   alt={userProfile.name}
                   width={48}
                   height={48}
