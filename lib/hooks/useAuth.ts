@@ -3,10 +3,9 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
-import { auth, getAuthToken } from '@/lib/firebase';
+import { useAuthContext } from '@/lib/contexts/AuthContext';
 import { BaseUser } from '@/types/database';
 import { ROUTES } from '@/lib/routes';
 
@@ -66,53 +65,42 @@ interface UseAuthReturn {
  */
 export function useAuth(options?: UseAuthOptions): UseAuthReturn {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<BaseUser | null>(null);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const { user, userProfile, isLoading, getToken } = useAuthContext();
 
+  // Handle role-based redirects
   useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      if (!user) {
-        router.replace(ROUTES.LOGIN);
-        return;
-      }
-
-      // Get user profile to verify role
-      const token = await user.getIdToken();
-      const profile = await getUserProfile(user.uid, token);
-
-      if (!profile.success || !profile.data) {
-        router.replace(ROUTES.HOME);
-        return;
-      }
-
-      const userRole = profile.data.role as UserRole;
-
-      // If expectedRole is specified, check if user has the correct role
-      if (options?.expectedRole && userRole !== options.expectedRole) {
-        // Redirect to the appropriate page based on user's actual role
-        const redirectTo = ROLE_ROUTES[userRole] || ROUTES.HOME;
-        router.replace(redirectTo);
-        return;
-      }
-
-      setUserId(user.uid);
-      setUserProfile(profile.data as BaseUser);
-      setIsAuthLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [router, options?.expectedRole]);
-
-  // Helper to get current user's token
-  const getToken = useCallback(async (): Promise<string> => {
-    const token = await getAuthToken();
-    if (!token) {
-      throw new Error('Not authenticated');
+    if (isLoading) {
+      return; // Wait for auth to finish loading
     }
-    return token;
-  }, []);
 
-  return { userId, userProfile, isAuthLoading, getToken };
+    // If no user, redirect to login
+    if (!user) {
+      router.replace(ROUTES.LOGIN);
+      return;
+    }
+
+    // If profile fetch failed, redirect to home
+    if (!userProfile) {
+      router.replace(ROUTES.HOME);
+      return;
+    }
+
+    const userRole = userProfile.role as UserRole;
+
+    // If expectedRole is specified, check if user has the correct role
+    if (options?.expectedRole && userRole !== options.expectedRole) {
+      // Redirect to the appropriate page based on user's actual role
+      const redirectTo = ROLE_ROUTES[userRole] || ROUTES.HOME;
+      router.replace(redirectTo);
+      return;
+    }
+  }, [user, userProfile, isLoading, options?.expectedRole, router]);
+
+  return {
+    userId: user?.uid || null,
+    userProfile: userProfile,
+    isAuthLoading: isLoading,
+    getToken,
+  };
 }
 

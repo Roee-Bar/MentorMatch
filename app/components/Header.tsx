@@ -4,36 +4,19 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { onAuthChange, getUserProfile, signOut } from '@/lib/auth'
-import { User } from 'firebase/auth'
+import { signOut } from '@/lib/auth'
+import { useAuthContext } from '@/lib/contexts/AuthContext'
 import HeaderDropdown from './HeaderDropdown'
 import MentorMatchLogo from './shared/MentorMatchLogo'
 import { textMuted, mobileNavItem, avatarSm, avatarMd, avatarPlaceholderSm, avatarPlaceholderMd, touchTargetBtnLight, headingLg, borderBottom, borderTop, logoutBtnFull, textSecondary, textPrimary } from '@/lib/styles/shared-styles'
 
 export default function Header() {
-  const [user, setUser] = useState<User | null>(null)
-  const [userProfile, setUserProfile] = useState<any>(null)
+  const { user, userProfile } = useAuthContext()
   const [showDropdown, setShowDropdown] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-
-  useEffect(() => {
-    const unsubscribe = onAuthChange(async (user) => {
-      setUser(user)
-      if (user) {
-        const token = await user.getIdToken()
-        const profile = await getUserProfile(user.uid, token)
-        if (profile.success) {
-          setUserProfile(profile.data)
-        }
-      } else {
-        setUserProfile(null)
-      }
-    })
-    return () => unsubscribe()
-  }, [])
 
   // Close dropdown when clicking outside
   useEffect(() => {

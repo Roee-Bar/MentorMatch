@@ -1,9 +1,9 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthChange, getUserProfile } from '@/lib/auth';
-import { User } from 'firebase/auth';
+import { useAuthContext } from '@/lib/contexts/AuthContext';
+import { ROUTES } from '@/lib/routes';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import VerificationBanner from '@/app/components/feedback/VerificationBanner';
 import { useEmailVerification } from '@/lib/hooks/useEmailVerification';
@@ -13,86 +13,25 @@ interface AuthenticatedLayoutProps {
 }
 
 export default function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { user, userProfile, isLoading, error } = useAuthContext();
   
   // Email verification status
   const { isVerified, isChecking: isCheckingVerification, resendVerificationEmail, isResending } = useEmailVerification();
 
-  useEffect(() => {
-    const isTestEnv = typeof window !== 'undefined' && 
-      (process.env.NEXT_PUBLIC_NODE_ENV === 'test' || process.env.NEXT_PUBLIC_E2E_TEST === 'true');
-    
-    // Timeout to prevent infinite loading
-    const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.warn('[AUTH LAYOUT] Loading timeout - setting loading to false');
-        setLoading(false);
-      }
-    }, 10000); // 10 second timeout
-    
-    const unsubscribe = onAuthChange(async (user) => {
-      if (isTestEnv) {
-        console.log('[AUTH LAYOUT] onAuthChange called with user:', user ? { uid: user.uid, email: user.email } : null);
-      }
-      
-      if (!user) {
-        if (isTestEnv) {
-          console.log('[AUTH LAYOUT] No user, redirecting to /');
-        }
-        router.replace('/');
-        return;
-      }
+  // Redirect if not authenticated
+  if (!isLoading && !user) {
+    router.replace(ROUTES.HOME);
+    return null;
+  }
 
-      try {
-        const token = await user.getIdToken();
-        if (isTestEnv) {
-          console.log('[AUTH LAYOUT] Got token, fetching profile for uid:', user.uid);
-        }
-        
-        const profile = await getUserProfile(user.uid, token);
-        
-        if (isTestEnv) {
-          console.log('[AUTH LAYOUT] Profile fetch result:', { success: profile.success, hasData: !!profile.data, error: profile.error });
-        }
-        
-        if (profile.success && profile.data) {
-          setUser(user);
-          setUserProfile(profile.data);
-        } else {
-          if (isTestEnv) {
-            console.error('[AUTH LAYOUT] Profile fetch failed:', profile.error);
-            // In test mode, set user anyway to allow page to render
-            // The page-level auth checks will handle authorization
-            setUser(user);
-            setUserProfile({ uid: user.uid, email: user.email, role: 'admin' }); // Default role for test
-          } else {
-            router.replace('/');
-          }
-        }
-      } catch (error: any) {
-        if (isTestEnv) {
-          console.error('[AUTH LAYOUT] Error in auth flow:', error);
-          // In test mode, set user anyway to allow page to render
-          setUser(user);
-          setUserProfile({ uid: user.uid, email: user.email, role: 'admin' }); // Default role for test
-        } else {
-          router.replace('/');
-        }
-      } finally {
-        setLoading(false);
-      }
-    });
+  // Redirect if profile fetch failed
+  if (!isLoading && user && !userProfile && error) {
+    router.replace(ROUTES.HOME);
+    return null;
+  }
 
-    return () => {
-      clearTimeout(loadingTimeout);
-      unsubscribe();
-    };
-  }, [router, loading]);
-
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner message="Loading..." />;
   }
 
