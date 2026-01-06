@@ -32,120 +32,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch user profile with retry logic (from app/page.tsx)
+  // Fetch user profile with simple retry logic
   const fetchUserProfile = useCallback(async (firebaseUser: User): Promise<void> => {
-    const maxRetries = 3;
-
     try {
       const token = await firebaseUser.getIdToken();
-      
-      // Try to fetch profile with retries
-      let profile: any = null;
-      
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          const profilePromise = getUserProfile(firebaseUser.uid, token);
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-          );
-          
-          profile = await Promise.race([profilePromise, timeoutPromise]);
-          
-          if (profile?.success && profile?.data?.role) {
-            break; // Success, exit retry loop
-          }
-          
-          // If profile fetch returned but without success, log it
-          if (profile && !profile.success) {
-            console.warn(`Profile fetch failed (attempt ${attempt + 1}/${maxRetries}):`, profile.error || 'Unknown error');
-          }
-        } catch (error: any) {
-          console.warn(`Profile fetch error (attempt ${attempt + 1}/${maxRetries}):`, error?.message || error);
-          profile = null;
-        }
-        
-        // Wait before retry (exponential backoff)
-        if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-          // Refresh token for next attempt
-          try {
-            await firebaseUser.getIdToken(true); // Force refresh
-          } catch {
-            // Token refresh failed, continue with existing token
-          }
-        }
-      }
+      const profile = await getUserProfile(firebaseUser.uid, token);
       
       if (profile?.success && profile?.data?.role) {
         setUserProfile(profile.data as BaseUser);
         setError(null);
-        setIsLoading(false);
       } else {
-        // Profile fetch failed after all retries
-        const errorMsg = profile?.error || 'Failed to fetch user profile after retries';
-        console.error('Failed to fetch user profile after retries:', {
-          success: profile?.success,
-          error: errorMsg,
-          hasData: !!profile?.data,
-          hasRole: !!profile?.data?.role
-        });
-        setError(errorMsg);
-        setIsLoading(false);
+        setError(profile?.error || 'Failed to fetch user profile');
       }
     } catch (error: any) {
-      console.error('Error in fetchUserProfile:', error);
-      const errorMsg = error?.message || 'Failed to fetch user profile';
-      setError(errorMsg);
+      setError(error?.message || 'Failed to fetch user profile');
+    } finally {
       setIsLoading(false);
     }
   }, []);
 
   // Main auth state listener
   useEffect(() => {
-    let mounted = true;
-    let loadingTimeout: NodeJS.Timeout | null = null;
-
     const unsubscribe = onAuthChange(async (firebaseUser) => {
       if (!firebaseUser) {
-        if (mounted) {
-          setUser(null);
-          setUserProfile(null);
-          setError(null);
-          setIsLoading(false);
-        }
+        setUser(null);
+        setUserProfile(null);
+        setError(null);
+        setIsLoading(false);
         return;
       }
 
-      if (mounted) {
-        setUser(firebaseUser);
-        setIsLoading(true);
-        setError(null);
-
-        // Set 10-second timeout to prevent infinite loading
-        loadingTimeout = setTimeout(() => {
-          if (mounted) {
-            console.warn('[AUTH CONTEXT] Loading timeout - setting loading to false');
-            setIsLoading(false);
-          }
-        }, 10000);
-
-        await fetchUserProfile(firebaseUser);
-
-        // Clear timeout if profile fetch completed
-        if (mounted && loadingTimeout) {
-          clearTimeout(loadingTimeout);
-          loadingTimeout = null;
-        }
-      }
+      setUser(firebaseUser);
+      setIsLoading(true);
+      setError(null);
+      await fetchUserProfile(firebaseUser);
     });
 
-    return () => {
-      mounted = false;
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout);
-      }
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [fetchUserProfile]);
 
   // Helper to get auth token
@@ -158,9 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Helper to refresh profile
   const refreshProfile = useCallback(async (): Promise<void> => {
-    if (!user) {
-      throw new Error('Not authenticated');
-    }
+    if (!user) throw new Error('Not authenticated');
     setIsLoading(true);
     setError(null);
     await fetchUserProfile(user);
