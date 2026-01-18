@@ -2,6 +2,8 @@
  * POST /api/auth/register
  * 
  * User registration endpoint - creates user in Firebase Auth and Firestore
+ * 
+ * Rollback to PR #47 - Registration route handler
  */
 
 import { NextRequest } from 'next/server';
