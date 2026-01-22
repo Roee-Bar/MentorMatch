@@ -81,7 +81,6 @@ export default function StudentProfileEditPage() {
           setLoadError('Unable to load profile');
         }
       } catch (err) {
-        console.error('Error fetching profile:', err);
         setLoadError('Failed to load profile. Please try again.');
       } finally {
         setDataLoading(false);
@@ -171,7 +170,6 @@ export default function StudentProfileEditPage() {
         router.push(ROUTES.AUTHENTICATED.STUDENT_PROFILE);
       }, 1500);
     } catch (err: any) {
-      console.error('Error updating profile:', err);
       setSaveError(err.message || 'Failed to update profile. Please try again.');
       setIsSaving(false);
     }

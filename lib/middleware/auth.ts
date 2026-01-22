@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server';
 import { adminAuth } from '@/lib/firebase-admin';
 import { UserService } from '@/lib/services/users/user-service';
+import { logger } from '@/lib/logger';
 
 export interface AuthResult {
   authenticated: boolean;
@@ -54,7 +55,9 @@ export async function verifyAuth(request: NextRequest): Promise<AuthResult> {
       },
     };
   } catch (error) {
-    console.error('Auth verification error:', error);
+    logger.service.error('AuthService', 'verifyAuth', error, {
+      context: 'Authentication verification failed'
+    });
     return { authenticated: false, user: null };
   }
 }

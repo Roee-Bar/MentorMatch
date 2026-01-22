@@ -5,12 +5,13 @@
  */
 
 import { NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 
 /**
  * Handle errors and return appropriate NextResponse
  */
 export function handleApiError(error: unknown): NextResponse {
-  console.error('API Error:', error);
+  logger.api.error('UNKNOWN', 'API_ERROR', error);
 
   if (error instanceof Error) {
     return NextResponse.json(

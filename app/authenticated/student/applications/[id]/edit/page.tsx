@@ -96,7 +96,6 @@ export default function ApplicationEditPage() {
           setLoadError('Application not found');
         }
       } catch (err) {
-        console.error('Error fetching application:', err);
         setLoadError('Failed to load application. Please try again.');
       } finally {
         setDataLoading(false);
@@ -195,7 +194,6 @@ export default function ApplicationEditPage() {
       // Clear success message after 3 seconds
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      console.error('Error updating application:', err);
       setSaveError(err.message || 'Failed to save changes. Please try again.');
     } finally {
       setIsSaving(false);
@@ -223,7 +221,6 @@ export default function ApplicationEditPage() {
       // Navigate back to dashboard - success message will show there
       router.push(ROUTES.AUTHENTICATED.STUDENT);
     } catch (err: any) {
-      console.error('Error resubmitting application:', err);
       setSaveError(err.message || 'Failed to resubmit application. Please try again.');
       setIsResubmitting(false);
     }

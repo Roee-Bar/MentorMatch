@@ -10,8 +10,11 @@ import { NextRequest } from 'next/server';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
+  let email: string | undefined;
+  
   try {
     // Parse and validate request body
     const body = await request.json();
@@ -22,6 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = validation.data!;
+    email = data.email;
 
     // Create user in Firebase Auth using Admin SDK
     const userRecord = await adminAuth.createUser({
@@ -77,12 +81,14 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     });
 
-    console.log(`User registered successfully: ${userRecord.uid}`);
+    logger.service.success('AuthService', 'registerUser', { userId: userRecord.uid, email: data.email });
 
     return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
 
   } catch (error: any) {
-    console.error('Registration error:', error);
+    // Try to extract email from error or request body for logging
+    const errorEmail = email || (error as any)?.email || 'unknown';
+    logger.service.error('AuthService', 'registerUser', error, { email: errorEmail });
     
     // Handle specific Firebase errors
     if (error.code === 'auth/email-already-exists') {
