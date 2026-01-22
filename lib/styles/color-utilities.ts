@@ -1,8 +1,8 @@
 // lib/styles/color-utilities.ts
 // Centralized color utilities for consistent theming
 
-// Base icon container style (duplicated here to avoid circular dependency)
-const iconContainerBaseLocal = 'w-12 h-12 rounded-xl flex items-center justify-center';
+// Base icon container style
+export const iconContainerBase = 'w-12 h-12 rounded-xl flex items-center justify-center';
 
 // ============= TEXT COLOR ACCENTS =============
 export const textGreen = 'text-green-600 dark:text-green-400';
@@ -23,11 +23,11 @@ export const bgRed = 'bg-red-600 dark:bg-red-500';
 export const bgBlue = 'bg-blue-600 dark:bg-blue-500';
 
 // ============= ICON CONTAINERS (Colored) =============
-export const iconContainerBlue = `${iconContainerBaseLocal} bg-blue-100 dark:bg-blue-900/50`;
-export const iconContainerGreen = `${iconContainerBaseLocal} bg-green-100 dark:bg-green-900/50`;
-export const iconContainerPurple = `${iconContainerBaseLocal} bg-purple-100 dark:bg-purple-900/50`;
-export const iconContainerYellow = `${iconContainerBaseLocal} bg-yellow-100 dark:bg-yellow-900/50`;
-export const iconContainerRed = `${iconContainerBaseLocal} bg-red-100 dark:bg-red-900/50`;
+export const iconContainerBlue = `${iconContainerBase} bg-blue-100 dark:bg-blue-900/50`;
+export const iconContainerGreen = `${iconContainerBase} bg-green-100 dark:bg-green-900/50`;
+export const iconContainerPurple = `${iconContainerBase} bg-purple-100 dark:bg-purple-900/50`;
+export const iconContainerYellow = `${iconContainerBase} bg-yellow-100 dark:bg-yellow-900/50`;
+export const iconContainerRed = `${iconContainerBase} bg-red-100 dark:bg-red-900/50`;
 
 // ============= CENTERED TEXT UTILITIES =============
 export const textErrorCentered = 'text-sm text-red-600 text-center dark:text-red-400';

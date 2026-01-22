@@ -98,7 +98,6 @@ export default function BrowseSupervisorsClient() {
         router.push(ROUTES.LOGIN);
         return;
       }
-      console.error('Error fetching supervisors:', err);
       setError(errorMessage);
     } finally {
       setLoading(false);

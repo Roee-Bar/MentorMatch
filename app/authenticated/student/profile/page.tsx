@@ -63,7 +63,7 @@ export default function StudentProfilePage() {
             };
           }
         } catch (err) {
-          console.error('Error fetching partner details:', err);
+          // Silently handle partner details fetch error - component will show null state
         }
       }
 
@@ -85,7 +85,7 @@ export default function StudentProfilePage() {
             };
           }
         } catch (err) {
-          console.error('Error fetching supervisor details:', err);
+          // Silently handle supervisor details fetch error - component will show null state
         }
       }
 
@@ -112,7 +112,6 @@ export default function StudentProfilePage() {
       // Refresh the page or refetch data
       window.location.reload();
     } catch (error) {
-      console.error('Error unpairing:', error);
       setUnpairError('Failed to unpair. Please try again.');
       setShowUnpairConfirm(false);
       setIsUnpairing(false);

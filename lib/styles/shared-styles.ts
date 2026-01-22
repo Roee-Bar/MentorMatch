@@ -31,21 +31,18 @@ export const modalBackdrop = 'fixed inset-0 bg-black bg-opacity-50 flex items-ce
 export const modalContainer = 'bg-white rounded-xl shadow-xl max-w-md w-full p-6 dark:bg-slate-800';
 
 // ============= TEXT UTILITIES =============
-export const textMuted = 'text-gray-500 dark:text-slate-300';
-export const textPrimary = 'text-gray-900 dark:text-slate-100';
-export const textTertiary = 'text-gray-400 dark:text-slate-300';
-export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
-export const textBody = 'text-sm text-gray-700 dark:text-slate-200';
-
-// ============= ICON CONTAINERS =============
-export const iconContainerBase = 'w-12 h-12 rounded-xl flex items-center justify-center';
+export const textMuted = 'text-gray-500 dark:text-slate-300 px-4';
+export const textPrimary = 'text-gray-900 dark:text-slate-100 px-4';
+export const textTertiary = 'text-gray-400 dark:text-slate-300 px-4';
+export const textValue = 'text-gray-800 font-medium dark:text-slate-200 px-4';
+export const textBody = 'text-sm text-gray-700 dark:text-slate-200 px-4';
 
 // ============= FORM ELEMENTS =============
-export const labelStyles = 'block mb-2 font-semibold text-gray-700 text-sm dark:text-slate-300';
+export const labelStyles = 'block mb-3 font-semibold text-gray-700 text-sm dark:text-slate-300 px-4';
 export const checkboxLabel = 'text-sm font-medium text-gray-700 dark:text-slate-300';
-export const inputStyles = 'w-full p-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
-export const textareaStyles = 'w-full p-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none resize-y font-[inherit] transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
-export const helperStyles = 'text-gray-500 text-xs mt-1 block dark:text-slate-300';
+export const inputStyles = 'w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
+export const textareaStyles = 'w-full px-4 py-3 rounded-xl border border-gray-300 text-sm text-gray-900 bg-white placeholder-gray-400 outline-none resize-y font-[inherit] transition-colors duration-200 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 dark:bg-slate-800 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-blue-500';
+export const helperStyles = 'text-gray-500 text-xs mt-2 block dark:text-slate-300 px-4';
 export const charCounterStyles = 'text-gray-400 text-xs ml-auto dark:text-slate-400';
 
 // ============= LINKS =============
@@ -54,7 +51,7 @@ export const linkSubtle = 'text-blue-600 dark:text-blue-400 text-sm hover:underl
 export const linkEditAction = 'text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium';
 
 // ============= BUTTON VARIANTS =============
-export const btnPrimaryFullWidth = `${btnPrimary} w-full`;
+export const btnPrimaryFullWidth = `${btnPrimary} w-[calc(100%-2rem)] max-w-md mx-auto block`;
 export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
 
 // ============= CARD VARIANTS =============
@@ -82,9 +79,9 @@ export const pillPurple = `${pillBase} bg-purple-100 text-purple-800 dark:bg-pur
 export const linkAction = 'text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline';
 
 // ============= TEXT UTILITIES (Extended) =============
-export const textSecondary = 'text-gray-600 dark:text-slate-300';
-export const textLabel = 'text-xs text-gray-500 dark:text-slate-300';
-export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-200';
+export const textSecondary = 'text-gray-600 dark:text-slate-300 px-4';
+export const textLabel = 'text-xs text-gray-500 dark:text-slate-300 px-4';
+export const textDescription = 'text-sm text-gray-700 leading-relaxed dark:text-slate-200 px-4';
 
 // ============= CARD STRUCTURE PATTERNS =============
 export const cardHeader = 'flex items-start justify-between mb-4';
@@ -149,11 +146,11 @@ export const infoBoxRed = 'p-3 bg-red-50 border border-red-200 rounded-xl dark:b
 export const errorTextInline = 'text-sm text-red-600 dark:text-red-400';
 
 // ============= HEADING VARIANTS =============
-export const headingLg = 'text-lg font-bold text-gray-800 dark:text-slate-100';
-export const headingLgSemibold = 'text-lg font-semibold text-gray-800 dark:text-slate-100';
-export const headingXl = 'text-xl font-bold text-gray-800 dark:text-slate-100';
-export const heading2xl = 'text-2xl font-bold text-gray-800 dark:text-slate-100';
-export const heading3xl = 'text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance';
+export const headingLg = 'text-lg font-bold text-gray-800 dark:text-slate-100 px-4';
+export const headingLgSemibold = 'text-lg font-semibold text-gray-800 dark:text-slate-100 px-4';
+export const headingXl = 'text-xl font-bold text-gray-800 dark:text-slate-100 px-4';
+export const heading2xl = 'text-2xl font-bold text-gray-800 dark:text-slate-100 px-4';
+export const heading3xl = 'text-3xl font-bold text-gray-800 dark:text-slate-100 mb-2 text-balance px-4';
 
 // ============= FILTER/TOGGLE BUTTONS =============
 export const filterBtnBase = 'px-4 py-2 rounded-xl font-medium transition-colors';
@@ -264,6 +261,7 @@ export {
   bgYellow,
   bgRed,
   bgBlue,
+  iconContainerBase,
   iconContainerBlue,
   iconContainerGreen,
   iconContainerPurple,

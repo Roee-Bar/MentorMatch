@@ -41,7 +41,7 @@ export function useStudentPartnerships(userId: string | null, partnerId?: string
           const studentResponse = await apiClient.getStudentById(userId, token);
           actualPartnerId = studentResponse.data?.partnerId;
         } catch (error) {
-          console.error('Error fetching student profile for partnerId:', error);
+          // Silently handle error - will continue without partnerId
         }
       }
 
@@ -64,7 +64,7 @@ export function useStudentPartnerships(userId: string | null, partnerId?: string
           const partnerResponse = await apiClient.getPartnerDetails(actualPartnerId, token);
           currentPartner = partnerResponse.data;
         } catch (error) {
-          console.error('Error fetching partner details:', error);
+          // Silently handle error - will continue without partner details
         }
       }
 

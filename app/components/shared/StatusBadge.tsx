@@ -99,7 +99,7 @@ export default function StatusBadge({
   // For custom variant, use provided className
   if (variant === 'custom') {
     return (
-      <span className={`${badgeBase} ${customClassName || ''} ${className}`}>
+      <span className={`${badgeBase} ${customClassName && customClassName} ${className}`}>
         {customLabel || status}
       </span>
     );
