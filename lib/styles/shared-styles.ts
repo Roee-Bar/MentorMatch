@@ -37,9 +37,6 @@ export const textTertiary = 'text-gray-400 dark:text-slate-300';
 export const textValue = 'text-gray-800 font-medium dark:text-slate-200';
 export const textBody = 'text-sm text-gray-700 dark:text-slate-200';
 
-// ============= ICON CONTAINERS =============
-export const iconContainerBase = 'w-12 h-12 rounded-xl flex items-center justify-center';
-
 // ============= FORM ELEMENTS =============
 export const labelStyles = 'block mb-2 font-semibold text-gray-700 text-sm dark:text-slate-300';
 export const checkboxLabel = 'text-sm font-medium text-gray-700 dark:text-slate-300';
@@ -264,6 +261,7 @@ export {
   bgYellow,
   bgRed,
   bgBlue,
+  iconContainerBase,
   iconContainerBlue,
   iconContainerGreen,
   iconContainerPurple,

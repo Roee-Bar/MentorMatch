@@ -100,7 +100,7 @@ export default function ApplicationsTable({
               {tableType === 'pending-applications' && daysPending !== null && (
                 <Table.Cell>
                   <div className="flex justify-center">
-                    <span className={daysPending > 7 ? 'text-orange-600 font-semibold' : ''}>
+                    <span className={(daysPending > 7 && 'text-orange-600 font-semibold') || undefined}>
                       {daysPending} day{daysPending !== 1 ? 's' : ''}
                     </span>
                   </div>

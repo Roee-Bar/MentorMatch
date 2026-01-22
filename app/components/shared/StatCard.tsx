@@ -21,13 +21,9 @@ export default function StatCard({
   onClick,
   isActive = false,
 }: StatCardProps) {
-  const clickableClasses = onClick ? 'cursor-pointer transition-all duration-200' : '';
-  const activeBorderClasses = isActive 
-    ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
-    : '';
-  const activeBgClasses = isActive
-    ? 'bg-blue-50 dark:bg-blue-900/20'
-    : '';
+  const clickableClasses = onClick && 'cursor-pointer transition-all duration-200';
+  const activeBorderClasses = isActive && 'ring-2 ring-blue-500 dark:ring-blue-400';
+  const activeBgClasses = isActive && 'bg-blue-50 dark:bg-blue-900/20';
 
   return (
     <div 
@@ -52,7 +48,7 @@ export default function StatCard({
         </div>
       </div>
       <div className="relative">
-        <p className={`text-3xl font-bold ${textColorMap[color]} ${isLoading ? 'opacity-60' : ''}`}>
+        <p className={`text-3xl font-bold ${textColorMap[color]} ${isLoading && 'opacity-60'}`}>
           {value}
         </p>
       </div>

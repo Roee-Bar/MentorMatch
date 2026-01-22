@@ -202,7 +202,7 @@ export default function ApplicationStatusModal({
                     selectedAction === action.type
                       ? action.color + ' border-current'
                       : actionBtnDefault
-                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  } ${isLoading && 'opacity-50 cursor-not-allowed'}`}
                 >
                   <span className="font-medium">{action.label}</span>
                   <p className="text-xs mt-1 opacity-75">{action.description}</p>
