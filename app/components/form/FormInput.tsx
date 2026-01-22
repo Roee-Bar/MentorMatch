@@ -41,7 +41,7 @@ const FormInput: React.FC<FormInputProps> = ({
   const inputId = id || name;
 
   return (
-    <div className={className}>
+    <div className={`${className} px-4`}>
       <label htmlFor={inputId} className={labelStyles}>
         {label} {required && '*'}
       </label>
