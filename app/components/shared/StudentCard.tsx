@@ -58,7 +58,7 @@ export default function StudentCard({
   const interestsArray = student.interests ? student.interests.split(',').map(i => i.trim()).filter(i => i) : [];
 
   return (
-    <div className={`${cardHover} ${isCurrentPartner && ringPartnerHighlight}`}>
+    <div className={`${cardHover} h-full flex flex-col ${isCurrentPartner && ringPartnerHighlight}`}>
       {/* Header with Name and Status */}
       <div className={cardHeader}>
         <div className="flex-1">
@@ -79,69 +79,72 @@ export default function StudentCard({
         )}
       </div>
 
-      {/* Skills */}
-      {skillsArray.length > 0 && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-2`}>Skills:</p>
-          <div className="flex flex-wrap gap-2">
-            {skillsArray.slice(0, 5).map((skill, index) => (
-              <span
-                key={index}
-                className={tagBlue}
-              >
-                {skill}
-              </span>
-            ))}
-            {skillsArray.length > 5 && (
-              <span className={tagGray}>
-                +{skillsArray.length - 5} more
-              </span>
-            )}
+      {/* Variable Content Section - grows to fill space */}
+      <div className="flex-1 flex flex-col">
+        {/* Skills */}
+        {skillsArray.length > 0 && (
+          <div className="mb-4">
+            <p className={`${textLabel} mb-2`}>Skills:</p>
+            <div className="flex flex-wrap gap-2">
+              {skillsArray.slice(0, 5).map((skill, index) => (
+                <span
+                  key={index}
+                  className={tagBlue}
+                >
+                  {skill}
+                </span>
+              ))}
+              {skillsArray.length > 5 && (
+                <span className={tagGray}>
+                  +{skillsArray.length - 5} more
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Interests */}
-      {interestsArray.length > 0 && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-2`}>Interests:</p>
-          <div className="flex flex-wrap gap-2">
-            {interestsArray.slice(0, 4).map((interest, index) => (
-              <span
-                key={index}
-                className={tagPurple}
-              >
-                {interest}
-              </span>
-            ))}
-            {interestsArray.length > 4 && (
-              <span className={tagGray}>
-                +{interestsArray.length - 4} more
-              </span>
-            )}
+        {/* Interests */}
+        {interestsArray.length > 0 && (
+          <div className="mb-4">
+            <p className={`${textLabel} mb-2`}>Interests:</p>
+            <div className="flex flex-wrap gap-2">
+              {interestsArray.slice(0, 4).map((interest, index) => (
+                <span
+                  key={index}
+                  className={tagPurple}
+                >
+                  {interest}
+                </span>
+              ))}
+              {interestsArray.length > 4 && (
+                <span className={tagGray}>
+                  +{interestsArray.length - 4} more
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Preferred Topics */}
-      {student.preferredTopics && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-1`}>Preferred Topics:</p>
-          <p className={`${textBody} line-clamp-2`}>
-            {student.preferredTopics}
-          </p>
-        </div>
-      )}
+        {/* Preferred Topics */}
+        {student.preferredTopics && (
+          <div className="mb-4">
+            <p className={`${textLabel} mb-1`}>Preferred Topics:</p>
+            <p className={`${textBody} line-clamp-2`}>
+              {student.preferredTopics}
+            </p>
+          </div>
+        )}
 
-      {/* Previous Projects */}
-      {student.previousProjects && (
-        <div className="mb-4">
-          <p className={`${textLabel} mb-1`}>Previous Projects:</p>
-          <p className={`${textBody} line-clamp-2`}>
-            {student.previousProjects}
-          </p>
-        </div>
-      )}
+        {/* Previous Projects */}
+        {student.previousProjects && (
+          <div className="mb-4">
+            <p className={`${textLabel} mb-1`}>Previous Projects:</p>
+            <p className={`${textBody} line-clamp-2`}>
+              {student.previousProjects}
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Details */}
       <div className={cardDetailsSection}>

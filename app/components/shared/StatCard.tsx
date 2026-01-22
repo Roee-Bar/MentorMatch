@@ -27,7 +27,7 @@ export default function StatCard({
 
   return (
     <div 
-      className={`${cardBase} ${clickableClasses} ${activeBorderClasses} ${activeBgClasses}`}
+      className={`${cardBase} h-full flex flex-col ${clickableClasses} ${activeBorderClasses} ${activeBgClasses}`}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -47,12 +47,12 @@ export default function StatCard({
           {icon && <div className={iconMuted}>{icon}</div>}
         </div>
       </div>
-      <div className="relative">
+      <div className="relative flex-1">
         <p className={`text-3xl font-bold ${textColorMap[color]} ${isLoading && 'opacity-60'}`}>
           {value}
         </p>
       </div>
-      <p className={`text-xs mt-1 ${textMuted}`}>{description}</p>
+      <p className={`text-xs mt-1 ${textMuted} line-clamp-2`}>{description}</p>
     </div>
   );
 }

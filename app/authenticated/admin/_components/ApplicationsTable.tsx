@@ -89,9 +89,11 @@ export default function ApplicationsTable({
 
           return (
             <Table.Row key={application.id}>
-              <Table.Cell className="font-medium">{application.projectTitle}</Table.Cell>
-              <Table.Cell>{application.studentName}</Table.Cell>
-              <Table.Cell>{application.supervisorName}</Table.Cell>
+              <Table.Cell className="font-medium" truncate>
+                {application.projectTitle}
+              </Table.Cell>
+              <Table.Cell truncate>{application.studentName}</Table.Cell>
+              <Table.Cell truncate>{application.supervisorName}</Table.Cell>
               <Table.Cell>
                 <div className="flex justify-center">
                   <StatusBadge status={application.status} variant="application" />

@@ -58,7 +58,7 @@ Cloud Firestore
 
 ### Key Features
 
-**Students**: Browse supervisors, submit applications, track status
+**Students**: Browse supervisors with filtering, submit applications, track status
 
 **Supervisors**: Manage capacity, review applications, track projects
 

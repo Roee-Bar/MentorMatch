@@ -80,7 +80,7 @@ export default function PartnershipRequestCard({
   };
 
   return (
-    <div className={`${cardHover} ${borderLeftAccentBlue}`}>
+    <div className={`${cardHover} h-full flex flex-col ${borderLeftAccentBlue}`}>
       {/* Header */}
       <div className={cardHeader}>
         <div className="flex-1">
@@ -121,7 +121,7 @@ export default function PartnershipRequestCard({
       </div>
 
       {/* Message */}
-      <div className={`${infoBoxBlue} mb-4`}>
+      <div className={`${infoBoxBlue} mb-4 flex-1`}>
         <p className={`text-sm ${textInfoDark}`}>
           {isIncoming 
             ? `${request.requesterName} wants to partner with you for your final project.`
