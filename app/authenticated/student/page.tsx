@@ -46,7 +46,12 @@ export default function StudentAuthenticated() {
   // Action hooks with auto-refetch and message handling
   const partnershipActions = usePartnershipActions({
     userId,
-    onRefresh: refetchPartnerships,
+    onRefresh: async () => {
+      // Refetch both dashboard and partnerships to ensure partnerId is updated
+      // This is critical for unpair action - dashboard contains the partnerId
+      await refetchDashboard();
+      await refetchPartnerships();
+    },
     onSuccess: (msg) => { 
       setSuccessMessage(msg); 
       setTimeout(() => setSuccessMessage(null), 5000); 
