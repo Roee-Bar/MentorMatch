@@ -229,9 +229,6 @@ export default function ApplicationModal({
                 <div className="space-y-1 text-xs text-blue-700 dark:text-blue-300">
                   <p>✓ This application will be submitted as a team project</p>
                   <p>✓ Both students will be listed on the application</p>
-                  <p>✓ Your partner can also apply separately to the same supervisor</p>
-                  <p>✓ Applications will be automatically linked as one project</p>
-                  <p>✓ Only one capacity slot will be used for both students</p>
                 </div>
               </div>
             ) : (
