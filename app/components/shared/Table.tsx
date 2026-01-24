@@ -36,6 +36,8 @@ import {
   tableBody,
   tableRowHover,
   tableCell,
+  tableCellTruncate,
+  tableCellWrap,
 } from '@/lib/styles/shared-styles';
 
 interface TableContainerProps {
@@ -68,6 +70,8 @@ interface TableRowProps {
 interface TableCellProps {
   children: React.ReactNode;
   className?: string;
+  truncate?: boolean;
+  wrap?: boolean;
 }
 
 function Container({ children, className = '' }: TableContainerProps) {
@@ -100,8 +104,13 @@ function Row({ children, hover = true, className = '' }: TableRowProps) {
   return <tr className={`${hoverClass} ${className}`}>{children}</tr>;
 }
 
-function Cell({ children, className = '' }: TableCellProps) {
-  return <td className={`${tableCell} ${className}`}>{children}</td>;
+function Cell({ children, className = '', truncate = false, wrap = false }: TableCellProps) {
+  const cellClass = truncate 
+    ? tableCellTruncate 
+    : wrap 
+      ? tableCellWrap 
+      : tableCell;
+  return <td className={`${cellClass} ${className}`}>{children}</td>;
 }
 
 // Export as compound component

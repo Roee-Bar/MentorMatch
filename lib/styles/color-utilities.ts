@@ -13,8 +13,8 @@ export const textOrange = 'text-orange-600 dark:text-orange-400';
 export const textGray = 'text-gray-600 dark:text-slate-300';
 
 // ============= INFO TEXT (Blue variants) =============
-export const textInfoLight = 'text-blue-700 dark:text-blue-300';
-export const textInfoDark = 'text-blue-900 dark:text-blue-200';
+export const textInfoLight = 'text-blue-700 dark:text-blue-300 px-4';
+export const textInfoDark = 'text-blue-900 dark:text-blue-200 px-4';
 
 // ============= BACKGROUND COLOR ACCENTS =============
 export const bgGreen = 'bg-green-600 dark:bg-green-500';

@@ -52,7 +52,7 @@ export default function ApplicationCard({
   const isSupervisorView = viewMode === 'supervisor';
 
   return (
-    <div className={cardBase}>
+    <div className={`${cardBase} h-full flex flex-col`}>
       {/* Header with Title and Status */}
       <div className={cardHeader}>
         <div className="flex-1">
@@ -90,7 +90,7 @@ export default function ApplicationCard({
       )}
 
       {/* Project Description */}
-      <div className="mb-4">
+      <div className="mb-4 flex-1">
         <p className={`${textDescription} line-clamp-3`}>
           {application.projectDescription}
         </p>
@@ -139,7 +139,7 @@ export default function ApplicationCard({
               ? 'Revision Requested' 
               : 'Supervisor Feedback:'}
           </p>
-          <p className={commentBox}>
+          <p className={`${commentBox} line-clamp-3`}>
             {application.comments}
           </p>
         </div>

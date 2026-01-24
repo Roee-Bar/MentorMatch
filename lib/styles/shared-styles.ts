@@ -186,7 +186,9 @@ export const tableHeaderCellCenter = 'px-6 py-3 text-center text-xs font-medium 
 export const tableHeaderCellRight = 'px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300';
 export const tableBody = 'bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700';
 export const tableRowHover = 'hover:bg-gray-50 dark:hover:bg-slate-700';
-export const tableCell = 'px-6 py-4 whitespace-nowrap dark:text-slate-200';
+export const tableCell = 'px-6 py-4 dark:text-slate-200';
+export const tableCellTruncate = 'px-6 py-4 dark:text-slate-200 truncate max-w-xs';
+export const tableCellWrap = 'px-6 py-4 dark:text-slate-200 break-words';
 
 // ============= EMAIL LINKS =============
 export const linkEmailWithMargin = `${linkEmail} ml-1`;

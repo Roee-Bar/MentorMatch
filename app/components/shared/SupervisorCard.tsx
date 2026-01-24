@@ -41,7 +41,7 @@ export default function SupervisorCard({
   };
 
   return (
-    <div className={cardHover}>
+    <div className={`${cardHover} h-full flex flex-col`}>
       {/* Header with Name and Availability */}
       <div className={cardHeader}>
         <div className="flex-1">
@@ -54,7 +54,7 @@ export default function SupervisorCard({
       </div>
 
       {/* Bio */}
-      <div className="mb-4">
+      <div className="mb-4 flex-1">
         <p className={`${textDescription} line-clamp-3`}>
           {supervisor.bio}
         </p>
