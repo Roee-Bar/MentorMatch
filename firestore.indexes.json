@@ -46,6 +46,14 @@
       "fields": [
         { "fieldPath": "partnershipStatus", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "email_verification_tokens",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "expiresAt", "order": "ASCENDING" },
+        { "fieldPath": "used", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

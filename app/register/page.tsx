@@ -76,10 +76,10 @@ export default function RegisterPage() {
       const response = await apiClient.registerUser(formData)
 
       if (response.success) {
-        setMessage('Registration successful! Redirecting to login...')
+        setMessage('Registration successful! Please check your email to verify your account.')
         setTimeout(() => {
           router.push('/login')
-        }, 2000)
+        }, 4000)
       } else {
         setMessage(response.error || 'Registration failed. Please try again.')
         setLoading(false)

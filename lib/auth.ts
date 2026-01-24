@@ -16,7 +16,28 @@ import { getFirebaseErrorMessage } from './auth-errors';
 export const signIn = async (email: string, password: string) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return { success: true, user: userCredential.user };
+    const user = userCredential.user;
+
+    // Check if email is verified (only for students)
+    await user.reload(); // Refresh user data from Firebase
+    
+    // Get user profile to check role
+    const token = await user.getIdToken();
+    const profileResponse = await apiFetch(`/users/${user.uid}`, { token });
+    
+    if (profileResponse.success && profileResponse.data?.role === 'student') {
+      if (!user.emailVerified) {
+        await firebaseSignOut(auth);
+        return { 
+          success: false, 
+          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          needsVerification: true,
+          email: user.email
+        };
+      }
+    }
+
+    return { success: true, user };
   } catch (error: any) {
     return { success: false, error: getFirebaseErrorMessage(error) };
   }

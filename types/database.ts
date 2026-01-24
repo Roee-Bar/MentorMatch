@@ -10,6 +10,8 @@ export interface BaseUser {
   name: string;
   role: 'student' | 'supervisor' | 'admin';
   department?: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: Date;
   createdAt: Date;
   updatedAt?: Date;
 }
@@ -62,6 +64,8 @@ export interface Student {
   matchStatus: 'unmatched' | 'pending' | 'matched';
   assignedSupervisorId?: string;
   assignedProjectId?: string;
+  emailVerified?: boolean;
+  emailVerifiedAt?: Date;
   
   // Timestamps
   registrationDate: Date;
