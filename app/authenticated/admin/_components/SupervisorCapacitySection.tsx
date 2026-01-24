@@ -1,9 +1,8 @@
 'use client';
 
 import SectionHeader from '@/app/components/layout/SectionHeader';
-import Table from '@/app/components/shared/Table';
 import type { Supervisor } from '@/types/database';
-import { btnPrimary, linkEmail, capacityAvailable, capacityUnavailable } from '@/lib/styles/shared-styles';
+import { btnPrimary, linkEmail, capacityAvailable, capacityUnavailable, cardBase } from '@/lib/styles/shared-styles';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import EmptyState from '@/app/components/feedback/EmptyState';
 
@@ -51,57 +50,59 @@ export default function SupervisorCapacitySection({
         }
       />
       
-      <div className="overflow-x-auto">
-        <Table.Container>
-          <Table.Header>
-            <tr>
-              <Table.HeaderCell className="w-48 px-8">Name</Table.HeaderCell>
-              <Table.HeaderCell className="w-64 px-8">Email</Table.HeaderCell>
-              <Table.HeaderCell className="w-48 px-8">Department</Table.HeaderCell>
-              <Table.HeaderCell align="center" className="w-32 px-8">Current / Max</Table.HeaderCell>
-              <Table.HeaderCell align="center" className="w-28 px-8">Available</Table.HeaderCell>
-              <Table.HeaderCell align="center" className="w-40 px-8">Actions</Table.HeaderCell>
-            </tr>
-          </Table.Header>
-          <Table.Body>
-            {supervisors.map((supervisor) => {
-              const available = supervisor.maxCapacity - supervisor.currentCapacity;
-              return (
-                <Table.Row key={supervisor.id}>
-                  <Table.Cell className="w-48 px-8">{supervisor.fullName}</Table.Cell>
-                  <Table.Cell className="w-64 px-8">
-                    <a href={`mailto:${supervisor.email}`} className={linkEmail}>
-                      {supervisor.email}
-                    </a>
-                  </Table.Cell>
-                  <Table.Cell className="w-48 px-8">{supervisor.department}</Table.Cell>
-                  <Table.Cell className="w-32 px-8">
-                    <div className="text-center">
-                      {supervisor.currentCapacity} / {supervisor.maxCapacity}
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell className="w-28 px-8">
-                    <div className="text-center">
-                      <span className={available > 0 ? capacityAvailable : capacityUnavailable}>
-                        {available}
-                      </span>
-                    </div>
-                  </Table.Cell>
-                  <Table.Cell className="w-40 px-8">
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() => onEdit(supervisor)}
-                        className={btnPrimary}
-                      >
-                        Edit Capacity
-                      </button>
-                    </div>
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
-          </Table.Body>
-        </Table.Container>
+      <div className={cardBase}>
+        <div className="overflow-x-auto">
+          <table className="w-full table-fixed divide-y divide-gray-200 dark:divide-slate-700">
+            <thead className="bg-gray-50 dark:bg-slate-800">
+              <tr>
+                <th className="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Name</th>
+                <th className="w-[22%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Email</th>
+                <th className="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Department</th>
+                <th className="w-[14%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Current / Max</th>
+                <th className="w-[12%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Available</th>
+                <th className="w-[16%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-800 dark:divide-slate-700">
+              {supervisors.map((supervisor) => {
+                const available = supervisor.maxCapacity - supervisor.currentCapacity;
+                return (
+                  <tr key={supervisor.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <td className="w-[18%] px-6 py-4 dark:text-slate-200">{supervisor.fullName}</td>
+                    <td className="w-[22%] px-6 py-4 dark:text-slate-200">
+                      <a href={`mailto:${supervisor.email}`} className={linkEmail}>
+                        {supervisor.email}
+                      </a>
+                    </td>
+                    <td className="w-[18%] px-6 py-4 dark:text-slate-200">{supervisor.department}</td>
+                    <td className="w-[14%] px-6 py-4 dark:text-slate-200">
+                      <div className="text-center">
+                        {supervisor.currentCapacity} / {supervisor.maxCapacity}
+                      </div>
+                    </td>
+                    <td className="w-[12%] px-6 py-4 dark:text-slate-200">
+                      <div className="text-center">
+                        <span className={available > 0 ? capacityAvailable : capacityUnavailable}>
+                          {available}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="w-[16%] px-6 py-4 dark:text-slate-200">
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => onEdit(supervisor)}
+                          className={btnPrimary}
+                        >
+                          Edit Capacity
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
