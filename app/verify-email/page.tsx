@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/api/client';
 import AuthLayout from '@/app/components/layout/AuthLayout';
@@ -8,7 +8,7 @@ import StatusMessage from '@/app/components/feedback/StatusMessage';
 import FormInput from '@/app/components/form/FormInput';
 import { btnPrimaryFullWidth, heading2xl, textMuted } from '@/lib/styles/shared-styles';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'idle'>('idle');
@@ -135,5 +135,20 @@ export default function VerifyEmailPage() {
         )}
       </div>
     </AuthLayout>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <AuthLayout backHref="/login">
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className={textMuted}>Loading...</p>
+        </div>
+      </AuthLayout>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

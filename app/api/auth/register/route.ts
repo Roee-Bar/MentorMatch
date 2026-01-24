@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     if (!emailResult.success) {
       logger.service.warn('AuthService', 'registerUser', 
-        { message: 'User created but email failed to send', userId: userRecord.uid });
+        'User created but email failed to send', { userId: userRecord.uid });
     }
 
     logger.service.success('AuthService', 'registerUser', { userId: userRecord.uid, email: data.email });

@@ -58,7 +58,7 @@ export class EmailVerificationService {
       const tokenDoc = await adminDb.collection('email_verification_tokens').doc(token).get();
 
       if (!tokenDoc.exists) {
-        logger.service.warn(SERVICE_NAME, 'verifyToken', { message: 'Token not found', token });
+        logger.service.warn(SERVICE_NAME, 'verifyToken', 'Token not found', { token });
         return { success: false, error: 'Invalid verification token' };
       }
 
@@ -66,7 +66,7 @@ export class EmailVerificationService {
 
       // Check if already used
       if (tokenData.used) {
-        logger.service.warn(SERVICE_NAME, 'verifyToken', { message: 'Token already used', token });
+        logger.service.warn(SERVICE_NAME, 'verifyToken', 'Token already used', { token });
         return { success: false, error: 'Verification token has already been used' };
       }
 
@@ -77,7 +77,7 @@ export class EmailVerificationService {
         : new Date(tokenData.expiresAt);
 
       if (now > expiresAt) {
-        logger.service.warn(SERVICE_NAME, 'verifyToken', { message: 'Token expired', token });
+        logger.service.warn(SERVICE_NAME, 'verifyToken', 'Token expired', { token });
         return { success: false, error: 'Verification token has expired' };
       }
 
@@ -135,7 +135,7 @@ export class EmailVerificationService {
         .get();
 
       if (expiredTokens.empty) {
-        logger.service.info(SERVICE_NAME, 'cleanupExpiredTokens', { 
+        logger.service.operation(SERVICE_NAME, 'cleanupExpiredTokens', { 
           message: 'No expired tokens to clean up' 
         });
         return;
