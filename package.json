@@ -13,7 +13,8 @@
     "cleanup:check": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts",
     "cleanup:fix": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/cleanup-orphaned-refs.ts --fix",
     "test:setup-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/setup-test-partnerships.ts",
-    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts"
+    "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
+    "migrate:grandfather-users": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/grandfather-existing-users.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",
@@ -21,12 +22,15 @@
     "next": "14.2.33",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "resend": "^4.0.1",
+    "uuid": "^10.0.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.22",
     "dotenv": "^17.2.3",
     "eslint": "^8",

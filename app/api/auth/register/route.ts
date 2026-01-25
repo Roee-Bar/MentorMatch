@@ -11,6 +11,8 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin';
 import { validateRegistration } from '@/lib/middleware/validation';
 import { ApiResponse } from '@/lib/middleware/response';
 import { logger } from '@/lib/logger';
+import { EmailVerificationService } from '@/lib/services/email-verification-service';
+import { EmailService } from '@/lib/services/email-service';
 
 export async function POST(request: NextRequest) {
   let email: string | undefined;
@@ -42,6 +44,7 @@ export async function POST(request: NextRequest) {
       name: `${data.firstName} ${data.lastName}`,
       role: 'student',
       department: data.department,
+      emailVerified: false,
       createdAt: new Date(),
     });
 
@@ -74,6 +77,7 @@ export async function POST(request: NextRequest) {
       // Status
       profileComplete: true,
       matchStatus: 'unmatched',
+      emailVerified: false,
       
       // Timestamps
       registrationDate: new Date(),
@@ -81,9 +85,30 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date(),
     });
 
+    // Generate verification token
+    const verificationToken = await EmailVerificationService.createVerificationToken(
+      userRecord.uid,
+      data.email
+    );
+
+    // Send verification email
+    const emailResult = await EmailService.sendVerificationEmail(
+      data.email,
+      data.firstName,
+      verificationToken
+    );
+
+    if (!emailResult.success) {
+      logger.service.warn('AuthService', 'registerUser', 
+        'User created but email failed to send', { userId: userRecord.uid });
+    }
+
     logger.service.success('AuthService', 'registerUser', { userId: userRecord.uid, email: data.email });
 
-    return ApiResponse.created({ userId: userRecord.uid }, 'Registration successful');
+    return ApiResponse.created({ 
+      userId: userRecord.uid,
+      verificationRequired: true 
+    }, 'Registration successful! Please check your email to verify your account.');
 
   } catch (error: any) {
     // Try to extract email from error or request body for logging
