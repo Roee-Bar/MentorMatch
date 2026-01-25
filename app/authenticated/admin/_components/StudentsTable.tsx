@@ -3,7 +3,6 @@
 import Table from '@/app/components/shared/Table';
 import type { Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
-import { formatFirestoreDate } from '@/lib/utils/date';
 import StatusBadge from '@/app/components/shared/StatusBadge';
 import { emptyStateContainer, sortableHeaderButton, linkEmail } from '@/lib/styles/shared-styles';
 
@@ -71,14 +70,6 @@ export default function StudentsTable({
               Status {getSortIcon('matchStatus')}
             </button>
           </Table.HeaderCell>
-          <Table.HeaderCell>
-            <button
-              onClick={() => onSort('registrationDate')}
-              className={sortableHeaderButton}
-            >
-              Registered {getSortIcon('registrationDate')}
-            </button>
-          </Table.HeaderCell>
         </tr>
       </Table.Header>
       <Table.Body>
@@ -94,7 +85,6 @@ export default function StudentsTable({
             <Table.Cell>
               <StatusBadge status={student.matchStatus} variant="matchStatus" />
             </Table.Cell>
-            <Table.Cell>{formatFirestoreDate(student.registrationDate)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>
