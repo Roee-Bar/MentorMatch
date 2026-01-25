@@ -110,6 +110,7 @@ export default function LoginPage() {
           <StatusMessage
             message={message}
             type={message.includes('successful') ? 'success' : 'error'}
+            className="mt-6"
           />
         )}
 

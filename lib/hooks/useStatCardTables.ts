@@ -121,22 +121,20 @@ export function useStatCardTables({ supervisors }: UseStatCardTablesParams): Use
       (student, filter) => {
         const s = student as Student;
         return (
-          s.fullName.toLowerCase().includes(filter) ||
-          s.email.toLowerCase().includes(filter) ||
-          s.studentId.toLowerCase().includes(filter) ||
-          s.department.toLowerCase().includes(filter) ||
-          s.matchStatus.toLowerCase().includes(filter)
+        s.fullName.toLowerCase().includes(filter) ||
+        s.email.toLowerCase().includes(filter) ||
+        s.department.toLowerCase().includes(filter) ||
+        s.matchStatus.toLowerCase().includes(filter)
         );
       },
       sortConfig,
       (a, b) => {
         const sa = a as Student;
         const sb = b as Student;
-        switch (sortConfig.column) {
-          case 'name': return sa.fullName.localeCompare(sb.fullName);
-          case 'studentId': return sa.studentId.localeCompare(sb.studentId);
-          case 'email': return sa.email.localeCompare(sb.email);
-          case 'department': return sa.department.localeCompare(sb.department);
+      switch (sortConfig.column) {
+        case 'name': return sa.fullName.localeCompare(sb.fullName);
+        case 'email': return sa.email.localeCompare(sb.email);
+        case 'department': return sa.department.localeCompare(sb.department);
           case 'matchStatus': return sa.matchStatus.localeCompare(sb.matchStatus);
           case 'registrationDate': 
             return new Date(sa.registrationDate).getTime() - new Date(sb.registrationDate).getTime();

@@ -20,7 +20,7 @@ import ConfirmModal from '@/app/components/shared/ConfirmModal';
 import { Student, StudentCardData, SupervisorCardData } from '@/types/database';
 import StudentCard from '@/app/components/shared/StudentCard';
 import SupervisorCard from '@/app/components/shared/SupervisorCard';
-import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue, textErrorCentered } from '@/lib/styles/shared-styles';
+import { btnPrimary, btnPrimaryFullWidth, cardBase, sectionTitle, headingLg, dividerTop, textSecondary, textValue, textErrorCentered, tagBlue } from '@/lib/styles/shared-styles';
 
 export default function StudentProfilePage() {
   const router = useRouter();
@@ -51,7 +51,6 @@ export default function StudentProfilePage() {
             partnerDetails = {
               id: partnerRes.data.id,
               fullName: partnerRes.data.fullName,
-              studentId: partnerRes.data.studentId,
               department: partnerRes.data.department,
               email: partnerRes.data.email,
               skills: partnerRes.data.skills,
@@ -184,7 +183,17 @@ export default function StudentProfilePage() {
                 {student.skills && (
                   <div>
                     <label className={`text-sm font-medium ${textSecondary}`}>Skills</label>
-                    <p className={`${textValue} mt-1 text-balance`}>{student.skills}</p>
+                    {Array.isArray(student.skills) ? (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {student.skills.map((skill: string, index: number) => (
+                          <span key={index} className={tagBlue}>
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={`${textValue} mt-1 text-balance`}>{student.skills}</p>
+                    )}
                   </div>
                 )}
                 {student.interests && (

@@ -61,7 +61,10 @@ export const createApplicationSchema = z.object({
   proposedTopicId: z.string().optional(),
   hasPartner: z.boolean(),
   partnerName: z.string().optional(),
-  partnerEmail: z.string().email('Invalid email format').optional(),
+  partnerEmail: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Partner email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional(),
 });
 
 /**
@@ -84,7 +87,11 @@ export const updateApplicationSchema = z.object({
   studentInterests: z.string().min(1, 'Interests are required').max(500, 'Interests must be at most 500 characters'),
   hasPartner: z.boolean(),
   partnerName: z.string().max(100, 'Partner name too long').optional(),
-  partnerEmail: z.string().email('Invalid email format').optional().or(z.literal('')),
+  partnerEmail: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Partner email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional()
+    .or(z.literal('')),
 });
 
 /**
@@ -92,19 +99,24 @@ export const updateApplicationSchema = z.object({
  */
 export const registrationSchema = z.object({
   // Account credentials
-  email: z.string().email('Invalid email format').min(1, 'Email is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters'),
+  email: z.string()
+    .min(1, 'Email is required')
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Email must be a valid Braude email address (@e.braude.ac.il)'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+  confirmPassword: z.string().min(8, 'Confirm password must be at least 8 characters'),
   
   // Personal information
   firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
   lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-  studentId: z.string().min(1, 'Student ID is required'),
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   department: z.string().min(1, 'Department is required'),
   
   // Academic information
-  skills: z.string().optional(),
+  skills: z.array(z.string()).min(1, 'At least one skill is required'),
   interests: z.string().optional(),
   previousProjects: z.string().optional(),
   preferredTopics: z.string().optional(),
@@ -112,7 +124,11 @@ export const registrationSchema = z.object({
   // Partner information
   hasPartner: z.boolean(),
   partnerName: z.string().optional(),
-  partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
+  partnerEmail: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Partner email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional()
+    .or(z.literal('')),
 }).refine(data => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],
@@ -140,7 +156,10 @@ export function validateRegistration(data: any): { success: boolean; data?: z.in
  * Schema for updating user profile
  */
 export const updateUserSchema = z.object({
-  email: z.string().email('Invalid email format').optional(),
+  email: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional(),
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
   phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
   department: z.string().min(1, 'Department is required').optional(),
@@ -151,11 +170,13 @@ export const updateUserSchema = z.object({
  */
 export const updateStudentSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
-  email: z.string().email('Invalid email format').optional(),
-  studentId: z.string().min(1, 'Student ID is required').optional(),
+  email: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional(),
   phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
   department: z.string().min(1, 'Department is required').optional(),
-  skills: z.string().max(500, 'Skills must be at most 500 characters').optional(),
+  skills: z.array(z.string()).optional(),
   interests: z.string().max(500, 'Interests must be at most 500 characters').optional(),
   previousProjects: z.string().max(1000, 'Previous projects must be at most 1000 characters').optional(),
   preferredTopics: z.string().max(500, 'Preferred topics must be at most 500 characters').optional(),
@@ -167,7 +188,11 @@ export const updateStudentSchema = z.object({
   // Deprecated partnership fields
   hasPartner: z.boolean().optional(),
   partnerName: z.string().max(100, 'Partner name too long').optional(),
-  partnerEmail: z.string().email('Invalid partner email').optional().or(z.literal('')),
+  partnerEmail: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Partner email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional()
+    .or(z.literal('')),
   
   matchedSupervisorId: z.string().optional(),
   matchedProjectId: z.string().optional(),
@@ -178,7 +203,10 @@ export const updateStudentSchema = z.object({
  */
 export const updateSupervisorSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Full name too long').optional(),
-  email: z.string().email('Invalid email format').optional(),
+  email: z.string()
+    .regex(/^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$/, 
+      'Email must be a valid Braude email address (@e.braude.ac.il)')
+    .optional(),
   phone: z.string().min(10, 'Phone number must be at least 10 digits').optional(),
   department: z.string().min(1, 'Department is required').optional(),
   bio: z.string().max(2000, 'Bio must be at most 2000 characters').optional(),

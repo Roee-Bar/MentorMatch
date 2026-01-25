@@ -55,12 +55,11 @@ export async function POST(request: NextRequest) {
       lastName: data.lastName,
       fullName: `${data.firstName} ${data.lastName}`,
       email: data.email,
-      studentId: data.studentId,
       phone: data.phone,
       department: data.department,
       
       // Academic Information
-      skills: data.skills || '',
+      skills: data.skills || [],
       interests: data.interests || '',
       previousProjects: data.previousProjects || '',
       preferredTopics: data.preferredTopics || '',

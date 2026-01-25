@@ -94,7 +94,7 @@ function VerifyEmailContent() {
         {status === 'success' && (
           <div className="py-8">
             <div className="text-green-600 text-5xl mb-4">✓</div>
-            <StatusMessage message={message} type="success" />
+            <StatusMessage message={message} type="success" className="mb-6" />
           </div>
         )}
 
@@ -103,7 +103,7 @@ function VerifyEmailContent() {
             {status === 'error' && (
               <>
                 <div className="text-red-600 text-5xl mb-4">✗</div>
-                <StatusMessage message={message} type="error" />
+                <StatusMessage message={message} type="error" className="mb-6" />
               </>
             )}
             

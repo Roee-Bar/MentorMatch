@@ -74,7 +74,6 @@ export const PartnershipWorkflowService = {
           requesterId,
           requesterName: requester.fullName,
           requesterEmail: requester.email,
-          requesterStudentId: requester.studentId,
           requesterDepartment: requester.department,
           targetStudentId,
           targetStudentName: target.fullName,

@@ -69,6 +69,16 @@ export function toUser(id: string, data: DocumentData): BaseUser {
  * @param data - Document data from Firestore
  */
 export function toStudent(id: string, data: DocumentData): Student {
+  // Handle skills migration - support both string (old) and array (new) formats
+  let skills: string[];
+  if (Array.isArray(data.skills)) {
+    skills = data.skills;
+  } else if (typeof data.skills === 'string' && data.skills) {
+    skills = data.skills.split(',').map(s => s.trim()).filter(s => s);
+  } else {
+    skills = [];
+  }
+
   return {
     id,
     // Personal Information
@@ -76,11 +86,10 @@ export function toStudent(id: string, data: DocumentData): Student {
     lastName: data.lastName ?? '',
     fullName: data.fullName ?? '',
     email: data.email ?? '',
-    studentId: data.studentId ?? '',
     phone: data.phone ?? '',
     department: data.department ?? '',
     // Academic Information
-    skills: data.skills ?? '',
+    skills,
     interests: data.interests ?? '',
     previousProjects: data.previousProjects,
     preferredTopics: data.preferredTopics,
@@ -228,7 +237,6 @@ export function toPartnershipRequest(id: string, data: DocumentData): StudentPar
     requesterId: data.requesterId ?? '',
     requesterName: data.requesterName ?? '',
     requesterEmail: data.requesterEmail ?? '',
-    requesterStudentId: data.requesterStudentId ?? '',
     requesterDepartment: data.requesterDepartment ?? '',
     targetStudentId: data.targetStudentId ?? '',
     targetStudentName: data.targetStudentName ?? '',

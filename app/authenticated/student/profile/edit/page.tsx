@@ -9,10 +9,12 @@ import { useAuth } from '@/lib/hooks';
 import { ROUTES } from '@/lib/routes';
 import { apiClient } from '@/lib/api/client';
 import { auth } from '@/lib/firebase';
+import { SKILLS_OPTIONS } from '@/lib/constants';
 import LoadingSpinner from '@/app/components/LoadingSpinner';
 import StatusMessage from '@/app/components/feedback/StatusMessage';
 import FormInput from '@/app/components/form/FormInput';
 import FormTextArea from '@/app/components/form/FormTextArea';
+import FormMultiSelect from '@/app/components/form/FormMultiSelect';
 import PageLayout from '@/app/components/layout/PageLayout';
 import PageHeader from '@/app/components/layout/PageHeader';
 import ErrorState from '@/app/components/feedback/ErrorState';
@@ -34,7 +36,7 @@ export default function StudentProfileEditPage() {
     fullName: '',
     phone: '',
     department: '',
-    skills: '',
+    skills: [] as string[],
     interests: '',
     previousProjects: '',
     preferredTopics: '',
@@ -69,7 +71,7 @@ export default function StudentProfileEditPage() {
             fullName: data.fullName || '',
             phone: data.phone || '',
             department: data.department || '',
-            skills: data.skills || '',
+            skills: Array.isArray(data.skills) ? data.skills : (data.skills ? data.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s) : []),
             interests: data.interests || '',
             previousProjects: data.previousProjects || '',
             preferredTopics: data.preferredTopics || '',
@@ -123,6 +125,10 @@ export default function StudentProfileEditPage() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleSkillsChange = (selectedSkills: string[]) => {
+    setFormData(prev => ({ ...prev, skills: selectedSkills }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,6 +215,7 @@ export default function StudentProfileEditPage() {
         <StatusMessage
           message="Profile updated successfully! Redirecting..."
           type="success"
+          className="mb-6"
         />
       )}
 
@@ -217,6 +224,7 @@ export default function StudentProfileEditPage() {
         <StatusMessage
           message={saveError}
           type="error"
+          className="mb-6"
         />
       )}
 
@@ -245,15 +253,6 @@ export default function StudentProfileEditPage() {
             />
             
             <FormInput
-              label="Student ID"
-              name="studentId"
-              value={student.studentId}
-              onChange={() => {}}
-              disabled={true}
-              helperText="Student ID cannot be changed"
-            />
-            
-            <FormInput
               label="Phone"
               name="phone"
               type="tel"
@@ -275,16 +274,13 @@ export default function StudentProfileEditPage() {
 
           {/* Academic Information */}
           <FormCard title="Academic Information">
-            <FormTextArea
+            <FormMultiSelect
               label="Skills"
               name="skills"
               value={formData.skills}
-              onChange={handleInputChange}
-              rows={3}
-              maxLength={500}
-              showCharCount={true}
-              placeholder="e.g., Python, JavaScript, Machine Learning"
-              helperText="List your technical and professional skills"
+              onChange={handleSkillsChange}
+              options={SKILLS_OPTIONS}
+              helperText="Select all skills that apply"
             />
             
             <FormTextArea

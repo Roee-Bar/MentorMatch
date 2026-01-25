@@ -10,7 +10,7 @@ interface StatusMessageProps {
 }
 
 // Message box styles with dark mode support
-const messageBoxBase = 'mb-6 p-4 rounded-xl border';
+const messageBoxBase = 'p-4 rounded-xl border';
 const messageBoxStyles = {
   success: `${messageBoxBase} bg-green-50 border-green-200 dark:bg-green-900/30 dark:border-green-800`,
   error: `${messageBoxBase} bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800`,

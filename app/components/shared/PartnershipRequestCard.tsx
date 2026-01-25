@@ -42,7 +42,7 @@ export default function PartnershipRequestCard({
   
   const displayName = isIncoming ? request.requesterName : request.targetStudentName;
   const displayEmail = isIncoming ? request.requesterEmail : request.targetStudentEmail;
-  const displayStudentId = isIncoming ? request.requesterStudentId : '';
+  const displayStudentId = isIncoming ? request.requesterId : '';
   const displayDepartment = isIncoming ? request.requesterDepartment : request.targetDepartment;
 
   const formatDate = (date: Date) => {
