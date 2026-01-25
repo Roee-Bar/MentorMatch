@@ -20,7 +20,7 @@ import PageHeader from '@/app/components/layout/PageHeader';
 import SectionHeader from '@/app/components/layout/SectionHeader';
 import EmptyState from '@/app/components/feedback/EmptyState';
 import { SupervisorCardData, ApplicationSubmitData } from '@/types/database';
-import { btnPrimary, badgeWarning, linkAction } from '@/lib/styles/shared-styles';
+import { btnPrimary, badgeWarning, badgeInfo, linkAction } from '@/lib/styles/shared-styles';
 
 export default function StudentAuthenticated() {
   const router = useRouter();
@@ -78,6 +78,7 @@ export default function StudentAuthenticated() {
   // Extract data from hooks (with defaults)
   const userProfile = dashboardData?.profile || null;
   const applications = dashboardData?.applications || [];
+  const partnerApplications = dashboardData?.partnerApplications || [];
   const supervisors = dashboardData?.supervisors || [];
   const availableStudents = partnershipData?.availableStudents || [];
   const incomingRequests = partnershipData?.incomingRequests || [];
@@ -396,6 +397,44 @@ export default function StudentAuthenticated() {
             </div>
           )}
         </div>
+
+        {/* Partner's Applications Section - Show if paired and partner has applications */}
+        {currentPartner && partnerApplications.length > 0 && (
+          <div className="mb-8">
+            <SectionHeader
+              title="Partner's Applications"
+              badge={<span className={badgeInfo}>{currentPartner.fullName}</span>}
+            />
+            <div className="grid-cards-3col">
+              {partnerApplications.map((application) => {
+                const dateAppliedStr = application.dateApplied instanceof Date
+                  ? application.dateApplied.toLocaleDateString()
+                  : (application.dateApplied as any)?.toDate?.()?.toLocaleDateString() || 'N/A';
+
+                return (
+                  <div key={application.id}>
+                    <ApplicationCard
+                      application={{
+                        id: application.id,
+                        projectTitle: application.projectTitle,
+                        projectDescription: application.projectDescription,
+                        supervisorName: application.supervisorName,
+                        dateApplied: dateAppliedStr,
+                        status: application.status,
+                        responseTime: application.responseTime || '5-7 business days',
+                        comments: application.supervisorFeedback,
+                        hasPartner: application.hasPartner,
+                        partnerName: application.partnerName,
+                        linkedApplicationId: application.linkedApplicationId,
+                        isLeadApplication: application.isLeadApplication,
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Available Supervisors Section */}
         <div className="mb-8">

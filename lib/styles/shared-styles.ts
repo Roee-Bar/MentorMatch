@@ -7,7 +7,7 @@ export const btnBase = 'px-4 py-2 text-sm font-medium rounded-xl focus:outline-n
 export const btnPrimary = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
 export const btnSecondary = `${btnBase} text-gray-600 border border-gray-200 hover:bg-gray-50 focus:ring-gray-500 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700`;
 export const btnDanger = `${btnBase} text-red-600 border border-red-200 hover:bg-red-50 focus:ring-red-500 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950`;
-export const btnSuccess = `${btnBase} bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
+export const btnSuccess = `${btnBase} bg-green-600 border border-gray-200 text-gray-600 hover:bg-green-700 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
 
 // ============= CARDS =============
 export const cardBase = 'bg-white p-6 rounded-xl shadow-lg border border-gray-200 dark:bg-slate-800 dark:border-slate-700';
@@ -52,7 +52,7 @@ export const linkEditAction = 'text-blue-600 hover:text-blue-900 dark:text-blue-
 
 // ============= BUTTON VARIANTS =============
 export const btnPrimaryFullWidth = `${btnPrimary} w-[calc(100%-2rem)] max-w-md mx-auto block`;
-export const btnWarning = `${btnBase} bg-orange-500 text-white hover:bg-orange-600 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
+export const btnWarning = `${btnBase} bg-orange-500 border border-gray-200 text-gray-600 hover:bg-orange-600 focus:ring-orange-500 disabled:bg-gray-400 disabled:cursor-not-allowed`;
 
 // ============= CARD VARIANTS =============
 export const cardAuth = 'bg-white dark:bg-slate-800 p-12 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700';
