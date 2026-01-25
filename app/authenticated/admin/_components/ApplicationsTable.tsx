@@ -3,7 +3,6 @@
 import Table from '@/app/components/shared/Table';
 import type { Application, Student } from '@/types/database';
 import type { SortConfig } from '../_utils/dataProcessing';
-import { formatFirestoreDate } from '@/lib/utils/date';
 import { calculateDaysPending } from '../_utils/dataProcessing';
 import StatusBadge from '@/app/components/shared/StatusBadge';
 import { emptyStateContainer, sortableHeaderButton } from '@/lib/styles/shared-styles';
@@ -57,7 +56,7 @@ export default function ApplicationsTable({
               onClick={() => onSort('studentName')}
               className={sortableHeaderButton}
             >
-              Student {getSortIcon('studentName')}
+              Student(s) {getSortIcon('studentName')}
             </button>
           </Table.HeaderCell>
           <Table.HeaderCell>
@@ -76,9 +75,6 @@ export default function ApplicationsTable({
               Days Pending
             </Table.HeaderCell>
           )}
-          <Table.HeaderCell>
-            Submitted
-          </Table.HeaderCell>
         </tr>
       </Table.Header>
       <Table.Body>
@@ -92,7 +88,16 @@ export default function ApplicationsTable({
               <Table.Cell className="font-medium" truncate>
                 {application.projectTitle}
               </Table.Cell>
-              <Table.Cell truncate>{application.studentName}</Table.Cell>
+              <Table.Cell truncate>
+                {application.hasPartner && application.partnerName ? (
+                  <div className="flex flex-col">
+                    <span>{application.studentName}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{application.partnerName}</span>
+                  </div>
+                ) : (
+                  application.studentName
+                )}
+              </Table.Cell>
               <Table.Cell truncate>{application.supervisorName}</Table.Cell>
               <Table.Cell>
                 <div className="flex justify-center">
@@ -108,7 +113,6 @@ export default function ApplicationsTable({
                   </div>
                 </Table.Cell>
               )}
-              <Table.Cell>{formatFirestoreDate(application.dateApplied)}</Table.Cell>
             </Table.Row>
           );
         })}

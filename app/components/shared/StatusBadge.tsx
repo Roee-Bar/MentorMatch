@@ -52,6 +52,7 @@ export default function StatusBadge({
     approved: { style: badgeStyles.success, label: 'Approved' },
     rejected: { style: badgeStyles.danger, label: 'Rejected' },
     revision_requested: { style: badgeStyles.orange, label: 'Revision Requested' },
+    withdrawn: { style: badgeStyles.gray, label: 'Withdrawn' },
   };
 
   // Availability status mappings

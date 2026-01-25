@@ -97,12 +97,54 @@ export const ApplicationWorkflowService = {
               updatedAt: new Date()
             });
 
+            // Update student's matchStatus to 'matched'
+            const studentRef = adminDb.collection('students').doc(application.studentId);
+            transaction.update(studentRef, {
+              matchStatus: 'matched',
+              assignedSupervisorId: application.supervisorId,
+              updatedAt: new Date()
+            });
+
+            // If student has a partner, update partner's matchStatus too
+            if (application.hasPartner && application.linkedApplicationId) {
+              const linkedApp = await ApplicationService.getApplicationById(application.linkedApplicationId);
+              if (linkedApp) {
+                const partnerRef = adminDb.collection('students').doc(linkedApp.studentId);
+                transaction.update(partnerRef, {
+                  matchStatus: 'matched',
+                  assignedSupervisorId: application.supervisorId,
+                  updatedAt: new Date()
+                });
+              }
+            }
+
           } else if (isUnapproving) {
             const newCapacity = Math.max(0, currentCapacity - 1);
             transaction.update(supervisorRef, {
               currentCapacity: newCapacity,
               updatedAt: new Date()
             });
+
+            // Update student's matchStatus back to 'unmatched'
+            const studentRef = adminDb.collection('students').doc(application.studentId);
+            transaction.update(studentRef, {
+              matchStatus: 'unmatched',
+              assignedSupervisorId: null,
+              updatedAt: new Date()
+            });
+
+            // If student has a partner, update partner's matchStatus too
+            if (application.hasPartner && application.linkedApplicationId) {
+              const linkedApp = await ApplicationService.getApplicationById(application.linkedApplicationId);
+              if (linkedApp) {
+                const partnerRef = adminDb.collection('students').doc(linkedApp.studentId);
+                transaction.update(partnerRef, {
+                  matchStatus: 'unmatched',
+                  assignedSupervisorId: null,
+                  updatedAt: new Date()
+                });
+              }
+            }
           }
 
           // Update application status
@@ -122,6 +164,32 @@ export const ApplicationWorkflowService = {
 
           transaction.update(applicationRef, updateData);
         });
+
+        // ============================================
+        // AFTER APPROVAL: Withdraw all other pending applications
+        // ============================================
+        // This runs AFTER the transaction succeeds to ensure the approval
+        // is committed before we clean up other applications.
+        // We do this outside the transaction because:
+        // 1. It's a cleanup operation that shouldn't block approval
+        // 2. It may involve many documents which could cause transaction limits
+        if (isApproving) {
+          // Get partner ID if this is a paired application
+          let partnerId: string | undefined;
+          if (application.hasPartner && application.linkedApplicationId) {
+            const linkedApp = await ApplicationService.getApplicationById(application.linkedApplicationId);
+            if (linkedApp) {
+              partnerId = linkedApp.studentId;
+            }
+          }
+
+          // Withdraw all other pending applications for this student (and partner)
+          await this.withdrawOtherPendingApplications(
+            applicationId,
+            application.studentId,
+            partnerId
+          );
+        }
 
       } else {
         // No capacity change needed - update normally
@@ -329,6 +397,114 @@ export const ApplicationWorkflowService = {
       return {
         linkedApplicationId: undefined,
         isLeadApplication: true
+      };
+    }
+  },
+
+  /**
+   * Withdraw all other pending applications for a student (and their partner)
+   * Called when an application is approved to clean up other pending applications.
+   *
+   * This prevents:
+   * - Supervisors wasting time reviewing applications from already-matched students
+   * - Students being approved by multiple supervisors
+   * - Confusion in the system with orphaned pending applications
+   *
+   * @param approvedApplicationId - The application that was just approved (to exclude from withdrawal)
+   * @param studentId - The student whose other applications should be withdrawn
+   * @param partnerId - Optional partner's ID to also withdraw their applications
+   */
+  async withdrawOtherPendingApplications(
+    approvedApplicationId: string,
+    studentId: string,
+    partnerId?: string
+  ): Promise<{ withdrawnCount: number; withdrawnApplicationIds: string[] }> {
+    const withdrawnApplicationIds: string[] = [];
+
+    try {
+      // ============================================
+      // STEP 1: Find all pending applications for this student
+      // ============================================
+      // We look for applications with status 'pending' or 'revision_requested'
+      // because both represent applications that haven't been finalized yet
+      const studentPendingApps = await adminDb
+        .collection('applications')
+        .where('studentId', '==', studentId)
+        .where('status', 'in', ['pending', 'revision_requested'])
+        .get();
+
+      // ============================================
+      // STEP 2: Withdraw each pending application (except the approved one)
+      // ============================================
+      for (const appDoc of studentPendingApps.docs) {
+        // Skip the application that was just approved
+        if (appDoc.id === approvedApplicationId) {
+          continue;
+        }
+
+        // Update the application status to 'withdrawn'
+        // We use 'withdrawn' instead of deleting to maintain history
+        await adminDb.collection('applications').doc(appDoc.id).update({
+          status: 'withdrawn',
+          supervisorFeedback: 'Automatically withdrawn: Student was approved for another project.',
+          lastUpdated: new Date(),
+          responseDate: new Date()
+        });
+
+        withdrawnApplicationIds.push(appDoc.id);
+      }
+
+      // ============================================
+      // STEP 3: If student has a partner, withdraw partner's pending applications too
+      // ============================================
+      // Partners share the same project approval, so all their other
+      // pending applications should also be withdrawn
+      if (partnerId) {
+        const partnerPendingApps = await adminDb
+          .collection('applications')
+          .where('studentId', '==', partnerId)
+          .where('status', 'in', ['pending', 'revision_requested'])
+          .get();
+
+        for (const appDoc of partnerPendingApps.docs) {
+          // Skip if this is linked to the approved application (same project)
+          const appData = appDoc.data();
+          if (appData.linkedApplicationId === approvedApplicationId) {
+            continue;
+          }
+
+          await adminDb.collection('applications').doc(appDoc.id).update({
+            status: 'withdrawn',
+            supervisorFeedback: 'Automatically withdrawn: Partner was approved for another project.',
+            lastUpdated: new Date(),
+            responseDate: new Date()
+          });
+
+          withdrawnApplicationIds.push(appDoc.id);
+        }
+      }
+
+      logger.service.success(SERVICE_NAME, 'withdrawOtherPendingApplications', {
+        withdrawnCount: withdrawnApplicationIds.length,
+        studentId,
+        partnerId
+      });
+
+      return {
+        withdrawnCount: withdrawnApplicationIds.length,
+        withdrawnApplicationIds
+      };
+
+    } catch (error) {
+      logger.service.error(SERVICE_NAME, 'withdrawOtherPendingApplications', error, {
+        approvedApplicationId,
+        studentId,
+        partnerId
+      });
+      // Don't fail the approval if withdrawal fails - just log it
+      return {
+        withdrawnCount: withdrawnApplicationIds.length,
+        withdrawnApplicationIds
       };
     }
   },

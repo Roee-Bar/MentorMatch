@@ -66,6 +66,7 @@ export function useSupervisorApplicationActions({
         rejected: 'Application rejected.',
         revision_requested: 'Revision requested. The student will be notified.',
         pending: 'Application status updated.',
+        withdrawn: 'Application withdrawn.',
       };
       
       onSuccess?.(statusMessages[status] || 'Application status updated.');

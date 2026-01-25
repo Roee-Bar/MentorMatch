@@ -35,6 +35,30 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     return ApiResponse.notFound('Student or supervisor');
   }
 
+  // ============================================
+  // CHECK 1: Prevent matched students from applying
+  // ============================================
+  // If student already has an approved project (matchStatus === 'matched'),
+  // they should not be able to send new applications to other supervisors.
+  if (student.matchStatus === 'matched') {
+    return ApiResponse.error(
+      'You already have an approved project and cannot apply to other supervisors. If you need to change your project, please contact an administrator.',
+      400
+    );
+  }
+
+  // Also check partner's status if student has a partner
+  // Both partners should be blocked if either one is already matched
+  if (student.partnerId) {
+    const partner = await StudentService.getStudentById(student.partnerId);
+    if (partner?.matchStatus === 'matched') {
+      return ApiResponse.error(
+        'Your partner already has an approved project. You cannot apply to other supervisors as a pair.',
+        400
+      );
+    }
+  }
+
   // Check for duplicate applications (using workflow service)
   const duplicateCheck = await ApplicationWorkflowService.checkDuplicateApplication(
     user.uid,
