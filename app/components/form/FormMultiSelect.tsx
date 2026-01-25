@@ -73,7 +73,7 @@ const FormMultiSelect: React.FC<FormMultiSelectProps> = ({
                 type="checkbox"
                 checked={value.includes(option.value)}
                 onChange={() => handleToggle(option.value)}
-                disabled={disabled || (maxSelections && value.length >= maxSelections && !value.includes(option.value))}
+                disabled={disabled || Boolean(maxSelections && value.length >= maxSelections && !value.includes(option.value))}
                 className="mr-2 h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:checked:bg-blue-600 dark:focus:ring-blue-400"
               />
               <span className="text-sm text-gray-700 dark:text-slate-200">{option.label}</span>

@@ -71,7 +71,7 @@ export default function StudentProfileEditPage() {
             fullName: data.fullName || '',
             phone: data.phone || '',
             department: data.department || '',
-            skills: Array.isArray(data.skills) ? data.skills : (data.skills ? data.skills.split(',').map(s => s.trim()).filter(s => s) : []),
+            skills: Array.isArray(data.skills) ? data.skills : (data.skills ? data.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s) : []),
             interests: data.interests || '',
             previousProjects: data.previousProjects || '',
             preferredTopics: data.preferredTopics || '',

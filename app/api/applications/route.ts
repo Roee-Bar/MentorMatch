@@ -87,7 +87,7 @@ export const POST = withAuth<Record<string, string>>(async (request: NextRequest
     proposedTopicId: validation.data.proposedTopicId ?? undefined,
     isOwnTopic: true,
     // Student Information
-    studentSkills: student.skills || '',
+    studentSkills: Array.isArray(student.skills) ? student.skills.join(', ') : (student.skills || ''),
     studentInterests: student.interests || '',
     // Partner Information
     hasPartner: partnerInfo.hasPartner,

@@ -78,7 +78,7 @@ export const SKILLS_OPTIONS = [
   { value: 'Blockchain', label: 'Blockchain' },
   { value: 'Game Development', label: 'Game Development' },
   { value: 'AR/VR', label: 'AR/VR' },
-] as const;
+];
 
 /**
  * Type for department values

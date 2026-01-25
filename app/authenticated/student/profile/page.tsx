@@ -185,7 +185,7 @@ export default function StudentProfilePage() {
                     <label className={`text-sm font-medium ${textSecondary}`}>Skills</label>
                     {Array.isArray(student.skills) ? (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {student.skills.map((skill, index) => (
+                        {student.skills.map((skill: string, index: number) => (
                           <span key={index} className={tagBlue}>
                             {skill}
                           </span>
