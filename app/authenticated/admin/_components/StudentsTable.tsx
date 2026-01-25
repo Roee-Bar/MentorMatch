@@ -49,14 +49,6 @@ export default function StudentsTable({
           </Table.HeaderCell>
           <Table.HeaderCell>
             <button
-              onClick={() => onSort('studentId')}
-              className={sortableHeaderButton}
-            >
-              Student ID {getSortIcon('studentId')}
-            </button>
-          </Table.HeaderCell>
-          <Table.HeaderCell>
-            <button
               onClick={() => onSort('email')}
               className={sortableHeaderButton}
             >
@@ -93,7 +85,6 @@ export default function StudentsTable({
         {data.map((student) => (
           <Table.Row key={student.id}>
             <Table.Cell>{student.fullName}</Table.Cell>
-            <Table.Cell>{student.studentId}</Table.Cell>
             <Table.Cell>
               <a href={`mailto:${student.email}`} className={linkEmail}>
                 {student.email}

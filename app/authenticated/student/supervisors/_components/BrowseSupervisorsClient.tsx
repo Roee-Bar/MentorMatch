@@ -211,6 +211,7 @@ export default function BrowseSupervisorsClient() {
         <StatusMessage 
           message={error} 
           type="error"
+          className="mb-6"
         />
       )}
 
@@ -219,6 +220,7 @@ export default function BrowseSupervisorsClient() {
         <StatusMessage 
           message={successMessage} 
           type="success"
+          className="mb-6"
         />
       )}
 

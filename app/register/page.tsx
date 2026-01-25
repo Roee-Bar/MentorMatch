@@ -4,10 +4,11 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api/client'
-import { DEPARTMENTS } from '@/lib/constants'
+import { DEPARTMENTS, SKILLS_OPTIONS } from '@/lib/constants'
 import FormInput from '@/app/components/form/FormInput'
 import FormTextArea from '@/app/components/form/FormTextArea'
 import FormSelect from '@/app/components/form/FormSelect'
+import FormMultiSelect from '@/app/components/form/FormMultiSelect'
 import FormSection from '@/app/components/form/FormSection'
 import StatusMessage from '@/app/components/feedback/StatusMessage'
 import AuthLayout from '@/app/components/layout/AuthLayout'
@@ -27,11 +28,10 @@ export default function RegisterPage() {
     // Personal
     firstName: '',
     lastName: '',
-    studentId: '',
     phone: '',
     department: '',
     // Academic
-    skills: '',
+    skills: [] as string[],
     interests: '',
     previousProjects: '',
     preferredTopics: '',
@@ -51,6 +51,13 @@ export default function RegisterPage() {
     })
   }
 
+  const handleSkillsChange = (selectedSkills: string[]) => {
+    setFormData({
+      ...formData,
+      skills: selectedSkills
+    })
+  }
+
   const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -63,8 +70,15 @@ export default function RegisterPage() {
       return
     }
 
-    if (formData.password.length < 6) {
-      setMessage('Password must be at least 6 characters!')
+    if (formData.password.length < 8) {
+      setMessage('Password must be at least 8 characters!')
+      setLoading(false)
+      return
+    }
+
+    // Check password complexity
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      setMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number!')
       setLoading(false)
       return
     }
@@ -115,8 +129,9 @@ export default function RegisterPage() {
           value={formData.email}
           onChange={handleChange}
           required
-          placeholder="student@braude.ac.il"
-          helperText="Use your Braude email address"
+          placeholder="yourname@e.braude.ac.il"
+          helperText="Use your Braude email address (@e.braude.ac.il)"
+          pattern="^[a-zA-Z0-9._%+-]+@e\.braude\.ac\.il$"
           className="mb-5"
         />
 
@@ -128,8 +143,9 @@ export default function RegisterPage() {
             value={formData.password}
             onChange={handleChange}
             required
-            minLength={6}
-            placeholder="Minimum 6 characters"
+            minLength={8}
+            placeholder="Minimum 8 characters"
+            helperText="Must contain uppercase, lowercase, and number"
           />
           <FormInput
             label="Confirm Password"
@@ -138,7 +154,7 @@ export default function RegisterPage() {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
-            minLength={6}
+            minLength={8}
             placeholder="Re-enter password"
           />
         </div>
@@ -169,15 +185,6 @@ export default function RegisterPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
           <FormInput
-            label="Student ID"
-            type="text"
-            name="studentId"
-            value={formData.studentId}
-            onChange={handleChange}
-            required
-            placeholder="e.g., 312345678"
-          />
-          <FormInput
             label="Phone Number"
             type="tel"
             name="phone"
@@ -186,31 +193,28 @@ export default function RegisterPage() {
             required
             placeholder="050-1234567"
           />
+          <FormSelect
+            label="Department"
+            name="department"
+            value={formData.department}
+            onChange={handleChange}
+            required
+            placeholder="Select Department"
+            options={[...DEPARTMENTS]}
+          />
         </div>
-
-        <FormSelect
-          label="Department"
-          name="department"
-          value={formData.department}
-          onChange={handleChange}
-          required
-          placeholder="Select Department"
-          options={[...DEPARTMENTS]}
-          className="mb-5"
-        />
 
         {/* Academic Information Section */}
         <FormSection title="Academic Information" />
 
-        <FormInput
+        <FormMultiSelect
           label="Technical Skills"
-          type="text"
           name="skills"
           value={formData.skills}
-          onChange={handleChange}
+          onChange={handleSkillsChange}
+          options={SKILLS_OPTIONS}
           required
-          placeholder="e.g., React, Python, Machine Learning, SQL"
-          helperText="Separate skills with commas"
+          helperText="Select all skills that apply (you can choose multiple)"
           className="mb-5"
         />
 
@@ -249,7 +253,7 @@ export default function RegisterPage() {
         <button
           type="submit"
           disabled={loading}
-          className={`${btnPrimaryFullWidth} py-4`}
+          className={`${btnPrimaryFullWidth} py-4 mt-6`}
         >
           {loading ? 'Creating Account...' : 'Complete Registration'}
         </button>
@@ -259,6 +263,7 @@ export default function RegisterPage() {
           <StatusMessage
             message={message}
             type={message.includes('successful') ? 'success' : 'error'}
+            className="mt-6"
           />
         )}
       </form>

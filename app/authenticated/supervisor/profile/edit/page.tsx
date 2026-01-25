@@ -230,6 +230,7 @@ export default function SupervisorProfileEditPage() {
         <StatusMessage
           message="Profile updated successfully! Redirecting..."
           type="success"
+          className="mb-6"
         />
       )}
 
@@ -238,6 +239,7 @@ export default function SupervisorProfileEditPage() {
         <StatusMessage
           message={saveError}
           type="error"
+          className="mb-6"
         />
       )}
 

@@ -53,8 +53,10 @@ export default function StudentCard({
     }
   };
 
-  // Parse skills and interests
-  const skillsArray = student.skills ? student.skills.split(',').map(s => s.trim()).filter(s => s) : [];
+  // Parse skills and interests - support both array and string formats during migration
+  const skillsArray = Array.isArray(student.skills) 
+    ? student.skills 
+    : (student.skills ? student.skills.split(',').map(s => s.trim()).filter(s => s) : []);
   const interestsArray = student.interests ? student.interests.split(',').map(i => i.trim()).filter(i => i) : [];
 
   return (

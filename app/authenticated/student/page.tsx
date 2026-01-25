@@ -188,6 +188,7 @@ export default function StudentAuthenticated() {
         <StatusMessage 
           message={fetchError} 
           type="error"
+          className="mb-6"
         />
       )}
 
@@ -196,6 +197,7 @@ export default function StudentAuthenticated() {
         <StatusMessage 
           message={error} 
           type="error"
+          className="mb-6"
         />
       )}
 
@@ -204,6 +206,7 @@ export default function StudentAuthenticated() {
         <StatusMessage 
           message={successMessage} 
           type="success"
+          className="mb-6"
         />
       )}
 

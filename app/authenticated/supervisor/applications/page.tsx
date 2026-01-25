@@ -82,12 +82,12 @@ export default function SupervisorApplicationsPage() {
     <PageLayout>
       {/* Success Message */}
       {successMessage && (
-        <StatusMessage message={successMessage} type="success" />
+        <StatusMessage message={successMessage} type="success" className="mb-6" />
       )}
 
       {/* Error Message */}
       {errorMessage && (
-        <StatusMessage message={errorMessage} type="error" />
+        <StatusMessage message={errorMessage} type="error" className="mb-6" />
       )}
 
       {/* Header */}

@@ -69,6 +69,7 @@ export default function AdminAuthenticated() {
           <StatusMessage 
             message={successMessage} 
             type="success"
+            className="mb-6"
           />
         )}
 
@@ -77,6 +78,7 @@ export default function AdminAuthenticated() {
           <StatusMessage 
             message={capacityError} 
             type="error"
+            className="mb-6"
           />
         )}
 

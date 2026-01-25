@@ -24,7 +24,6 @@ export type UserRole = 'student' | 'supervisor' | 'admin';
 // Session/Auth user type - extends database BaseUser with session-specific fields
 export interface User extends Omit<BaseUser, 'createdAt' | 'updatedAt'> {
   // Optional role-specific preview fields for UI
-  studentId?: string;
   degree?: string;
   expertise?: string[];
 }
@@ -40,12 +39,11 @@ export interface Student {
   lastName: string;
   fullName: string;
   email: string;
-  studentId: string;
   phone: string;
   department: string;
   
   // Academic Information
-  skills: string; // Comma-separated skills
+  skills: string[]; // Array of skill strings
   interests: string;
   previousProjects?: string;
   preferredTopics?: string;
@@ -306,7 +304,6 @@ export interface StudentPartnershipRequest {
   requesterId: string;
   requesterName: string;
   requesterEmail: string;
-  requesterStudentId: string;
   requesterDepartment: string;
   targetStudentId: string;
   targetStudentName: string;
@@ -321,10 +318,9 @@ export interface StudentPartnershipRequest {
 export interface StudentCardData {
   id: string;
   fullName: string;
-  studentId: string;
   department: string;
   email: string;
-  skills: string;
+  skills: string | string[]; // Support both formats during migration
   interests: string;
   preferredTopics?: string;
   previousProjects?: string;
@@ -363,10 +359,9 @@ export interface RegistrationData {
   confirmPassword: string;
   firstName: string;
   lastName: string;
-  studentId: string;
   phone: string;
   department: string;
-  skills?: string;
+  skills: string[]; // Array of skill strings
   interests?: string;
   previousProjects?: string;
   preferredTopics?: string;
