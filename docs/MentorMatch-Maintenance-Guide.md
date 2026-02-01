@@ -83,20 +83,34 @@ firebase emulators:start
 Reference the deployment diagram in Section 2.3 of the main project book for visual architecture overview.
 
 ### High-Level Architecture
-```
-Client (Browser)
-    ↓
-Next.js App Router (Frontend)
-    ↓
-Next.js API Routes (Backend)
-    ↓
-Middleware Pipeline (Auth → Authorization → Validation → Error Handling)
-    ↓
-Service Layer (Business Logic)
-    ↓
-Firebase Admin SDK
-    ↓
-Firestore (Database) & Firebase Auth
+
+```mermaid
+graph TD
+    A[Client Browser] -->|HTTP Requests| B[Next.js App Router<br/>Frontend]
+    B -->|User Actions| C[Next.js API Routes<br/>Backend]
+    C --> D[Middleware Pipeline]
+    D -->|1. Auth| E[Authentication]
+    D -->|2. Authorization| F[Role Check]
+    D -->|3. Validation| G[Zod Schemas]
+    D -->|4. Error Handling| H[Error Handler]
+    E & F & G & H --> I[Service Layer<br/>Business Logic]
+    I --> J[Firebase Admin SDK]
+    J --> K[(Firestore Database)]
+    J --> L[Firebase Auth]
+    K -->|Data| I
+    L -->|User Info| I
+    I -->|Response| C
+    C -->|JSON| B
+    B -->|UI Update| A
+    
+    style A fill:#e1f5ff
+    style B fill:#fff3e0
+    style C fill:#fff3e0
+    style D fill:#f3e5f5
+    style I fill:#e8f5e9
+    style J fill:#fce4ec
+    style K fill:#ffebee
+    style L fill:#ffebee
 ```
 
 ### Project Structure
@@ -237,34 +251,17 @@ All API routes are located in `app/api/` and follow Next.js 14 App Router conven
 
 All API routes pass through this middleware pipeline (in order):
 
-1. **Authentication** (`lib/middleware/auth.ts`)
-   - Verifies Firebase authentication token
-   - Extracts user ID from token
-   - Attaches user to request context
-
-2. **Authorization** (`lib/middleware/authorization.ts`)
-   - Checks if user has required role for the endpoint
-   - Implements role-based access control (RBAC)
-   - Returns 403 if unauthorized
-
-3. **Validation** (`lib/middleware/validation.ts`)
-   - Validates request body/query using Zod schemas
-   - Returns 400 with validation errors if invalid
-   - Type-safe request handling
-
-4. **Error Handling** (`lib/middleware/errorHandler.ts`)
-   - Catches all errors from route handlers
-   - Formats errors using `ApiResponse` helpers
-   - Logs errors using centralized logger
-   - Returns consistent error responses
+1. **Authentication** (`lib/middleware/auth.ts`) - Verifies Firebase token, extracts user ID
+2. **Authorization** (`lib/middleware/authorization.ts`) - Checks role permissions (RBAC), returns 403 if unauthorized
+3. **Validation** (`lib/middleware/validation.ts`) - Validates request with Zod schemas, returns 400 if invalid
+4. **Error Handling** (`lib/middleware/errorHandler.ts`) - Catches errors, formats with `ApiResponse`, logs via centralized logger
 
 ### Service Layer
 
-Business logic is separated into service modules in `lib/services/`:
-- **Purpose:** Keep API routes thin, logic in services
-- **Pattern:** Each entity (students, supervisors, applications) has its own service module
-- **Testing:** Services can be unit tested independently
-- **Reusability:** Services can be called from multiple API routes
+Business logic separated into service modules in `lib/services/`:
+- **Purpose:** Keep API routes thin, business logic in services
+- **Pattern:** Each entity (students, supervisors, applications) has own service module
+- **Benefits:** Unit testable independently, reusable across multiple API routes
 
 ---
 
@@ -289,19 +286,14 @@ Protected routes are wrapped in `app/authenticated/layout.tsx`:
 ### Component Organization
 
 Components follow a hierarchical structure:
-- **Pages:** Top-level route components in `app/`
-- **Layout Components:** Shared layouts in `app/components/layout/`
-- **Display Components:** Data display in `app/components/display/`
-- **Form Components:** Input components in `app/components/form/`
-- **Feedback Components:** Loading/error states in `app/components/feedback/`
-- **Shared Components:** Reusable utilities in `app/components/shared/`
+- **Pages:** Top-level routes in `app/` | **Layout:** Shared layouts in `app/components/layout/`
+- **Display:** Data display in `app/components/display/` | **Form:** Input components in `app/components/form/`
+- **Feedback:** Loading/error states in `app/components/feedback/` | **Shared:** Reusable utilities in `app/components/shared/`
 
 ### State Management
 
-- **Server State:** Fetched via API routes, cached by Next.js
-- **Client State:** React hooks (`useState`, `useReducer`)
-- **Custom Hooks:** Located in `lib/hooks/` for reusable logic
-- **Authentication State:** Managed by Firebase Auth + custom `useAuth` hook
+- **Server State:** Fetched via API, cached by Next.js | **Client State:** React hooks (`useState`, `useReducer`)
+- **Custom Hooks:** In `lib/hooks/` for reusable logic | **Auth State:** Firebase Auth + `useAuth` hook
 
 ### Error Handling Pattern
 
@@ -345,12 +337,61 @@ return { success: true, data };
 
 ### Data Relationships
 
-```
-users (uid) ─┬─→ students (uid) ───→ applications (studentId) ───→ partnerships (studentId)
-             │                              ↓                              ↓
-             └─→ supervisors (uid) ───→ projects (supervisorId)    supervisors (supervisorId)
-                                             ↓
-                                      applications (projectId)
+```mermaid
+erDiagram
+    users ||--o| students : "has profile"
+    users ||--o| supervisors : "has profile"
+    students ||--o{ applications : "submits"
+    supervisors ||--o{ applications : "receives"
+    supervisors ||--o{ projects : "creates"
+    projects ||--o{ applications : "for"
+    students ||--o| partnerships : "participates"
+    supervisors ||--o{ partnerships : "supervises"
+    applications ||--o| partnerships : "leads to"
+    
+    users {
+        string uid PK
+        string email
+        string role
+        string displayName
+        boolean emailVerified
+    }
+    students {
+        string studentId PK
+        string uid FK
+        array skills
+        array interests
+        int currentPartnerships
+    }
+    supervisors {
+        string supervisorId PK
+        string uid FK
+        array expertise
+        array researchAreas
+        int maxStudents
+        int availableSlots
+    }
+    projects {
+        string projectId PK
+        string supervisorId FK
+        string title
+        string description
+        boolean isActive
+    }
+    applications {
+        string applicationId PK
+        string studentId FK
+        string supervisorId FK
+        string projectId FK
+        string status
+    }
+    partnerships {
+        string partnershipId PK
+        string studentId FK
+        string supervisorId FK
+        string projectId FK
+        string status
+    }
 ```
 
 **Relationship Details:**
@@ -676,15 +717,16 @@ MentorMatch implements three user roles with distinct permissions:
 
 Applications follow this state machine:
 
-```
-       submit
-    ┌─────────┐
-    │         ↓
-pending ──────→ approved ──────→ matched
-    │              │
-    │withdraw      │reject
-    ↓              ↓
-withdrawn      rejected
+```mermaid
+stateDiagram-v2
+    [*] --> pending: Student submits
+    pending --> approved: Supervisor approves
+    pending --> withdrawn: Student withdraws
+    approved --> matched: Partnership formed
+    approved --> rejected: Supervisor rejects
+    withdrawn --> [*]: Terminal
+    rejected --> [*]: Terminal
+    matched --> [*]: Terminal
 ```
 
 **States:** `pending` (awaiting review), `approved` (awaiting partnership), `rejected` (terminal), `withdrawn` (terminal), `matched` (terminal)
@@ -733,13 +775,11 @@ Located at `/authenticated/admin`:
 
 ## Additional Resources
 
-- **Email Verification Setup:** `docs/EMAIL_VERIFICATION_SETUP.md`
-- **Email Verification Testing:** `docs/EMAIL_VERIFICATION_TESTING.md`
-- **Repository:** [GitHub URL]
-- **Firebase Console:** [Firebase Project URL]
-- **Production Deployment:** [Vercel URL]
+- **Repository:** https://github.com/Roee-Bar/MentorMatch
+- **Firebase Console:** https://console.firebase.google.com/u/0/project/mentormatch-ba0d1/overview
+- **Production Deployment:** https://vercel.com/rbeg/mentor-match
 
 ---
 
 **Last Updated:** February 2026  
-**Maintainers:** [Your Names]
+**Maintainers:** Roee Bar & Eldar Gafarov
