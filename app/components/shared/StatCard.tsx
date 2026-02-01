@@ -38,21 +38,15 @@ export default function StatCard({
         }
       } : undefined}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-center gap-2 mb-2">
         <h3 className={`text-sm font-semibold ${textMuted}`}>{title}</h3>
-        <div className="flex items-center gap-2">
-          {isLoading && (
-            <div className={spinnerSmall}></div>
-          )}
-          {icon && <div className={iconMuted}>{icon}</div>}
-        </div>
+        {isLoading && <div className={spinnerSmall}></div>}
+        {icon && <div className={iconMuted}>{icon}</div>}
       </div>
-      <div className="relative flex-1">
-        <p className={`text-3xl font-bold ${textColorMap[color]} ${isLoading && 'opacity-60'}`}>
-          {value}
-        </p>
-      </div>
-      <p className={`text-xs mt-1 ${textMuted} line-clamp-2`}>{description}</p>
+      <p className={`text-3xl font-bold text-center ${textColorMap[color]} ${isLoading && 'opacity-60'}`}>
+        {value}
+      </p>
+      <p className={`text-xs mt-1 text-center ${textMuted} line-clamp-2`}>{description}</p>
     </div>
   );
 }
