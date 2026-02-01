@@ -16,21 +16,7 @@
     "test:remove-partnerships": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-test-partnerships.ts",
     "migrate:grandfather-users": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/grandfather-existing-users.ts",
     "migrate:skills-array": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/migrate-skills-to-array.ts",
-    "migrate:remove-studentid": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-studentid-migration.ts",
-    "audit:non-braude": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/audit-non-braude-users.ts",
-    "delete:non-braude-dryrun": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/delete-non-braude-users.ts --dry-run",
-    "delete:non-braude": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/delete-non-braude-users.ts",
-    "import:csv-dryrun": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/import-csv-data.ts --dry-run",
-    "import:csv": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/import-csv-data.ts",
-    "delete:specific-users": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/delete-specific-users.ts",
-    "reset:passwords-dryrun": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/reset-all-passwords.ts --dry-run",
-    "reset:passwords": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/reset-all-passwords.ts",
-    "populate:student-data-dryrun": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/populate-student-data.ts --dry-run",
-    "populate:student-data": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/populate-student-data.ts",
-    "generate:applications-dryrun": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/generate-applications-from-projects.ts --dry-run",
-    "generate:applications": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/generate-applications-from-projects.ts",
-    "create:test-supervisor": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/create-test-supervisor.ts",
-    "verify:test-supervisor": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/verify-test-supervisor.ts"
+    "migrate:remove-studentid": "npx ts-node --project scripts/tsconfig.json -r tsconfig-paths/register scripts/remove-studentid-migration.ts"
   },
   "dependencies": {
     "firebase": "^12.6.0",
