@@ -1,9 +1,14 @@
 // app/components/shared/StudentCard.tsx
 // Component for displaying student information for partnership matching
 
+'use client';
+
+import { useState } from 'react';
 import type { StudentCardData } from '@/types/database';
 import StatusBadge from './StatusBadge';
-import { 
+import {
+  modalBackdrop,
+  modalContentMd,
   cardHover, 
   btnPrimary, 
   btnDanger, 
@@ -47,7 +52,14 @@ export default function StudentCard({
     }
   };
 
+  const [showUnpairConfirm, setShowUnpairConfirm] = useState(false);
+
   const handleUnpair = () => {
+    setShowUnpairConfirm(true);
+  };
+
+  const confirmUnpair = () => {
+    setShowUnpairConfirm(false);
     if (onUnpair) {
       onUnpair();
     }
@@ -190,6 +202,34 @@ export default function StudentCard({
         <div className={cardActionsSection}>
           <div className={`text-center text-sm ${textMuted}`}>
             Already paired with another student
+          </div>
+        </div>
+      )}
+
+      {/* Unpair Confirmation Modal */}
+      {showUnpairConfirm && (
+        <div className={modalBackdrop} onClick={() => setShowUnpairConfirm(false)}>
+          <div className={`${modalContentMd} p-6`} onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Unpair from {student.fullName}?
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to unpair? This action will remove the partnership between you and {student.fullName}. You will both need to find a new partner.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowUnpairConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmUnpair}
+                className={btnDanger}
+              >
+                Yes, Unpair
+              </button>
+            </div>
           </div>
         </div>
       )}

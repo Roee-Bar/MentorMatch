@@ -37,14 +37,22 @@ export function useStudentDashboard(userId: string | null) {
 
       const profile = profileResponse.data;
 
-      // If student has a partner, fetch partner's applications
+      // If student has a partner, fetch partner's profile and applications
       let partnerApplications: Application[] = [];
       if (profile?.partnerId) {
         try {
-          const partnerAppsResponse = await apiClient.getStudentApplications(profile.partnerId, token);
+          const [partnerAppsResponse, partnerProfileResponse] = await Promise.all([
+            apiClient.getStudentApplications(profile.partnerId, token),
+            apiClient.getStudentById(profile.partnerId, token),
+          ]);
           partnerApplications = partnerAppsResponse.data || [];
+          // Populate partnerName from partner's profile if not already set
+          if (!profile.partnerName && partnerProfileResponse.data) {
+            profile.partnerName = partnerProfileResponse.data.fullName ||
+              `${partnerProfileResponse.data.firstName} ${partnerProfileResponse.data.lastName}`.trim();
+          }
         } catch {
-          // Silently handle error - partner applications are optional
+          // Silently handle error - partner data is optional
         }
       }
 

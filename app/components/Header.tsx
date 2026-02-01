@@ -128,7 +128,7 @@ export default function Header() {
           <div className="hidden lg:block relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex gap-3 bg-white/10 hover:bg-white/20 rounded-full py-2 px-4 transition-colors cursor-pointer border-none"
+              className="flex items-center gap-3 bg-white/10 hover:bg-white/20 rounded-full py-2 px-4 transition-colors cursor-pointer border-none"
               aria-label="User menu"
               aria-expanded={showDropdown}
               aria-haspopup="true"
